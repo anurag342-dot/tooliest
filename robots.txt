@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /tmp/
+
+Sitemap: https://tooliest.com/sitemap.xml
