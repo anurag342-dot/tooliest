@@ -45,4 +45,8 @@
     <priority>0.5</priority>
   </url>
 
+  <!-- Note: Tool pages use hash routing (#/tool/audio-converter etc.)
+       and are crawled dynamically from the homepage. -->
+
 </urlset>
+

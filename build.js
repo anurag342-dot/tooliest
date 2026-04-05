@@ -10,6 +10,7 @@ const filesToBundle = [
   'js/renderers3.js',
   'js/renderers4.js',
   'js/renderers5.js',
+  'js/renderers6.js',
   'js/ai.js'
 ];
 

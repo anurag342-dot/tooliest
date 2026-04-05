@@ -281,13 +281,15 @@ const App = {
   getToolCardHTML(tool) {
     const isFav = this.favorites.includes(tool.id);
     return `<div class="tool-card animate-in" data-tool-id="${tool.id}">
-      ${tool.isAI ? '<div class="ai-badge">✨ AI</div>' : ''}
       <button class="fav-btn${isFav ? ' active' : ''}" aria-label="Favorite tool">${isFav ? '⭐' : '☆'}</button>
       <div class="tool-card-header">
         <div class="tool-card-icon">${tool.icon}</div>
         <div class="tool-card-info">
           <h3>${tool.name}</h3>
-          <span class="tool-category-label">${TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || ''}</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="tool-category-label">${TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || ''}</span>
+            ${tool.isAI ? '<div class="ai-badge">✨ AI</div>' : ''}
+          </div>
         </div>
       </div>
       <p>${tool.description}</p>

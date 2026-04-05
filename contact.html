@@ -273,7 +273,7 @@
               <div class="contact-info-icon">📧</div>
               <div class="contact-info-text">
                 <strong>Email</strong>
-                <a href="mailto:tooliestinternet@gmail.com">tooliestinternet@gmail.com</a>
+                <span class="obf-email" data-p1="tooliestinternet" data-p2="gmail.com">[Email Protected]</span>
               </div>
             </div>
             <div class="contact-info-item">
@@ -406,6 +406,16 @@
       document.getElementById('nav-links')?.classList.toggle('mobile-open');
     });
 
+    // De-obfuscate emails
+    document.querySelectorAll('.obf-email').forEach(el => {
+      const p1 = el.getAttribute('data-p1');
+      const p2 = el.getAttribute('data-p2');
+      if (p1 && p2) {
+        const email = p1 + '@' + p2;
+        el.outerHTML = `<a href="mailto:${email}">${email}</a>`;
+      }
+    });
+
     // Contact form — sends via mailto as a fallback (client-side only)
     document.getElementById('contact-form').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -423,11 +433,15 @@
 
       const subject = document.getElementById('contact-subject').value || 'General Inquiry';
       const body = `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`;
-      const mailtoURL = `mailto:tooliestinternet@gmail.com?subject=${encodeURIComponent('Tooliest Contact: ' + subject)}&body=${encodeURIComponent(body)}`;
+      
+      // Use web Gmail link instead of mailto to force Gmail
+      const obf1 = 'tooliestinternet';
+      const obf2 = 'gmail.com';
+      const gmailURL = `https://mail.google.com/mail/?view=cm&fs=1&to=${obf1}@${obf2}&su=${encodeURIComponent('Tooliest Contact: ' + subject)}&body=${encodeURIComponent(body)}`;
 
-      submitBtn.textContent = 'Opening email client…';
+      submitBtn.textContent = 'Opening Gmail…';
       submitBtn.disabled = true;
-      window.location.href = mailtoURL;
+      window.open(gmailURL, '_blank');
 
       // Show success state after short delay
       setTimeout(() => {

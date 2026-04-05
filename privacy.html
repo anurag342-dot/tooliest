@@ -114,7 +114,7 @@
       </div>
 
       <h2>1. Who We Are</h2>
-      <p>Tooliest ("we," "our," or "us") operates the website <a href="https://tooliest.com">tooliest.com</a> — a free, browser-based platform offering 50+ online utility tools for developers, designers, writers, and everyday users. You can reach us at <a href="mailto:tooliestinternet@gmail.com">tooliestinternet@gmail.com</a>.</p>
+      <p>Tooliest ("we," "our," or "us") operates the website <a href="https://tooliest.com">tooliest.com</a> — a free, browser-based platform offering 50+ online utility tools for developers, designers, writers, and everyday users. You can reach us at <span class="obf-email" data-p1="tooliestinternet" data-p2="gmail.com">[Email Protected]</span>.</p>
 
       <h2>2. Information We Do NOT Collect</h2>
       <p>Because all of our tools run directly inside your browser (client-side), the following data is <strong>never sent to our servers</strong>:</p>
@@ -182,7 +182,7 @@
         <li>The right to opt out of personalized advertising</li>
         <li>The right to withdraw your cookie consent at any time</li>
       </ul>
-      <p>Since we collect very minimal personal data, most of these rights are already satisfied by design. For any questions, contact us at <a href="mailto:tooliestinternet@gmail.com">tooliestinternet@gmail.com</a>.</p>
+      <p>Since we collect very minimal personal data, most of these rights are already satisfied by design. For any questions, contact us at <span class="obf-email" data-p1="tooliestinternet" data-p2="gmail.com">[Email Protected]</span>.</p>
 
       <h2>8. Children's Privacy</h2>
       <p>Tooliest is not directed to children under the age of 13. We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us immediately so we can take appropriate action.</p>
@@ -196,7 +196,7 @@
       <h2>11. Contact Us</h2>
       <p>If you have any questions about this Privacy Policy, your data, or our practices, please don't hesitate to get in touch:</p>
       <ul>
-        <li>Email: <a href="mailto:tooliestinternet@gmail.com">tooliestinternet@gmail.com</a></li>
+        <li>Email: <span class="obf-email" data-p1="tooliestinternet" data-p2="gmail.com">[Email Protected]</span></li>
         <li>Website: <a href="https://tooliest.com">tooliest.com</a></li>
       </ul>
     </div>
@@ -242,6 +242,16 @@
     // Mobile menu
     document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
       document.getElementById('nav-links')?.classList.toggle('mobile-open');
+    });
+    
+    // De-obfuscate emails
+    document.querySelectorAll('.obf-email').forEach(el => {
+      const p1 = el.getAttribute('data-p1');
+      const p2 = el.getAttribute('data-p2');
+      if (p1 && p2) {
+        const email = p1 + '@' + p2;
+        el.outerHTML = `<a href="mailto:${email}">${email}</a>`;
+      }
     });
   </script>
 </body>

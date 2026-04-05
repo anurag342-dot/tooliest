@@ -158,12 +158,12 @@
       <p>Your use of the Service is also governed by our <a href="privacy.html">Privacy Policy</a>, which is incorporated into these Terms by reference. By using Tooliest, you consent to the data practices described in our Privacy Policy.</p>
 
       <h2>11. Governing Law</h2>
-      <p>These Terms shall be governed by and construed in accordance with applicable laws. Any dispute arising out of or related to these Terms or the use of the Service shall first be attempted to be resolved through good-faith communication at <a href="mailto:tooliestinternet@gmail.com">tooliestinternet@gmail.com</a>.</p>
+      <p>These Terms shall be governed by and construed in accordance with applicable laws. Any dispute arising out of or related to these Terms or the use of the Service shall first be attempted to be resolved through good-faith communication at <span class="obf-email" data-p1="tooliestinternet" data-p2="gmail.com">[Email Protected]</span>.</p>
 
       <h2>12. Contact</h2>
       <p>If you have any questions about these Terms, please contact us:</p>
       <ul>
-        <li>Email: <a href="mailto:tooliestinternet@gmail.com">tooliestinternet@gmail.com</a></li>
+        <li>Email: <span class="obf-email" data-p1="tooliestinternet" data-p2="gmail.com">[Email Protected]</span></li>
         <li>Contact form: <a href="contact.html">tooliest.com/contact.html</a></li>
       </ul>
     </div>
@@ -207,6 +207,16 @@
     });
     document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
       document.getElementById('nav-links')?.classList.toggle('mobile-open');
+    });
+
+    // De-obfuscate emails
+    document.querySelectorAll('.obf-email').forEach(el => {
+      const p1 = el.getAttribute('data-p1');
+      const p2 = el.getAttribute('data-p2');
+      if (p1 && p2) {
+        const email = p1 + '@' + p2;
+        el.outerHTML = `<a href="mailto:${email}">${email}</a>`;
+      }
     });
   </script>
 </body>
