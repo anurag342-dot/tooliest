@@ -61,7 +61,11 @@ self.addEventListener('fetch', (event) => {
         // If fetch fails (completely offline) and we don't have it in cache,
         // we can't do much, but since we aggressively inject all core logic locally,
         // this shouldn't normally happen for app shells.
-        console.warn('[Service Worker] Fetch failed, serving offline cache.');
+        console.warn('[Service Worker] Fetch failed, returning offline fallback.');
+        return new Response(
+          '<html><body><h1>Offline</h1><p>Please check your connection.</p></body></html>', 
+          { status: 503, headers: { 'Content-Type': 'text/html' } }
+        );
       });
 
       // Return cached version immediately if available, otherwise wait for network
