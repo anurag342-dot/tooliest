@@ -3,6 +3,7 @@
   "short_name": "Tooliest",
   "description": "80+ free online tools for developers, designers, writers, and marketers. AI-powered.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "theme_color": "#8b5cf6",
   "background_color": "#0a0a0f",
@@ -15,6 +16,12 @@
     },
     {
       "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

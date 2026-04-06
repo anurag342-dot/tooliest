@@ -11,9 +11,17 @@ while ($listener.IsListening) {
     $response = $context.Response
 
     $filePath = $request.Url.LocalPath
-    if ($filePath -eq '/') { $filePath = '/index.html' }
+    if ($filePath -eq '/') {
+        $filePath = '/index.html'
+    } elseif ($filePath.EndsWith('/')) {
+        $filePath = $filePath + 'index.html'
+    }
 
     $fullPath = Join-Path $root ($filePath.TrimStart('/'))
+
+    if ((Test-Path $fullPath -PathType Container) -and (Test-Path (Join-Path $fullPath 'index.html') -PathType Leaf)) {
+        $fullPath = Join-Path $fullPath 'index.html'
+    }
 
     if (Test-Path $fullPath -PathType Leaf) {
         $content = [System.IO.File]::ReadAllBytes($fullPath)

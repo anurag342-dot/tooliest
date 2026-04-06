@@ -10,7 +10,7 @@
   'use strict';
 
   const CONSENT_KEY = 'tooliest_cookie_consent';
-  const CONSENT_VERSION = '1';
+  const CONSENT_VERSION = '2';
 
   // --- Google Consent Mode v2: set defaults BEFORE any tags load ---
   window.dataLayer = window.dataLayer || [];
@@ -71,7 +71,9 @@
 
   function hideBanner() {
     const banner = document.getElementById('cookie-banner');
+    document.body.classList.remove('cookie-banner-open');
     if (banner) {
+      banner.classList.remove('banner-visible');
       banner.classList.add('banner-hidden');
       setTimeout(() => banner.remove(), 400);
     }
@@ -95,6 +97,7 @@
       const banner = document.getElementById('cookie-banner');
       if (!banner) return;
 
+      document.body.classList.add('cookie-banner-open');
       document.getElementById('cookie-accept-btn')?.addEventListener('click', handleAccept);
       document.getElementById('cookie-reject-btn')?.addEventListener('click', handleReject);
 

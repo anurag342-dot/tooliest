@@ -418,7 +418,7 @@ Object.assign(ToolRenderers.renderers, {
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => { img = new Image(); img.onload = () => { document.getElementById('icr-w').value = img.width; document.getElementById('icr-h').value = img.height; document.getElementById('icr-crop').classList.remove('hidden'); }; img.src = ev.target.result; };
+      reader.onload = (ev) => { img = new Image(); img.alt = 'Uploaded image for cropping'; img.onload = () => { document.getElementById('icr-w').value = img.width; document.getElementById('icr-h').value = img.height; document.getElementById('icr-crop').classList.remove('hidden'); }; img.src = ev.target.result; };
       reader.readAsDataURL(file);
     });
     document.getElementById('icr-crop').addEventListener('click', () => {
@@ -544,6 +544,7 @@ Object.assign(ToolRenderers.renderers, {
       const reader = new FileReader();
       reader.onload = (e) => {
         currentImg = new Image();
+        currentImg.alt = 'Uploaded image for conversion';
         currentImg.onload = () => {
           controls.classList.remove('hidden');
           stats.classList.remove('hidden');

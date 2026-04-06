@@ -1,6 +1,6 @@
 <div align="center">
   <h1>🛠️ Tooliest &mdash; The Ultimate Tool Suite</h1>
-  <p><strong>A privacy-first, zero-server suite of 50+ developer, financial, and AI productivity tools.</strong></p>
+  <p><strong>A privacy-first, zero-server suite of 80+ developer, financial, and AI productivity tools.</strong></p>
   
   [![PWA Ready](https://img.shields.io/badge/PWA-Ready-success?style=for-the-badge&logo=pwa)](https://tooliest.com)
   [![Zero Server](https://img.shields.io/badge/Zero_Server-100%25_Privacy-blue?style=for-the-badge)](https://tooliest.com)
@@ -20,7 +20,7 @@
 - **100% Client-Side Privacy:** No databases. No backend servers. Your files and data never leave your browser for math, privacy, and image tools.
 - **Progressive Web App (PWA):** Installs seamlessly on iOS, Android, macOS, and Windows. Functions completely offline natively thanks to our `Service Worker` engine.
 - **Glassmorphic Design System:** A stunning visual interface loaded with micro-animations, dynamic canvas rendering, and dynamic CSS fallbacks.
-- **Universal Search Engine:** Real-time semantic filtering across 50+ tools instantly.
+- **Universal Search Engine:** Real-time semantic filtering across 80+ tools instantly.
 
 ---
 
@@ -60,7 +60,7 @@ Simply drag-and-drop the local folder, or link your Git repository. The site wil
 
 ## 🛠️ Tech Stack 
 - **Core Strategy:** Vanilla JavaScript (ES11+), HTML5, CSS3
-- **Architectural Pattern:** Single Page Application (SPA) natively routed using the `window.location.hash` interface.
+- **Architectural Pattern:** History API SPA with build-time generated static tool pages for SEO-friendly routing.
 - **Offline Protocol:** Stale-While-Revalidate through native Service Worker (`sw.js`).
 - **Graphing Engine:** Bespoke minimal Canvas API implementations (No rigid D3 or Chart.js bloating).
 

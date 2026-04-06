@@ -19,9 +19,11 @@ const App = {
   deferredPrompt: null,
 
   init() {
+    this.normalizeLegacyHashRoute();
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
+        navigator.serviceWorker.register('/sw.js')
           .then(reg => console.log('[Service Worker] Registered', reg.scope))
           .catch(err => console.log('[Service Worker] Failed', err));
       });
@@ -37,7 +39,7 @@ const App = {
     this.initTheme();
     this.bindEvents();
     this.handleRoute();
-    window.addEventListener('hashchange', () => this.handleRoute());
+    window.addEventListener('popstate', () => this.handleRoute());
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       this.deferredPrompt = e;
@@ -79,6 +81,86 @@ const App = {
     });
   },
 
+  normalizeLegacyHashRoute() {
+    const legacyPath = this.pathFromLegacyHash(location.hash);
+    if (legacyPath) {
+      history.replaceState({}, '', legacyPath);
+    }
+  },
+
+  pathFromLegacyHash(hash) {
+    if (!hash || !hash.startsWith('#/')) return '';
+    return hash.replace(/^#/, '');
+  },
+
+  getRoute() {
+    const path = this.pathFromLegacyHash(location.hash) || location.pathname;
+    return this.parsePath(path);
+  },
+
+  parsePath(rawPath) {
+    const url = new URL(rawPath, window.location.origin);
+    let pathname = url.pathname.replace(/\/index\.html$/, '/');
+
+    if (pathname.length > 1 && pathname.endsWith('/')) {
+      pathname = pathname.slice(0, -1);
+    }
+
+    const parts = pathname.replace(/^\/+/, '').split('/').filter(Boolean);
+    if (parts.length === 0) return { view: 'home' };
+    if (parts[0] === 'tool' && parts[1]) return { view: 'tool', toolId: decodeURIComponent(parts[1]) };
+    if (parts[0] === 'category' && parts[1]) return { view: 'category', categoryId: decodeURIComponent(parts[1]) };
+    if (parts[0] === 'search' && parts[1]) return { view: 'search', query: decodeURIComponent(parts.slice(1).join('/')) };
+    return { view: 'home' };
+  },
+
+  getHomePath() {
+    return '/';
+  },
+
+  getCategoryPath(categoryId) {
+    return categoryId && categoryId !== 'all'
+      ? `/category/${encodeURIComponent(categoryId)}`
+      : this.getHomePath();
+  },
+
+  getToolPath(toolId) {
+    return `/tool/${encodeURIComponent(toolId)}/`;
+  },
+
+  getSearchPath(query) {
+    return `/search/${encodeURIComponent(query)}`;
+  },
+
+  getAbsoluteUrl(path) {
+    return new URL(path, window.location.origin).toString();
+  },
+
+  isAppPath(pathname) {
+    const normalized = pathname.replace(/\/index\.html$/, '/');
+    return normalized === '/' ||
+      normalized.startsWith('/tool/') ||
+      normalized.startsWith('/category/') ||
+      normalized.startsWith('/search/');
+  },
+
+  navigate(path, options = {}) {
+    const target = new URL(path, window.location.origin);
+    const nextPath = target.pathname + target.search + target.hash;
+    const method = options.replace ? 'replaceState' : 'pushState';
+
+    history[method]({}, '', nextPath);
+    this.handleRoute();
+  },
+
+  syncSearchInputs(value = '') {
+    const normalized = value || '';
+    const desktopSearch = document.getElementById('search-input');
+    const mobileSearch = document.getElementById('mobile-search-input');
+    if (desktopSearch) desktopSearch.value = normalized;
+    if (mobileSearch) mobileSearch.value = normalized;
+  },
+
   bindEvents() {
     // Search
     const searchInput = document.getElementById('search-input');
@@ -96,15 +178,37 @@ const App = {
         if (this.currentView === 'home') {
           this.renderToolsGrid();
         } else if (this.searchQuery === '') {
-          location.hash = '#/category/' + this.currentCategory;
+          this.navigate(this.getCategoryPath(this.currentCategory), { replace: true });
         }
       });
       searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && this.searchQuery) {
-          location.hash = '#/search/' + encodeURIComponent(this.searchQuery);
+          this.navigate(this.getSearchPath(this.searchQuery));
         }
       });
     }
+    // Intercept same-origin app links so tool/category navigation stays SPA-fast.
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a[href]');
+      if (!link) return;
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (link.target && link.target !== '_self') return;
+      if (link.hasAttribute('download')) return;
+
+      const href = link.getAttribute('href') || '';
+      if (href.startsWith('#/')) {
+        e.preventDefault();
+        this.navigate(this.pathFromLegacyHash(href));
+        return;
+      }
+
+      const url = new URL(link.href, window.location.origin);
+      if (url.origin !== window.location.origin || !this.isAppPath(url.pathname)) return;
+
+      e.preventDefault();
+      this.navigate(url.pathname + url.search + url.hash);
+    });
+
     // Keyboard shortcut for search
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -172,10 +276,10 @@ const App = {
       ).slice(0, 12);
       if (mobileSearchResults) {
         mobileSearchResults.innerHTML = matches.length
-          ? matches.map(t => `<div class="search-result-item" style="display:flex;align-items:center;gap:12px;" onclick="location.hash='#/tool/${t.id}';">
+          ? matches.map(t => `<a class="search-result-item" href="${this.getToolPath(t.id)}" style="display:flex;align-items:center;gap:12px;">
               <span style="font-size:1.4rem;">${t.icon}</span>
               <div><div style="font-weight:600;color:var(--accent-primary);">${t.name}</div><div style="font-size:0.82rem;color:var(--text-secondary);">${t.description.slice(0, 60)}...</div></div>
-            </div>`).join('')
+            </a>`).join('')
           : '<p style="color:var(--text-tertiary);padding:12px 0;">No tools found. Try different keywords.</p>';
         // Close overlay when a result is tapped
         mobileSearchResults.querySelectorAll('.search-result-item').forEach(item => {
@@ -186,25 +290,29 @@ const App = {
   },
 
   handleRoute() {
-    const hash = location.hash || '#/';
-    const parts = hash.replace('#/', '').split('/');
+    const route = this.getRoute();
     document.getElementById('nav-links')?.classList.remove('mobile-open');
     window.scrollTo(0, 0);
 
-    if (parts[0] === 'tool' && parts[1]) {
-      this.showTool(parts[1]);
-    } else if (parts[0] === 'category' && parts[1]) {
-      this.currentCategory = parts[1];
+    if (route.view === 'tool' && route.toolId) {
+      this.showTool(route.toolId);
+    } else if (route.view === 'category' && route.categoryId) {
+      this.searchQuery = '';
+      this.syncSearchInputs('');
+      this.currentCategory = route.categoryId;
       this.currentView = 'home';
       this.renderHome();
-      this.setActiveCategory(parts[1]);
-    } else if (parts[0] === 'search' && parts[1]) {
-      this.searchQuery = decodeURIComponent(parts[1]);
+      this.setActiveCategory(route.categoryId);
+    } else if (route.view === 'search' && route.query) {
+      this.currentView = 'search';
+      this.searchQuery = route.query.toLowerCase();
+      this.syncSearchInputs(route.query);
       this.renderSearchResults();
     } else {
       this.currentView = 'home';
       this.currentCategory = 'all';
       this.searchQuery = '';
+      this.syncSearchInputs('');
       this.renderHome();
     }
   },
@@ -214,14 +322,13 @@ const App = {
     main.innerHTML = this.getHeroHTML() + this.getRecentlyUsedHTML() + this.getCategoriesHTML() + '<section class="tools-section"><div class="tools-grid" id="tools-grid"></div></section>' + this.getAdHTML('home-bottom');
     this.renderToolsGrid();
     this.bindCategoryTabs();
-    // Bind recently used tool card clicks
-    main.querySelectorAll('.related-tools-grid .tool-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('.fav-btn')) return;
-        location.hash = '#/tool/' + card.dataset.toolId;
-      });
-    });
-    this.updateSEO('Tooliest — Free Online Tools Powered by AI', 'Access 80+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. AI-powered features included.');
+    this.bindToolCardInteractions(main);
+    const activeCategory = TOOL_CATEGORIES.find(category => category.id === this.currentCategory);
+    if (activeCategory && !['all', 'favorites'].includes(activeCategory.id)) {
+      this.updateSEO(`${activeCategory.name} | Tooliest`, `Browse Tooliest's ${activeCategory.name.toLowerCase()} collection. Free browser-based tools with no signup and no server processing.`, null);
+    } else {
+      this.updateSEO('Tooliest — 80+ Free Online Tools Powered by AI', 'Access 80+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. AI-powered features included.', null);
+    }
   },
 
   getHeroHTML() {
@@ -250,8 +357,7 @@ const App = {
     document.querySelectorAll('.category-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         this.currentCategory = tab.dataset.category;
-        this.setActiveCategory(this.currentCategory);
-        this.renderToolsGrid();
+        this.navigate(this.getCategoryPath(this.currentCategory), { replace: true });
       });
     });
   },
@@ -282,22 +388,32 @@ const App = {
     const grid = document.getElementById('tools-grid');
     if (!grid) return;
     grid.innerHTML = tools.length ? tools.map(t => this.getToolCardHTML(t)).join('') : '<div class="text-center" style="grid-column:1/-1;padding:60px 20px;color:var(--text-tertiary)"><h3>No tools found</h3><p>Try a different search or category</p></div>';
-    grid.querySelectorAll('.tool-card').forEach(card => {
+    this.bindToolCardInteractions(grid);
+  },
+
+  bindToolCardInteractions(root = document) {
+    root.querySelectorAll('.tool-card').forEach(card => {
+      if (card.dataset.bound === 'true') return;
+      card.dataset.bound = 'true';
+
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.fav-btn')) return; // Ignore favoriting clicks
-        location.hash = '#/tool/' + card.dataset.toolId; 
+        if (e.target.closest('.fav-btn')) return;
+        this.navigate(this.getToolPath(card.dataset.toolId));
       });
-      // Keyboard support for tool cards (BUG-08: accessibility)
+
       card.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          location.hash = '#/tool/' + card.dataset.toolId;
+          this.navigate(this.getToolPath(card.dataset.toolId));
         }
       });
-      // Favoriting listener
+
       const favBtn = card.querySelector('.fav-btn');
       if (favBtn) {
-        favBtn.addEventListener('click', () => this.toggleFavorite(card.dataset.toolId));
+        favBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.toggleFavorite(card.dataset.toolId);
+        });
       }
     });
   },
@@ -322,7 +438,7 @@ const App = {
   getToolCardHTML(tool) {
     const isFav = this.favorites.includes(tool.id);
     return `<div class="tool-card animate-in" data-tool-id="${tool.id}" role="link" tabindex="0" aria-label="Open ${tool.name} tool">
-      <button class="fav-btn${isFav ? ' active' : ''}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">${isFav ? '⭐' : '☆'}</button>
+      <button type="button" class="fav-btn${isFav ? ' active' : ''}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${isFav}">${isFav ? '⭐' : '☆'}</button>
       <div class="tool-card-header">
         <div class="tool-card-icon">${tool.icon}</div>
         <div class="tool-card-info">
@@ -342,10 +458,33 @@ const App = {
     return `<div class="container"><div class="ad-space" id="ad-${id}"><!-- Ad Space: Replace with AdSense code --><span>Advertisement</span></div></div>`;
   },
 
+  getToolContentSectionsHTML(tool) {
+    const categoryName = TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || 'online tools';
+    const fallbackExplain = `${tool.name} is part of Tooliest's ${categoryName.toLowerCase()} collection and runs directly in your browser, so your input stays on your device.`;
+    const steps = [
+      `Open the ${tool.name} workspace.`,
+      'Type, paste, upload, or adjust the input fields as needed.',
+      'Run the action or conversion to get instant results in your browser.',
+      'Copy, download, or reuse the output without sending your data to a server.',
+    ];
+
+    return `<div class="tool-content-sections">
+      <section class="tool-content-section">
+        <h2>What Is ${tool.name}?</h2>
+        <p>${tool.description}</p>
+        ${tool.education ? `<div class="tool-education-copy">${tool.education}</div>` : `<p>${fallbackExplain}</p>`}
+      </section>
+      <section class="tool-content-section">
+        <h2>How To Use ${tool.name}</h2>
+        <ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>
+      </section>
+    </div>`;
+  },
+
   // ===== TOOL PAGE RENDERING =====
   showTool(toolId) {
     const tool = TOOLS.find(t => t.id === toolId);
-    if (!tool) { location.hash = '#/'; return; }
+    if (!tool) { this.navigate(this.getHomePath(), { replace: true }); return; }
     this.currentView = 'tool';
     this.trackUsage(toolId);
     this.updateSEO(tool.meta.title, tool.meta.desc, tool);
@@ -360,9 +499,9 @@ const App = {
     main.innerHTML = `<div class="tool-page">
       <div class="tool-page-header">
         <div class="tool-breadcrumb">
-          <a href="#/" onclick="location.hash='#/'">Home</a>
+          <a href="${this.getHomePath()}">Home</a>
           <span class="separator">›</span>
-          <a href="#/category/${tool.category}">${catName}</a>
+          <a href="${this.getCategoryPath(tool.category)}">${catName}</a>
           <span class="separator">›</span>
           <span>${tool.name}</span>
         </div>
@@ -375,6 +514,7 @@ const App = {
       </div>
       ${this.getAdHTML('tool-top')}
       <div class="tool-workspace" id="tool-workspace"></div>
+      ${this.getToolContentSectionsHTML(tool)}
       ${this.getAdHTML('tool-bottom')}
       ${related.length ? `<div class="related-tools"><h3>You May Also Like</h3><div class="related-tools-grid">${related.map(r => this.getToolCardHTML(r)).join('')}</div></div>` : ''}
     </div>`;
@@ -386,10 +526,7 @@ const App = {
     // FEAT-04: Share button
     document.getElementById('share-tool-btn')?.addEventListener('click', () => this.shareTool(tool));
 
-    // Bind related tool clicks
-    main.querySelectorAll('.related-tools-grid .tool-card').forEach(card => {
-      card.addEventListener('click', () => { location.hash = '#/tool/' + card.dataset.toolId; });
-    });
+    this.bindToolCardInteractions(main);
   },
 
   renderSearchResults() {
@@ -404,10 +541,11 @@ const App = {
     main.innerHTML = `<div class="search-results">
       <h2>Search results for "${safeQ}"</h2>
       <p style="color:var(--text-secondary);margin-bottom:24px">${results.length} tool(s) found</p>
-      ${results.map(t => `<div class="search-result-item" onclick="location.hash='#/tool/${t.id}'">
+      ${results.map(t => `<a class="search-result-item" href="${this.getToolPath(t.id)}" style="display:block">
         <h3>${t.icon} ${t.name}</h3><p>${t.description}</p>
-      </div>`).join('') || '<p>No tools found. Try different keywords.</p>'}
+      </a>`).join('') || '<p>No tools found. Try different keywords.</p>'}
     </div>`;
+    this.updateSEO(`Search: ${q} | Tooliest`, `Search Tooliest's 80+ free online tools for "${q}".`, null);
   },
 
   setupAutoSave(inputId, storageKey) {
@@ -459,12 +597,24 @@ const App = {
     // Update OG tags
     const ogTitle = document.querySelector('meta[property="og:title"]');
     const ogDesc = document.querySelector('meta[property="og:description"]');
+    const ogUrl = document.querySelector('meta[property="og:url"]');
     const twTitle = document.querySelector('meta[name="twitter:title"]');
     const twDesc = document.querySelector('meta[name="twitter:description"]');
+    const canonical = document.querySelector('link[rel="canonical"]');
+    const robots = document.querySelector('meta[name="robots"]');
+    const routePath = tool
+      ? this.getToolPath(tool.id)
+      : (this.currentView === 'search' && this.searchQuery)
+        ? this.getSearchPath(this.searchQuery)
+        : this.getCategoryPath(this.currentCategory);
+    const absoluteUrl = this.getAbsoluteUrl(routePath);
     if (ogTitle) ogTitle.setAttribute('content', title);
     if (ogDesc) ogDesc.setAttribute('content', description);
+    if (ogUrl) ogUrl.setAttribute('content', absoluteUrl);
     if (twTitle) twTitle.setAttribute('content', title);
     if (twDesc) twDesc.setAttribute('content', description);
+    if (canonical) canonical.setAttribute('href', absoluteUrl);
+    if (robots) robots.setAttribute('content', this.currentView === 'search' ? 'noindex, follow' : 'index, follow');
     // Remove old dynamic schemas
     document.querySelectorAll('script[data-dynamic-schema]').forEach(s => s.remove());
     // Inject per-tool JSON-LD + BreadcrumbList if on a tool page
@@ -474,7 +624,7 @@ const App = {
         '@context': 'https://schema.org',
         '@type': 'WebApplication',
         'name': tool.name,
-        'url': 'https://tooliest.com/#/tool/' + tool.id,
+        'url': absoluteUrl,
         'description': tool.meta?.desc || tool.description,
         'applicationCategory': 'UtilityApplication',
         'operatingSystem': 'Any',
@@ -486,8 +636,8 @@ const App = {
         '@type': 'BreadcrumbList',
         'itemListElement': [
           { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'https://tooliest.com/' },
-          { '@type': 'ListItem', 'position': 2, 'name': catName, 'item': 'https://tooliest.com/#/category/' + tool.category },
-          { '@type': 'ListItem', 'position': 3, 'name': tool.name, 'item': 'https://tooliest.com/#/tool/' + tool.id }
+          { '@type': 'ListItem', 'position': 2, 'name': catName, 'item': 'https://tooliest.com' + this.getCategoryPath(tool.category) },
+          { '@type': 'ListItem', 'position': 3, 'name': tool.name, 'item': absoluteUrl }
         ]
       };
       // AEO-02: HowTo schema for tool pages
@@ -497,7 +647,7 @@ const App = {
         'name': 'How to use ' + tool.name + ' online',
         'description': tool.meta?.desc || tool.description,
         'step': [
-          { '@type': 'HowToStep', 'position': 1, 'name': 'Open the tool', 'text': 'Navigate to ' + tool.name + ' on Tooliest.com' },
+          { '@type': 'HowToStep', 'position': 1, 'name': 'Open the tool', 'text': 'Open ' + absoluteUrl + ' in your browser.' },
           { '@type': 'HowToStep', 'position': 2, 'name': 'Enter your input', 'text': 'Type, paste, or upload your content into the tool workspace' },
           { '@type': 'HowToStep', 'position': 3, 'name': 'Get results', 'text': 'Click the action button to process your input and get instant results' },
           { '@type': 'HowToStep', 'position': 4, 'name': 'Copy or download', 'text': 'Copy the output to clipboard or download the result file' }
@@ -520,7 +670,7 @@ const App = {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
-    document.body.appendChild(toast);
+    (document.getElementById('toast-container') || document.body).appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 2500);
   },
@@ -571,7 +721,7 @@ const App = {
 
   // ===== FEAT-04: WEB SHARE API =====
   shareTool(tool) {
-    const url = 'https://tooliest.com/#/tool/' + tool.id;
+    const url = this.getAbsoluteUrl(this.getToolPath(tool.id));
     const shareData = { title: tool.name + ' — Free Online Tool', text: tool.description, url };
     if (navigator.share) {
       navigator.share(shareData).catch(() => {});
@@ -660,7 +810,7 @@ document.addEventListener('keydown', (e) => {
   // Don't trigger letter shortcuts if typing in input fields
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
   if (e.key === '?') { e.preventDefault(); App.showShortcuts(); }
-  if (e.key === 'h' || e.key === 'H') { location.hash = '#/'; }
+  if (e.key === 'h' || e.key === 'H') { App.navigate(App.getHomePath()); }
   if (e.key === 't' || e.key === 'T') { App.toggleTheme(); }
 });
 

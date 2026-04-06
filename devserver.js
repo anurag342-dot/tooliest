@@ -1,4 +1,4 @@
-// Simple dev server with COOP/COEP headers for FFmpeg.wasm
+// Simple dev server with directory index support for Tooliest's static routes.
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -22,22 +22,25 @@ const MIME = {
 
 const server = http.createServer((req, res) => {
   let urlPath = req.url.split('?')[0];
-  if (urlPath === '/') urlPath = '/index.html';
+  if (urlPath.endsWith('/')) {
+    urlPath += 'index.html';
+  } else if (urlPath === '/') {
+    urlPath = '/index.html';
+  }
 
-  const filePath = path.join(ROOT, urlPath);
+  let filePath = path.join(ROOT, urlPath);
 
   // Security: stay within root
   if (!filePath.startsWith(ROOT)) {
     res.writeHead(403); res.end('Forbidden'); return;
   }
 
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
+    filePath = path.join(filePath, 'index.html');
+  }
+
   const ext = path.extname(filePath);
   const contentType = MIME[ext] || 'application/octet-stream';
-
-  // Required headers for FFmpeg.wasm SharedArrayBuffer
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
     res.writeHead(200, { 'Content-Type': contentType });
@@ -51,5 +54,5 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`[Tooliest Dev] Server running at http://localhost:${PORT}`);
-  console.log('[Tooliest Dev] COOP/COEP headers enabled for FFmpeg.wasm');
+  console.log('[Tooliest Dev] History routes and static tool pages are enabled.');
 });

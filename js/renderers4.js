@@ -214,6 +214,7 @@ Object.assign(ToolRenderers.renderers, {
         // Drawing an image to Canvas and exporting it inherently strips all EXIF metadata.
         const url = URL.createObjectURL(new Blob([array], {type: file.type}));
         const img = new Image();
+        img.alt = 'Uploaded image for EXIF stripping';
         img.onload = () => {
           const canvas = document.createElement('canvas');
           canvas.width = img.width;

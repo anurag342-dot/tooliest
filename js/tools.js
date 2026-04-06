@@ -867,7 +867,7 @@ const TOOLS = [
     icon: '🎵',
     tags: ['audio', 'mp3', 'wav', 'flac', 'm4a', 'ogg', 'convert', 'music', 'opus'],
     isAI: false,
-    education: '<strong>How does browser-based audio conversion work?</strong><br>This tool uses <strong>FFmpeg.wasm</strong> — the industry-standard FFmpeg library compiled to WebAssembly. It runs at near-native speed entirely inside your browser. Your audio files <strong>never leave your device</strong>, making this the most private audio converter available. Supports batch conversion of multiple files simultaneously with real-time progress tracking.',
+    education: '<strong>How does browser-based audio conversion work?</strong><br>This converter uses the <strong>Web Audio API</strong>, <strong>MediaRecorder</strong>, and a lightweight in-browser MP3 encoder to transform audio files locally on your device. Your audio files <strong>never leave your browser</strong>, there are <strong>no uploads</strong>, and the tool does not depend on SharedArrayBuffer or a server backend.',
     meta: { title: 'Free Audio Converter - Convert MP3 WAV FLAC OGG Online | Tooliest', desc: 'Convert audio files between MP3, WAV, FLAC, M4A, OGG, OPUS and more. 100% browser-based, private, and free. No uploads needed.' }
   },
 
