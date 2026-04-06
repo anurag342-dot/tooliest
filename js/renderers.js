@@ -6,8 +6,18 @@ const ToolRenderers = {
   render(toolId, container) {
     const fn = this.renderers[toolId];
     if (fn) {
-      fn(container);
-      App.setupAutoSave('tool-input', toolId);
+      try {
+        fn(container);
+        App.setupAutoSave('tool-input', toolId);
+      } catch (err) {
+        console.error('[Tooliest] Error rendering tool:', toolId, err);
+        container.innerHTML = `<div class="tool-workspace-body" style="text-align:center;padding:40px">
+          <p style="font-size:1.5rem;margin-bottom:12px">⚠️</p>
+          <p style="color:var(--text-secondary);margin-bottom:8px">Something went wrong loading this tool.</p>
+          <p style="color:var(--text-tertiary);font-size:0.85rem">Error: ${err.message}</p>
+          <button class="btn btn-secondary" style="margin-top:16px" onclick="location.reload()">Reload Page</button>
+        </div>`;
+      }
     } else {
       container.innerHTML = '<div class="tool-workspace-body"><p style="color:var(--text-tertiary);text-align:center;padding:40px">This tool is loading...</p></div>';
     }
@@ -204,7 +214,7 @@ const ToolRenderers = {
         const type = document.getElementById('enc-type').value;
         let r = '';
         try {
-          if (type === 'base64') r = encode ? btoa(t) : atob(t);
+          if (type === 'base64') r = encode ? btoa(unescape(encodeURIComponent(t))) : decodeURIComponent(escape(atob(t)));
           else if (type === 'url') r = encode ? encodeURIComponent(t) : decodeURIComponent(t);
           else if (type === 'html') {
             if (encode) { const d = document.createElement('div'); d.textContent = t; r = d.innerHTML; }
@@ -329,7 +339,7 @@ const ToolRenderers = {
     'og-preview'(c) {
       c.innerHTML = `<div class="tool-workspace-body">
         <div class="input-group"><label>OG Title</label><input type="text" id="og-title" placeholder="My Page Title" value="Welcome to Tooliest"></div>
-        <div class="input-group"><label>OG Description</label><textarea id="og-desc" rows="2" placeholder="Page description...">50+ free online tools for developers and designers.</textarea></div>
+        <div class="input-group"><label>OG Description</label><textarea id="og-desc" rows="2" placeholder="Page description...">80+ free online tools for developers and designers.</textarea></div>
         <div class="input-group"><label>OG Image URL</label><input type="url" id="og-image" placeholder="https://example.com/image.jpg"></div>
         <div class="input-group"><label>Site URL</label><input type="url" id="og-url" placeholder="https://example.com" value="https://tooliest.com"></div>
         <button class="btn btn-primary mb-4">Preview</button>

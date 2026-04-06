@@ -1,6 +1,6 @@
 // ============================================
 // TOOLIEST.COM — Tool Registry & Implementations
-// 50+ tools across 15 categories
+// 80+ tools across 16 categories
 // ============================================
 
 const TOOL_CATEGORIES = [

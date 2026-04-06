@@ -4,7 +4,6 @@ const { minify } = require('terser');
 const filesToBundle = [
   'js/app.js',
   'js/tools.js',
-  'js/consent.js',
   'js/renderers.js',
   'js/renderers2.js',
   'js/renderers3.js',

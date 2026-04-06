@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tooliest-v12-offline';
+const CACHE_NAME = 'tooliest-v13-offline';
 const URLS_TO_CACHE = [
   './',
   './index.html',
@@ -8,7 +8,8 @@ const URLS_TO_CACHE = [
   './terms.html',
   './manifest.json',
   './css/styles.css',
-  './bundle.min.js'
+  './bundle.min.js',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap'
 ];
 
 // Install Event: Cache all critical files

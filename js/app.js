@@ -197,7 +197,7 @@ const App = {
     main.innerHTML = this.getHeroHTML() + this.getCategoriesHTML() + '<section class="tools-section"><div class="tools-grid" id="tools-grid"></div></section>' + this.getAdHTML('home-bottom');
     this.renderToolsGrid();
     this.bindCategoryTabs();
-    this.updateSEO('Tooliest — Free Online Tools Powered by AI', 'Access 50+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. AI-powered features included.');
+    this.updateSEO('Tooliest — Free Online Tools Powered by AI', 'Access 80+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. AI-powered features included.');
   },
 
   getHeroHTML() {
@@ -215,7 +215,7 @@ const App = {
 
   getCategoriesHTML() {
     const tabs = TOOL_CATEGORIES.map(c =>
-      `<button class="category-tab${c.id === this.currentCategory ? ' active' : ''}" data-category="${c.id}">
+      `<button class="category-tab${c.id === this.currentCategory ? ' active' : ''}" data-category="${c.id}" aria-pressed="${c.id === this.currentCategory}">
         <span>${c.icon}</span> ${c.name} <span class="tab-count">${c.count}</span>
       </button>`
     ).join('');
@@ -233,7 +233,10 @@ const App = {
   },
 
   setActiveCategory(id) {
-    document.querySelectorAll('.category-tab').forEach(t => t.classList.toggle('active', t.dataset.category === id));
+    document.querySelectorAll('.category-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.category === id);
+      t.setAttribute('aria-pressed', t.dataset.category === id);
+    });
   },
 
   renderToolsGrid() {
@@ -259,6 +262,13 @@ const App = {
       card.addEventListener('click', (e) => {
         if (e.target.closest('.fav-btn')) return; // Ignore favoriting clicks
         location.hash = '#/tool/' + card.dataset.toolId; 
+      });
+      // Keyboard support for tool cards (BUG-08: accessibility)
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          location.hash = '#/tool/' + card.dataset.toolId;
+        }
       });
       // Favoriting listener
       const favBtn = card.querySelector('.fav-btn');
@@ -287,8 +297,8 @@ const App = {
 
   getToolCardHTML(tool) {
     const isFav = this.favorites.includes(tool.id);
-    return `<div class="tool-card animate-in" data-tool-id="${tool.id}">
-      <button class="fav-btn${isFav ? ' active' : ''}" aria-label="Favorite tool">${isFav ? '⭐' : '☆'}</button>
+    return `<div class="tool-card animate-in" data-tool-id="${tool.id}" role="link" tabindex="0" aria-label="Open ${tool.name} tool">
+      <button class="fav-btn${isFav ? ' active' : ''}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">${isFav ? '⭐' : '☆'}</button>
       <div class="tool-card-header">
         <div class="tool-card-icon">${tool.icon}</div>
         <div class="tool-card-info">
@@ -313,7 +323,7 @@ const App = {
     const tool = TOOLS.find(t => t.id === toolId);
     if (!tool) { location.hash = '#/'; return; }
     this.currentView = 'tool';
-    this.updateSEO(tool.meta.title, tool.meta.desc);
+    this.updateSEO(tool.meta.title, tool.meta.desc, tool);
     const catName = TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || '';
     const main = document.getElementById('main-content');
     
@@ -354,8 +364,11 @@ const App = {
     const results = TOOLS.filter(t =>
       t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.tags.some(tag => tag.includes(q))
     );
+    // BUG-17: Sanitize search query to prevent XSS — use textContent for user input
+    const escapeHTML = (str) => str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const safeQ = escapeHTML(q);
     main.innerHTML = `<div class="search-results">
-      <h2>Search results for "${q}"</h2>
+      <h2>Search results for "${safeQ}"</h2>
       <p style="color:var(--text-secondary);margin-bottom:24px">${results.length} tool(s) found</p>
       ${results.map(t => `<div class="search-result-item" onclick="location.hash='#/tool/${t.id}'">
         <h3>${t.icon} ${t.name}</h3><p>${t.description}</p>
@@ -405,10 +418,52 @@ const App = {
     requestAnimationFrame(() => banner.classList.add('show'));
   },
 
-  updateSEO(title, description) {
+  updateSEO(title, description, tool) {
     document.title = title;
     let meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute('content', description);
+    // Update OG tags
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    const twTitle = document.querySelector('meta[name="twitter:title"]');
+    const twDesc = document.querySelector('meta[name="twitter:description"]');
+    if (ogTitle) ogTitle.setAttribute('content', title);
+    if (ogDesc) ogDesc.setAttribute('content', description);
+    if (twTitle) twTitle.setAttribute('content', title);
+    if (twDesc) twDesc.setAttribute('content', description);
+    // Remove old dynamic schemas
+    document.querySelectorAll('script[data-dynamic-schema]').forEach(s => s.remove());
+    // Inject per-tool JSON-LD + BreadcrumbList if on a tool page
+    if (tool) {
+      const catName = TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || tool.category;
+      const toolSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        'name': tool.name,
+        'url': 'https://tooliest.com/#/tool/' + tool.id,
+        'description': tool.meta?.desc || tool.description,
+        'applicationCategory': 'UtilityApplication',
+        'operatingSystem': 'Any',
+        'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' },
+        'dateModified': new Date().toISOString().split('T')[0]
+      };
+      const breadcrumb = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'https://tooliest.com/' },
+          { '@type': 'ListItem', 'position': 2, 'name': catName, 'item': 'https://tooliest.com/#/category/' + tool.category },
+          { '@type': 'ListItem', 'position': 3, 'name': tool.name, 'item': 'https://tooliest.com/#/tool/' + tool.id }
+        ]
+      };
+      [toolSchema, breadcrumb].forEach(schema => {
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.setAttribute('data-dynamic-schema', 'true');
+        script.textContent = JSON.stringify(schema);
+        document.head.appendChild(script);
+      });
+    }
   },
 
   toast(message, type = 'success') {

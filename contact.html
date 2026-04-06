@@ -12,6 +12,48 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/styles.css">
+
+  <!-- FAQ Schema (AEO-01) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is Tooliest really free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, completely. All 80+ tools are free with no hidden costs or premium tiers."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you store my data?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. All tools run in your browser. We never see or store what you type or upload."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I suggest a new tool?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Absolutely! Use the contact form and select Tool Suggestion — we prioritize requests from our users."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "I found a bug. What now?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Please report it using the contact form. Include the tool name and what happened — it really helps us fix things fast."
+        }
+      }
+    ]
+  }
+  </script>
   <style>
     .contact-page {
       max-width: 900px;
@@ -296,7 +338,7 @@
             <h3>Common Questions</h3>
             <div class="faq-item">
               <strong>Is Tooliest really free?</strong>
-              <p>Yes, completely. All 50+ tools are free with no hidden costs or premium tiers.</p>
+              <p>Yes, completely. All 80+ tools are free with no hidden costs or premium tiers.</p>
             </div>
             <div class="faq-item">
               <strong>Do you store my data?</strong>
@@ -370,7 +412,7 @@
     <div class="footer-inner">
       <div class="footer-brand">
         <h3>⚡ <span>Tooliest</span></h3>
-        <p>50+ free online tools for developers, designers, writers, and marketers. All tools run directly in your browser — no data is sent to any server. Fast, private, and always free.</p>
+        <p>80+ free online tools for developers, designers, writers, and marketers. All tools run directly in your browser — no data is sent to any server. Fast, private, and always free.</p>
       </div>
       <div class="footer-col">
         <h4>Company</h4>
@@ -387,7 +429,7 @@
           <li><a href="index.html#/tool/word-counter">Word Counter</a></li>
           <li><a href="index.html#/tool/json-formatter">JSON Formatter</a></li>
           <li><a href="index.html#/tool/color-picker">Color Picker</a></li>
-          <li><a href="index.html#/tool/password-generator">Password Generator</a></li>
+          <li><a href="index.html#/tool/password-security-suite">Password Generator</a></li>
         </ul>
       </div>
     </div>
@@ -441,7 +483,7 @@
 
       submitBtn.textContent = 'Opening Gmail…';
       submitBtn.disabled = true;
-      window.open(gmailURL, '_blank');
+      window.open(gmailURL, '_blank', 'noopener,noreferrer');
 
       // Show success state after short delay
       setTimeout(() => {
