@@ -2,11 +2,20 @@
 // TOOLIEST.COM — Main Application (SPA Router)
 // ============================================
 
+const TOOLIEST_CHANGELOG = [
+  { version: '2.4', date: '2026-04-06', items: ['Added dark/light theme toggle', 'Keyboard shortcuts panel (press ?)', 'Tool sharing via Web Share API', 'Cross-category related tools'] },
+  { version: '2.3', date: '2026-04-05', items: ['Added tool comparison mode', 'Export/import favorites', 'Performance metrics on tools'] },
+  { version: '2.2', date: '2026-04-04', items: ['80+ tools now available', 'Cookie consent & GDPR compliance', 'PWA offline support improved'] },
+  { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Audio converter with FFmpeg'] },
+  { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
+];
+
 const App = {
   currentView: 'home',
   currentCategory: 'all',
   searchQuery: '',
   favorites: JSON.parse(localStorage.getItem('tooliest_favorites') || '[]'),
+  toolUsage: JSON.parse(localStorage.getItem('tooliest_usage') || '{}'),
   deferredPrompt: null,
 
   init() {
@@ -25,6 +34,7 @@ const App = {
       });
     }
     
+    this.initTheme();
     this.bindEvents();
     this.handleRoute();
     window.addEventListener('hashchange', () => this.handleRoute());
@@ -74,6 +84,13 @@ const App = {
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
       searchInput.placeholder = `Search ${TOOLS.length}+ tools...`;
+    }
+    // BUG-14: Make mobile search placeholder dynamic too
+    const mobileSearchEl = document.getElementById('mobile-search-input');
+    if (mobileSearchEl) {
+      mobileSearchEl.placeholder = `Search ${TOOLS.length}+ tools...`;
+    }
+    if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         this.searchQuery = e.target.value.toLowerCase();
         if (this.currentView === 'home') {
@@ -194,9 +211,16 @@ const App = {
 
   renderHome() {
     const main = document.getElementById('main-content');
-    main.innerHTML = this.getHeroHTML() + this.getCategoriesHTML() + '<section class="tools-section"><div class="tools-grid" id="tools-grid"></div></section>' + this.getAdHTML('home-bottom');
+    main.innerHTML = this.getHeroHTML() + this.getRecentlyUsedHTML() + this.getCategoriesHTML() + '<section class="tools-section"><div class="tools-grid" id="tools-grid"></div></section>' + this.getAdHTML('home-bottom');
     this.renderToolsGrid();
     this.bindCategoryTabs();
+    // Bind recently used tool card clicks
+    main.querySelectorAll('.related-tools-grid .tool-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.fav-btn')) return;
+        location.hash = '#/tool/' + card.dataset.toolId;
+      });
+    });
     this.updateSEO('Tooliest — Free Online Tools Powered by AI', 'Access 80+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. AI-powered features included.');
   },
 
@@ -323,11 +347,15 @@ const App = {
     const tool = TOOLS.find(t => t.id === toolId);
     if (!tool) { location.hash = '#/'; return; }
     this.currentView = 'tool';
+    this.trackUsage(toolId);
     this.updateSEO(tool.meta.title, tool.meta.desc, tool);
     const catName = TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || '';
     const main = document.getElementById('main-content');
     
-    const related = TOOLS.filter(t => t.category === tool.category && t.id !== tool.id).slice(0, 4);
+    // SEO-08: Cross-category related tools + same category
+    const sameCategory = TOOLS.filter(t => t.category === tool.category && t.id !== tool.id);
+    const otherCategory = TOOLS.filter(t => t.category !== tool.category && t.id !== tool.id && t.tags.some(tag => tool.tags.includes(tag)));
+    const related = [...sameCategory.slice(0, 3), ...otherCategory.slice(0, 2)].slice(0, 5);
     
     main.innerHTML = `<div class="tool-page">
       <div class="tool-page-header">
@@ -338,19 +366,25 @@ const App = {
           <span class="separator">›</span>
           <span>${tool.name}</span>
         </div>
-        <h1>${tool.icon} ${tool.name} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">✨ AI-Powered</span>' : ''}</h1>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <h1 style="margin:0">${tool.icon} ${tool.name} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">✨ AI-Powered</span>' : ''}</h1>
+          <button class="btn btn-secondary btn-sm" id="share-tool-btn" aria-label="Share this tool">📤 Share</button>
+        </div>
         <p>${tool.description}</p>
-        ${tool.education ? `<details class="tool-education" style="margin-top:16px;background:var(--bg-secondary);padding:16px;border-radius:var(--radius-md);border:1px solid var(--border-color);"><summary style="cursor:pointer;font-weight:600;color:var(--accent-primary)">📖 Learn more about this tool</summary><div style="margin-top:12px;font-size:0.9rem;line-height:1.5;color:var(--text-secondary)">${tool.education}</div></details>` : ''}
+        ${tool.education ? `<div class="tool-education-visible" style="margin-top:16px;background:var(--bg-secondary);padding:16px;border-radius:var(--radius-md);border:1px solid var(--border-color);"><div style="font-weight:600;color:var(--accent-primary);margin-bottom:8px">📖 About this tool</div><div style="font-size:0.9rem;line-height:1.5;color:var(--text-secondary)">${tool.education}</div></div>` : ''}
       </div>
       ${this.getAdHTML('tool-top')}
       <div class="tool-workspace" id="tool-workspace"></div>
       ${this.getAdHTML('tool-bottom')}
-      ${related.length ? `<div class="related-tools"><h3>Related Tools</h3><div class="related-tools-grid">${related.map(r => this.getToolCardHTML(r)).join('')}</div></div>` : ''}
+      ${related.length ? `<div class="related-tools"><h3>You May Also Like</h3><div class="related-tools-grid">${related.map(r => this.getToolCardHTML(r)).join('')}</div></div>` : ''}
     </div>`;
 
     // Render tool UI
     const workspace = document.getElementById('tool-workspace');
     ToolRenderers.render(toolId, workspace);
+
+    // FEAT-04: Share button
+    document.getElementById('share-tool-btn')?.addEventListener('click', () => this.shareTool(tool));
 
     // Bind related tool clicks
     main.querySelectorAll('.related-tools-grid .tool-card').forEach(card => {
@@ -456,7 +490,21 @@ const App = {
           { '@type': 'ListItem', 'position': 3, 'name': tool.name, 'item': 'https://tooliest.com/#/tool/' + tool.id }
         ]
       };
-      [toolSchema, breadcrumb].forEach(schema => {
+      // AEO-02: HowTo schema for tool pages
+      const howTo = {
+        '@context': 'https://schema.org',
+        '@type': 'HowTo',
+        'name': 'How to use ' + tool.name + ' online',
+        'description': tool.meta?.desc || tool.description,
+        'step': [
+          { '@type': 'HowToStep', 'position': 1, 'name': 'Open the tool', 'text': 'Navigate to ' + tool.name + ' on Tooliest.com' },
+          { '@type': 'HowToStep', 'position': 2, 'name': 'Enter your input', 'text': 'Type, paste, or upload your content into the tool workspace' },
+          { '@type': 'HowToStep', 'position': 3, 'name': 'Get results', 'text': 'Click the action button to process your input and get instant results' },
+          { '@type': 'HowToStep', 'position': 4, 'name': 'Copy or download', 'text': 'Copy the output to clipboard or download the result file' }
+        ],
+        'tool': { '@type': 'HowToTool', 'name': 'Web Browser' }
+      };
+      [toolSchema, breadcrumb, howTo].forEach(schema => {
         const script = document.createElement('script');
         script.type = 'application/ld+json';
         script.setAttribute('data-dynamic-schema', 'true');
@@ -476,6 +524,114 @@ const App = {
     requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 2500);
   },
+  // ===== FEAT-01: THEME TOGGLE =====
+  initTheme() {
+    const saved = localStorage.getItem('tooliest_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    // Update toggle button icon after DOM loads
+    setTimeout(() => {
+      const btn = document.getElementById('theme-toggle-btn');
+      if (btn) btn.textContent = saved === 'light' ? '🌙' : '☀️';
+    }, 0);
+  },
+
+  toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('tooliest_theme', next);
+    const btn = document.getElementById('theme-toggle-btn');
+    if (btn) btn.textContent = next === 'light' ? '🌙' : '☀️';
+    this.toast(next === 'light' ? 'Light mode enabled ☀️' : 'Dark mode enabled 🌙');
+  },
+
+  // ===== FEAT-02: TOOL USAGE TRACKING =====
+  trackUsage(toolId) {
+    this.toolUsage[toolId] = (this.toolUsage[toolId] || 0) + 1;
+    // Store last-used timestamp
+    const recent = JSON.parse(localStorage.getItem('tooliest_recent') || '[]');
+    const filtered = recent.filter(id => id !== toolId);
+    filtered.unshift(toolId);
+    localStorage.setItem('tooliest_recent', JSON.stringify(filtered.slice(0, 10)));
+    localStorage.setItem('tooliest_usage', JSON.stringify(this.toolUsage));
+  },
+
+  getRecentlyUsedHTML() {
+    const recent = JSON.parse(localStorage.getItem('tooliest_recent') || '[]').slice(0, 5);
+    if (recent.length === 0) return '';
+    const recentTools = recent.map(id => TOOLS.find(t => t.id === id)).filter(Boolean);
+    if (recentTools.length === 0) return '';
+    return `<section class="tools-section" style="padding-bottom:0">
+      <div style="max-width:var(--max-width);margin:0 auto;padding:0 24px">
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:16px;color:var(--text-secondary)">⏱️ Recently Used</h3>
+        <div class="related-tools-grid">${recentTools.map(t => this.getToolCardHTML(t)).join('')}</div>
+      </div>
+    </section>`;
+  },
+
+  // ===== FEAT-04: WEB SHARE API =====
+  shareTool(tool) {
+    const url = 'https://tooliest.com/#/tool/' + tool.id;
+    const shareData = { title: tool.name + ' — Free Online Tool', text: tool.description, url };
+    if (navigator.share) {
+      navigator.share(shareData).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => this.toast('Link copied to clipboard! 📋'));
+    }
+  },
+
+  // ===== FEAT-03: KEYBOARD SHORTCUTS PANEL =====
+  showShortcuts() {
+    const existing = document.getElementById('shortcuts-overlay');
+    if (existing) { existing.remove(); return; }
+    const overlay = document.createElement('div');
+    overlay.id = 'shortcuts-overlay';
+    overlay.innerHTML = `<div class="shortcuts-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="font-size:1.2rem;font-weight:700">⌨️ Keyboard Shortcuts</h2>
+        <button id="shortcuts-close" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer">✕</button>
+      </div>
+      <div class="shortcut-list">
+        <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Search tools</span></div>
+        <div class="shortcut-item"><kbd>?</kbd><span>Show shortcuts</span></div>
+        <div class="shortcut-item"><kbd>H</kbd><span>Go home</span></div>
+        <div class="shortcut-item"><kbd>T</kbd><span>Toggle theme</span></div>
+        <div class="shortcut-item"><kbd>Esc</kbd><span>Close overlay</span></div>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById('shortcuts-close')?.addEventListener('click', () => overlay.remove());
+  },
+
+  // ===== FEAT-05: WHAT'S NEW CHANGELOG =====
+  showChangelog() {
+    const existing = document.getElementById('changelog-overlay');
+    if (existing) { existing.remove(); return; }
+    const overlay = document.createElement('div');
+    overlay.id = 'changelog-overlay';
+    overlay.innerHTML = `<div class="changelog-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h2 style="font-size:1.2rem;font-weight:700">🆕 What's New</h2>
+        <button id="changelog-close" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer">✕</button>
+      </div>
+      ${TOOLIEST_CHANGELOG.map(v => `
+        <div class="changelog-entry">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-weight:700;color:var(--accent-primary)">v${v.version}</span>
+            <span style="font-size:0.8rem;color:var(--text-tertiary)">${v.date}</span>
+          </div>
+          <ul style="margin:0;padding-left:18px;color:var(--text-secondary);font-size:0.9rem;line-height:1.7">
+            ${v.items.map(i => '<li>' + i + '</li>').join('')}
+          </ul>
+        </div>
+      `).join('')}
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById('changelog-close')?.addEventListener('click', () => overlay.remove());
+    localStorage.setItem('tooliest_changelog_seen', TOOLIEST_CHANGELOG[0].version);
+  },
 };
 
 // === Clipboard Helper ===
@@ -485,6 +641,15 @@ function copyToClipboard(text, btn) {
     if (btn) { btn.textContent = '✓ Copied'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500); }
   });
 }
+
+// === Global Keyboard Shortcuts ===
+document.addEventListener('keydown', (e) => {
+  // Don't trigger if typing in input fields
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+  if (e.key === '?') { e.preventDefault(); App.showShortcuts(); }
+  if (e.key === 'h' || e.key === 'H') { location.hash = '#/'; }
+  if (e.key === 't' || e.key === 'T') { App.toggleTheme(); }
+});
 
 // === INIT ===
 document.addEventListener('DOMContentLoaded', () => App.init());

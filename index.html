@@ -179,6 +179,20 @@
   }
   </script>
 
+  <!-- Speakable Schema (AEO-06) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Tooliest — Free Online Tools",
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": [".hero h1", ".hero p", ".footer-brand p"]
+    },
+    "url": "https://tooliest.com"
+  }
+  </script>
+
   <!-- Google AdSense placeholder - Replace with your AdSense code -->
   <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
 
@@ -211,6 +225,8 @@
         <a href="#/category/developer">Dev</a>
         <a href="about.html">About</a>
         <a href="#" id="nav-install-btn" style="display:none;color:var(--accent-primary);font-weight:600;">📲 Install App</a>
+        <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="App.toggleTheme()" aria-label="Toggle theme">☀️</button>
+        <button class="theme-toggle-btn" id="changelog-btn" onclick="App.showChangelog()" aria-label="What's new" title="What's New">🆕</button>
       </div>
 
       <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Open search">🔍</button>

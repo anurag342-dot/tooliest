@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tooliest-v13-offline';
+const CACHE_NAME = 'tooliest-v14-offline';
 const URLS_TO_CACHE = [
   './',
   './index.html',
