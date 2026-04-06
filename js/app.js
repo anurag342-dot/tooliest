@@ -644,7 +644,20 @@ function copyToClipboard(text, btn) {
 
 // === Global Keyboard Shortcuts ===
 document.addEventListener('keydown', (e) => {
-  // Don't trigger if typing in input fields
+  // Ctrl+K: Focus search (works everywhere)
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    const searchEl = document.getElementById('search-input');
+    if (searchEl) { searchEl.focus(); searchEl.select(); }
+    return;
+  }
+  // Esc: close overlays
+  if (e.key === 'Escape') {
+    document.getElementById('shortcuts-overlay')?.remove();
+    document.getElementById('changelog-overlay')?.remove();
+    return;
+  }
+  // Don't trigger letter shortcuts if typing in input fields
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
   if (e.key === '?') { e.preventDefault(); App.showShortcuts(); }
   if (e.key === 'h' || e.key === 'H') { location.hash = '#/'; }

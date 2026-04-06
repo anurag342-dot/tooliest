@@ -319,6 +319,7 @@ Object.assign(ToolRenderers.renderers, {
       const reader = new FileReader();
       reader.onload = (e) => {
         currentImg = new Image();
+        currentImg.alt = 'Uploaded image for compression';
         currentImg.onload = () => compressImage();
         currentImg.src = e.target.result;
       };
@@ -376,6 +377,7 @@ Object.assign(ToolRenderers.renderers, {
       const reader = new FileReader();
       reader.onload = (ev) => {
         origImg = new Image();
+        origImg.alt = 'Uploaded image for resizing';
         origImg.onload = () => {
           document.getElementById('ir-w').value = origImg.width;
           document.getElementById('ir-h').value = origImg.height;
@@ -460,6 +462,7 @@ Object.assign(ToolRenderers.renderers, {
       img.onload = () => {
         preview.innerHTML = '';
         img.style.maxWidth = '100%'; img.style.borderRadius = 'var(--radius-md)';
+        img.alt = 'Decoded Base64 image preview';
         preview.appendChild(img);
         const a = document.createElement('a');
         a.href = data; a.download = 'image.png';
@@ -610,6 +613,7 @@ Object.assign(ToolRenderers.renderers, {
         outputImg.style.maxHeight = '300px';
         outputImg.style.borderRadius = 'var(--radius-md)';
         outputImg.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+        outputImg.alt = 'Converted image preview';
         resultDiv.appendChild(outputImg);
         
         const infoDiv = document.createElement('div');
