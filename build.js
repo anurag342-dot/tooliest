@@ -53,6 +53,27 @@ function getCategoryPath(categoryId) {
     : '/';
 }
 
+function getRenderableCategories(categories) {
+  return categories.filter((category) => !['all', 'favorites'].includes(category.id));
+}
+
+function getCategoryTools(tools, categoryId) {
+  return tools.filter((tool) => tool.category === categoryId);
+}
+
+function getCategoryMeta(category, tools) {
+  const categoryTools = getCategoryTools(tools, category.id);
+  const count = categoryTools.length;
+  return {
+    category,
+    tools: categoryTools,
+    count,
+    title: `${category.name} | Tooliest`,
+    description: `Explore ${count} free ${category.name.toLowerCase()} on Tooliest. Browser-based utilities with no signup, no uploads, and no server processing.`,
+    intro: `Browse Tooliest's ${category.name.toLowerCase()} and launch every tool instantly in your browser without sending your data to a server.`,
+  };
+}
+
 function readTools() {
   const source = fs.readFileSync(path.join(__dirname, 'js', 'tools.js'), 'utf8');
   const sandbox = {
@@ -213,12 +234,12 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta property="og:description" content="${escapeAttr(description)}">
   <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
   <meta property="og:site_name" content="Tooliest">
-  <meta property="og:image" content="https://tooliest.com/social-card.png">
+  <meta property="og:image" content="https://tooliest.com/social-card.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@tooliest">
   <meta name="twitter:title" content="${escapeAttr(title)}">
   <meta name="twitter:description" content="${escapeAttr(description)}">
-  <meta name="twitter:image" content="https://tooliest.com/social-card.png">
+  <meta name="twitter:image" content="https://tooliest.com/social-card.jpg">
   <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
   <link rel="alternate" hreflang="en" href="https://tooliest.com/">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
@@ -299,6 +320,69 @@ function renderRelatedTools(tool, tools, categories) {
     <h3>You May Also Like</h3>
     <div class="related-tools-grid">${related.map(candidate => renderStaticToolCard(candidate, categories)).join('')}</div>
   </div>`;
+}
+
+function renderCategoryPage(category, tools, categories) {
+  const meta = getCategoryMeta(category, tools);
+  const canonicalPath = getCategoryPath(category.id);
+  const canonicalUrl = getAbsoluteUrl(canonicalPath);
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: category.name,
+      url: canonicalUrl,
+      description: meta.description,
+      dateModified: BUILD_DATE,
+      isPartOf: 'https://tooliest.com/',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://tooliest.com/' },
+        { '@type': 'ListItem', position: 2, name: category.name, item: canonicalUrl },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: `${category.name} on Tooliest`,
+      itemListElement: meta.tools.map((tool, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: getAbsoluteUrl(getToolPath(tool.id)),
+        name: tool.name,
+      })),
+    },
+  ];
+
+  const mainContent = `<main class="main-content" id="main-content">
+    <section class="tool-page">
+      <div class="tool-page-header">
+        <div class="tool-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">›</span>
+          <span>${escapeHtml(category.name)}</span>
+        </div>
+        <h1 style="margin:0">${category.icon} ${escapeHtml(category.name)}</h1>
+        <p>${escapeHtml(meta.description)}</p>
+        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">${escapeHtml(meta.intro)}</p>
+      </div>
+      <section class="tools-section" style="padding:0">
+        <div class="tools-grid">${meta.tools.map((tool) => renderStaticToolCard(tool, categories)).join('')}</div>
+      </section>
+    </section>
+  </main>`;
+
+  return renderPageShell({
+    title: meta.title,
+    description: meta.description,
+    canonicalPath,
+    structuredData,
+    mainContent,
+  });
 }
 
 function renderToolPage(tool, tools, categories) {
@@ -422,7 +506,17 @@ function writeToolPages(tools, categories) {
   });
 }
 
-function writeSitemap(tools) {
+function writeCategoryPages(tools, categories) {
+  const renderableCategories = getRenderableCategories(categories);
+  console.log(`Generating ${renderableCategories.length} static category pages...`);
+  renderableCategories.forEach((category) => {
+    const outputDir = path.join(__dirname, 'category', category.id);
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(path.join(outputDir, 'index.html'), renderCategoryPage(category, tools, categories));
+  });
+}
+
+function writeSitemap(tools, categories) {
   console.log('Generating sitemap.xml...');
   const staticPages = [
     { loc: 'https://tooliest.com/', priority: '1.0', changefreq: 'weekly' },
@@ -432,13 +526,19 @@ function writeSitemap(tools) {
     { loc: 'https://tooliest.com/terms.html', priority: '0.5', changefreq: 'monthly' },
   ];
 
+  const categoryPages = getRenderableCategories(categories).map((category) => ({
+    loc: getAbsoluteUrl(getCategoryPath(category.id)),
+    priority: '0.8',
+    changefreq: 'monthly',
+  }));
+
   const toolPages = tools.map((tool) => ({
     loc: getAbsoluteUrl(getToolPath(tool.id)),
     priority: '0.9',
     changefreq: 'monthly',
   }));
 
-  const entries = [...staticPages, ...toolPages];
+  const entries = [...staticPages, ...categoryPages, ...toolPages];
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.map((entry) => `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${BUILD_DATE}</lastmod>\n    <changefreq>${entry.changefreq}</changefreq>\n    <priority>${entry.priority}</priority>\n  </url>`).join('\n')}\n</urlset>\n`;
 
   fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), sitemap);
@@ -448,7 +548,8 @@ async function build() {
   const { tools, categories } = readTools();
   await bundleJavascript();
   writeToolPages(tools, categories);
-  writeSitemap(tools);
+  writeCategoryPages(tools, categories);
+  writeSitemap(tools, categories);
   console.log('Build complete.');
 }
 

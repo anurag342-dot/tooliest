@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tooliest-v15-offline';
+const CACHE_NAME = 'tooliest-v16-offline';
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap';
 const URLS_TO_CACHE = [
   '/',
@@ -7,10 +7,27 @@ const URLS_TO_CACHE = [
   '/contact.html',
   '/privacy.html',
   '/terms.html',
+  '/category/text',
+  '/category/seo',
+  '/category/css',
+  '/category/color',
+  '/category/image',
+  '/category/json',
+  '/category/html',
+  '/category/javascript',
+  '/category/converter',
+  '/category/encoding',
+  '/category/finance',
+  '/category/math',
+  '/category/social',
+  '/category/privacy',
+  '/category/ai',
+  '/category/developer',
   '/manifest.json',
   '/css/styles.css',
   '/bundle.min.js',
   '/js/consent.js',
+  '/social-card.jpg',
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable-512.png',

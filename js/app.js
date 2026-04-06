@@ -3,10 +3,11 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '2.5', date: '2026-04-06', items: ['Added prerendered category pages for SEO', 'Added favorites export and import backup', 'Introduced welcome tour and performance metrics', 'Added side-by-side comparison mode for related tools'] },
   { version: '2.4', date: '2026-04-06', items: ['Added dark/light theme toggle', 'Keyboard shortcuts panel (press ?)', 'Tool sharing via Web Share API', 'Cross-category related tools'] },
-  { version: '2.3', date: '2026-04-05', items: ['Added tool comparison mode', 'Export/import favorites', 'Performance metrics on tools'] },
-  { version: '2.2', date: '2026-04-04', items: ['80+ tools now available', 'Cookie consent & GDPR compliance', 'PWA offline support improved'] },
-  { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Audio converter with FFmpeg'] },
+  { version: '2.3', date: '2026-04-05', items: ['Expanded structured data across tool pages', 'Improved accessibility states for favorites and categories', 'Strengthened offline caching and font loading'] },
+  { version: '2.2', date: '2026-04-04', items: ['80+ tools now available', 'Cookie consent and GDPR compliance', 'PWA offline support improved'] },
+  { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
 
@@ -17,11 +18,15 @@ const App = {
   favorites: JSON.parse(localStorage.getItem('tooliest_favorites') || '[]'),
   toolUsage: JSON.parse(localStorage.getItem('tooliest_usage') || '{}'),
   deferredPrompt: null,
+  activeToolId: null,
+  pendingPerformanceMeasurement: null,
+  performanceDashboardCleanup: null,
 
   init() {
     this.normalizeLegacyHashRoute();
+    document.body.classList.toggle('embed-mode', this.isEmbedMode());
 
-    if ('serviceWorker' in navigator) {
+    if (!this.isEmbedMode() && 'serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
           .then(reg => console.log('[Service Worker] Registered', reg.scope))
@@ -40,35 +45,37 @@ const App = {
     this.bindEvents();
     this.handleRoute();
     window.addEventListener('popstate', () => this.handleRoute());
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      this.deferredPrompt = e;
-      
-      // Show nav button
-      const navBtn = document.getElementById('nav-install-btn');
-      if (navBtn) {
-        navBtn.style.display = '';
-        navBtn.onclick = async (ev) => {
-          ev.preventDefault();
-          this.deferredPrompt.prompt();
-          const { outcome } = await this.deferredPrompt.userChoice;
-          if (outcome === 'accepted') {
-            navBtn.style.display = 'none';
-            document.getElementById('pwa-install-banner')?.remove();
-          }
-          this.deferredPrompt = null;
-        };
-      }
-      
-      // Show floating banner specifically if not dismissed
-      setTimeout(() => this.showInstallPrompt(), 3000);
-    });
-    window.addEventListener('appinstalled', () => {
-      this.deferredPrompt = null;
-      document.getElementById('pwa-install-banner')?.remove();
-      const navBtn = document.getElementById('nav-install-btn');
-      if (navBtn) navBtn.style.display = 'none';
-    });
+    if (!this.isEmbedMode()) {
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        this.deferredPrompt = e;
+        
+        // Show nav button
+        const navBtn = document.getElementById('nav-install-btn');
+        if (navBtn) {
+          navBtn.style.display = '';
+          navBtn.onclick = async (ev) => {
+            ev.preventDefault();
+            this.deferredPrompt.prompt();
+            const { outcome } = await this.deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+              navBtn.style.display = 'none';
+              document.getElementById('pwa-install-banner')?.remove();
+            }
+            this.deferredPrompt = null;
+          };
+        }
+        
+        // Show floating banner specifically if not dismissed
+        setTimeout(() => this.showInstallPrompt(), 3000);
+      });
+      window.addEventListener('appinstalled', () => {
+        this.deferredPrompt = null;
+        document.getElementById('pwa-install-banner')?.remove();
+        const navBtn = document.getElementById('nav-install-btn');
+        if (navBtn) navBtn.style.display = 'none';
+      });
+    }
     let ticking = false;
     window.addEventListener('scroll', () => {
       if (!ticking) {
@@ -79,6 +86,9 @@ const App = {
         ticking = true;
       }
     });
+    if (!this.isEmbedMode()) {
+      window.setTimeout(() => this.maybeShowWelcomeTour(), 900);
+    }
   },
 
   normalizeLegacyHashRoute() {
@@ -134,6 +144,57 @@ const App = {
 
   getAbsoluteUrl(path) {
     return new URL(path, window.location.origin).toString();
+  },
+
+  isEmbedMode() {
+    return new URLSearchParams(window.location.search).get('embed') === '1';
+  },
+
+  getCategoryById(categoryId) {
+    return TOOL_CATEGORIES.find(category => category.id === categoryId) || null;
+  },
+
+  getVisibleCategories() {
+    return TOOL_CATEGORIES.filter(category => !['all', 'favorites'].includes(category.id));
+  },
+
+  getCategoryMeta(categoryId) {
+    if (!categoryId || ['all', 'favorites'].includes(categoryId)) return null;
+
+    const category = this.getCategoryById(categoryId);
+    if (!category) return null;
+
+    const tools = TOOLS.filter(tool => tool.category === categoryId);
+    const count = tools.length;
+    const lowerName = category.name.toLowerCase();
+
+    return {
+      category,
+      tools,
+      count,
+      title: `${category.name} | Tooliest`,
+      description: `Explore ${count} free ${lowerName} on Tooliest. Browser-based utilities with no signup, no uploads, and no server processing.`,
+      intro: `Browse Tooliest's ${lowerName} and launch every tool instantly in your browser without sending your data to a server.`,
+    };
+  },
+
+  getRelatedTools(tool, limit = 5) {
+    const candidates = [
+      ...TOOLS.filter(candidate => candidate.category === tool.category && candidate.id !== tool.id),
+      ...TOOLS.filter(candidate =>
+        candidate.category !== tool.category &&
+        candidate.id !== tool.id &&
+        candidate.tags.some(tag => tool.tags.includes(tag))
+      ),
+    ];
+
+    return candidates.filter((candidate, index) =>
+      candidates.findIndex(item => item.id === candidate.id) === index
+    ).slice(0, limit);
+  },
+
+  getCompareCandidates(tool, limit = 10) {
+    return this.getRelatedTools(tool, limit);
   },
 
   isAppPath(pathname) {
@@ -293,6 +354,10 @@ const App = {
     const route = this.getRoute();
     document.getElementById('nav-links')?.classList.remove('mobile-open');
     window.scrollTo(0, 0);
+    if (route.view !== 'tool' && this.performanceDashboardCleanup) {
+      this.performanceDashboardCleanup();
+      this.performanceDashboardCleanup = null;
+    }
 
     if (route.view === 'tool' && route.toolId) {
       this.showTool(route.toolId);
@@ -319,26 +384,36 @@ const App = {
 
   renderHome() {
     const main = document.getElementById('main-content');
-    main.innerHTML = this.getHeroHTML() + this.getRecentlyUsedHTML() + this.getCategoriesHTML() + '<section class="tools-section"><div class="tools-grid" id="tools-grid"></div></section>' + this.getAdHTML('home-bottom');
+    const categoryMeta = this.getCategoryMeta(this.currentCategory);
+    main.innerHTML = this.getHeroHTML() +
+      this.getRecentlyUsedHTML() +
+      this.getMostPopularHTML() +
+      this.getFavoritesManagerHTML() +
+      this.getCategoriesHTML() +
+      '<section class="tools-section"><div class="tools-grid" id="tools-grid"></div></section>' +
+      this.getAdHTML('home-bottom');
     this.renderToolsGrid();
     this.bindCategoryTabs();
+    this.bindHomeFeaturePanels();
     this.bindToolCardInteractions(main);
-    const activeCategory = TOOL_CATEGORIES.find(category => category.id === this.currentCategory);
-    if (activeCategory && !['all', 'favorites'].includes(activeCategory.id)) {
-      this.updateSEO(`${activeCategory.name} | Tooliest`, `Browse Tooliest's ${activeCategory.name.toLowerCase()} collection. Free browser-based tools with no signup and no server processing.`, null);
+    if (categoryMeta) {
+      this.updateSEO(categoryMeta.title, categoryMeta.description, null);
+    } else if (this.currentCategory === 'favorites') {
+      this.updateSEO('Favorite Tools | Tooliest', 'Your saved Tooliest favorites on this device. Export or import them any time with no account required.', null);
     } else {
       this.updateSEO('Tooliest — 80+ Free Online Tools Powered by AI', 'Access 80+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. AI-powered features included.', null);
     }
   },
 
   getHeroHTML() {
+    const categoryCount = this.getVisibleCategories().length;
     return `<section class="hero">
       <div class="hero-badge"><span class="pulse-dot"></span> Free &amp; No Signup Required</div>
       <h1>Every Tool You Need.<br><span class="gradient-text">Zero Installs.</span></h1>
       <p>${TOOLS.length}+ powerful online tools for developers, designers, writers, and marketers. All free, all instant, all AI-enhanced.</p>
       <div class="hero-stats">
         <div class="hero-stat"><div class="stat-value">${TOOLS.length}+</div><div class="stat-label">Free Tools</div></div>
-        <div class="hero-stat"><div class="stat-value">${TOOL_CATEGORIES.length - 1}</div><div class="stat-label">Categories</div></div>
+        <div class="hero-stat"><div class="stat-value">${categoryCount}</div><div class="stat-label">Categories</div></div>
         <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
       </div>
     </section>`;
@@ -458,6 +533,14 @@ const App = {
     return `<div class="container"><div class="ad-space" id="ad-${id}"><!-- Ad Space: Replace with AdSense code --><span>Advertisement</span></div></div>`;
   },
 
+  getPopularTools(limit = 6) {
+    return Object.entries(this.toolUsage)
+      .sort((a, b) => b[1] - a[1])
+      .map(([toolId]) => TOOLS.find(tool => tool.id === toolId))
+      .filter(Boolean)
+      .slice(0, limit);
+  },
+
   getToolContentSectionsHTML(tool) {
     const categoryName = TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || 'online tools';
     const fallbackExplain = `${tool.name} is part of Tooliest's ${categoryName.toLowerCase()} collection and runs directly in your browser, so your input stays on your device.`;
@@ -481,21 +564,125 @@ const App = {
     </div>`;
   },
 
+  getMostPopularHTML() {
+    const popularTools = this.getPopularTools(6);
+    if (popularTools.length === 0) return '';
+    return `<section class="tools-section tools-section-condensed">
+      <div class="section-shell">
+        <div class="section-heading">
+          <h3>Most Popular On This Device</h3>
+          <p>Your most-used Tooliest tools based on local browser history.</p>
+        </div>
+        <div class="related-tools-grid">${popularTools.map(tool => this.getToolCardHTML(tool)).join('')}</div>
+      </div>
+    </section>`;
+  },
+
+  getFavoritesManagerHTML() {
+    const favoriteCount = this.favorites.length;
+    return `<section class="tools-section tools-section-condensed">
+      <div class="section-shell home-utility-grid">
+        <div class="home-utility-panel">
+          <div class="section-heading">
+            <h3>Favorites Backup</h3>
+            <p>${favoriteCount ? `${favoriteCount} favorite tool(s) saved on this device.` : 'Save tools with the star button, then export or import them without needing an account.'}</p>
+          </div>
+          <div class="panel-actions">
+            <button class="btn btn-secondary btn-sm" id="favorites-export-btn"${favoriteCount ? '' : ' disabled'}>Export Favorites</button>
+            <button class="btn btn-secondary btn-sm" id="favorites-import-btn">Import Favorites</button>
+            <input type="file" id="favorites-import-file" class="hidden" accept="application/json">
+          </div>
+        </div>
+        <div class="home-utility-panel">
+          <div class="section-heading">
+            <h3>Need a Quick Start?</h3>
+            <p>Open the guided tour any time to find search, favorites, sharing, install support, and keyboard shortcuts.</p>
+          </div>
+          <div class="panel-actions">
+            <button class="btn btn-secondary btn-sm" id="show-tour-btn">Open Welcome Tour</button>
+            <button class="btn btn-secondary btn-sm" id="show-shortcuts-btn">View Shortcuts</button>
+          </div>
+        </div>
+      </div>
+    </section>`;
+  },
+
+  getToolPageHTML(tool, catName, related, compareCandidates, isEmbed) {
+    if (isEmbed) {
+      return `<div class="tool-page tool-page-embed">
+        <div class="tool-page-header">
+          <h1 style="margin:0">${tool.icon} ${tool.name}</h1>
+          <p>${tool.description}</p>
+        </div>
+        <div class="tool-workspace" id="tool-workspace"></div>
+      </div>`;
+    }
+
+    return `<div class="tool-page">
+      <div class="tool-page-header">
+        <div class="tool-breadcrumb">
+          <a href="${this.getHomePath()}">Home</a>
+          <span class="separator">›</span>
+          <a href="${this.getCategoryPath(tool.category)}">${catName}</a>
+          <span class="separator">›</span>
+          <span>${tool.name}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <h1 style="margin:0">${tool.icon} ${tool.name} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">✨ AI-Powered</span>' : ''}</h1>
+          <div class="tool-header-actions">
+            <button class="btn btn-secondary btn-sm" id="compare-tool-btn" aria-label="Compare this tool with another tool"${compareCandidates.length ? '' : ' disabled'}>Compare</button>
+            <button class="btn btn-secondary btn-sm" id="print-tool-btn" aria-label="Print this tool output">Print</button>
+            <button class="btn btn-secondary btn-sm" id="share-tool-btn" aria-label="Share this tool">Share</button>
+          </div>
+        </div>
+        <p>${tool.description}</p>
+        ${tool.education ? `<div class="tool-education-visible" style="margin-top:16px;background:var(--bg-secondary);padding:16px;border-radius:var(--radius-md);border:1px solid var(--border-color);"><div style="font-weight:600;color:var(--accent-primary);margin-bottom:8px">About this tool</div><div style="font-size:0.9rem;line-height:1.5;color:var(--text-secondary)">${tool.education}</div></div>` : ''}
+      </div>
+      ${this.getAdHTML('tool-top')}
+      <div class="tool-workspace" id="tool-workspace"></div>
+      <div class="tool-performance-panel" id="tool-performance-panel"></div>
+      ${compareCandidates.length ? `<div class="compare-panel" id="compare-panel">
+        <div class="compare-panel-header">
+          <div>
+            <h3>Compare Tools</h3>
+            <p>Open a related tool side by side without losing your place.</p>
+          </div>
+          <div class="compare-panel-actions">
+            <select id="compare-tool-select" aria-label="Select a tool to compare">
+              <option value="">Choose a tool</option>
+              ${compareCandidates.map(candidate => `<option value="${candidate.id}">${candidate.name}</option>`).join('')}
+            </select>
+            <button class="btn btn-secondary btn-sm" id="compare-launch-btn">Open Compare View</button>
+            <button class="btn btn-secondary btn-sm hidden" id="compare-close-btn">Close</button>
+          </div>
+        </div>
+        <div id="tool-comparison-root"></div>
+      </div>` : ''}
+      ${this.getToolContentSectionsHTML(tool)}
+      ${this.getAdHTML('tool-bottom')}
+      ${related.length ? `<div class="related-tools"><h3>You May Also Like</h3><div class="related-tools-grid">${related.map(r => this.getToolCardHTML(r)).join('')}</div></div>` : ''}
+    </div>`;
+  },
+
   // ===== TOOL PAGE RENDERING =====
   showTool(toolId) {
     const tool = TOOLS.find(t => t.id === toolId);
     if (!tool) { this.navigate(this.getHomePath(), { replace: true }); return; }
+    const isEmbed = this.isEmbedMode();
     this.currentView = 'tool';
-    this.trackUsage(toolId);
+    this.activeToolId = toolId;
+    if (!isEmbed) {
+      this.trackUsage(toolId);
+    }
     this.updateSEO(tool.meta.title, tool.meta.desc, tool);
     const catName = TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || '';
     const main = document.getElementById('main-content');
     
-    // SEO-08: Cross-category related tools + same category
-    const sameCategory = TOOLS.filter(t => t.category === tool.category && t.id !== tool.id);
-    const otherCategory = TOOLS.filter(t => t.category !== tool.category && t.id !== tool.id && t.tags.some(tag => tool.tags.includes(tag)));
-    const related = [...sameCategory.slice(0, 3), ...otherCategory.slice(0, 2)].slice(0, 5);
+    const related = this.getRelatedTools(tool, 5);
+    const compareCandidates = this.getCompareCandidates(tool, 10);
+    main.innerHTML = this.getToolPageHTML(tool, catName, related, compareCandidates, isEmbed);
     
+    if (false) {
     main.innerHTML = `<div class="tool-page">
       <div class="tool-page-header">
         <div class="tool-breadcrumb">
@@ -518,13 +705,26 @@ const App = {
       ${this.getAdHTML('tool-bottom')}
       ${related.length ? `<div class="related-tools"><h3>You May Also Like</h3><div class="related-tools-grid">${related.map(r => this.getToolCardHTML(r)).join('')}</div></div>` : ''}
     </div>`;
+    }
 
     // Render tool UI
     const workspace = document.getElementById('tool-workspace');
     ToolRenderers.render(toolId, workspace);
+    this.enhanceRuntimeMedia(main, tool);
 
-    // FEAT-04: Share button
-    document.getElementById('share-tool-btn')?.addEventListener('click', () => this.shareTool(tool));
+    if (!isEmbed) {
+      this.startToolPerformanceTracking(tool);
+      document.getElementById('share-tool-btn')?.addEventListener('click', () => this.shareTool(tool));
+      document.getElementById('print-tool-btn')?.addEventListener('click', () => this.printToolPage());
+      document.getElementById('compare-tool-btn')?.addEventListener('click', () => {
+        document.getElementById('compare-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      document.getElementById('compare-launch-btn')?.addEventListener('click', () => {
+        const compareToolId = document.getElementById('compare-tool-select')?.value || '';
+        this.openToolComparison(tool, compareToolId);
+      });
+      document.getElementById('compare-close-btn')?.addEventListener('click', () => this.closeToolComparison());
+    }
 
     this.bindToolCardInteractions(main);
   },
@@ -561,6 +761,7 @@ const App = {
   },
 
   showInstallPrompt() {
+    if (this.isEmbedMode()) return;
     if (document.getElementById('pwa-install-banner') || localStorage.getItem('tooliest_pwa_dismissed')) return;
     const banner = document.createElement('div');
     banner.id = 'pwa-install-banner';
@@ -614,7 +815,9 @@ const App = {
     if (twTitle) twTitle.setAttribute('content', title);
     if (twDesc) twDesc.setAttribute('content', description);
     if (canonical) canonical.setAttribute('href', absoluteUrl);
-    if (robots) robots.setAttribute('content', this.currentView === 'search' ? 'noindex, follow' : 'index, follow');
+    if (robots) {
+      robots.setAttribute('content', (this.currentView === 'search' || this.currentCategory === 'favorites') ? 'noindex, follow' : 'index, follow');
+    }
     // Remove old dynamic schemas
     document.querySelectorAll('script[data-dynamic-schema]').forEach(s => s.remove());
     // Inject per-tool JSON-LD + BreadcrumbList if on a tool page
@@ -655,6 +858,45 @@ const App = {
         'tool': { '@type': 'HowToTool', 'name': 'Web Browser' }
       };
       [toolSchema, breadcrumb, howTo].forEach(schema => {
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.setAttribute('data-dynamic-schema', 'true');
+        script.textContent = JSON.stringify(schema);
+        document.head.appendChild(script);
+      });
+    } else {
+      const categoryMeta = this.getCategoryMeta(this.currentCategory);
+      if (!categoryMeta) return;
+
+      const collectionSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: categoryMeta.category.name,
+        url: absoluteUrl,
+        description: categoryMeta.description,
+        dateModified: new Date().toISOString().split('T')[0],
+        isPartOf: 'https://tooliest.com/',
+      };
+      const breadcrumb = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://tooliest.com/' },
+          { '@type': 'ListItem', position: 2, name: categoryMeta.category.name, item: absoluteUrl }
+        ]
+      };
+      const itemList = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: `${categoryMeta.category.name} on Tooliest`,
+        itemListElement: categoryMeta.tools.slice(0, 20).map((candidate, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          url: this.getAbsoluteUrl(this.getToolPath(candidate.id)),
+          name: candidate.name,
+        })),
+      };
+      [collectionSchema, breadcrumb, itemList].forEach(schema => {
         const script = document.createElement('script');
         script.type = 'application/ld+json';
         script.setAttribute('data-dynamic-schema', 'true');
@@ -728,6 +970,315 @@ const App = {
     } else {
       navigator.clipboard.writeText(url).then(() => this.toast('Link copied to clipboard! 📋'));
     }
+  },
+
+  printToolPage() {
+    window.print();
+  },
+
+  bindHomeFeaturePanels() {
+    const exportBtn = document.getElementById('favorites-export-btn');
+    const importBtn = document.getElementById('favorites-import-btn');
+    const importInput = document.getElementById('favorites-import-file');
+
+    exportBtn?.addEventListener('click', () => this.exportFavorites());
+    importBtn?.addEventListener('click', () => importInput?.click());
+    importInput?.addEventListener('change', (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (file) {
+        this.importFavorites(file);
+      }
+      event.target.value = '';
+    });
+
+    document.getElementById('show-tour-btn')?.addEventListener('click', () => this.showWelcomeTour(true));
+    document.getElementById('show-shortcuts-btn')?.addEventListener('click', () => this.showShortcuts());
+  },
+
+  exportFavorites() {
+    if (!this.favorites.length) {
+      this.toast('Save at least one favorite before exporting.', 'error');
+      return;
+    }
+
+    const payload = {
+      source: 'Tooliest',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      favorites: this.favorites,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'tooliest-favorites.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    this.toast('Favorites exported successfully.');
+  },
+
+  importFavorites(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result || '{}'));
+        const imported = Array.isArray(parsed) ? parsed : parsed.favorites;
+        if (!Array.isArray(imported)) {
+          throw new Error('Invalid favorites file');
+        }
+
+        const validIds = imported.filter((toolId, index) =>
+          typeof toolId === 'string' &&
+          TOOLS.some(tool => tool.id === toolId) &&
+          imported.indexOf(toolId) === index
+        );
+
+        if (!validIds.length) {
+          this.toast('No valid Tooliest favorites were found in that file.', 'error');
+          return;
+        }
+
+        this.favorites = [...new Set([...this.favorites, ...validIds])];
+        localStorage.setItem('tooliest_favorites', JSON.stringify(this.favorites));
+        const favCategory = TOOL_CATEGORIES.find(category => category.id === 'favorites');
+        if (favCategory) favCategory.count = this.favorites.length;
+        this.renderHome();
+        this.toast(`Imported ${validIds.length} favorite tool(s).`);
+      } catch (error) {
+        this.toast('That file could not be imported.', 'error');
+      }
+    };
+    reader.readAsText(file);
+  },
+
+  maybeShowWelcomeTour() {
+    if (this.currentView !== 'home' || this.currentCategory !== 'all' || this.searchQuery) return;
+    if (localStorage.getItem('tooliest_tour_completed')) return;
+    this.showWelcomeTour();
+  },
+
+  showWelcomeTour(force = false) {
+    if (!force && localStorage.getItem('tooliest_tour_completed')) return;
+    if (document.getElementById('welcome-tour-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'welcome-tour-overlay';
+    overlay.innerHTML = `<div class="tour-panel" role="dialog" aria-modal="true" aria-label="Welcome to Tooliest">
+      <div class="tour-header">
+        <div>
+          <h2>Welcome to Tooliest</h2>
+          <p>Everything stays in your browser. Here are the fastest ways to get value from the site.</p>
+        </div>
+        <button type="button" class="tour-close-btn" id="welcome-tour-close" aria-label="Close welcome tour">Close</button>
+      </div>
+      <div class="tour-steps">
+        <div class="tour-step">
+          <strong>Search instantly</strong>
+          <p>Use the search bar or press <kbd>Ctrl</kbd> + <kbd>K</kbd> to jump to any tool.</p>
+        </div>
+        <div class="tour-step">
+          <strong>Save favorites</strong>
+          <p>Star the tools you use most, then export or import them across devices with a simple JSON file.</p>
+        </div>
+        <div class="tour-step">
+          <strong>Use side-by-side compare</strong>
+          <p>On tool pages, open related tools next to each other to compare inputs and outputs without extra tabs.</p>
+        </div>
+        <div class="tour-step">
+          <strong>Stay productive offline</strong>
+          <p>Install Tooliest as a PWA and keep your most-used browser tools close even on slower connections.</p>
+        </div>
+      </div>
+      <div class="tour-actions">
+        <button type="button" class="btn btn-primary" id="welcome-tour-done">Start Exploring</button>
+      </div>
+    </div>`;
+
+    document.body.appendChild(overlay);
+    const dismiss = () => {
+      localStorage.setItem('tooliest_tour_completed', '1');
+      overlay.remove();
+    };
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) dismiss();
+    });
+    document.getElementById('welcome-tour-close')?.addEventListener('click', dismiss);
+    document.getElementById('welcome-tour-done')?.addEventListener('click', dismiss);
+  },
+
+  enhanceRuntimeMedia(root, tool) {
+    root?.querySelectorAll('img').forEach((img, index) => {
+      if (!img.getAttribute('alt')) {
+        img.setAttribute('alt', `${tool.name} preview ${index + 1}`);
+      }
+      if (!img.getAttribute('loading')) {
+        img.setAttribute('loading', 'lazy');
+      }
+      if (!img.getAttribute('decoding')) {
+        img.setAttribute('decoding', 'async');
+      }
+    });
+  },
+
+  renderToolPerformancePanel(toolId) {
+    const panel = document.getElementById('tool-performance-panel');
+    if (!panel) return;
+
+    const history = JSON.parse(localStorage.getItem(`tooliest_perf_${toolId}`) || '[]');
+    if (!history.length) {
+      panel.innerHTML = `<div class="perf-panel">
+        <div class="section-heading">
+          <h3>Performance Metrics</h3>
+          <p>Tooliest measures interactions locally in your browser. Run this tool to see how fast it responds on your device.</p>
+        </div>
+      </div>`;
+      return;
+    }
+
+    const last = history[history.length - 1];
+    const durations = history.map(entry => Number(entry.duration) || 0).filter(Boolean);
+    const average = durations.reduce((sum, value) => sum + value, 0) / durations.length;
+    const fastest = Math.min(...durations);
+    const slowest = Math.max(...durations);
+
+    panel.innerHTML = `<div class="perf-panel">
+      <div class="section-heading">
+        <h3>Performance Metrics</h3>
+        <p>Measured locally on this device from your most recent tool interactions.</p>
+      </div>
+      <div class="perf-grid">
+        <div class="perf-card"><span>Last action</span><strong>${last.label}</strong></div>
+        <div class="perf-card"><span>Last run</span><strong>${last.duration.toFixed(1)} ms</strong></div>
+        <div class="perf-card"><span>Average</span><strong>${average.toFixed(1)} ms</strong></div>
+        <div class="perf-card"><span>Fastest</span><strong>${fastest.toFixed(1)} ms</strong></div>
+        <div class="perf-card"><span>Slowest</span><strong>${slowest.toFixed(1)} ms</strong></div>
+        <div class="perf-card"><span>Samples</span><strong>${durations.length}</strong></div>
+      </div>
+    </div>`;
+  },
+
+  recordToolPerformance(toolId, label, duration) {
+    const targetToolId = toolId || this.activeToolId;
+    if (!targetToolId || !Number.isFinite(duration) || duration < 0) return;
+
+    const historyKey = `tooliest_perf_${targetToolId}`;
+    const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+    history.push({
+      label: (label || 'Tool interaction').trim().slice(0, 60),
+      duration: Number(duration.toFixed(2)),
+      timestamp: new Date().toISOString(),
+    });
+    localStorage.setItem(historyKey, JSON.stringify(history.slice(-20)));
+    this.pendingPerformanceMeasurement = null;
+    this.renderToolPerformancePanel(targetToolId);
+  },
+
+  startToolPerformanceTracking(tool) {
+    if (this.performanceDashboardCleanup) {
+      this.performanceDashboardCleanup();
+      this.performanceDashboardCleanup = null;
+    }
+
+    const workspace = document.getElementById('tool-workspace');
+    if (!workspace) return;
+
+    this.renderToolPerformancePanel(tool.id);
+
+    const capture = (event, fallbackLabel) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('.copy-btn')) return;
+      const label = target.closest('button')?.textContent?.trim() ||
+        target.closest('label')?.textContent?.trim() ||
+        fallbackLabel;
+      this.pendingPerformanceMeasurement = {
+        toolId: tool.id,
+        label,
+        start: performance.now(),
+      };
+    };
+
+    const clickHandler = (event) => capture(event, 'Tool action');
+    const inputHandler = (event) => capture(event, 'Live update');
+
+    workspace.addEventListener('click', clickHandler, true);
+    workspace.addEventListener('input', inputHandler, true);
+    workspace.addEventListener('change', inputHandler, true);
+
+    let mutationScheduled = false;
+    const observer = new MutationObserver(() => {
+      this.enhanceRuntimeMedia(workspace, tool);
+      if (!this.pendingPerformanceMeasurement || mutationScheduled) return;
+      mutationScheduled = true;
+      requestAnimationFrame(() => {
+        mutationScheduled = false;
+        if (!this.pendingPerformanceMeasurement) return;
+        const duration = performance.now() - this.pendingPerformanceMeasurement.start;
+        if (duration <= 5000) {
+          this.recordToolPerformance(
+            this.pendingPerformanceMeasurement.toolId,
+            this.pendingPerformanceMeasurement.label,
+            duration
+          );
+        } else {
+          this.pendingPerformanceMeasurement = null;
+        }
+      });
+    });
+
+    observer.observe(workspace, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ['class', 'style', 'value', 'src'],
+    });
+
+    this.performanceDashboardCleanup = () => {
+      workspace.removeEventListener('click', clickHandler, true);
+      workspace.removeEventListener('input', inputHandler, true);
+      workspace.removeEventListener('change', inputHandler, true);
+      observer.disconnect();
+      this.pendingPerformanceMeasurement = null;
+    };
+  },
+
+  openToolComparison(primaryTool, compareToolId) {
+    const comparisonRoot = document.getElementById('tool-comparison-root');
+    const closeButton = document.getElementById('compare-close-btn');
+    const compareTool = TOOLS.find(tool => tool.id === compareToolId);
+
+    if (!comparisonRoot || !compareTool) {
+      this.toast('Choose a related tool to compare.', 'error');
+      return;
+    }
+
+    comparisonRoot.innerHTML = `<div class="compare-layout">
+      <div class="compare-pane">
+        <div class="compare-pane-header">
+          <strong>${primaryTool.name}</strong>
+          <span>Current tool</span>
+        </div>
+        <iframe src="${this.getToolPath(primaryTool.id)}?embed=1" title="${primaryTool.name} comparison panel" loading="lazy"></iframe>
+      </div>
+      <div class="compare-pane">
+        <div class="compare-pane-header">
+          <strong>${compareTool.name}</strong>
+          <span>Related tool</span>
+        </div>
+        <iframe src="${this.getToolPath(compareTool.id)}?embed=1" title="${compareTool.name} comparison panel" loading="lazy"></iframe>
+      </div>
+    </div>`;
+    closeButton?.classList.remove('hidden');
+    comparisonRoot.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  },
+
+  closeToolComparison() {
+    const comparisonRoot = document.getElementById('tool-comparison-root');
+    comparisonRoot?.replaceChildren();
+    document.getElementById('compare-close-btn')?.classList.add('hidden');
   },
 
   // ===== FEAT-03: KEYBOARD SHORTCUTS PANEL =====

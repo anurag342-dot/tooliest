@@ -11,10 +11,15 @@ const ToolRenderers = {
         App.setupAutoSave('tool-input', toolId);
       } catch (err) {
         console.error('[Tooliest] Error rendering tool:', toolId, err);
+        const safeMessage = String(err && err.message ? err.message : 'Unknown error')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
         container.innerHTML = `<div class="tool-workspace-body" style="text-align:center;padding:40px">
           <p style="font-size:1.5rem;margin-bottom:12px">⚠️</p>
           <p style="color:var(--text-secondary);margin-bottom:8px">Something went wrong loading this tool.</p>
-          <p style="color:var(--text-tertiary);font-size:0.85rem">Error: ${err.message}</p>
+          <p style="color:var(--text-tertiary);font-size:0.85rem">Error: ${safeMessage}</p>
           <button class="btn btn-secondary" style="margin-top:16px" onclick="location.reload()">Reload Page</button>
         </div>`;
       }
@@ -32,7 +37,13 @@ const ToolRenderers = {
         <div class="input-group"><label>Result</label><div class="output-area empty" id="tool-output"><button class="copy-btn hidden" id="copy-btn" onclick="copyToClipboard(document.getElementById('tool-output').innerText, this)">Copy</button>Your output will appear here</div></div>
         <div class="result-stats" id="result-stats"></div>
       </div>`;
-    container.querySelector('.btn-primary')?.addEventListener('click', () => onAction());
+    container.querySelector('.btn-primary')?.addEventListener('click', (event) => {
+      const start = performance.now();
+      onAction();
+      if (typeof App !== 'undefined' && typeof App.recordToolPerformance === 'function') {
+        App.recordToolPerformance(App.activeToolId, event.currentTarget.textContent || 'Tool action', performance.now() - start);
+      }
+    });
   },
 
   setOutput(text, stats) {
