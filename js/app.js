@@ -16,6 +16,13 @@ const App = {
           .then(reg => console.log('[Service Worker] Registered', reg.scope))
           .catch(err => console.log('[Service Worker] Failed', err));
       });
+      // Auto-reload when a new service worker version activates
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+          console.log('[Tooliest] New version available, reloading...');
+          window.location.reload();
+        }
+      });
     }
     
     this.bindEvents();

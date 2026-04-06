@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tooliest-v11-offline';
+const CACHE_NAME = 'tooliest-v12-offline';
 const URLS_TO_CACHE = [
   './',
   './index.html',
@@ -23,7 +23,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate Event: Clean up old caches
+// Activate Event: Clean up old caches and notify clients to reload
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -35,6 +35,13 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      // Notify all clients that a new version is available
+      return self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SW_UPDATED' });
+        });
+      });
     })
   );
   return self.clients.claim();
