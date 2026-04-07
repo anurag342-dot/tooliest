@@ -177,6 +177,25 @@
   text-align: center;
 }
 
+.shortcut-device-note {
+  padding: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.shortcut-device-note strong {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.shortcut-device-note p {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
 kbd {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
@@ -256,6 +275,21 @@ kbd {
   padding: 18px;
 }
 
+.tour-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  margin-bottom: 12px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--accent-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .tour-step strong {
   display: block;
   margin-bottom: 8px;
@@ -267,10 +301,106 @@ kbd {
   font-size: 0.92rem;
 }
 
+.tour-step-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.tour-mobile-meta,
+.tour-pagination,
+.tour-dot,
+#tour-prev-btn {
+  display: none;
+}
+
+.tour-mobile-meta {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.tour-progress-label {
+  color: var(--text-tertiary);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.tour-pagination {
+  gap: 8px;
+}
+
+.tour-dot {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.3);
+  cursor: pointer;
+}
+
+.tour-dot.active {
+  background: var(--accent-primary);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12);
+}
+
 .tour-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
   margin-top: 20px;
+}
+
+body.shortcut-hints-hidden .search-shortcut {
+  display: none;
+}
+
+.tour-panel[data-compact="true"] {
+  width: min(440px, 100%);
+  padding: 22px 20px;
+}
+
+.tour-panel[data-compact="true"] .tour-header {
+  margin-bottom: 16px;
+}
+
+.tour-panel[data-compact="true"] .tour-header h2 {
+  font-size: 1.25rem;
+}
+
+.tour-panel[data-compact="true"] .tour-header p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.tour-panel[data-compact="true"] .tour-mobile-meta,
+.tour-panel[data-compact="true"] .tour-pagination,
+.tour-panel[data-compact="true"] .tour-dot,
+.tour-panel[data-compact="true"] #tour-prev-btn {
+  display: flex;
+}
+
+.tour-panel[data-compact="true"] .tour-steps {
+  display: block;
+}
+
+.tour-panel[data-compact="true"] .tour-step {
+  padding: 18px 16px;
+}
+
+.tour-panel[data-compact="true"] .tour-actions {
+  justify-content: space-between;
+}
+
+.tour-panel[data-compact="true"] .btn-primary {
+  flex: 1;
 }
 
 /* === Skip Link (WCAG Accessibility) === */

@@ -21,10 +21,12 @@ const App = {
   activeToolId: null,
   pendingPerformanceMeasurement: null,
   performanceDashboardCleanup: null,
+  inputCapabilities: null,
 
   init() {
     this.normalizeLegacyHashRoute();
     document.body.classList.toggle('embed-mode', this.isEmbedMode());
+    this.initInputCapabilities();
 
     if (!this.isEmbedMode() && 'serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -88,6 +90,95 @@ const App = {
     });
     if (!this.isEmbedMode()) {
       window.setTimeout(() => this.maybeShowWelcomeTour(), 900);
+    }
+  },
+
+  initInputCapabilities() {
+    const compactViewport = window.matchMedia('(max-width: 820px)');
+    const coarsePointer = window.matchMedia('(pointer: coarse)');
+    const anyCoarsePointer = window.matchMedia('(any-pointer: coarse)');
+    const anyFinePointer = window.matchMedia('(any-pointer: fine)');
+    const hoverCapable = window.matchMedia('(hover: hover)');
+    const bindChange = (query, handler) => {
+      if (query.addEventListener) {
+        query.addEventListener('change', handler);
+      } else if (query.addListener) {
+        query.addListener(handler);
+      }
+    };
+
+    const applyCapabilities = () => {
+      const previous = this.inputCapabilities || {};
+      const hasTouchPoints = navigator.maxTouchPoints > 0;
+      const touchPreferred = coarsePointer.matches ||
+        (anyCoarsePointer.matches && !hoverCapable.matches) ||
+        (hasTouchPoints && !anyFinePointer.matches);
+
+      this.inputCapabilities = {
+        hasTouchPoints,
+        touchPreferred,
+        compactViewport: compactViewport.matches,
+        hasHardwareKeyboard: previous.hasHardwareKeyboard || (!touchPreferred && anyFinePointer.matches),
+      };
+      this.updateShortcutUI();
+    };
+
+    [compactViewport, coarsePointer, anyCoarsePointer, anyFinePointer, hoverCapable].forEach((query) => {
+      bindChange(query, applyCapabilities);
+    });
+
+    window.addEventListener('resize', applyCapabilities, { passive: true });
+    document.addEventListener('keydown', (event) => {
+      if (!this.hasLikelyHardwareKeyboardEvent(event) || this.inputCapabilities?.hasHardwareKeyboard) return;
+      this.inputCapabilities = {
+        ...(this.inputCapabilities || {}),
+        hasHardwareKeyboard: true,
+      };
+      this.updateShortcutUI();
+    }, true);
+
+    applyCapabilities();
+  },
+
+  hasLikelyHardwareKeyboardEvent(event) {
+    if (!event || event.isComposing || event.key === 'Unidentified') return false;
+    const tagName = event.target?.tagName;
+    const typingField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tagName);
+    const navigationKeys = ['Escape', 'Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key);
+    return Boolean(
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey ||
+      navigationKeys ||
+      (!typingField && event.key && event.key.length === 1)
+    );
+  },
+
+  isTouchOnlyDevice() {
+    return Boolean(this.inputCapabilities?.touchPreferred) && !this.inputCapabilities?.hasHardwareKeyboard;
+  },
+
+  shouldUseCompactTour() {
+    return Boolean(this.inputCapabilities?.compactViewport) || this.isTouchOnlyDevice();
+  },
+
+  shouldShowKeyboardShortcutHints() {
+    return !this.isTouchOnlyDevice();
+  },
+
+  updateShortcutUI() {
+    const showHints = this.shouldShowKeyboardShortcutHints();
+    document.body.classList.toggle('shortcut-hints-hidden', !showHints);
+    document.body.classList.toggle('touch-only-device', this.isTouchOnlyDevice());
+
+    document.querySelectorAll('.search-shortcut').forEach((hint) => {
+      hint.hidden = !showHints;
+      hint.setAttribute('aria-hidden', showHints ? 'false' : 'true');
+    });
+
+    const shortcutButton = document.getElementById('show-shortcuts-btn');
+    if (shortcutButton) {
+      shortcutButton.textContent = showHints ? 'View Shortcuts' : 'Desktop Shortcut Tips';
     }
   },
 
@@ -380,6 +471,8 @@ const App = {
       this.syncSearchInputs('');
       this.renderHome();
     }
+
+    this.updateShortcutUI();
   },
 
   renderHome() {
@@ -1059,10 +1152,41 @@ const App = {
     this.showWelcomeTour();
   },
 
+  getWelcomeTourSteps() {
+    const touchOnly = this.isTouchOnlyDevice();
+    return [
+      {
+        title: 'Search instantly',
+        description: touchOnly
+          ? 'Use the search bar to jump to any tool without covering the workspace.'
+          : 'Use the search bar or press Ctrl + K to jump to any tool.',
+        note: touchOnly
+          ? 'Keyboard shortcuts are available on desktop devices or when you connect a physical keyboard.'
+          : '',
+      },
+      {
+        title: 'Save favorites',
+        description: 'Star the tools you use most, then export or import them across devices with a simple JSON file.',
+        note: '',
+      },
+      {
+        title: 'Use side-by-side compare',
+        description: 'On tool pages, open related tools next to each other to compare inputs and outputs without extra tabs.',
+        note: '',
+      },
+      {
+        title: 'Stay productive offline',
+        description: 'Install Tooliest as a PWA and keep your most-used browser tools close even on slower connections.',
+        note: '',
+      },
+    ];
+  },
+
   showWelcomeTour(force = false) {
     if (!force && localStorage.getItem('tooliest_tour_completed')) return;
     if (document.getElementById('welcome-tour-overlay')) return;
 
+    const steps = this.getWelcomeTourSteps();
     const overlay = document.createElement('div');
     overlay.id = 'welcome-tour-overlay';
     overlay.innerHTML = `<div class="tour-panel" role="dialog" aria-modal="true" aria-label="Welcome to Tooliest">
@@ -1073,39 +1197,97 @@ const App = {
         </div>
         <button type="button" class="tour-close-btn" id="welcome-tour-close" aria-label="Close welcome tour">Close</button>
       </div>
-      <div class="tour-steps">
-        <div class="tour-step">
-          <strong>Search instantly</strong>
-          <p>Use the search bar or press <kbd>Ctrl</kbd> + <kbd>K</kbd> to jump to any tool.</p>
-        </div>
-        <div class="tour-step">
-          <strong>Save favorites</strong>
-          <p>Star the tools you use most, then export or import them across devices with a simple JSON file.</p>
-        </div>
-        <div class="tour-step">
-          <strong>Use side-by-side compare</strong>
-          <p>On tool pages, open related tools next to each other to compare inputs and outputs without extra tabs.</p>
-        </div>
-        <div class="tour-step">
-          <strong>Stay productive offline</strong>
-          <p>Install Tooliest as a PWA and keep your most-used browser tools close even on slower connections.</p>
+      <div class="tour-mobile-meta" aria-live="polite">
+        <span class="tour-progress-label">Step <span id="tour-current-step">1</span> of ${steps.length}</span>
+        <div class="tour-pagination" role="tablist" aria-label="Welcome tour progress">
+          ${steps.map((step, index) => `<button type="button" class="tour-dot${index === 0 ? ' active' : ''}" data-tour-dot="${index}" aria-label="Go to step ${index + 1}: ${step.title}"></button>`).join('')}
         </div>
       </div>
+      <div class="tour-steps">
+        ${steps.map((step, index) => `<div class="tour-step${index === 0 ? ' is-active' : ''}" data-tour-step="${index}">
+          <span class="tour-step-number">${String(index + 1).padStart(2, '0')}</span>
+          <strong>${step.title}</strong>
+          <p>${step.description}</p>
+          ${step.note ? `<div class="tour-step-note">${step.note}</div>` : ''}
+        </div>`).join('')}
+      </div>
       <div class="tour-actions">
+        <button type="button" class="btn btn-secondary btn-sm" id="tour-prev-btn">Back</button>
         <button type="button" class="btn btn-primary" id="welcome-tour-done">Start Exploring</button>
       </div>
     </div>`;
 
     document.body.appendChild(overlay);
+    const panel = overlay.querySelector('.tour-panel');
+    const prevButton = overlay.querySelector('#tour-prev-btn');
+    const primaryButton = overlay.querySelector('#welcome-tour-done');
+    const currentStepLabel = overlay.querySelector('#tour-current-step');
+    const stepEls = Array.from(overlay.querySelectorAll('.tour-step'));
+    const dotEls = Array.from(overlay.querySelectorAll('.tour-dot'));
+    let activeStep = 0;
+
+    const syncTourState = () => {
+      const compact = this.shouldUseCompactTour();
+      panel?.setAttribute('data-compact', compact ? 'true' : 'false');
+
+      stepEls.forEach((stepEl, index) => {
+        const isActive = index === activeStep;
+        stepEl.classList.toggle('is-active', isActive);
+        stepEl.hidden = compact ? !isActive : false;
+      });
+
+      dotEls.forEach((dotEl, index) => {
+        const isActive = index === activeStep;
+        dotEl.classList.toggle('active', isActive);
+        dotEl.setAttribute('aria-current', isActive ? 'step' : 'false');
+      });
+
+      if (currentStepLabel) {
+        currentStepLabel.textContent = String(activeStep + 1);
+      }
+
+      if (prevButton) {
+        prevButton.hidden = !compact;
+        prevButton.disabled = activeStep === 0;
+      }
+
+      if (primaryButton) {
+        primaryButton.textContent = compact && activeStep < stepEls.length - 1
+          ? 'Next Step'
+          : 'Start Exploring';
+      }
+    };
+
     const dismiss = () => {
+      window.removeEventListener('resize', syncTourState);
       localStorage.setItem('tooliest_tour_completed', '1');
       overlay.remove();
     };
+
     overlay.addEventListener('click', (event) => {
       if (event.target === overlay) dismiss();
     });
+    prevButton?.addEventListener('click', () => {
+      activeStep = Math.max(0, activeStep - 1);
+      syncTourState();
+    });
+    dotEls.forEach((dotEl) => {
+      dotEl.addEventListener('click', () => {
+        activeStep = Number(dotEl.dataset.tourDot) || 0;
+        syncTourState();
+      });
+    });
     document.getElementById('welcome-tour-close')?.addEventListener('click', dismiss);
-    document.getElementById('welcome-tour-done')?.addEventListener('click', dismiss);
+    primaryButton?.addEventListener('click', () => {
+      if (this.shouldUseCompactTour() && activeStep < stepEls.length - 1) {
+        activeStep += 1;
+        syncTourState();
+        return;
+      }
+      dismiss();
+    });
+    window.addEventListener('resize', syncTourState, { passive: true });
+    syncTourState();
   },
 
   enhanceRuntimeMedia(root, tool) {
@@ -1285,20 +1467,26 @@ const App = {
   showShortcuts() {
     const existing = document.getElementById('shortcuts-overlay');
     if (existing) { existing.remove(); return; }
+    const showKeyboardShortcuts = this.shouldShowKeyboardShortcutHints();
     const overlay = document.createElement('div');
     overlay.id = 'shortcuts-overlay';
     overlay.innerHTML = `<div class="shortcuts-panel">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <h2 style="font-size:1.2rem;font-weight:700">⌨️ Keyboard Shortcuts</h2>
+        <h2 style="font-size:1.2rem;font-weight:700">${showKeyboardShortcuts ? '⌨️ Keyboard Shortcuts' : '⌨️ Desktop Shortcut Tips'}</h2>
         <button id="shortcuts-close" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer">✕</button>
       </div>
-      <div class="shortcut-list">
-        <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Search tools</span></div>
-        <div class="shortcut-item"><kbd>?</kbd><span>Show shortcuts</span></div>
-        <div class="shortcut-item"><kbd>H</kbd><span>Go home</span></div>
-        <div class="shortcut-item"><kbd>T</kbd><span>Toggle theme</span></div>
-        <div class="shortcut-item"><kbd>Esc</kbd><span>Close overlay</span></div>
-      </div>
+      ${showKeyboardShortcuts
+        ? `<div class="shortcut-list">
+          <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Search tools</span></div>
+          <div class="shortcut-item"><kbd>?</kbd><span>Show shortcuts</span></div>
+          <div class="shortcut-item"><kbd>H</kbd><span>Go home</span></div>
+          <div class="shortcut-item"><kbd>T</kbd><span>Toggle theme</span></div>
+          <div class="shortcut-item"><kbd>Esc</kbd><span>Close overlay</span></div>
+        </div>`
+        : `<div class="shortcut-device-note">
+          <strong>Keyboard shortcuts are available on desktop devices.</strong>
+          <p>Connect a physical keyboard to use shortcuts here, or keep using the on-screen search, menu, and theme controls.</p>
+        </div>`}
     </div>`;
     document.body.appendChild(overlay);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
