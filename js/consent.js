@@ -55,10 +55,8 @@
         ad_personalization: 'granted',
         analytics_storage: 'granted',
       });
-      // Load AdSense if consent was given
-      // (AdSense script tag is already in index.html, commented out for now)
-      // When you have your publisher ID, uncomment the AdSense <script> in index.html
-      // and this consent system will correctly gate it via Consent Mode v2.
+      // AdSense now loads in the shared page shells. Consent Mode keeps
+      // ad/analytics storage denied by default until the user opts in.
     } else {
       gtag('consent', 'update', {
         ad_storage: 'denied',

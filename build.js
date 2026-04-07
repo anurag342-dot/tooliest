@@ -6,6 +6,10 @@ const { minify } = require('terser');
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
+const ADSENSE_CLIENT = 'ca-pub-3155132462698504';
+const ADSENSE_SCRIPT_URL = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
+const CONSENT_DEFAULTS_INLINE = `<script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>`;
+const ADSENSE_SCRIPT_TAG = `<script async src="${ADSENSE_SCRIPT_URL}" crossorigin="anonymous"></script>`;
 
 const filesToBundle = [
   'js/app.js',
@@ -249,6 +253,8 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <link rel="stylesheet" href="${FONT_URL}">
   <link rel="stylesheet" href="/css/styles.css">
   <script src="/js/consent.js" defer></script>
+  ${CONSENT_DEFAULTS_INLINE}
+  ${ADSENSE_SCRIPT_TAG}
   ${structuredData.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('\n  ')}
 </head>
 <body>
