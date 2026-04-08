@@ -166,6 +166,29 @@ const App = {
     return !this.isTouchOnlyDevice();
   },
 
+  shouldUseCompactNavSearch() {
+    return window.matchMedia('(max-width: 1175px)').matches;
+  },
+
+  focusSearch() {
+    if (this.shouldUseCompactNavSearch()) {
+      const mobileSearchOverlay = document.getElementById('mobile-search-overlay');
+      const mobileSearchInput = document.getElementById('mobile-search-input');
+      mobileSearchOverlay?.classList.add('open');
+      window.setTimeout(() => {
+        mobileSearchInput?.focus();
+        mobileSearchInput?.select?.();
+      }, 100);
+      return;
+    }
+
+    const searchEl = document.getElementById('search-input');
+    if (searchEl) {
+      searchEl.focus();
+      searchEl.select?.();
+    }
+  },
+
   updateShortcutUI() {
     const showHints = this.shouldShowKeyboardShortcutHints();
     document.body.classList.toggle('shortcut-hints-hidden', !showHints);
@@ -365,7 +388,7 @@ const App = {
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        searchInput?.focus();
+        this.focusSearch();
       }
     });
     // Mobile menu — toggle open/close
@@ -1546,8 +1569,7 @@ document.addEventListener('keydown', (e) => {
   // Ctrl+K: Focus search (works everywhere)
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault();
-    const searchEl = document.getElementById('search-input');
-    if (searchEl) { searchEl.focus(); searchEl.select(); }
+    App.focusSearch();
     return;
   }
   // Esc: close overlays
