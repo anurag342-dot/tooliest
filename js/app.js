@@ -305,6 +305,39 @@ const App = {
     this.handleRoute();
   },
 
+  isCollectionRoute(route) {
+    return route.view === 'home' || route.view === 'category';
+  },
+
+  shouldKeepToolsSectionInView(nextRoute) {
+    if (!this.isCollectionRoute(nextRoute)) return false;
+    if (this.currentView !== 'home' || this.searchQuery) return false;
+
+    const toolsSection = document.getElementById('tools-grid')?.closest('.tools-section');
+    if (!toolsSection) return false;
+
+    const sectionTop = toolsSection.getBoundingClientRect().top + window.scrollY;
+    const threshold = Math.max(sectionTop - window.innerHeight * 0.35, 0);
+    return window.scrollY >= threshold;
+  },
+
+  scrollToRouteStart() {
+    window.scrollTo(0, 0);
+  },
+
+  scrollToolsSectionIntoView() {
+    const toolsSection = document.getElementById('tools-grid')?.closest('.tools-section');
+    if (!toolsSection) {
+      this.scrollToRouteStart();
+      return;
+    }
+
+    const navbarHeight = document.querySelector('.navbar')?.offsetHeight || 0;
+    const sectionTop = toolsSection.getBoundingClientRect().top + window.scrollY;
+    const targetTop = Math.max(sectionTop - navbarHeight - 16, 0);
+    window.scrollTo(0, targetTop);
+  },
+
   syncSearchInputs(value = '') {
     const normalized = value || '';
     const desktopSearch = document.getElementById('search-input');
@@ -443,8 +476,8 @@ const App = {
 
   handleRoute() {
     const route = this.getRoute();
+    const keepToolsSectionVisible = this.shouldKeepToolsSectionInView(route);
     document.getElementById('nav-links')?.classList.remove('mobile-open');
-    window.scrollTo(0, 0);
     if (route.view !== 'tool' && this.performanceDashboardCleanup) {
       this.performanceDashboardCleanup();
       this.performanceDashboardCleanup = null;
@@ -470,6 +503,12 @@ const App = {
       this.searchQuery = '';
       this.syncSearchInputs('');
       this.renderHome();
+    }
+
+    if (keepToolsSectionVisible && this.isCollectionRoute(route)) {
+      this.scrollToolsSectionIntoView();
+    } else {
+      this.scrollToRouteStart();
     }
 
     this.updateShortcutUI();
