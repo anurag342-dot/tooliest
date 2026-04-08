@@ -22,6 +22,7 @@ const ADSENSE_CLIENT = 'ca-pub-3155132462698504';
 const ADSENSE_SCRIPT_URL = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
 const CONSENT_DEFAULTS_INLINE = `<script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>`;
 const ADSENSE_SCRIPT_TAG = `<script async src="${ADSENSE_SCRIPT_URL}" crossorigin="anonymous"></script>`;
+const THEME_BOOTSTRAP_INLINE = `<script>try{const savedTheme=localStorage.getItem('tooliest_theme');if(savedTheme==='light'||savedTheme==='dark'){document.documentElement.setAttribute('data-theme',savedTheme);}}catch(_){}</script>`;
 const BRAND_ICON_PATHS = {
   svg: '/favicon.svg',
   png48: '/favicon-48.png',
@@ -257,6 +258,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="author" content="Tooliest">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#8b5cf6">
+  ${THEME_BOOTSTRAP_INLINE}
   <link rel="manifest" href="/manifest.json">
   <meta property="og:type" content="website">
   <meta property="og:title" content="${escapeAttr(title)}">
