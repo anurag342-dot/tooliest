@@ -1,12 +1,12 @@
-const CACHE_NAME = 'tooliest-v16-offline';
+const CACHE_NAME = 'tooliest-v17-offline';
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap';
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
-  '/about.html',
-  '/contact.html',
-  '/privacy.html',
-  '/terms.html',
+  '/about',
+  '/contact',
+  '/privacy',
+  '/terms',
   '/category/text',
   '/category/seo',
   '/category/css',

@@ -22,6 +22,12 @@ const ADSENSE_CLIENT = 'ca-pub-3155132462698504';
 const ADSENSE_SCRIPT_URL = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
 const CONSENT_DEFAULTS_INLINE = `<script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>`;
 const ADSENSE_SCRIPT_TAG = `<script async src="${ADSENSE_SCRIPT_URL}" crossorigin="anonymous"></script>`;
+const STATIC_PAGE_PATHS = {
+  about: '/about',
+  contact: '/contact',
+  privacy: '/privacy',
+  terms: '/terms',
+};
 
 const filesToBundle = [
   'js/app.js',
@@ -133,7 +139,7 @@ function renderNavbar() {
         <a href="/category/seo">SEO</a>
         <a href="/category/ai">AI Tools</a>
         <a href="/category/developer">Dev</a>
-        <a href="/about.html">About</a>
+        <a href="${STATIC_PAGE_PATHS.about}">About</a>
         <a href="#" id="nav-install-btn" style="display:none;color:var(--accent-primary);font-weight:600;">📲 Install App</a>
         <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="App.toggleTheme()" aria-label="Toggle theme">☀️</button>
         <button class="theme-toggle-btn" id="changelog-btn" onclick="App.showChangelog()" aria-label="What's new" title="What's New">🆕</button>
@@ -177,19 +183,19 @@ function renderFooter() {
       <div class="footer-col">
         <h4>Company</h4>
         <ul>
-          <li><a href="/about.html">About Us</a></li>
-          <li><a href="/contact.html">Contact</a></li>
-          <li><a href="/privacy.html">Privacy Policy</a></li>
-          <li><a href="/terms.html">Terms of Service</a></li>
+          <li><a href="${STATIC_PAGE_PATHS.about}">About Us</a></li>
+          <li><a href="${STATIC_PAGE_PATHS.contact}">Contact</a></li>
+          <li><a href="${STATIC_PAGE_PATHS.privacy}">Privacy Policy</a></li>
+          <li><a href="${STATIC_PAGE_PATHS.terms}">Terms of Service</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
       <span>&copy; 2026 Tooliest.com — All tools are free and run in your browser.</span>
       <span>
-        <a href="/privacy.html" style="color:inherit;opacity:0.7;">Privacy</a> &nbsp;·&nbsp;
-        <a href="/terms.html" style="color:inherit;opacity:0.7;">Terms</a> &nbsp;·&nbsp;
-        <a href="/contact.html" style="color:inherit;opacity:0.7;">Contact</a> &nbsp;·&nbsp;
+        <a href="${STATIC_PAGE_PATHS.privacy}" style="color:inherit;opacity:0.7;">Privacy</a> &nbsp;·&nbsp;
+        <a href="${STATIC_PAGE_PATHS.terms}" style="color:inherit;opacity:0.7;">Terms</a> &nbsp;·&nbsp;
+        <a href="${STATIC_PAGE_PATHS.contact}" style="color:inherit;opacity:0.7;">Contact</a> &nbsp;·&nbsp;
         <button onclick="TooliestConsent && TooliestConsent.reset()" style="background:none;border:none;color:inherit;opacity:0.7;cursor:pointer;font-size:inherit;padding:0;font-family:inherit;">Manage Cookies</button>
       </span>
     </div>
@@ -220,7 +226,7 @@ function renderCookieBanner() {
       <div class="cookie-icon">🍪</div>
       <div class="cookie-text">
         <strong>We use cookies to keep Tooliest free</strong>
-        <p>We use cookies for analytics and to show ads via Google AdSense — this is what keeps all our tools free for everyone. You can accept all cookies or reject non-essential ones. <a href="/privacy.html">Learn more in our Privacy Policy.</a></p>
+        <p>We use cookies for analytics and to show ads via Google AdSense — this is what keeps all our tools free for everyone. You can accept all cookies or reject non-essential ones. <a href="${STATIC_PAGE_PATHS.privacy}">Learn more in our Privacy Policy.</a></p>
       </div>
       <div class="cookie-actions">
         <button id="cookie-reject-btn">Reject Non-Essential</button>
@@ -425,7 +431,7 @@ function renderToolPage(tool, tools, categories) {
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer support',
-        url: 'https://tooliest.com/contact.html',
+        url: getAbsoluteUrl(STATIC_PAGE_PATHS.contact),
       },
     },
     {
@@ -542,10 +548,10 @@ function writeSitemap(tools, categories) {
   console.log('Generating sitemap.xml...');
   const staticPages = [
     { loc: 'https://tooliest.com/', priority: '1.0', changefreq: 'weekly' },
-    { loc: 'https://tooliest.com/about.html', priority: '0.8', changefreq: 'monthly' },
-    { loc: 'https://tooliest.com/contact.html', priority: '0.7', changefreq: 'monthly' },
-    { loc: 'https://tooliest.com/privacy.html', priority: '0.6', changefreq: 'monthly' },
-    { loc: 'https://tooliest.com/terms.html', priority: '0.5', changefreq: 'monthly' },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.about), priority: '0.8', changefreq: 'monthly' },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.contact), priority: '0.7', changefreq: 'monthly' },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.privacy), priority: '0.6', changefreq: 'monthly' },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.5', changefreq: 'monthly' },
   ];
 
   const categoryPages = getRenderableCategories(categories).map((category) => ({
