@@ -302,40 +302,7 @@ const App = {
     const method = options.replace ? 'replaceState' : 'pushState';
 
     history[method]({}, '', nextPath);
-    this.handleRoute();
-  },
-
-  isCollectionRoute(route) {
-    return route.view === 'home' || route.view === 'category';
-  },
-
-  shouldKeepToolsSectionInView(nextRoute) {
-    if (!this.isCollectionRoute(nextRoute)) return false;
-    if (this.currentView !== 'home' || this.searchQuery) return false;
-
-    const toolsSection = document.getElementById('tools-grid')?.closest('.tools-section');
-    if (!toolsSection) return false;
-
-    const sectionTop = toolsSection.getBoundingClientRect().top + window.scrollY;
-    const threshold = Math.max(sectionTop - window.innerHeight * 0.35, 0);
-    return window.scrollY >= threshold;
-  },
-
-  scrollToRouteStart() {
-    window.scrollTo(0, 0);
-  },
-
-  scrollToolsSectionIntoView() {
-    const toolsSection = document.getElementById('tools-grid')?.closest('.tools-section');
-    if (!toolsSection) {
-      this.scrollToRouteStart();
-      return;
-    }
-
-    const navbarHeight = document.querySelector('.navbar')?.offsetHeight || 0;
-    const sectionTop = toolsSection.getBoundingClientRect().top + window.scrollY;
-    const targetTop = Math.max(sectionTop - navbarHeight - 16, 0);
-    window.scrollTo(0, targetTop);
+    this.handleRoute(options);
   },
 
   syncSearchInputs(value = '') {
@@ -474,9 +441,13 @@ const App = {
     });
   },
 
-  handleRoute() {
+  handleRoute(options = {}) {
     const route = this.getRoute();
-    const keepToolsSectionVisible = this.shouldKeepToolsSectionInView(route);
+    const preserveCollectionScroll = Boolean(options.preserveScroll) &&
+      this.currentView === 'home' &&
+      !this.searchQuery &&
+      (route.view === 'home' || route.view === 'category');
+    const preservedScrollY = preserveCollectionScroll ? window.scrollY : 0;
     document.getElementById('nav-links')?.classList.remove('mobile-open');
     if (route.view !== 'tool' && this.performanceDashboardCleanup) {
       this.performanceDashboardCleanup();
@@ -505,10 +476,10 @@ const App = {
       this.renderHome();
     }
 
-    if (keepToolsSectionVisible && this.isCollectionRoute(route)) {
-      this.scrollToolsSectionIntoView();
+    if (preserveCollectionScroll) {
+      window.scrollTo(0, preservedScrollY);
     } else {
-      this.scrollToRouteStart();
+      window.scrollTo(0, 0);
     }
 
     this.updateShortcutUI();
@@ -564,7 +535,7 @@ const App = {
     document.querySelectorAll('.category-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         this.currentCategory = tab.dataset.category;
-        this.navigate(this.getCategoryPath(this.currentCategory), { replace: true });
+        this.navigate(this.getCategoryPath(this.currentCategory), { replace: true, preserveScroll: true });
       });
     });
   },
