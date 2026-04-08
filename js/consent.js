@@ -67,13 +67,28 @@
     }
   }
 
+  function clearSavedConsent() {
+    try {
+      localStorage.removeItem(CONSENT_KEY);
+    } catch (e) { /* storage not available */ }
+  }
+
+  function bindBannerActions() {
+    const banner = document.getElementById('cookie-banner');
+    if (!banner || banner.dataset.bound === 'true') return;
+
+    document.getElementById('cookie-accept-btn')?.addEventListener('click', handleAccept);
+    document.getElementById('cookie-reject-btn')?.addEventListener('click', handleReject);
+    banner.dataset.bound = 'true';
+  }
+
   function hideBanner() {
     const banner = document.getElementById('cookie-banner');
     document.body.classList.remove('cookie-banner-open');
     if (banner) {
       banner.classList.remove('banner-visible');
       banner.classList.add('banner-hidden');
-      setTimeout(() => banner.remove(), 400);
+      banner.setAttribute('aria-hidden', 'true');
     }
   }
 
@@ -95,9 +110,10 @@
       const banner = document.getElementById('cookie-banner');
       if (!banner) return;
 
+      bindBannerActions();
       document.body.classList.add('cookie-banner-open');
-      document.getElementById('cookie-accept-btn')?.addEventListener('click', handleAccept);
-      document.getElementById('cookie-reject-btn')?.addEventListener('click', handleReject);
+      banner.classList.remove('banner-hidden', 'banner-visible');
+      banner.setAttribute('aria-hidden', 'false');
 
       // Animate in
       requestAnimationFrame(() => {
@@ -128,9 +144,12 @@
   // Expose a reset function for "manage cookies" link
   window.TooliestConsent = {
     reset: function () {
-      localStorage.removeItem(CONSENT_KEY);
-      // Re-inject banner
-      location.reload();
+      clearSavedConsent();
+      applyConsent(false);
+      showBanner();
+    },
+    open: function () {
+      showBanner();
     },
     getStatus: function () {
       return getSavedConsent();
