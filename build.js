@@ -22,6 +22,12 @@ const ADSENSE_CLIENT = 'ca-pub-3155132462698504';
 const ADSENSE_SCRIPT_URL = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
 const CONSENT_DEFAULTS_INLINE = `<script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>`;
 const ADSENSE_SCRIPT_TAG = `<script async src="${ADSENSE_SCRIPT_URL}" crossorigin="anonymous"></script>`;
+const BRAND_ICON_PATHS = {
+  svg: '/favicon.svg',
+  png48: '/favicon-48.png',
+  shortcut: '/favicon.ico',
+  appleTouch: '/apple-touch-icon.png',
+};
 const STATIC_PAGE_PATHS = {
   about: '/about',
   contact: '/contact',
@@ -265,9 +271,10 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="twitter:image" content="https://tooliest.com/social-card.jpg">
   <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
   <link rel="alternate" hreflang="en" href="https://tooliest.com/">
-  <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png">
-  <link rel="shortcut icon" href="/icon-192.png" type="image/png">
-  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="icon" href="${BRAND_ICON_PATHS.svg}" type="image/svg+xml">
+  <link rel="icon" href="${BRAND_ICON_PATHS.png48}" sizes="48x48" type="image/png">
+  <link rel="shortcut icon" href="${BRAND_ICON_PATHS.shortcut}" type="image/x-icon">
+  <link rel="apple-touch-icon" href="${BRAND_ICON_PATHS.appleTouch}" sizes="180x180">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="${FONT_URL}">
