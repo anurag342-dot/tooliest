@@ -1,9 +1,10 @@
 // ============================================
-// TOOLIEST — Cookie Consent & Google Consent Mode v2
+// TOOLIEST — Consent Preferences & Google Consent Mode v2
 // ============================================
-// This script manages GDPR-compliant cookie consent.
-// AdSense and Analytics scripts are only activated after
-// the user explicitly accepts non-essential cookies.
+// This script manages GDPR-compliant consent preferences.
+// Tooliest stores the user's choice in localStorage, while
+// AdSense and analytics storage remain denied until the user
+// explicitly accepts non-essential tracking.
 // ============================================
 
 (function () {
