@@ -259,7 +259,9 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="twitter:image" content="https://tooliest.com/social-card.jpg">
   <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
   <link rel="alternate" hreflang="en" href="https://tooliest.com/">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="shortcut icon" href="/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="/icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="${FONT_URL}">
