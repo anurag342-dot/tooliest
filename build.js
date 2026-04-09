@@ -6,18 +6,16 @@ const { minify } = require('terser');
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const GTM_CONTAINER_ID = 'GTM-T33ZXQNF';
-const GTM_HEAD_SNIPPET = `<!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','${GTM_CONTAINER_ID}');</script>
-  <!-- End Google Tag Manager -->`;
-const GTM_BODY_SNIPPET = `<!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${GTM_CONTAINER_ID}"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->`;
+const GOOGLE_TAG_ID = 'AW-18068794869';
+const GOOGLE_TAG_SNIPPET = `<!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}"></script>
+  <script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '${GOOGLE_TAG_ID}');
+  </script>`;
 const ADSENSE_CLIENT = 'ca-pub-3155132462698504';
 const ADSENSE_SCRIPT_URL = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
 const CONSENT_DEFAULTS_INLINE = `<script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>`;
@@ -249,7 +247,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-  ${GTM_HEAD_SNIPPET}
+  ${GOOGLE_TAG_SNIPPET}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>
@@ -288,7 +286,6 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   ${structuredData.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('\n  ')}
 </head>
 <body>
-  ${GTM_BODY_SNIPPET}
   <a href="#main-content" class="skip-link">Skip to main content</a>
   ${renderNavbar()}
   ${mainContent}

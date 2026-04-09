@@ -13,10 +13,10 @@
   const CONSENT_KEY = 'tooliest_cookie_consent';
   const CONSENT_VERSION = '2';
 
-  // --- Google Consent Mode v2: set defaults BEFORE any tags load ---
+  // --- Google Consent Mode v2: set defaults as early as possible ---
   window.dataLayer = window.dataLayer || [];
-  function gtag() { dataLayer.push(arguments); }
-  window.gtag = gtag;
+  window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+  const gtag = window.gtag;
 
   // Default: deny everything until user decides
   gtag('consent', 'default', {
