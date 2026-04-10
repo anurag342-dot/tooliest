@@ -21,6 +21,24 @@ function safeLocalGet(key, fallback) {
   }
 }
 
+function safeLocalRead(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw !== null ? raw : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+
+function safeLocalSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 const App = {
   currentView: 'home',
   currentCategory: 'all',
@@ -653,7 +671,7 @@ const App = {
     } else {
       this.favorites.push(toolId);
     }
-    localStorage.setItem('tooliest_favorites', JSON.stringify(this.favorites));
+    safeLocalSet('tooliest_favorites', JSON.stringify(this.favorites));
     
     // Update count quickly
     const favCat = TOOL_CATEGORIES.find(c => c.id === 'favorites');
@@ -879,18 +897,18 @@ const App = {
   setupAutoSave(inputId, storageKey) {
     const inp = document.getElementById(inputId);
     if (!inp) return;
-    const saved = localStorage.getItem('tooliest_save_' + storageKey);
-    if (saved) inp.value = saved;
+    const saved = safeLocalRead('tooliest_save_' + storageKey, null);
+    if (typeof saved === 'string') inp.value = saved;
     let timeout;
     inp.addEventListener('input', () => {
       clearTimeout(timeout);
-      timeout = setTimeout(() => localStorage.setItem('tooliest_save_' + storageKey, inp.value), 800);
+      timeout = setTimeout(() => safeLocalSet('tooliest_save_' + storageKey, inp.value), 800);
     });
   },
 
   showInstallPrompt() {
     if (this.isEmbedMode()) return;
-    if (document.getElementById('pwa-install-banner') || localStorage.getItem('tooliest_pwa_dismissed')) return;
+    if (document.getElementById('pwa-install-banner') || safeLocalRead('tooliest_pwa_dismissed')) return;
     const banner = document.createElement('div');
     banner.id = 'pwa-install-banner';
     banner.innerHTML = `
@@ -912,7 +930,7 @@ const App = {
       }
     });
     document.getElementById('pwa-close-btn').addEventListener('click', () => {
-      localStorage.setItem('tooliest_pwa_dismissed', '1');
+      safeLocalSet('tooliest_pwa_dismissed', '1');
       banner.classList.remove('show');
       setTimeout(() => banner.remove(), 300);
     });
@@ -1046,7 +1064,7 @@ const App = {
   },
   // ===== FEAT-01: THEME TOGGLE =====
   initTheme() {
-    const saved = localStorage.getItem('tooliest_theme') || 'dark';
+    const saved = safeLocalRead('tooliest_theme', 'dark') || 'dark';
     document.documentElement.setAttribute('data-theme', saved);
     // Update toggle button icon after DOM loads
     setTimeout(() => {
@@ -1059,7 +1077,7 @@ const App = {
     const current = document.documentElement.getAttribute('data-theme') || 'dark';
     const next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('tooliest_theme', next);
+    safeLocalSet('tooliest_theme', next);
     const btn = document.getElementById('theme-toggle-btn');
     if (btn) btn.textContent = next === 'light' ? '🌙' : '☀️';
     this.toast(next === 'light' ? 'Light mode enabled ☀️' : 'Dark mode enabled 🌙');
@@ -1072,8 +1090,8 @@ const App = {
     const recent = safeLocalGet('tooliest_recent', []);
     const filtered = recent.filter(id => id !== toolId);
     filtered.unshift(toolId);
-    localStorage.setItem('tooliest_recent', JSON.stringify(filtered.slice(0, 10)));
-    localStorage.setItem('tooliest_usage', JSON.stringify(this.toolUsage));
+    safeLocalSet('tooliest_recent', JSON.stringify(filtered.slice(0, 10)));
+    safeLocalSet('tooliest_usage', JSON.stringify(this.toolUsage));
   },
 
   getRecentlyUsedHTML() {
@@ -1169,7 +1187,7 @@ const App = {
         }
 
         this.favorites = [...new Set([...this.favorites, ...validIds])];
-        localStorage.setItem('tooliest_favorites', JSON.stringify(this.favorites));
+        safeLocalSet('tooliest_favorites', JSON.stringify(this.favorites));
         const favCategory = TOOL_CATEGORIES.find(category => category.id === 'favorites');
         if (favCategory) favCategory.count = this.favorites.length;
         this.renderHome();
@@ -1183,7 +1201,7 @@ const App = {
 
   maybeShowWelcomeTour() {
     if (this.currentView !== 'home' || this.currentCategory !== 'all' || this.searchQuery) return;
-    if (localStorage.getItem('tooliest_tour_completed')) return;
+    if (safeLocalRead('tooliest_tour_completed')) return;
     this.showWelcomeTour();
   },
 
@@ -1218,7 +1236,7 @@ const App = {
   },
 
   showWelcomeTour(force = false) {
-    if (!force && localStorage.getItem('tooliest_tour_completed')) return;
+    if (!force && safeLocalRead('tooliest_tour_completed')) return;
     if (document.getElementById('welcome-tour-overlay')) return;
 
     const steps = this.getWelcomeTourSteps();
@@ -1295,7 +1313,7 @@ const App = {
 
     const dismiss = () => {
       window.removeEventListener('resize', syncTourState);
-      localStorage.setItem('tooliest_tour_completed', '1');
+      safeLocalSet('tooliest_tour_completed', '1');
       overlay.remove();
     };
 
@@ -1387,7 +1405,7 @@ const App = {
       duration: Number(duration.toFixed(2)),
       timestamp: new Date().toISOString(),
     });
-    localStorage.setItem(historyKey, JSON.stringify(history.slice(-20)));
+    safeLocalSet(historyKey, JSON.stringify(history.slice(-20)));
     this.pendingPerformanceMeasurement = null;
     this.renderToolPerformancePanel(targetToolId);
   },
@@ -1554,7 +1572,7 @@ const App = {
     document.body.appendChild(overlay);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     document.getElementById('changelog-close')?.addEventListener('click', () => overlay.remove());
-    localStorage.setItem('tooliest_changelog_seen', TOOLIEST_CHANGELOG[0].version);
+    safeLocalSet('tooliest_changelog_seen', TOOLIEST_CHANGELOG[0].version);
   },
 };
 

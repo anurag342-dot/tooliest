@@ -247,6 +247,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
+  ${CONSENT_DEFAULTS_INLINE}
   ${GOOGLE_TAG_SNIPPET}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -281,7 +282,6 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <link rel="stylesheet" href="${FONT_URL}">
   <link rel="stylesheet" href="/css/styles.css">
   <script src="/js/consent.js" defer></script>
-  ${CONSENT_DEFAULTS_INLINE}
   ${ADSENSE_SCRIPT_TAG}
   ${structuredData.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('\n  ')}
 </head>

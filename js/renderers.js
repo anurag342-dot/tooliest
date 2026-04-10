@@ -56,6 +56,19 @@ const ToolRenderers = {
     }
   },
 
+  escapeHtml(value = '') {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
+  escapeAttr(value = '') {
+    return this.escapeHtml(value);
+  },
+
   renderers: {
     // ===== TEXT TOOLS =====
     'word-counter'(c) {
@@ -289,7 +302,7 @@ const ToolRenderers = {
         html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:0.9rem"><thead><tr style="border-bottom:2px solid var(--border-color)"><th style="text-align:left;padding:10px;color:var(--text-secondary)">Keyword</th><th style="text-align:center;padding:10px;color:var(--text-secondary)">Count</th><th style="text-align:center;padding:10px;color:var(--text-secondary)">Density</th><th style="padding:10px;color:var(--text-secondary)">Bar</th></tr></thead><tbody>';
         keywords.forEach(kw => {
           const pct = parseFloat(kw.density);
-          html += `<tr style="border-bottom:1px solid var(--border-color)"><td style="padding:10px;font-weight:500">${kw.word}</td><td style="text-align:center;padding:10px;font-family:var(--font-mono)">${kw.count}</td><td style="text-align:center;padding:10px;font-family:var(--font-mono)">${kw.density}%</td><td style="padding:10px"><div style="width:100%;height:8px;background:var(--bg-tertiary);border-radius:99px"><div style="height:100%;width:${Math.min(100,pct*10)}%;background:var(--gradient-primary);border-radius:99px"></div></div></td></tr>`;
+          html += `<tr style="border-bottom:1px solid var(--border-color)"><td style="padding:10px;font-weight:500">${ToolRenderers.escapeHtml(kw.word)}</td><td style="text-align:center;padding:10px;font-family:var(--font-mono)">${kw.count}</td><td style="text-align:center;padding:10px;font-family:var(--font-mono)">${kw.density}%</td><td style="padding:10px"><div style="width:100%;height:8px;background:var(--bg-tertiary);border-radius:99px"><div style="height:100%;width:${Math.min(100,pct*10)}%;background:var(--gradient-primary);border-radius:99px"></div></div></td></tr>`;
         });
         html += '</tbody></table></div>';
         document.getElementById('kd-results').innerHTML = html;

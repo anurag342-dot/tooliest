@@ -20,8 +20,18 @@ const MIME = {
   '.wasm': 'application/wasm',
 };
 
+const STATIC_ROUTE_MAP = {
+  '/about': '/about.html',
+  '/contact': '/contact.html',
+  '/privacy': '/privacy.html',
+  '/terms': '/terms.html',
+};
+
 const server = http.createServer((req, res) => {
   let urlPath = req.url.split('?')[0];
+  if (STATIC_ROUTE_MAP[urlPath]) {
+    urlPath = STATIC_ROUTE_MAP[urlPath];
+  }
   if (urlPath.endsWith('/')) {
     urlPath += 'index.html';
   } else if (urlPath === '/') {
