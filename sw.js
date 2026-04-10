@@ -111,6 +111,7 @@ self.addEventListener('fetch', (event) => {
       });
 
     if (cachedResponse) {
+      fetchPromise.catch(() => {}); // Suppress unhandled rejection for background revalidation
       return cachedResponse;
     }
 

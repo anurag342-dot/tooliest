@@ -884,7 +884,8 @@ const TOOLS = [
 ];
 
 // Count tools per category
-const favCache = JSON.parse(localStorage.getItem('tooliest_favorites') || '[]');
+let favCache = [];
+try { favCache = JSON.parse(localStorage.getItem('tooliest_favorites') || '[]'); } catch (e) { /* localStorage unavailable */ }
 TOOL_CATEGORIES.forEach(cat => {
   if (cat.id === 'all') {
     cat.count = TOOLS.length;

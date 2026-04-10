@@ -73,7 +73,7 @@
   --bg-glass-hover: rgba(0, 0, 0, 0.04);
   --text-primary: #1a1a2e;
   --text-secondary: #4a4a6a;
-  --text-tertiary: #8888a0;
+  --text-tertiary: #6b6b84;
   --text-accent: #7c3aed;
   --border-color: rgba(0, 0, 0, 0.08);
   --border-accent: rgba(139, 92, 246, 0.3);
@@ -420,6 +420,19 @@ body.shortcut-hints-hidden .search-shortcut {
 }
 .skip-link:focus {
   top: 16px;
+}
+
+/* === Screen Reader Only (Accessibility) === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 /* === Reset & Base === */

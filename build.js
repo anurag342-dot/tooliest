@@ -293,6 +293,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   ${renderMobileSearchOverlay()}
   ${renderCookieBanner()}
   <div id="toast-container"></div>
+  <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
   <script src="/bundle.min.js"></script>
 </body>
 </html>`;

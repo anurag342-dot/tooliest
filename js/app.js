@@ -11,12 +11,22 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
 
+// Safe localStorage helper — prevents crashes in private browsing or restricted environments
+function safeLocalGet(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw !== null ? JSON.parse(raw) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+
 const App = {
   currentView: 'home',
   currentCategory: 'all',
   searchQuery: '',
-  favorites: JSON.parse(localStorage.getItem('tooliest_favorites') || '[]'),
-  toolUsage: JSON.parse(localStorage.getItem('tooliest_usage') || '{}'),
+  favorites: safeLocalGet('tooliest_favorites', []),
+  toolUsage: safeLocalGet('tooliest_usage', {}),
   deferredPrompt: null,
   activeToolId: null,
   pendingPerformanceMeasurement: null,
@@ -505,6 +515,24 @@ const App = {
       window.scrollTo(0, 0);
     }
 
+    // Announce route change for screen readers (accessibility)
+    const announcer = document.getElementById('route-announcer');
+    if (announcer) {
+      let label = 'Page loaded';
+      if (route.view === 'tool' && route.toolId) {
+        const t = TOOLS.find(x => x.id === route.toolId);
+        label = t ? t.name + ' tool loaded' : 'Tool page loaded';
+      } else if (route.view === 'category' && route.categoryId) {
+        const cat = TOOL_CATEGORIES.find(x => x.id === route.categoryId);
+        label = cat ? cat.name + ' category' : 'Category loaded';
+      } else if (route.view === 'search') {
+        label = 'Search results for ' + (route.query || '');
+      } else {
+        label = 'Tooliest home page';
+      }
+      announcer.textContent = label;
+    }
+
     this.updateShortcutUI();
   },
 
@@ -807,32 +835,6 @@ const App = {
     const related = this.getRelatedTools(tool, 5);
     const compareCandidates = this.getCompareCandidates(tool, 10);
     main.innerHTML = this.getToolPageHTML(tool, catName, related, compareCandidates, isEmbed);
-    
-    if (false) {
-    main.innerHTML = `<div class="tool-page">
-      <div class="tool-page-header">
-        <div class="tool-breadcrumb">
-          <a href="${this.getHomePath()}">Home</a>
-          <span class="separator">›</span>
-          <a href="${this.getCategoryPath(tool.category)}">${catName}</a>
-          <span class="separator">›</span>
-          <span>${tool.name}</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <h1 style="margin:0">${tool.icon} ${tool.name} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">✨ AI-Powered</span>' : ''}</h1>
-          <button class="btn btn-secondary btn-sm" id="share-tool-btn" aria-label="Share this tool">📤 Share</button>
-        </div>
-        <p>${tool.description}</p>
-        ${tool.education ? `<div class="tool-education-visible" style="margin-top:16px;background:var(--bg-secondary);padding:16px;border-radius:var(--radius-md);border:1px solid var(--border-color);"><div style="font-weight:600;color:var(--accent-primary);margin-bottom:8px">📖 About this tool</div><div style="font-size:0.9rem;line-height:1.5;color:var(--text-secondary)">${tool.education}</div></div>` : ''}
-      </div>
-      ${this.getAdHTML('tool-top')}
-      <div class="tool-workspace" id="tool-workspace"></div>
-      ${this.getToolContentSectionsHTML(tool)}
-      ${this.getAdHTML('tool-bottom')}
-      ${related.length ? `<div class="related-tools"><h3>You May Also Like</h3><div class="related-tools-grid">${related.map(r => this.getToolCardHTML(r)).join('')}</div></div>` : ''}
-    </div>`;
-    }
-
     // Render tool UI
     const workspace = document.getElementById('tool-workspace');
     ToolRenderers.render(toolId, workspace);
@@ -1067,7 +1069,7 @@ const App = {
   trackUsage(toolId) {
     this.toolUsage[toolId] = (this.toolUsage[toolId] || 0) + 1;
     // Store last-used timestamp
-    const recent = JSON.parse(localStorage.getItem('tooliest_recent') || '[]');
+    const recent = safeLocalGet('tooliest_recent', []);
     const filtered = recent.filter(id => id !== toolId);
     filtered.unshift(toolId);
     localStorage.setItem('tooliest_recent', JSON.stringify(filtered.slice(0, 10)));
@@ -1075,7 +1077,7 @@ const App = {
   },
 
   getRecentlyUsedHTML() {
-    const recent = JSON.parse(localStorage.getItem('tooliest_recent') || '[]').slice(0, 5);
+    const recent = safeLocalGet('tooliest_recent', []).slice(0, 5);
     if (recent.length === 0) return '';
     const recentTools = recent.map(id => TOOLS.find(t => t.id === id)).filter(Boolean);
     if (recentTools.length === 0) return '';
@@ -1341,7 +1343,7 @@ const App = {
     const panel = document.getElementById('tool-performance-panel');
     if (!panel) return;
 
-    const history = JSON.parse(localStorage.getItem(`tooliest_perf_${toolId}`) || '[]');
+    const history = safeLocalGet(`tooliest_perf_${toolId}`, []);
     if (!history.length) {
       panel.innerHTML = `<div class="perf-panel">
         <div class="section-heading">
@@ -1379,7 +1381,7 @@ const App = {
     if (!targetToolId || !Number.isFinite(duration) || duration < 0) return;
 
     const historyKey = `tooliest_perf_${targetToolId}`;
-    const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+    const history = safeLocalGet(historyKey, []);
     history.push({
       label: (label || 'Tool interaction').trim().slice(0, 60),
       duration: Number(duration.toFixed(2)),
