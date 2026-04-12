@@ -1,5 +1,5 @@
 /*
-  # Security Headers â€” applied to all routes
+  # Security Headers — applied to all routes
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 1; mode=block
@@ -8,3 +8,42 @@
 
   # Content Security Policy
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src 'self' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; connect-src 'self' https://esm.sh https://unpkg.com https://cdn.jsdelivr.net
+
+# Static assets — aggressive caching
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/bundle.min.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/favicon*
+  Cache-Control: public, max-age=31536000, immutable
+
+/social-card*
+  Cache-Control: public, max-age=2592000
+
+/manifest.json
+  Cache-Control: public, max-age=86400
+
+# HTML pages — revalidate on every request
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/tool/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/sitemap.html
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+  Content-Type: application/xml
+
+/robots.txt
+  Cache-Control: public, max-age=86400

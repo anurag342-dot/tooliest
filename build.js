@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { minify } = require('terser');
+const crypto = require('crypto');
 
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap';
@@ -19,7 +20,7 @@ const GOOGLE_TAG_SNIPPET = `<!-- Google tag (gtag.js) -->
 const ADSENSE_CLIENT = 'ca-pub-3155132462698504';
 const ADSENSE_SCRIPT_URL = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
 const CONSENT_DEFAULTS_INLINE = `<script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>`;
-const ADSENSE_SCRIPT_TAG = `<script async src="${ADSENSE_SCRIPT_URL}" crossorigin="anonymous"></script>`;
+const ADSENSE_SCRIPT_TAG = `<script>window.addEventListener('load',function(){var s=document.createElement('script');s.src='${ADSENSE_SCRIPT_URL}';s.async=true;s.crossOrigin='anonymous';document.head.appendChild(s);});</script>`;
 const THEME_BOOTSTRAP_INLINE = `<script>try{const savedTheme=localStorage.getItem('tooliest_theme');if(savedTheme==='light'||savedTheme==='dark'){document.documentElement.setAttribute('data-theme',savedTheme);}}catch(_){}</script>`;
 const BRAND_ICON_PATHS = {
   svg: '/favicon.svg',
@@ -68,6 +69,17 @@ function stripHtml(value = '') {
 
 function getAbsoluteUrl(pathname) {
   return new URL(pathname, SITE_URL).toString();
+}
+
+function minifyCSS(css) {
+  return css
+    .replace(/\/\*[\s\S]*?\*\//g, '')       // remove comments
+    .replace(/\s*([{}:;,>~+])\s*/g, '$1')  // remove whitespace around tokens
+    .replace(/;}/g, '}')                    // remove trailing semicolons
+    .replace(/\s{2,}/g, ' ')               // collapse whitespace
+    .replace(/^\s+|\s+$/gm, '')            // trim lines
+    .replace(/\n+/g, '')                    // remove newlines
+    .trim();
 }
 
 function getToolPath(toolId) {
@@ -283,7 +295,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="${FONT_URL}">
   <link rel="stylesheet" href="${FONT_URL}">
-  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/styles.min.css">
   <script src="/js/consent.js" defer></script>
   ${ADSENSE_SCRIPT_TAG}
   ${structuredData.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('\n  ')}
@@ -842,9 +854,20 @@ function writeHomePage(tools, categories) {
   fs.writeFileSync(path.join(__dirname, 'index.html'), html);
 }
 
+function minifyCSSFile() {
+  const cssPath = path.join(__dirname, 'css', 'styles.css');
+  const raw = fs.readFileSync(cssPath, 'utf8');
+  const minified = minifyCSS(raw);
+  const minPath = path.join(__dirname, 'css', 'styles.min.css');
+  fs.writeFileSync(minPath, minified);
+  const savings = ((1 - minified.length / raw.length) * 100).toFixed(1);
+  console.log(`Minified CSS: ${(raw.length / 1024).toFixed(1)} KB → ${(minified.length / 1024).toFixed(1)} KB (${savings}% smaller)`);
+}
+
 async function build() {
   const { tools, categories } = readTools();
   await bundleJavascript();
+  minifyCSSFile();
   writeHomePage(tools, categories);
   writeToolPages(tools, categories);
   writeCategoryPages(tools, categories);
