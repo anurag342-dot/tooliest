@@ -4,7 +4,7 @@ const vm = require('vm');
 const { minify } = require('terser');
 
 const SITE_URL = 'https://tooliest.com';
-const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap';
+const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
 const GOOGLE_TAG_ID = 'AW-18068794869';
 const GOOGLE_TAG_SNIPPET = `<!-- Google tag (gtag.js) -->
@@ -192,6 +192,7 @@ function renderFooter() {
           <li><a href="${STATIC_PAGE_PATHS.contact}">Contact</a></li>
           <li><a href="${STATIC_PAGE_PATHS.privacy}">Privacy Policy</a></li>
           <li><a href="${STATIC_PAGE_PATHS.terms}">Terms of Service</a></li>
+          <li><a href="/sitemap.html">All Tools (Sitemap)</a></li>
         </ul>
       </div>
     </div>
@@ -241,8 +242,9 @@ function renderCookieBanner() {
   </div>`;
 }
 
-function renderPageShell({ title, description, canonicalPath, structuredData, mainContent }) {
+function renderPageShell({ title, description, canonicalPath, structuredData, mainContent, keywords }) {
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
+  const pageKeywords = keywords || 'free online tools, browser tools, tooliest';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -253,7 +255,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeAttr(description)}">
-  <meta name="keywords" content="free online tools, text tools, SEO tools, CSS generator, color picker, JSON formatter, image compressor, AI tools, developer tools, converter tools">
+  <meta name="keywords" content="${escapeAttr(pageKeywords)}">
   <meta name="author" content="Tooliest">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#8b5cf6">
@@ -271,7 +273,8 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="twitter:description" content="${escapeAttr(description)}">
   <meta name="twitter:image" content="https://tooliest.com/social-card.jpg">
   <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
-  <link rel="alternate" hreflang="en" href="https://tooliest.com/">
+  <link rel="alternate" hreflang="en" href="${escapeAttr(canonicalUrl)}">
+  <link rel="alternate" hreflang="x-default" href="https://tooliest.com/">
   <link rel="icon" href="${BRAND_ICON_PATHS.svg}" type="image/svg+xml">
   <link rel="icon" href="${BRAND_ICON_PATHS.png48}" sizes="48x48" type="image/png">
   <link rel="shortcut icon" href="${BRAND_ICON_PATHS.shortcut}" type="image/x-icon">
@@ -294,7 +297,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   ${renderCookieBanner()}
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-  <script src="/bundle.min.js"></script>
+  <script src="/bundle.min.js" defer></script>
 </body>
 </html>`;
 }
@@ -327,6 +330,27 @@ function renderToolContentSections(tool, categories) {
     'Copy, download, or reuse the output without sending your data to a server.',
   ];
 
+  const faqHtml = (tool.faq && tool.faq.length)
+    ? `<section class="tool-content-section">
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-list">${tool.faq.map(item => `<details class="faq-item"><summary>${escapeHtml(item.q)}</summary><p>${escapeHtml(item.a)}</p></details>`).join('')}</div>
+    </section>`
+    : '';
+
+  const whyUseHtml = tool.whyUse
+    ? `<section class="tool-content-section">
+      <h2>Why Use ${escapeHtml(tool.name)}?</h2>
+      <ul>${tool.whyUse.map(reason => `<li>${escapeHtml(reason)}</li>`).join('')}</ul>
+    </section>`
+    : '';
+
+  const whoUsesHtml = tool.whoUses
+    ? `<section class="tool-content-section">
+      <h2>Who Uses ${escapeHtml(tool.name)}?</h2>
+      <p>${escapeHtml(tool.whoUses)}</p>
+    </section>`
+    : '';
+
   return `<div class="tool-content-sections">
     <section class="tool-content-section">
       <h2>What Is ${escapeHtml(tool.name)}?</h2>
@@ -337,6 +361,9 @@ function renderToolContentSections(tool, categories) {
       <h2>How To Use ${escapeHtml(tool.name)}</h2>
       <ol>${steps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol>
     </section>
+    ${whyUseHtml}
+    ${whoUsesHtml}
+    ${faqHtml}
   </div>`;
 }
 
@@ -357,10 +384,35 @@ function renderRelatedTools(tool, tools, categories) {
   </div>`;
 }
 
+function getRelatedCategories(categoryId, categories) {
+  const relations = {
+    text: ['seo', 'html', 'developer'],
+    seo: ['text', 'social', 'ai'],
+    css: ['color', 'html', 'image'],
+    color: ['css', 'image', 'ai'],
+    image: ['color', 'css', 'converter'],
+    json: ['html', 'javascript', 'developer'],
+    html: ['css', 'json', 'javascript'],
+    javascript: ['html', 'json', 'developer'],
+    converter: ['encoding', 'math', 'image'],
+    encoding: ['converter', 'privacy', 'developer'],
+    finance: ['math', 'converter'],
+    math: ['finance', 'converter'],
+    social: ['seo', 'ai', 'text'],
+    privacy: ['encoding', 'developer'],
+    ai: ['text', 'seo', 'social'],
+    developer: ['javascript', 'json', 'encoding'],
+  };
+  const relatedIds = relations[categoryId] || [];
+  return relatedIds.map(id => categories.find(c => c.id === id)).filter(Boolean);
+}
+
 function renderCategoryPage(category, tools, categories) {
   const meta = getCategoryMeta(category, tools);
   const canonicalPath = getCategoryPath(category.id);
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
+  const relatedCats = getRelatedCategories(category.id, getRenderableCategories(categories));
+  const categoryKeywords = meta.tools.slice(0, 5).map(t => t.name.toLowerCase()).join(', ') + `, ${category.name.toLowerCase()}, free online tools, tooliest`;
 
   const structuredData = [
     {
@@ -370,7 +422,7 @@ function renderCategoryPage(category, tools, categories) {
       url: canonicalUrl,
       description: meta.description,
       dateModified: BUILD_DATE,
-      isPartOf: 'https://tooliest.com/',
+      isPartOf: { '@type': 'WebSite', url: 'https://tooliest.com/' },
     },
     {
       '@context': 'https://schema.org',
@@ -393,6 +445,20 @@ function renderCategoryPage(category, tools, categories) {
     },
   ];
 
+  const relatedCatsHtml = relatedCats.length
+    ? `<div class="tool-content-sections" style="margin-top:32px">
+        <section class="tool-content-section">
+          <h2>Related Tool Categories</h2>
+          <p>Looking for more? Explore these related categories on Tooliest:</p>
+          <ul>${relatedCats.map(rc => `<li><a href="${getCategoryPath(rc.id)}">${rc.icon} ${escapeHtml(rc.name)}</a> — ${getCategoryTools(tools, rc.id).length} free tools</li>`).join('')}</ul>
+        </section>
+        <section class="tool-content-section">
+          <h2>What Are ${escapeHtml(category.name)}?</h2>
+          <p>Tooliest's ${category.name.toLowerCase()} are browser-based utilities that process everything locally on your device. No files are uploaded, no accounts are needed, and every tool is completely free. Whether you're a developer, designer, writer, or marketer, these tools help you work faster without compromising your privacy.</p>
+        </section>
+      </div>`
+    : '';
+
   const mainContent = `<main class="main-content" id="main-content">
     <section class="tool-page">
       <div class="tool-page-header">
@@ -408,6 +474,7 @@ function renderCategoryPage(category, tools, categories) {
       <section class="tools-section" style="padding:0">
         <div class="tools-grid">${meta.tools.map((tool) => renderStaticToolCard(tool, categories)).join('')}</div>
       </section>
+      ${relatedCatsHtml}
     </section>
   </main>`;
 
@@ -417,6 +484,7 @@ function renderCategoryPage(category, tools, categories) {
     canonicalPath,
     structuredData,
     mainContent,
+    keywords: categoryKeywords,
   });
 }
 
@@ -426,6 +494,7 @@ function renderToolPage(tool, tools, categories) {
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
   const description = tool.meta?.desc || tool.description;
   const plainEducation = stripHtml(tool.education || '');
+  const toolKeywords = [...tool.tags, categoryName.toLowerCase(), 'free online tool', 'browser-based', 'tooliest'].join(', ');
 
   const structuredData = [
     {
@@ -435,6 +504,8 @@ function renderToolPage(tool, tools, categories) {
       url: 'https://tooliest.com',
       logo: 'https://tooliest.com/icon-512.png',
       description: 'A free, browser-based platform offering 80+ online utility tools for developers, designers, writers, and marketers.',
+      foundingDate: '2026',
+      sameAs: ['https://twitter.com/tooliest'],
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer support',
@@ -450,6 +521,9 @@ function renderToolPage(tool, tools, categories) {
       applicationCategory: 'UtilityApplication',
       operatingSystem: 'Any',
       dateModified: BUILD_DATE,
+      browserRequirements: 'Requires a JavaScript-enabled modern web browser',
+      featureList: tool.tags.join(', '),
+      softwareVersion: '2.5',
       offers: {
         '@type': 'Offer',
         price: '0',
@@ -478,7 +552,33 @@ function renderToolPage(tool, tools, categories) {
       ],
       tool: { '@type': 'HowToTool', name: 'Web Browser' },
     },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: tool.name,
+      speakable: {
+        '@type': 'SpeakableSpecification',
+        cssSelector: ['.tool-page-header p', '.tool-content-section'],
+      },
+      url: canonicalUrl,
+    },
   ];
+
+  // Add FAQ schema if tool has FAQ data
+  if (tool.faq && tool.faq.length) {
+    structuredData.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: tool.faq.map(item => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.a,
+        },
+      })),
+    });
+  }
 
   const mainContent = `<main class="main-content" id="main-content">
     <div class="tool-page">
@@ -491,7 +591,7 @@ function renderToolPage(tool, tools, categories) {
           <span>${escapeHtml(tool.name)}</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <h1 style="margin:0">${tool.icon} ${escapeHtml(tool.name)} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">✨ AI-Powered</span>' : ''}</h1>
+          <h1 style="margin:0"><span role="img" aria-label="${escapeAttr(tool.name)} icon">${tool.icon}</span> ${escapeHtml(tool.name)} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">✨ AI-Powered</span>' : ''}</h1>
           <a class="btn btn-secondary btn-sm" href="${canonicalPath}" aria-label="Open the interactive ${escapeAttr(tool.name)} tool">Open Interactive Tool</a>
         </div>
         <p>${escapeHtml(tool.description)}</p>
@@ -514,6 +614,7 @@ function renderToolPage(tool, tools, categories) {
     canonicalPath,
     structuredData,
     mainContent,
+    keywords: toolKeywords,
   });
 }
 
@@ -559,6 +660,7 @@ function writeSitemap(tools, categories) {
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.contact), priority: '0.7', changefreq: 'monthly' },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.privacy), priority: '0.6', changefreq: 'monthly' },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.5', changefreq: 'monthly' },
+    { loc: getAbsoluteUrl('/sitemap.html'), priority: '0.7', changefreq: 'monthly' },
   ];
 
   const categoryPages = getRenderableCategories(categories).map((category) => ({
@@ -579,11 +681,174 @@ function writeSitemap(tools, categories) {
   fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), sitemap);
 }
 
+function writeHtmlSitemap(tools, categories) {
+  console.log('Generating HTML sitemap page...');
+  const renderableCategories = getRenderableCategories(categories);
+  const categoryBlocks = renderableCategories.map(cat => {
+    const catTools = getCategoryTools(tools, cat.id);
+    return `<div class="sitemap-category">
+      <h2><a href="${getCategoryPath(cat.id)}">${cat.icon} ${escapeHtml(cat.name)}</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${catTools.length} tools)</span></h2>
+      <ul>${catTools.map(t => `<li><a href="${getToolPath(t.id)}">${t.icon} ${escapeHtml(t.name)}</a> — ${escapeHtml(t.description.slice(0, 80))}</li>`).join('')}</ul>
+    </div>`;
+  }).join('');
+
+  const mainContent = `<main class="main-content" id="main-content">
+    <div class="tool-page">
+      <div class="tool-page-header">
+        <div class="tool-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">›</span>
+          <span>All Tools</span>
+        </div>
+        <h1 style="margin:0">🗺️ All Tooliest Tools</h1>
+        <p>Browse every free online tool on Tooliest, organized by category. ${tools.length} tools across ${renderableCategories.length} categories — all free, all browser-based.</p>
+      </div>
+      <div class="tool-content-sections">
+        ${categoryBlocks}
+      </div>
+    </div>
+  </main>`;
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'All Tooliest Tools — HTML Sitemap',
+      url: getAbsoluteUrl('/sitemap.html'),
+      description: `Browse all ${tools.length} free online tools on Tooliest organized by category.`,
+      dateModified: BUILD_DATE,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://tooliest.com/' },
+        { '@type': 'ListItem', position: 2, name: 'All Tools', item: getAbsoluteUrl('/sitemap.html') },
+      ],
+    },
+  ];
+
+  const html = renderPageShell({
+    title: `All ${tools.length}+ Free Online Tools — Tooliest Sitemap`,
+    description: `Browse every free online tool on Tooliest. ${tools.length} browser-based tools across ${renderableCategories.length} categories.`,
+    canonicalPath: '/sitemap.html',
+    structuredData,
+    mainContent,
+    keywords: 'all tools, free online tools, tooliest sitemap, tool directory, browser tools',
+  });
+
+  fs.writeFileSync(path.join(__dirname, 'sitemap.html'), html);
+}
+
+function writeHomePage(tools, categories) {
+  console.log('Generating pre-rendered index.html...');
+  const renderableCategories = getRenderableCategories(categories);
+  const featuredTools = tools.slice(0, 18);
+
+  const categoryTabsHtml = renderableCategories.map(cat =>
+    `<a href="${getCategoryPath(cat.id)}" class="category-tab">${cat.icon} ${escapeHtml(cat.name)} <span class="tab-count">${cat.count}</span></a>`
+  ).join('');
+
+  const toolCardsHtml = featuredTools.map(tool => renderStaticToolCard(tool, categories)).join('');
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Tooliest',
+      url: 'https://tooliest.com',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://tooliest.com/search/{search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'Tooliest',
+      url: 'https://tooliest.com',
+      description: `${tools.length}+ free online tools for developers, designers, writers, and marketers. AI-powered features included.`,
+      dateModified: BUILD_DATE,
+      applicationCategory: 'UtilityApplication',
+      operatingSystem: 'Any',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Tooliest',
+      url: 'https://tooliest.com',
+      logo: 'https://tooliest.com/icon-512.png',
+      description: 'A free, browser-based platform offering 80+ online utility tools for developers, designers, writers, and marketers.',
+      foundingDate: '2026',
+      sameAs: ['https://twitter.com/tooliest'],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer support',
+        url: getAbsoluteUrl(STATIC_PAGE_PATHS.contact),
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Tooliest — Free Online Tools',
+      speakable: {
+        '@type': 'SpeakableSpecification',
+        cssSelector: ['.hero h1', '.hero p', '.footer-brand p'],
+      },
+      url: 'https://tooliest.com',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Popular Tools on Tooliest',
+      itemListElement: featuredTools.slice(0, 10).map((tool, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: getAbsoluteUrl(getToolPath(tool.id)),
+        name: tool.name,
+      })),
+    },
+  ];
+
+  const mainContent = `<main class="main-content" id="main-content">
+    <section class="hero">
+      <div class="hero-badge"><span class="pulse-dot"></span> Free &amp; No Signup Required</div>
+      <h1>Every Tool You Need.<br><span class="gradient-text">Zero Installs.</span></h1>
+      <p>${tools.length}+ powerful online tools for developers, designers, writers, and marketers. All free, all instant, all AI-enhanced.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="stat-value">${tools.length}+</div><div class="stat-label">Free Tools</div></div>
+        <div class="hero-stat"><div class="stat-value">${renderableCategories.length}</div><div class="stat-label">Categories</div></div>
+        <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
+      </div>
+    </section>
+    <section class="categories-section"><div class="category-tabs" id="category-tabs">${categoryTabsHtml}</div></section>
+    <section class="tools-section"><div class="tools-grid" id="tools-grid">${toolCardsHtml}</div></section>
+  </main>`;
+
+  const html = renderPageShell({
+    title: `Tooliest — ${tools.length}+ Free Online Tools Powered by AI | tooliest.com`,
+    description: `Access ${tools.length}+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. AI-powered features included.`,
+    canonicalPath: '/',
+    structuredData,
+    mainContent,
+    keywords: 'free online tools, text tools, SEO tools, CSS generator, color picker, JSON formatter, image compressor, AI tools, developer tools, converter tools, tooliest',
+  });
+
+  fs.writeFileSync(path.join(__dirname, 'index.html'), html);
+}
+
 async function build() {
   const { tools, categories } = readTools();
   await bundleJavascript();
+  writeHomePage(tools, categories);
   writeToolPages(tools, categories);
   writeCategoryPages(tools, categories);
+  writeHtmlSitemap(tools, categories);
   writeSitemap(tools, categories);
   console.log('Build complete.');
 }

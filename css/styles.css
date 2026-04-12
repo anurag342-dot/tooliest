@@ -2441,3 +2441,172 @@ body.embed-mode .tool-page {
     color: black;
   }
 }
+
+/* === FAQ Accordion Styles (AEO) === */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.faq-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.faq-item:hover {
+  border-color: var(--border-accent);
+}
+
+.faq-item summary {
+  padding: 16px 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background 0.2s ease;
+}
+
+.faq-item summary:hover {
+  background: var(--bg-tertiary);
+}
+
+.faq-item summary::after {
+  content: '+';
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--accent-primary);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.faq-item[open] summary::after {
+  content: '\2212';
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item p {
+  padding: 0 20px 16px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* === HTML Sitemap Page === */
+.sitemap-category {
+  margin-bottom: 32px;
+}
+
+.sitemap-category h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.sitemap-category h2 a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+.sitemap-category h2 a:hover {
+  text-decoration: underline;
+}
+
+.sitemap-category ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 8px;
+}
+
+.sitemap-category li {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  transition: background 0.15s ease;
+}
+
+.sitemap-category li:hover {
+  background: var(--bg-tertiary);
+}
+
+.sitemap-category li a {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.sitemap-category li a:hover {
+  color: var(--accent-primary);
+}
+
+/* === Tool Content Sections (AEO) === */
+.tool-content-sections {
+  margin-top: 24px;
+}
+
+.tool-content-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.tool-content-section h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.tool-content-section p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+
+.tool-content-section p:last-child {
+  margin-bottom: 0;
+}
+
+.tool-content-section ul,
+.tool-content-section ol {
+  padding-left: 20px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.tool-content-section a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+.tool-content-section a:hover {
+  text-decoration: underline;
+}
+
+.tool-education-copy {
+  margin-top: 12px;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
