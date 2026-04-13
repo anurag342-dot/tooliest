@@ -21,10 +21,10 @@ const MIME = {
 };
 
 const STATIC_ROUTE_MAP = {
-  '/about': '/about.html',
-  '/contact': '/contact.html',
-  '/privacy': '/privacy.html',
-  '/terms': '/terms.html',
+  '/about': '/about/index.html',
+  '/contact': '/contact/index.html',
+  '/privacy': '/privacy/index.html',
+  '/terms': '/terms/index.html',
 };
 
 const server = http.createServer((req, res) => {

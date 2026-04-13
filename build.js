@@ -36,6 +36,12 @@ const STATIC_PAGE_PATHS = {
   privacy: '/privacy',
   terms: '/terms',
 };
+const STATIC_PAGE_SOURCE_FILES = {
+  about: 'about.html',
+  contact: 'contact.html',
+  privacy: 'privacy.html',
+  terms: 'terms.html',
+};
 const ROOT_STATIC_FILE_PATHS = [
   '/ads.txt',
   '/manifest.json',
@@ -777,7 +783,7 @@ function writeCategoryPages(tools, categories) {
 
 function renderRedirectsFile(tools, categories) {
   const cleanStaticRoutes = Object.entries(STATIC_PAGE_PATHS)
-    .map(([, cleanPath]) => `${cleanPath}    ${cleanPath}.html    200`);
+    .map(([, cleanPath]) => `${cleanPath}    ${cleanPath}/index.html    200`);
   const htmlStaticRoutes = Object.entries(STATIC_PAGE_PATHS)
     .map(([, cleanPath]) => `${cleanPath}.html    ${cleanPath}.html    200`);
   const rootStaticFileRoutes = ROOT_STATIC_FILE_PATHS
@@ -884,6 +890,18 @@ function renderHeadersFile(tools, categories) {
 function writeRoutingFiles(tools, categories) {
   fs.writeFileSync(path.join(__dirname, '_redirects'), renderRedirectsFile(tools, categories));
   fs.writeFileSync(path.join(__dirname, '_headers'), renderHeadersFile(tools, categories));
+}
+
+function writeCleanStaticPages() {
+  Object.entries(STATIC_PAGE_SOURCE_FILES).forEach(([key, sourceFile]) => {
+    const cleanPath = STATIC_PAGE_PATHS[key];
+    const outputDir = path.join(__dirname, cleanPath.replace(/^\/+/, ''));
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.copyFileSync(
+      path.join(__dirname, sourceFile),
+      path.join(outputDir, 'index.html')
+    );
+  });
 }
 
 function writeSitemap(tools, categories) {
@@ -1092,6 +1110,7 @@ async function build() {
   await bundleJavascript();
   minifyCSSFile();
   writeRoutingFiles(tools, categories);
+  writeCleanStaticPages();
   writeHomePage(tools, categories);
   writeToolPages(tools, categories);
   writeLegacyToolPages(tools);

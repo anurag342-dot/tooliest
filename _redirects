@@ -1,8 +1,8 @@
 # Clean static pages
-/about    /about.html    200
-/contact    /contact.html    200
-/privacy    /privacy.html    200
-/terms    /terms.html    200
+/about    /about/index.html    200
+/contact    /contact/index.html    200
+/privacy    /privacy/index.html    200
+/terms    /terms/index.html    200
 
 # Direct access to static HTML pages
 /about.html    /about.html    200
