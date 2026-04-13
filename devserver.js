@@ -29,6 +29,12 @@ const STATIC_ROUTE_MAP = {
 
 const server = http.createServer((req, res) => {
   let urlPath = req.url.split('?')[0];
+  const legacyToolMatch = urlPath.match(/^\/tool\/([^/]+)\/?$/);
+  if (legacyToolMatch) {
+    res.writeHead(301, { Location: `/${legacyToolMatch[1]}` });
+    res.end();
+    return;
+  }
   if (STATIC_ROUTE_MAP[urlPath]) {
     urlPath = STATIC_ROUTE_MAP[urlPath];
   }

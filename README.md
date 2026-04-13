@@ -15,7 +15,7 @@
 
 **[Tooliest](https://tooliest.com)** is a comprehensive Progressive Web App (PWA) offering 80+ free online tools for developers, designers, writers, marketers, and students. Every tool runs 100% in your browser — **your files and data never leave your device**.
 
-Unlike traditional web tools that upload your data to remote servers, Tooliest processes everything locally using JavaScript. This means tools like the [Image Compressor](https://tooliest.com/tool/image-compressor/), [EXIF Stripper](https://tooliest.com/tool/image-exif-stripper/), and [Password Generator](https://tooliest.com/tool/password-security-suite/) run without any server communication.
+Unlike traditional web tools that upload your data to remote servers, Tooliest processes everything locally using JavaScript. This means tools like the [Image Compressor](https://tooliest.com/image-compressor), [EXIF Stripper](https://tooliest.com/image-exif-stripper), and [Password Generator](https://tooliest.com/password-security-suite) run without any server communication.
 
 ---
 

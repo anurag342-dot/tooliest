@@ -34,6 +34,33 @@ const STATIC_PAGE_PATHS = {
   privacy: '/privacy',
   terms: '/terms',
 };
+const RESERVED_ROOT_SEGMENTS = new Set([
+  'about',
+  'contact',
+  'privacy',
+  'terms',
+  'category',
+  'search',
+  'tool',
+  'sitemap',
+  'sitemap.html',
+  'sitemap.xml',
+  'robots.txt',
+  'ads.txt',
+  'manifest.json',
+  'sw.js',
+  'bundle.min.js',
+  'css',
+  'js',
+  'favicon.svg',
+  'favicon.ico',
+  'favicon-48.png',
+  'apple-touch-icon.png',
+  'icon-192.png',
+  'icon-512.png',
+  'icon-maskable-512.png',
+  'social-card.jpg',
+]);
 
 const filesToBundle = [
   'js/app.js',
@@ -83,6 +110,10 @@ function minifyCSS(css) {
 }
 
 function getToolPath(toolId) {
+  return `/${encodeURIComponent(toolId)}`;
+}
+
+function getLegacyToolPath(toolId) {
   return `/tool/${encodeURIComponent(toolId)}/`;
 }
 
@@ -136,6 +167,24 @@ function readTools() {
   };
 }
 
+function validateToolRoutes(tools) {
+  const seen = new Set();
+
+  tools.forEach((tool) => {
+    const id = String(tool.id || '').trim();
+    if (!id) {
+      throw new Error(`Tool "${tool.name || 'Unknown'}" is missing a valid id.`);
+    }
+    if (seen.has(id)) {
+      throw new Error(`Duplicate tool id detected: "${id}".`);
+    }
+    if (RESERVED_ROOT_SEGMENTS.has(id)) {
+      throw new Error(`Tool id "${id}" conflicts with a reserved root route.`);
+    }
+    seen.add(id);
+  });
+}
+
 function renderNavbar() {
   return `<nav class="navbar" id="navbar">
     <div class="nav-inner">
@@ -178,23 +227,23 @@ function renderFooter() {
       <div class="footer-col">
         <h4>Popular Tools</h4>
         <ul>
-          <li><a href="/tool/word-counter/">Word Counter</a></li>
-          <li><a href="/tool/json-formatter/">JSON Formatter</a></li>
-          <li><a href="/tool/color-picker/">Color Picker</a></li>
-          <li><a href="/tool/password-security-suite/">Password Generator</a></li>
-          <li><a href="/tool/image-compressor/">Image Compressor</a></li>
-          <li><a href="/tool/css-minifier/">CSS Minifier</a></li>
+          <li><a href="${getToolPath('word-counter')}">Word Counter</a></li>
+          <li><a href="${getToolPath('json-formatter')}">JSON Formatter</a></li>
+          <li><a href="${getToolPath('color-picker')}">Color Picker</a></li>
+          <li><a href="${getToolPath('password-security-suite')}">Password Generator</a></li>
+          <li><a href="${getToolPath('image-compressor')}">Image Compressor</a></li>
+          <li><a href="${getToolPath('css-minifier')}">CSS Minifier</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>AI Tools</h4>
         <ul>
-          <li><a href="/tool/ai-text-summarizer/">Text Summarizer</a></li>
-          <li><a href="/tool/ai-paraphraser/">AI Paraphraser</a></li>
-          <li><a href="/tool/ai-email-writer/">Email Writer</a></li>
-          <li><a href="/tool/ai-blog-ideas/">Blog Idea Generator</a></li>
-          <li><a href="/tool/hashtag-generator/">Hashtag Generator</a></li>
-          <li><a href="/tool/palette-generator/">Color Palette AI</a></li>
+          <li><a href="${getToolPath('ai-text-summarizer')}">Text Summarizer</a></li>
+          <li><a href="${getToolPath('ai-paraphraser')}">AI Paraphraser</a></li>
+          <li><a href="${getToolPath('ai-email-writer')}">Email Writer</a></li>
+          <li><a href="${getToolPath('ai-blog-ideas')}">Blog Idea Generator</a></li>
+          <li><a href="${getToolPath('hashtag-generator')}">Hashtag Generator</a></li>
+          <li><a href="${getToolPath('palette-generator')}">Color Palette AI</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -648,9 +697,45 @@ async function bundleJavascript() {
 function writeToolPages(tools, categories) {
   console.log(`Generating ${tools.length} static tool pages...`);
   tools.forEach((tool) => {
-    const outputDir = path.join(__dirname, 'tool', tool.id);
+    const outputDir = path.join(__dirname, tool.id);
     fs.mkdirSync(outputDir, { recursive: true });
     fs.writeFileSync(path.join(outputDir, 'index.html'), renderToolPage(tool, tools, categories));
+  });
+}
+
+function renderLegacyToolRedirectPage(toolId) {
+  const targetPath = getToolPath(toolId);
+  const targetUrl = getAbsoluteUrl(targetPath);
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting...</title>
+  <meta name="robots" content="noindex, follow">
+  <link rel="canonical" href="${escapeAttr(targetUrl)}">
+  <meta http-equiv="refresh" content="0; url=${escapeAttr(targetUrl)}">
+  <script>
+    (function () {
+      var target = ${JSON.stringify(targetPath)};
+      var search = window.location.search || '';
+      var hash = window.location.hash || '';
+      window.location.replace(target + search + hash);
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting to <a href="${escapeAttr(targetPath)}">${escapeHtml(targetPath)}</a>...</p>
+</body>
+</html>`;
+}
+
+function writeLegacyToolPages(tools) {
+  console.log('Generating legacy /tool/* redirect pages...');
+  tools.forEach((tool) => {
+    const outputDir = path.join(__dirname, 'tool', tool.id);
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(path.join(outputDir, 'index.html'), renderLegacyToolRedirectPage(tool.id));
   });
 }
 
@@ -866,10 +951,12 @@ function minifyCSSFile() {
 
 async function build() {
   const { tools, categories } = readTools();
+  validateToolRoutes(tools);
   await bundleJavascript();
   minifyCSSFile();
   writeHomePage(tools, categories);
   writeToolPages(tools, categories);
+  writeLegacyToolPages(tools);
   writeCategoryPages(tools, categories);
   writeHtmlSitemap(tools, categories);
   writeSitemap(tools, categories);

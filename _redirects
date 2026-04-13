@@ -1,8 +1,11 @@
-# Static pages — serve directly (must be listed before the catch-all)
+# Static pages - serve directly (must be listed before the catch-all)
 /about.html    /about.html    200
 /contact.html  /contact.html  200
 /privacy.html  /privacy.html  200
 /terms.html    /terms.html    200
 
-# SPA catch-all — everything else goes to index.html
+# Legacy tool URLs - permanently redirect to clean root-level tool paths
+/tool/*        /:splat        301!
+
+# SPA catch-all - everything else goes to index.html
 /*             /index.html    200

@@ -250,6 +250,10 @@ const App = {
     return this.parsePath(path);
   },
 
+  findToolById(toolId) {
+    return TOOLS.find((tool) => tool.id === toolId) || null;
+  },
+
   parsePath(rawPath) {
     const url = new URL(rawPath, window.location.origin);
     let pathname = url.pathname.replace(/\/index\.html$/, '/');
@@ -260,7 +264,18 @@ const App = {
 
     const parts = pathname.replace(/^\/+/, '').split('/').filter(Boolean);
     if (parts.length === 0) return { view: 'home' };
-    if (parts[0] === 'tool' && parts[1]) return { view: 'tool', toolId: decodeURIComponent(parts[1]) };
+    if (parts[0] === 'tool' && parts[1]) {
+      const legacyToolId = decodeURIComponent(parts[1]);
+      if (this.findToolById(legacyToolId)) {
+        return { view: 'tool', toolId: legacyToolId, legacyPath: true };
+      }
+    }
+    if (parts.length === 1) {
+      const rootToolId = decodeURIComponent(parts[0]);
+      if (this.findToolById(rootToolId)) {
+        return { view: 'tool', toolId: rootToolId };
+      }
+    }
     if (parts[0] === 'category' && parts[1]) return { view: 'category', categoryId: decodeURIComponent(parts[1]) };
     if (parts[0] === 'search' && parts[1]) return { view: 'search', query: decodeURIComponent(parts.slice(1).join('/')) };
     return { view: 'home' };
@@ -277,7 +292,7 @@ const App = {
   },
 
   getToolPath(toolId) {
-    return `/tool/${encodeURIComponent(toolId)}/`;
+    return `/${encodeURIComponent(toolId)}`;
   },
 
   getSearchPath(query) {
@@ -342,6 +357,7 @@ const App = {
   isAppPath(pathname) {
     const normalized = pathname.replace(/\/index\.html$/, '/');
     return normalized === '/' ||
+      Boolean(this.parsePath(normalized).view === 'tool') ||
       normalized.startsWith('/tool/') ||
       normalized.startsWith('/category/') ||
       normalized.startsWith('/search/');
@@ -494,6 +510,10 @@ const App = {
 
   handleRoute(options = {}) {
     const route = this.getRoute();
+    if (route.view === 'tool' && route.legacyPath) {
+      this.navigate(this.getToolPath(route.toolId), { replace: true });
+      return;
+    }
     const preserveCollectionScroll = Boolean(options.preserveScroll) &&
       this.currentView === 'home' &&
       !this.searchQuery &&
