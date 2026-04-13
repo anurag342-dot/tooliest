@@ -34,6 +34,24 @@ const STATIC_PAGE_PATHS = {
   privacy: '/privacy',
   terms: '/terms',
 };
+const ROOT_STATIC_FILE_PATHS = [
+  '/ads.txt',
+  '/manifest.json',
+  '/robots.txt',
+  '/sitemap.html',
+  '/sitemap.xml',
+  '/sw.js',
+  '/bundle.min.js',
+  '/favicon.svg',
+  '/favicon.ico',
+  '/favicon-48.png',
+  '/apple-touch-icon.png',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-maskable-512.png',
+  '/social-card.jpg',
+  '/social-card.png',
+];
 const RESERVED_ROOT_SEGMENTS = new Set([
   'about',
   'contact',
@@ -749,6 +767,117 @@ function writeCategoryPages(tools, categories) {
   });
 }
 
+function renderRedirectsFile(tools, categories) {
+  const cleanStaticRoutes = Object.entries(STATIC_PAGE_PATHS)
+    .map(([, cleanPath]) => `${cleanPath}    ${cleanPath}.html    200`);
+  const htmlStaticRoutes = Object.entries(STATIC_PAGE_PATHS)
+    .map(([, cleanPath]) => `${cleanPath}.html    ${cleanPath}.html    200`);
+  const rootStaticFileRoutes = ROOT_STATIC_FILE_PATHS
+    .map((filePath) => `${filePath}    ${filePath}    200`);
+  const categoryRoutes = getRenderableCategories(categories)
+    .map((category) => {
+      const categoryPath = getCategoryPath(category.id);
+      return `${categoryPath}    ${categoryPath}/index.html    200`;
+    });
+  const toolRoutes = tools
+    .map((tool) => {
+      const toolPath = getToolPath(tool.id);
+      return `${toolPath}    ${toolPath}/index.html    200`;
+    });
+
+  return [
+    '# Clean static pages',
+    ...cleanStaticRoutes,
+    '',
+    '# Direct access to static HTML pages',
+    ...htmlStaticRoutes,
+    '',
+    '# Root-level static files',
+    ...rootStaticFileRoutes,
+    '',
+    '# Static category pages',
+    ...categoryRoutes,
+    '',
+    '# Static tool pages',
+    ...toolRoutes,
+    '',
+    '# Legacy tool URLs',
+    '/tool/*    /:splat    301!',
+    '',
+    '# SPA catch-all',
+    '/*    /index.html    200',
+    '',
+  ].join('\n');
+}
+
+function renderHeadersFile(tools, categories) {
+  const htmlPageCacheRule = '  Cache-Control: public, max-age=3600, stale-while-revalidate=86400';
+  const cleanStaticPageHeaders = Object.values(STATIC_PAGE_PATHS)
+    .flatMap((cleanPath) => [cleanPath, htmlPageCacheRule, '', `${cleanPath}.html`, htmlPageCacheRule, '']);
+  const categoryHeaders = getRenderableCategories(categories)
+    .flatMap((category) => [getCategoryPath(category.id), htmlPageCacheRule, '']);
+  const toolHeaders = tools
+    .flatMap((tool) => [getToolPath(tool.id), htmlPageCacheRule, '']);
+
+  return [
+    '/*',
+    '  # Security Headers - applied to all routes',
+    '  X-Frame-Options: SAMEORIGIN',
+    '  X-Content-Type-Options: nosniff',
+    '  X-XSS-Protection: 1; mode=block',
+    '  Referrer-Policy: strict-origin-when-cross-origin',
+    '  Permissions-Policy: geolocation=(), microphone=(), camera=()',
+    '',
+    '  # Content Security Policy',
+    "  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src 'self' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; connect-src 'self' https://esm.sh https://unpkg.com https://cdn.jsdelivr.net",
+    '',
+    '# Static assets - aggressive caching',
+    '/css/*',
+    '  Cache-Control: public, max-age=31536000, immutable',
+    '',
+    '/js/*',
+    '  Cache-Control: public, max-age=31536000, immutable',
+    '',
+    '/bundle.min.js',
+    '  Cache-Control: public, max-age=31536000, immutable',
+    '',
+    '/favicon*',
+    '  Cache-Control: public, max-age=31536000, immutable',
+    '',
+    '/social-card*',
+    '  Cache-Control: public, max-age=2592000',
+    '',
+    '/manifest.json',
+    '  Cache-Control: public, max-age=86400',
+    '',
+    '# HTML pages',
+    '/index.html',
+    '  Cache-Control: public, max-age=0, must-revalidate',
+    '',
+    ...cleanStaticPageHeaders,
+    ...categoryHeaders,
+    ...toolHeaders,
+    '/tool/*',
+    htmlPageCacheRule,
+    '',
+    '/sitemap.html',
+    htmlPageCacheRule,
+    '',
+    '/sitemap.xml',
+    '  Cache-Control: public, max-age=3600',
+    '  Content-Type: application/xml',
+    '',
+    '/robots.txt',
+    '  Cache-Control: public, max-age=86400',
+    '',
+  ].join('\n');
+}
+
+function writeRoutingFiles(tools, categories) {
+  fs.writeFileSync(path.join(__dirname, '_redirects'), renderRedirectsFile(tools, categories));
+  fs.writeFileSync(path.join(__dirname, '_headers'), renderHeadersFile(tools, categories));
+}
+
 function writeSitemap(tools, categories) {
   console.log('Generating sitemap.xml...');
   const staticPages = [
@@ -954,6 +1083,7 @@ async function build() {
   validateToolRoutes(tools);
   await bundleJavascript();
   minifyCSSFile();
+  writeRoutingFiles(tools, categories);
   writeHomePage(tools, categories);
   writeToolPages(tools, categories);
   writeLegacyToolPages(tools);

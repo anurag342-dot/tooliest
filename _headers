@@ -1,5 +1,5 @@
 /*
-  # Security Headers — applied to all routes
+  # Security Headers - applied to all routes
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 1; mode=block
@@ -9,7 +9,7 @@
   # Content Security Policy
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src 'self' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; connect-src 'self' https://esm.sh https://unpkg.com https://cdn.jsdelivr.net
 
-# Static assets — aggressive caching
+# Static assets - aggressive caching
 /css/*
   Cache-Control: public, max-age=31536000, immutable
 
@@ -28,14 +28,329 @@
 /manifest.json
   Cache-Control: public, max-age=86400
 
-# HTML pages — revalidate on every request
+# HTML pages
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
 
-/tool/*
+/about
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-/category/*
+/about.html
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/contact
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/contact.html
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/privacy
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/privacy.html
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/terms
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/terms.html
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/text
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/seo
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/css
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/color
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/image
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/html
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/javascript
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/converter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/encoding
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/finance
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/math
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/social
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/privacy
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/ai
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/category/developer
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/word-counter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/character-counter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/case-converter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/lorem-ipsum
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/text-reverser
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/remove-duplicates
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/slug-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/string-encoder
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/meta-tag-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/sitemap-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/robots-txt-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/og-preview
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/schema-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/keyword-density
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/css-minifier
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/css-beautifier
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/gradient-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/box-shadow-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/flexbox-playground
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/css-animation-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/color-picker
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/palette-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/contrast-checker
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/hex-to-rgb
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/color-blindness-sim
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/image-compressor
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/image-resizer
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/image-cropper
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/image-to-base64
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/base64-to-image
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/image-converter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/json-formatter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/json-validator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/json-to-csv
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/csv-to-json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/json-minifier
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/html-minifier
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/html-beautifier
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/html-entity-encoder
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/html-table-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/markdown-to-html
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/js-minifier
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/js-beautifier
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/regex-tester
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/js-obfuscator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/unit-converter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/temperature-converter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/number-base-converter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/timezone-converter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/base64-encoder
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/url-encoder
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/jwt-decoder
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/hash-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/percentage-calculator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/age-calculator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/bmi-calculator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/tip-calculator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/twitter-counter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/instagram-caption
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/hashtag-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/youtube-thumbnail
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/password-security-suite
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/uuid-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/fake-data-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/image-exif-stripper
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/ai-text-summarizer
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/ai-paraphraser
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/ai-email-writer
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/ai-blog-ideas
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/ai-meta-writer
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/cron-parser
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/diff-checker
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/sql-formatter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/chmod-calculator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/loan-mortgage-analyzer
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/compound-interest
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/sip-calculator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/retirement-calculator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/roi-calculator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/debt-payoff
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/audio-converter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/inflation-calculator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/tool/*
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
 /sitemap.html
