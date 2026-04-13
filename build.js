@@ -782,43 +782,12 @@ function writeCategoryPages(tools, categories) {
 }
 
 function renderRedirectsFile(tools, categories) {
-  const cleanStaticRoutes = Object.entries(STATIC_PAGE_PATHS)
-    .map(([, cleanPath]) => `${cleanPath}    ${cleanPath}/index.html    200`);
-  const htmlStaticRoutes = Object.entries(STATIC_PAGE_PATHS)
-    .map(([, cleanPath]) => `${cleanPath}.html    ${cleanPath}.html    200`);
-  const rootStaticFileRoutes = ROOT_STATIC_FILE_PATHS
-    .map((filePath) => `${filePath}    ${filePath}    200`);
-  const categoryRoutes = getRenderableCategories(categories)
-    .map((category) => {
-      const categoryPath = getCategoryPath(category.id);
-      return `${categoryPath}    ${categoryPath}/index.html    200`;
-    });
-  const toolRoutes = tools
-    .map((tool) => {
-      const toolPath = getToolPath(tool.id);
-      return `${toolPath}    ${toolPath}/index.html    200`;
-    });
-
   return [
-    '# Clean static pages',
-    ...cleanStaticRoutes,
-    '',
-    '# Direct access to static HTML pages',
-    ...htmlStaticRoutes,
-    '',
-    '# Root-level static files',
-    ...rootStaticFileRoutes,
-    '',
-    '# Static category pages',
-    ...categoryRoutes,
-    '',
-    '# Static tool pages',
-    ...toolRoutes,
-    '',
     '# Legacy tool URLs',
     '/tool/*    /:splat    301!',
     '',
-    '# SPA catch-all',
+    '# Static files and directories are served directly by the host.',
+    '# Everything else falls back to the SPA shell.',
     '/*    /index.html    200',
     '',
   ].join('\n');
