@@ -10,6 +10,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260413v2';
 
 // Safe localStorage helper — prevents crashes in private browsing or restricted environments
 function safeLocalGet(key, fallback) {
@@ -58,7 +59,7 @@ const App = {
 
     if (!this.isEmbedMode() && 'serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register(`/sw.js?v=${encodeURIComponent(TOOLIEST_ASSET_VERSION)}`)
           .then(reg => console.log('[Service Worker] Registered', reg.scope))
           .catch(err => console.log('[Service Worker] Failed', err));
       });

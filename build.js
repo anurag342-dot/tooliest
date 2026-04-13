@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
+const ASSET_VERSION = '20260413v2';
 const GOOGLE_TAG_ID = 'AW-18068794869';
 const GOOGLE_TAG_SNIPPET = `<!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}"></script>
@@ -115,6 +116,10 @@ function stripHtml(value = '') {
 
 function getAbsoluteUrl(pathname) {
   return new URL(pathname, SITE_URL).toString();
+}
+
+function getVersionedAssetPath(pathname) {
+  return `${pathname}?v=${ASSET_VERSION}`;
 }
 
 function minifyCSS(css) {
@@ -364,8 +369,9 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="${FONT_URL}">
   <link rel="stylesheet" href="${FONT_URL}">
-  <link rel="stylesheet" href="/css/styles.min.css">
-  <script src="/js/consent.js" defer></script>
+  <link rel="stylesheet" href="${getVersionedAssetPath('/css/styles.min.css')}">
+  <script>window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}';</script>
+  <script src="${getVersionedAssetPath('/js/consent.js')}" defer></script>
   ${ADSENSE_SCRIPT_TAG}
   ${structuredData.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('\n  ')}
 </head>
@@ -378,7 +384,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   ${renderCookieBanner()}
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-  <script src="/bundle.min.js" defer></script>
+  <script src="${getVersionedAssetPath('/bundle.min.js')}" defer></script>
 </body>
 </html>`;
 }
