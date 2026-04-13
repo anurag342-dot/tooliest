@@ -20,6 +20,7 @@ const GOOGLE_TAG_SNIPPET = `<!-- Google tag (gtag.js) -->
 const ADSENSE_CLIENT = 'ca-pub-3155132462698504';
 const ADSENSE_SCRIPT_URL = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
 const CONSENT_DEFAULTS_INLINE = `<script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>`;
+const LEGACY_TOOL_PATH_REDIRECT_INLINE = `<script>(function(){var match=window.location.pathname.match(/^\\/tool\\/([^/]+)\\/?$/);if(!match)return;var target='/' + match[1] + (window.location.search||'') + (window.location.hash||'');window.location.replace(target);})();</script>`;
 const ADSENSE_SCRIPT_TAG = `<script>window.addEventListener('load',function(){var s=document.createElement('script');s.src='${ADSENSE_SCRIPT_URL}';s.async=true;s.crossOrigin='anonymous';document.head.appendChild(s);});</script>`;
 const THEME_BOOTSTRAP_INLINE = `<script>try{const savedTheme=localStorage.getItem('tooliest_theme');if(savedTheme==='light'||savedTheme==='dark'){document.documentElement.setAttribute('data-theme',savedTheme);}}catch(_){}</script>`;
 const BRAND_ICON_PATHS = {
@@ -328,6 +329,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
+  ${LEGACY_TOOL_PATH_REDIRECT_INLINE}
   ${CONSENT_DEFAULTS_INLINE}
   ${GOOGLE_TAG_SNIPPET}
   <meta charset="UTF-8">

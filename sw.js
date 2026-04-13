@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tooliest-v20-offline';
+const CACHE_NAME = 'tooliest-v21-offline';
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap';
 const URLS_TO_CACHE = [
   '/',
@@ -96,6 +96,14 @@ self.addEventListener('activate', (event) => {
 // Fetch Event: Stale-While-Revalidate with navigation fallback
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const requestUrl = new URL(event.request.url);
+  const legacyToolMatch = requestUrl.pathname.match(/^\/tool\/([^/]+)\/?$/);
+  if (event.request.mode === 'navigate' && legacyToolMatch) {
+    requestUrl.pathname = `/${legacyToolMatch[1]}`;
+    event.respondWith(Promise.resolve(Response.redirect(requestUrl.toString(), 301)));
+    return;
+  }
 
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
