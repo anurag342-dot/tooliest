@@ -465,6 +465,27 @@ const App = {
         if (mobileBtn) mobileBtn.textContent = '☰';
       });
     });
+    const syncMobileMenuPresentation = () => {
+      const isOpen = navLinks?.classList.contains('mobile-open');
+      document.body.classList.toggle('nav-menu-open', Boolean(isOpen));
+      if (navLinks && isOpen) {
+        if (navLinks.contains(document.activeElement) && typeof document.activeElement?.blur === 'function') {
+          document.activeElement.blur();
+        }
+        navLinks.scrollTop = 0;
+        window.requestAnimationFrame(() => {
+          navLinks.scrollTop = 0;
+        });
+      }
+    };
+    mobileBtn?.addEventListener('click', syncMobileMenuPresentation);
+    document.addEventListener('click', syncMobileMenuPresentation);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') syncMobileMenuPresentation();
+    });
+    navLinks?.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', syncMobileMenuPresentation);
+    });
     // Mobile search overlay
     const mobileSearchBtn = document.getElementById('mobile-search-btn');
     const mobileSearchOverlay = document.getElementById('mobile-search-overlay');
@@ -521,6 +542,9 @@ const App = {
       (route.view === 'home' || route.view === 'category');
     const preservedScrollY = preserveCollectionScroll ? window.scrollY : 0;
     document.getElementById('nav-links')?.classList.remove('mobile-open');
+    document.body.classList.remove('nav-menu-open');
+    const mobileMenuButton = document.getElementById('mobile-menu-btn');
+    if (mobileMenuButton) mobileMenuButton.textContent = '\u2630';
     if (route.view !== 'tool' && this.performanceDashboardCleanup) {
       this.performanceDashboardCleanup();
       this.performanceDashboardCleanup = null;

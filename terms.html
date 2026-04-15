@@ -297,6 +297,29 @@
       link.addEventListener('click', closeMobileMenu);
     });
 
+    const syncMobileMenuPresentation = () => {
+      const isOpen = navLinks?.classList.contains('mobile-open');
+      document.body.classList.toggle('nav-menu-open', Boolean(isOpen));
+      if (navLinks && isOpen) {
+        if (navLinks.contains(document.activeElement) && typeof document.activeElement?.blur === 'function') {
+          document.activeElement.blur();
+        }
+        navLinks.scrollTop = 0;
+        window.requestAnimationFrame(() => {
+          navLinks.scrollTop = 0;
+        });
+      }
+    };
+
+    mobileMenuBtn?.addEventListener('click', syncMobileMenuPresentation);
+    document.addEventListener('click', syncMobileMenuPresentation);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') syncMobileMenuPresentation();
+    });
+    navLinks?.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', syncMobileMenuPresentation);
+    });
+
     // De-obfuscate emails
     document.querySelectorAll('.obf-email').forEach(el => {
       const p1 = el.getAttribute('data-p1');

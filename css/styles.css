@@ -691,6 +691,10 @@ img {
   margin-right: 8px;
 }
 
+body.nav-menu-open {
+  overflow: hidden;
+}
+
 /* Mobile Search Overlay */
 #mobile-search-overlay {
   display: none;
@@ -2206,7 +2210,9 @@ body.embed-mode .tool-page {
       0 0 0 100vmax rgba(4, 7, 18, 0.36);
     max-height: calc(100vh - var(--nav-height) - 24px);
     overflow-y: auto;
+    overflow-x: hidden;
     overscroll-behavior: contain;
+    scrollbar-gutter: stable;
   }
   
   .nav-links.mobile-open > * {
