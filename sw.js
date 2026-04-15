@@ -1,5 +1,5 @@
-const ASSET_VERSION = '20260415v6';
-const CACHE_NAME = 'tooliest-v24-offline';
+const ASSET_VERSION = '20260415v7';
+const CACHE_NAME = 'tooliest-v25-offline';
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap';
 const URLS_TO_CACHE = [
   '/',
@@ -94,7 +94,7 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// Fetch Event: Stale-While-Revalidate with navigation fallback
+// Fetch Event: Network-first for HTML navigations, stale-while-revalidate for assets
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -103,6 +103,28 @@ self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate' && legacyToolMatch) {
     requestUrl.pathname = `/${legacyToolMatch[1]}`;
     event.respondWith(Promise.resolve(Response.redirect(requestUrl.toString(), 301)));
+    return;
+  }
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+
+      try {
+        const networkResponse = await fetch(event.request);
+        if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
+          await cache.put(event.request, networkResponse.clone());
+        }
+        return networkResponse;
+      } catch (error) {
+        const cachedNavigation = await cache.match(event.request);
+        if (cachedNavigation) {
+          return cachedNavigation;
+        }
+
+        return cache.match('/') || cache.match('/index.html');
+      }
+    })());
     return;
   }
 
@@ -126,10 +148,6 @@ self.addEventListener('fetch', (event) => {
     try {
       return await fetchPromise;
     } catch (error) {
-      if (event.request.mode === 'navigate') {
-        return cache.match('/') || cache.match('/index.html');
-      }
-
       throw error;
     }
   })());
