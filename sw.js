@@ -25,7 +25,7 @@ const URLS_TO_CACHE = [
   '/category/ai',
   '/category/developer',
   '/manifest.json',
-  `/css/styles.min.css?v=${ASSET_VERSION}`,
+  `/css/styles2.min.css?v=${ASSET_VERSION}`,
   `/bundle.min.js?v=${ASSET_VERSION}`,
   `/js/consent.js?v=${ASSET_VERSION}`,
   '/social-card.jpg',

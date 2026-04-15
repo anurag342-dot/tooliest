@@ -375,7 +375,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="${FONT_URL}">
   <link rel="stylesheet" href="${FONT_URL}">
-  <link rel="stylesheet" href="${getVersionedAssetPath('/css/styles.min.css')}">
+  <link rel="stylesheet" href="${getVersionedAssetPath('/css/styles2.min.css')}">
   <script>window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}';</script>
   <script src="${getVersionedAssetPath('/js/consent.js')}" defer></script>
   ${ADSENSE_SCRIPT_TAG}
@@ -1067,7 +1067,7 @@ function minifyCSSFile() {
   const cssPath = path.join(__dirname, 'css', 'styles.css');
   const raw = fs.readFileSync(cssPath, 'utf8');
   const minified = minifyCSS(raw);
-  const minPath = path.join(__dirname, 'css', 'styles.min.css');
+  const minPath = path.join(__dirname, 'css', 'styles2.min.css');
   fs.writeFileSync(minPath, minified);
   const savings = ((1 - minified.length / raw.length) * 100).toFixed(1);
   console.log(`Minified CSS: ${(raw.length / 1024).toFixed(1)} KB → ${(minified.length / 1024).toFixed(1)} KB (${savings}% smaller)`);
