@@ -1,5 +1,5 @@
-const ASSET_VERSION = '20260415v9';
-const CACHE_NAME = 'tooliest-v27-offline';
+const ASSET_VERSION = '20260415v10';
+const CACHE_NAME = 'tooliest-v28-offline';
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap';
 const URLS_TO_CACHE = [
   '/',
@@ -25,7 +25,7 @@ const URLS_TO_CACHE = [
   '/category/ai',
   '/category/developer',
   '/manifest.json',
-  `/css/styles2.min.css?v=${ASSET_VERSION}`,
+  `/css/styles3.min.css?v=${ASSET_VERSION}`,
   `/bundle.min.js?v=${ASSET_VERSION}`,
   `/js/consent.js?v=${ASSET_VERSION}`,
   '/social-card.jpg',

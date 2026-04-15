@@ -7,7 +7,8 @@ const crypto = require('crypto');
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260415v9';
+const ASSET_VERSION = '20260415v10';
+const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const GOOGLE_TAG_ID = 'AW-18068794869';
 const GOOGLE_TAG_SNIPPET = `<!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}"></script>
@@ -375,7 +376,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="${FONT_URL}">
   <link rel="stylesheet" href="${FONT_URL}">
-  <link rel="stylesheet" href="${getVersionedAssetPath('/css/styles2.min.css')}">
+  <link rel="stylesheet" href="${getVersionedAssetPath(CSS_BUNDLE_PATH)}">
   <script>window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}';</script>
   <script src="${getVersionedAssetPath('/js/consent.js')}" defer></script>
   ${ADSENSE_SCRIPT_TAG}
@@ -1067,7 +1068,7 @@ function minifyCSSFile() {
   const cssPath = path.join(__dirname, 'css', 'styles.css');
   const raw = fs.readFileSync(cssPath, 'utf8');
   const minified = minifyCSS(raw);
-  const minPath = path.join(__dirname, 'css', 'styles2.min.css');
+  const minPath = path.join(__dirname, 'css', 'styles3.min.css');
   fs.writeFileSync(minPath, minified);
   const savings = ((1 - minified.length / raw.length) * 100).toFixed(1);
   console.log(`Minified CSS: ${(raw.length / 1024).toFixed(1)} KB → ${(minified.length / 1024).toFixed(1)} KB (${savings}% smaller)`);
