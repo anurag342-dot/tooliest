@@ -513,6 +513,7 @@ img {
   top: 0;
   left: 0;
   right: 0;
+  min-height: var(--nav-height);
   height: var(--nav-height);
   background: rgba(10, 10, 15, 0.85);
   backdrop-filter: blur(20px) saturate(180%);
@@ -523,6 +524,7 @@ img {
   align-items: center;
   padding: 0 24px;
   transition: background var(--transition-base);
+  overflow: visible;
 }
 
 .navbar.scrolled {
@@ -2171,11 +2173,14 @@ body.embed-mode .tool-page {
 
 @media (max-width: 768px) {
   .navbar {
-    padding: 0 16px;
+    padding: 0 12px;
+    height: 60px;
+    min-height: 60px;
   }
 
   .nav-inner {
-    gap: 12px;
+    gap: 8px;
+    min-height: 60px;
   }
   
   .nav-search {
@@ -2185,11 +2190,21 @@ body.embed-mode .tool-page {
   .nav-links {
     display: none;
   }
+
+  .nav-logo .logo-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+
+  .nav-logo .logo-text span {
+    font-size: 1.1rem;
+  }
   
   .nav-links.mobile-open {
     display: flex;
     position: fixed;
-    top: calc(var(--nav-height) + env(safe-area-inset-top, 0px) + 10px);
+    top: calc(60px + env(safe-area-inset-top, 0px) + 8px);
     right: 16px;
     left: auto;
     bottom: max(12px, env(safe-area-inset-bottom, 0px));
@@ -2383,16 +2398,50 @@ body.embed-mode .tool-page {
 }
 
 @media (max-width: 420px) {
+  .navbar {
+    padding: 0 10px;
+    height: 56px;
+    min-height: 56px;
+  }
+
+  .nav-inner {
+    gap: 6px;
+    min-height: 56px;
+  }
+
+  .nav-logo {
+    gap: 6px;
+  }
+
+  .nav-logo .logo-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
+
+  .nav-logo .logo-text span {
+    font-size: 1rem;
+  }
+
+  .mobile-menu-btn,
+  .mobile-search-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
   .nav-links.mobile-open {
-    right: 12px;
-    width: calc(100vw - 24px);
-    padding: 12px;
+    right: 10px;
+    width: calc(100vw - 20px);
+    padding: 10px;
+    top: calc(56px + env(safe-area-inset-top, 0px) + 8px);
   }
 
   .nav-links.mobile-open a,
   .nav-links.mobile-open .theme-toggle-btn {
-    min-height: 52px;
-    padding-inline: 16px;
+    min-height: 48px;
+    padding-inline: 14px;
+    font-size: 0.95rem;
   }
 }
 
