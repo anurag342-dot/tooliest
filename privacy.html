@@ -309,7 +309,6 @@
     };
     const forceMobileMenuTop = () => {
       if (!navLinks) return;
-      const firstMenuItem = navLinks.querySelector('a, button');
       navLinks.scrollTop = 0;
       navLinks.scrollLeft = 0;
       if (typeof navLinks.scrollTo === 'function') {
@@ -319,7 +318,6 @@
           navLinks.scrollTo(0, 0);
         }
       }
-      firstMenuItem?.scrollIntoView({ block: 'start', inline: 'nearest' });
     };
     const resetMobileMenuScroll = () => {
       if (!navLinks) return;
