@@ -439,52 +439,69 @@ const App = {
     // Mobile menu — toggle open/close
     const mobileBtn = document.getElementById('mobile-menu-btn');
     const navLinks = document.getElementById('nav-links');
+    let mobileMenuScrollResetTimer = 0;
+    const syncMobileMenuState = () => {
+      const isOpen = navLinks?.classList.contains('mobile-open');
+      document.body.classList.toggle('nav-menu-open', Boolean(isOpen));
+      if (mobileBtn) {
+        mobileBtn.textContent = isOpen ? '✕' : '☰';
+        mobileBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      }
+    };
+    const resetMobileMenuScroll = () => {
+      if (!navLinks) return;
+      navLinks.scrollTop = 0;
+      window.requestAnimationFrame(() => {
+        navLinks.scrollTop = 0;
+      });
+      if (mobileMenuScrollResetTimer) clearTimeout(mobileMenuScrollResetTimer);
+      mobileMenuScrollResetTimer = window.setTimeout(() => {
+        if (navLinks.classList.contains('mobile-open')) navLinks.scrollTop = 0;
+      }, 220);
+    };
+    const openMobileMenu = () => {
+      if (!navLinks) return;
+      if (navLinks.contains(document.activeElement) && typeof document.activeElement?.blur === 'function') {
+        document.activeElement.blur();
+      }
+      navLinks.classList.add('mobile-open');
+      resetMobileMenuScroll();
+      syncMobileMenuState();
+    };
+    const closeMobileMenu = () => {
+      if (!navLinks) return;
+      navLinks.classList.remove('mobile-open');
+      navLinks.scrollTop = 0;
+      syncMobileMenuState();
+    };
     mobileBtn?.addEventListener('click', (e) => {
       e.stopPropagation();
-      const isOpen = navLinks?.classList.toggle('mobile-open');
-      if (mobileBtn) mobileBtn.textContent = isOpen ? '✕' : '☰';
+      if (navLinks?.classList.contains('mobile-open')) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
     });
     // Close on outside click
     document.addEventListener('click', (e) => {
       if (navLinks?.classList.contains('mobile-open') && !navLinks.contains(e.target) && e.target !== mobileBtn) {
-        navLinks.classList.remove('mobile-open');
-        if (mobileBtn) mobileBtn.textContent = '☰';
+        closeMobileMenu();
       }
     });
     // Close on Escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && navLinks?.classList.contains('mobile-open')) {
-        navLinks.classList.remove('mobile-open');
-        if (mobileBtn) mobileBtn.textContent = '☰';
+        closeMobileMenu();
       }
     });
     // Close menu when a nav link is clicked (on mobile)
     navLinks?.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        navLinks.classList.remove('mobile-open');
-        if (mobileBtn) mobileBtn.textContent = '☰';
-      });
+      link.addEventListener('click', closeMobileMenu);
     });
-    const syncMobileMenuPresentation = () => {
-      const isOpen = navLinks?.classList.contains('mobile-open');
-      document.body.classList.toggle('nav-menu-open', Boolean(isOpen));
-      if (navLinks && isOpen) {
-        if (navLinks.contains(document.activeElement) && typeof document.activeElement?.blur === 'function') {
-          document.activeElement.blur();
-        }
-        navLinks.scrollTop = 0;
-        window.requestAnimationFrame(() => {
-          navLinks.scrollTop = 0;
-        });
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768 && navLinks?.classList.contains('mobile-open')) {
+        closeMobileMenu();
       }
-    };
-    mobileBtn?.addEventListener('click', syncMobileMenuPresentation);
-    document.addEventListener('click', syncMobileMenuPresentation);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') syncMobileMenuPresentation();
-    });
-    navLinks?.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', syncMobileMenuPresentation);
     });
     // Mobile search overlay
     const mobileSearchBtn = document.getElementById('mobile-search-btn');
@@ -544,7 +561,10 @@ const App = {
     document.getElementById('nav-links')?.classList.remove('mobile-open');
     document.body.classList.remove('nav-menu-open');
     const mobileMenuButton = document.getElementById('mobile-menu-btn');
-    if (mobileMenuButton) mobileMenuButton.textContent = '\u2630';
+    if (mobileMenuButton) {
+      mobileMenuButton.textContent = '\u2630';
+      mobileMenuButton.setAttribute('aria-expanded', 'false');
+    }
     if (route.view !== 'tool' && this.performanceDashboardCleanup) {
       this.performanceDashboardCleanup();
       this.performanceDashboardCleanup = null;
