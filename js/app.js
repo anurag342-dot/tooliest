@@ -10,7 +10,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260413v2';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260415v3';
 
 // Safe localStorage helper — prevents crashes in private browsing or restricted environments
 function safeLocalGet(key, fallback) {
@@ -448,15 +448,30 @@ const App = {
         mobileBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       }
     };
+    const forceMobileMenuTop = () => {
+      if (!navLinks) return;
+      const firstMenuItem = navLinks.querySelector('a, button');
+      navLinks.scrollTop = 0;
+      navLinks.scrollLeft = 0;
+      if (typeof navLinks.scrollTo === 'function') {
+        try {
+          navLinks.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        } catch (_) {
+          navLinks.scrollTo(0, 0);
+        }
+      }
+      firstMenuItem?.scrollIntoView({ block: 'start', inline: 'nearest' });
+    };
     const resetMobileMenuScroll = () => {
       if (!navLinks) return;
-      navLinks.scrollTop = 0;
-      window.requestAnimationFrame(() => {
-        navLinks.scrollTop = 0;
-      });
+      forceMobileMenuTop();
+      window.requestAnimationFrame(forceMobileMenuTop);
       if (mobileMenuScrollResetTimer) clearTimeout(mobileMenuScrollResetTimer);
       mobileMenuScrollResetTimer = window.setTimeout(() => {
-        if (navLinks.classList.contains('mobile-open')) navLinks.scrollTop = 0;
+        if (navLinks.classList.contains('mobile-open')) {
+          forceMobileMenuTop();
+          window.requestAnimationFrame(forceMobileMenuTop);
+        }
       }, 220);
     };
     const openMobileMenu = () => {
@@ -497,6 +512,11 @@ const App = {
     // Close menu when a nav link is clicked (on mobile)
     navLinks?.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', closeMobileMenu);
+    });
+    navLinks?.addEventListener('animationend', () => {
+      if (navLinks.classList.contains('mobile-open')) {
+        forceMobileMenuTop();
+      }
     });
     window.addEventListener('resize', () => {
       if (window.innerWidth > 768 && navLinks?.classList.contains('mobile-open')) {
