@@ -1,13 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /tmp/
-Disallow: /js/
-Disallow: /css/
-Disallow: /*.min.js$
-Disallow: /*.min.css$
-
-# Crawl delay for polite crawling
-Crawl-delay: 1
+Allow: /js/
+Allow: /css/
 
 # Sitemaps
 Sitemap: https://tooliest.com/sitemap.xml
@@ -15,11 +10,9 @@ Sitemap: https://tooliest.com/sitemap.xml
 # Specific bot directives
 User-agent: Googlebot
 Allow: /
-Crawl-delay: 0
 
 User-agent: Bingbot
 Allow: /
-Crawl-delay: 1
 
 User-agent: GPTBot
 Allow: /

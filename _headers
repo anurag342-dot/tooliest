@@ -28,6 +28,14 @@
 /manifest.json
   Cache-Control: public, max-age=86400
 
+/search
+  X-Robots-Tag: noindex, follow
+  Cache-Control: public, max-age=0, must-revalidate
+
+/search/*
+  X-Robots-Tag: noindex, follow
+  Cache-Control: public, max-age=0, must-revalidate
+
 # HTML pages
 /index.html
   Cache-Control: public, max-age=0, must-revalidate

@@ -162,16 +162,53 @@ function getCategoryTools(tools, categoryId) {
   return tools.filter((tool) => tool.category === categoryId);
 }
 
+function getFeaturedToolNames(tools, limit = 3) {
+  return tools.slice(0, limit).map((tool) => tool.name).join(', ');
+}
+
+function getCategoryFaqItems(category, categoryTools) {
+  const lowerName = category.name.toLowerCase();
+  const featuredNames = getFeaturedToolNames(categoryTools, 3);
+  const examples = featuredNames
+    ? `You can use ${featuredNames} and other ${lowerName} directly in your browser without signups or uploads.`
+    : `You can use Tooliest's ${lowerName} directly in your browser without signups or uploads.`;
+
+  return [
+    {
+      q: `What can I do with Tooliest's ${lowerName}?`,
+      a: `${examples} These tools are built for quick, practical tasks so you can finish work faster while keeping your input on your own device.`,
+    },
+    {
+      q: `Are Tooliest's ${lowerName} free to use?`,
+      a: `Yes. All Tooliest ${lowerName} are free to use, require no signup, and work in modern desktop and mobile browsers.`,
+    },
+    {
+      q: `Do Tooliest's ${lowerName} upload my data?`,
+      a: `No. Tooliest processes your input locally in the browser whenever possible, so text, files, and settings stay on your device instead of being sent to a server.`,
+    },
+  ];
+}
+
 function getCategoryMeta(category, tools) {
   const categoryTools = getCategoryTools(tools, category.id);
   const count = categoryTools.length;
+  const featuredTitleTools = getFeaturedToolNames(categoryTools, 2);
+  const featuredTools = getFeaturedToolNames(categoryTools, 3);
+  const lowerName = category.name.toLowerCase();
   return {
     category,
     tools: categoryTools,
     count,
-    title: `${category.name} | Tooliest`,
-    description: `Explore ${count} free ${category.name.toLowerCase()} on Tooliest. Browser-based utilities with no signup, no uploads, and no server processing.`,
-    intro: `Browse Tooliest's ${category.name.toLowerCase()} and launch every tool instantly in your browser without sending your data to a server.`,
+    title: featuredTitleTools
+      ? `Free ${category.name} Online - ${featuredTitleTools} | Tooliest`
+      : `Free ${category.name} Online | Tooliest`,
+    description: featuredTools
+      ? `Use ${count} free ${lowerName} on Tooliest, including ${featuredTools}. Browser-based, fast, private, and no signup required.`
+      : `Use ${count} free ${lowerName} on Tooliest. Browser-based, fast, private, and no signup required.`,
+    intro: featuredTools
+      ? `Browse Tooliest's ${lowerName} and launch every tool instantly in your browser without sending your data to a server. Popular picks include ${featuredTools}.`
+      : `Browse Tooliest's ${lowerName} and launch every tool instantly in your browser without sending your data to a server.`,
+    faq: getCategoryFaqItems(category, categoryTools),
   };
 }
 
@@ -351,6 +388,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="keywords" content="${escapeAttr(pageKeywords)}">
   <meta name="author" content="Tooliest">
   <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="theme-color" content="#8b5cf6">
   ${THEME_BOOTSTRAP_INLINE}
   <link rel="manifest" href="/manifest.json">
@@ -360,11 +398,13 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
   <meta property="og:site_name" content="Tooliest">
   <meta property="og:image" content="https://tooliest.com/social-card.jpg">
+  <meta property="og:image:alt" content="Tooliest preview of free browser-based online tools">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@tooliest">
   <meta name="twitter:title" content="${escapeAttr(title)}">
   <meta name="twitter:description" content="${escapeAttr(description)}">
   <meta name="twitter:image" content="https://tooliest.com/social-card.jpg">
+  <meta name="twitter:image:alt" content="Tooliest preview of free browser-based online tools">
   <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
   <link rel="alternate" hreflang="en" href="${escapeAttr(canonicalUrl)}">
   <link rel="alternate" hreflang="x-default" href="https://tooliest.com/">
@@ -537,21 +577,49 @@ function renderCategoryPage(category, tools, categories) {
         name: tool.name,
       })),
     },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: meta.faq.map((item) => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.a,
+        },
+      })),
+    },
   ];
 
+  const topToolsHtml = `<section class="tool-content-section">
+      <h2>Best ${escapeHtml(category.name)} to Start With</h2>
+      <p>These are some of the most useful ${escapeHtml(category.name.toLowerCase())} on Tooliest when you want fast results without extra tabs, accounts, or uploads:</p>
+      <ul>${meta.tools.slice(0, 6).map((tool) => `<li><a href="${getToolPath(tool.id)}"><strong>${escapeHtml(tool.name)}</strong></a> - ${escapeHtml(tool.description)}</li>`).join('')}</ul>
+    </section>`;
+
+  const benefitsHtml = `<section class="tool-content-section">
+      <h2>Why Use Browser-Based ${escapeHtml(category.name)}?</h2>
+      <p>Tooliest's ${escapeHtml(category.name.toLowerCase())} are designed for quick, practical work. You can launch a tool instantly, finish the task in one browser tab, and move on without handing your content to a server.</p>
+      <ul>
+        <li>Launch any tool instantly with no signup or account setup</li>
+        <li>Keep your input on your own device for better privacy</li>
+        <li>Move between related tools quickly with direct internal links</li>
+        <li>Use the same workflows on desktop and mobile browsers</li>
+      </ul>
+    </section>`;
+
   const relatedCatsHtml = relatedCats.length
-    ? `<div class="tool-content-sections" style="margin-top:32px">
-        <section class="tool-content-section">
-          <h2>Related Tool Categories</h2>
-          <p>Looking for more? Explore these related categories on Tooliest:</p>
-          <ul>${relatedCats.map(rc => `<li><a href="${getCategoryPath(rc.id)}">${rc.icon} ${escapeHtml(rc.name)}</a> — ${getCategoryTools(tools, rc.id).length} free tools</li>`).join('')}</ul>
-        </section>
-        <section class="tool-content-section">
-          <h2>What Are ${escapeHtml(category.name)}?</h2>
-          <p>Tooliest's ${category.name.toLowerCase()} are browser-based utilities that process everything locally on your device. No files are uploaded, no accounts are needed, and every tool is completely free. Whether you're a developer, designer, writer, or marketer, these tools help you work faster without compromising your privacy.</p>
-        </section>
-      </div>`
+    ? `<section class="tool-content-section">
+        <h2>Related Tool Categories</h2>
+        <p>Looking for more? Explore these related categories on Tooliest:</p>
+        <ul>${relatedCats.map(rc => `<li><a href="${getCategoryPath(rc.id)}">${rc.icon} ${escapeHtml(rc.name)}</a> - ${getCategoryTools(tools, rc.id).length} free tools</li>`).join('')}</ul>
+      </section>`
     : '';
+
+  const faqHtml = `<section class="tool-content-section">
+      <h2>${escapeHtml(category.name)} FAQ</h2>
+      <div class="faq-list">${meta.faq.map((item) => `<details class="faq-item"><summary>${escapeHtml(item.q)}</summary><p>${escapeHtml(item.a)}</p></details>`).join('')}</div>
+    </section>`;
 
   const mainContent = `<main class="main-content" id="main-content">
     <section class="tool-page">
@@ -568,7 +636,12 @@ function renderCategoryPage(category, tools, categories) {
       <section class="tools-section" style="padding:0">
         <div class="tools-grid">${meta.tools.map((tool) => renderStaticToolCard(tool, categories)).join('')}</div>
       </section>
-      ${relatedCatsHtml}
+      <div class="tool-content-sections" style="margin-top:32px">
+        ${topToolsHtml}
+        ${benefitsHtml}
+        ${relatedCatsHtml}
+        ${faqHtml}
+      </div>
     </section>
   </main>`;
 
@@ -833,6 +906,14 @@ function renderHeadersFile(tools, categories) {
     '',
     '/manifest.json',
     '  Cache-Control: public, max-age=86400',
+    '',
+    '/search',
+    '  X-Robots-Tag: noindex, follow',
+    '  Cache-Control: public, max-age=0, must-revalidate',
+    '',
+    '/search/*',
+    '  X-Robots-Tag: noindex, follow',
+    '  Cache-Control: public, max-age=0, must-revalidate',
     '',
     '# HTML pages',
     '/index.html',
