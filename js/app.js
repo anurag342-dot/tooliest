@@ -11,6 +11,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
 const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260416v12';
+const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 
 // Safe localStorage helper — prevents crashes in private browsing or restricted environments
 function safeLocalGet(key, fallback) {
@@ -58,6 +59,7 @@ const App = {
   pendingPerformanceMeasurement: null,
   performanceDashboardCleanup: null,
   inputCapabilities: null,
+  toolReadyStateTimer: null,
 
   init() {
     this.normalizeLegacyHashRoute();
@@ -471,19 +473,37 @@ const App = {
     }
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        this.searchQuery = e.target.value.toLowerCase();
+        const normalizedQuery = e.target.value.trim().toLowerCase();
+        this.searchQuery = normalizedQuery;
+        this.renderDesktopSearchPreview(normalizedQuery);
         if (this.currentView === 'home') {
           this.renderToolsGrid();
-        } else if (this.searchQuery === '' && this.isAppPath(window.location.pathname)) {
+        } else if (this.currentView === 'search' && this.searchQuery) {
+          history.replaceState({}, '', this.getSearchPath(this.searchQuery));
+          this.renderSearchResults();
+        } else if (this.currentView === 'search' && this.searchQuery === '') {
           this.navigate(this.getCategoryPath(this.currentCategory), { replace: true });
+        }
+      });
+      searchInput.addEventListener('focus', () => {
+        if (searchInput.value.trim()) {
+          this.renderDesktopSearchPreview(searchInput.value.trim());
         }
       });
       searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && this.searchQuery) {
+          this.hideDesktopSearchPreview();
           this.goToPath(this.getSearchPath(this.searchQuery));
+        } else if (e.key === 'Escape') {
+          this.hideDesktopSearchPreview();
         }
       });
     }
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.nav-search')) {
+        this.hideDesktopSearchPreview();
+      }
+    });
     // Intercept same-origin app links so tool/category navigation stays SPA-fast.
     document.addEventListener('click', (e) => {
       const link = e.target.closest('a[href]');
@@ -643,6 +663,7 @@ const App = {
   },
 
   handleRoute(options = {}) {
+    this.hideDesktopSearchPreview();
     if (!this.isAppPath(window.location.pathname)) {
       this.currentView = 'content';
       this.activeToolId = null;
@@ -725,6 +746,7 @@ const App = {
     const main = document.getElementById('main-content');
     const categoryMeta = this.getCategoryMeta(this.currentCategory);
     main.innerHTML = this.getHeroHTML() +
+      this.getQuickStartHTML() +
       this.getRecentlyUsedHTML() +
       this.getMostPopularHTML() +
       this.getFavoritesManagerHTML() +
@@ -747,13 +769,19 @@ const App = {
   getHeroHTML() {
     const categoryCount = this.getVisibleCategories().length;
     return `<section class="hero">
-      <div class="hero-badge"><span class="pulse-dot"></span> Free &amp; No Signup Required</div>
+      <div class="hero-badge"><span class="pulse-dot"></span> ${TOOLS.length}+ Browser-Based Tools • Free &amp; No Signup</div>
       <h1>Every Tool You Need.<br><span class="gradient-text">Zero Installs.</span></h1>
       <p>${TOOLS.length}+ powerful online tools for developers, designers, writers, and marketers. All free, all instant, all AI-enhanced.</p>
       <div class="hero-stats">
         <div class="hero-stat"><div class="stat-value">${TOOLS.length}+</div><div class="stat-label">Free Tools</div></div>
         <div class="hero-stat"><div class="stat-value">${categoryCount}</div><div class="stat-label">Categories</div></div>
         <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
+      </div>
+      <div class="hero-trust-strip" aria-label="Tooliest trust highlights">
+        <span class="trust-badge">🔒 100% Private — No Uploads</span>
+        <span class="trust-badge">⚡ Instant Browser Results</span>
+        <span class="trust-badge">📲 PWA Ready + Offline Support</span>
+        <span class="trust-badge">🆓 Forever Free Utilities</span>
       </div>
     </section>`;
   },
@@ -880,6 +908,196 @@ const App = {
       .slice(0, limit);
   },
 
+  getSearchMatches(query, limit = 8) {
+    const normalized = String(query || '').trim().toLowerCase();
+    if (!normalized) return [];
+
+    return TOOLS
+      .map((tool) => {
+        const name = tool.name.toLowerCase();
+        const description = tool.description.toLowerCase();
+        const tags = tool.tags.join(' ').toLowerCase();
+        let score = 0;
+
+        if (name.startsWith(normalized)) score += 5;
+        else if (name.includes(normalized)) score += 4;
+        if (tags.includes(normalized)) score += 3;
+        if (description.includes(normalized)) score += 2;
+        if (tool.category.includes(normalized)) score += 1;
+
+        return { tool, score };
+      })
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score || a.tool.name.localeCompare(b.tool.name))
+      .slice(0, limit)
+      .map((entry) => entry.tool);
+  },
+
+  escapeHTML(value = '') {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
+  ensureDesktopSearchPreview() {
+    const navSearch = document.querySelector('.nav-search');
+    if (!navSearch) return null;
+
+    let panel = navSearch.querySelector('#desktop-search-preview');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'desktop-search-preview';
+      panel.className = 'nav-search-preview';
+      panel.hidden = true;
+      panel.setAttribute('role', 'listbox');
+      panel.setAttribute('aria-label', 'Tool search suggestions');
+      navSearch.appendChild(panel);
+    }
+
+    return panel;
+  },
+
+  hideDesktopSearchPreview() {
+    const panel = document.getElementById('desktop-search-preview');
+    if (!panel) return;
+    panel.hidden = true;
+    panel.classList.remove('open');
+    panel.innerHTML = '';
+  },
+
+  renderDesktopSearchPreview(query) {
+    const normalized = String(query || '').trim().toLowerCase();
+    const panel = this.ensureDesktopSearchPreview();
+    if (!panel || !normalized) {
+      this.hideDesktopSearchPreview();
+      return;
+    }
+
+    const matches = this.getSearchMatches(normalized, 7);
+    const escapedQuery = this.escapeHTML(normalized);
+    panel.innerHTML = matches.length
+      ? `<div class="nav-search-preview-header">Top matches</div>
+        <div class="nav-search-preview-list">
+          ${matches.map((tool) => `<a class="nav-search-preview-item" href="${this.getToolPath(tool.id)}" role="option" aria-label="Open ${tool.name}">
+            <span class="nav-search-preview-icon" aria-hidden="true">${tool.icon}</span>
+            <span class="nav-search-preview-copy">
+              <strong>${tool.name}</strong>
+              <span>${TOOL_CATEGORIES.find((category) => category.id === tool.category)?.name || 'Tool'} • ${tool.description}</span>
+            </span>
+          </a>`).join('')}
+        </div>
+        <a class="nav-search-preview-footer" href="${this.getSearchPath(normalized)}">View all results for “${escapedQuery}”</a>`
+      : `<div class="nav-search-preview-empty">
+          <strong>No exact matches</strong>
+          <span>Press Enter to search Tooliest for “${escapedQuery}”.</span>
+        </div>`;
+
+    panel.hidden = false;
+    requestAnimationFrame(() => panel.classList.add('open'));
+  },
+
+  getTotalUsageCount() {
+    return Object.values(this.toolUsage).reduce((sum, count) => sum + (Number(count) || 0), 0);
+  },
+
+  getToolUsageCount(toolId) {
+    return Number(this.toolUsage?.[toolId] || 0);
+  },
+
+  getFeaturedTools(limit = 6) {
+    const featuredIds = [
+      'word-counter',
+      'json-formatter',
+      'meta-tag-generator',
+      'password-security-suite',
+      'image-compressor',
+      'compound-interest',
+      'regex-tester',
+      'color-picker',
+    ];
+    const combined = [
+      ...this.getPopularTools(limit),
+      ...featuredIds.map((toolId) => TOOLS.find((tool) => tool.id === toolId)).filter(Boolean),
+    ];
+
+    return combined.filter((tool, index) =>
+      combined.findIndex((candidate) => candidate.id === tool.id) === index
+    ).slice(0, limit);
+  },
+
+  getQuickStartHTML() {
+    const featuredTools = this.getFeaturedTools(6);
+    const totalUses = this.getTotalUsageCount();
+    if (!featuredTools.length) return '';
+
+    return `<section class="tools-section tools-section-condensed">
+      <div class="section-shell">
+        <div class="section-heading">
+          <h3>Start Here</h3>
+          <p>${totalUses ? `You have completed ${totalUses} tool action${totalUses === 1 ? '' : 's'} on this device. Keep momentum with the tools people open most.` : 'New to Tooliest? Start with the fastest, most useful tools before diving into the full directory.'}</p>
+        </div>
+        <div class="related-tools-grid">${featuredTools.map((tool) => this.getToolCardHTML(tool)).join('')}</div>
+      </div>
+    </section>`;
+  },
+
+  getLastUpdatedDateLabel() {
+    const versionMatch = TOOLIEST_ASSET_VERSION.match(/^(\d{4})(\d{2})(\d{2})/);
+    const releaseDate = versionMatch
+      ? `${versionMatch[1]}-${versionMatch[2]}-${versionMatch[3]}`
+      : (TOOLIEST_CHANGELOG[0]?.date || new Date().toISOString().split('T')[0]);
+
+    return new Date(`${releaseDate}T00:00:00`).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  },
+
+  getToolTrustPanelHTML(tool, related) {
+    const usageCount = this.getToolUsageCount(tool.id);
+    const usageLabel = usageCount
+      ? `${usageCount} local run${usageCount === 1 ? '' : 's'}`
+      : 'Ready for your first run';
+    const pairingLinks = related.slice(0, 3);
+
+    return `<div class="tool-trust-strip" aria-label="${tool.name} trust signals">
+      <span class="trust-badge">🔒 100% Private — Runs in your browser</span>
+      <span class="trust-badge">⚡ Instant results on this device</span>
+      <span class="trust-badge">🆓 Free to use</span>
+      <span class="trust-badge">🛠️ Maintained release: ${this.getLastUpdatedDateLabel()}</span>
+    </div>
+    <div class="tool-proof-grid">
+      <div class="tool-proof-card">
+        <span>Privacy</span>
+        <strong>No data leaves your device</strong>
+        <p>Perfect for sensitive content, drafts, client files, and quick checks.</p>
+      </div>
+      <div class="tool-proof-card">
+        <span>Local usage</span>
+        <strong>${usageLabel}</strong>
+        <p>Tracked only in this browser to power your recent and popular tools.</p>
+      </div>
+      <div class="tool-proof-card tool-live-status-card" id="tool-live-status-card">
+        <span>Status</span>
+        <strong id="tool-live-status-value">Ready when you are</strong>
+        <p id="tool-live-status-note">Tooliest will confirm when this workspace finishes processing.</p>
+      </div>
+      <a class="tool-proof-card tool-proof-link" href="${TOOLIEST_REPOSITORY_URL}" target="_blank" rel="noreferrer">
+        <span>Source</span>
+        <strong>View the Tooliest codebase</strong>
+        <p>Open the public repository behind this browser-first tool collection.</p>
+      </a>
+    </div>
+    ${pairingLinks.length ? `<div class="tool-pairing-links">
+      <span>Works well with:</span>
+      ${pairingLinks.map((candidate) => `<a href="${this.getToolPath(candidate.id)}">${candidate.name}</a>`).join('')}
+    </div>` : ''}`;
+  },
+
   getToolContentSectionsHTML(tool) {
     const categoryName = TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || 'online tools';
     const fallbackExplain = `${tool.name} is part of Tooliest's ${categoryName.toLowerCase()} collection and runs directly in your browser, so your input stays on your device.`;
@@ -975,6 +1193,7 @@ const App = {
           </div>
         </div>
         <p>${tool.description}</p>
+        ${this.getToolTrustPanelHTML(tool, related)}
         ${tool.education ? `<div class="tool-education-visible" style="margin-top:16px;background:var(--bg-secondary);padding:16px;border-radius:var(--radius-md);border:1px solid var(--border-color);"><div style="font-weight:600;color:var(--accent-primary);margin-bottom:8px">About this tool</div><div style="font-size:0.9rem;line-height:1.5;color:var(--text-secondary)">${tool.education}</div></div>` : ''}
       </div>
       ${this.getAdHTML('tool-top')}
@@ -1049,8 +1268,7 @@ const App = {
       t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.tags.some(tag => tag.includes(q))
     );
     // BUG-17: Sanitize search query to prevent XSS — use textContent for user input
-    const escapeHTML = (str) => str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    const safeQ = escapeHTML(q);
+    const safeQ = this.escapeHTML(q);
     main.innerHTML = `<div class="search-results">
       <h2>Search results for "${safeQ}"</h2>
       <p style="color:var(--text-secondary);margin-bottom:24px">${results.length} tool(s) found</p>
@@ -1599,6 +1817,34 @@ const App = {
     safeLocalSet(historyKey, JSON.stringify(history.slice(-20)));
     this.pendingPerformanceMeasurement = null;
     this.renderToolPerformancePanel(targetToolId);
+    this.updateToolReadyState(label, duration);
+  },
+
+  updateToolReadyState(label, duration) {
+    const statusValue = document.getElementById('tool-live-status-value');
+    const statusNote = document.getElementById('tool-live-status-note');
+    const statusCard = document.getElementById('tool-live-status-card');
+    const workspace = document.getElementById('tool-workspace');
+    if (!statusValue || !statusNote || !statusCard || !workspace) return;
+
+    // [TOOLIEST AUDIT] Add a subtle completion state so users know when a tool output is ready.
+    statusValue.textContent = `Results ready in ${Math.max(1, Math.round(duration))} ms`;
+    statusNote.textContent = `${label || 'Your latest tool action'} completed locally on this device.`;
+
+    statusCard.classList.remove('is-updated');
+    workspace.classList.remove('result-ready');
+    void statusCard.offsetWidth;
+    void workspace.offsetWidth;
+    statusCard.classList.add('is-updated');
+    workspace.classList.add('result-ready');
+
+    if (this.toolReadyStateTimer) {
+      clearTimeout(this.toolReadyStateTimer);
+    }
+    this.toolReadyStateTimer = window.setTimeout(() => {
+      statusCard.classList.remove('is-updated');
+      workspace.classList.remove('result-ready');
+    }, 1800);
   },
 
   startToolPerformanceTracking(tool) {
