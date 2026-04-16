@@ -69,6 +69,18 @@ const ToolRenderers = {
     return this.escapeHtml(value);
   },
 
+  // [TOOLIEST AUDIT] Only reuse safe http(s) URLs when previewing user-provided links or images.
+  sanitizeHttpUrl(value = '', allowRelative = true) {
+    const input = String(value || '').trim();
+    if (!input) return '';
+    try {
+      const url = allowRelative ? new URL(input, window.location.origin) : new URL(input);
+      return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+    } catch (_) {
+      return '';
+    }
+  },
+
   renderers: {
     // ===== TEXT TOOLS =====
     'word-counter'(c) {
@@ -368,23 +380,55 @@ const ToolRenderers = {
         <div class="input-group"><label>Site URL</label><input type="url" id="og-url" placeholder="https://example.com" value="https://tooliest.com"></div>
         <button class="btn btn-primary mb-4">Preview</button>
         <div id="og-previews"></div></div>`;
+      const previews = document.getElementById('og-previews');
+      previews.innerHTML = `
+        <label style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;display:block">Facebook Preview</label>
+        <div style="max-width:500px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);overflow:hidden;margin-bottom:24px">
+          <div data-og-image="facebook" style="height:260px;background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);font-size:0.9rem"></div>
+          <div style="padding:12px 16px">
+            <div data-og-domain="facebook" style="font-size:0.75rem;color:var(--text-tertiary);text-transform:uppercase"></div>
+            <div data-og-title="facebook" style="font-weight:600;margin:4px 0;font-size:1rem"></div>
+            <div data-og-desc="facebook" style="font-size:0.85rem;color:var(--text-secondary)"></div>
+          </div>
+        </div>
+        <label style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;display:block">Twitter/X Preview</label>
+        <div style="max-width:500px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden">
+          <div data-og-image="twitter" style="height:240px;background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;color:var(--text-tertiary)"></div>
+          <div style="padding:12px 16px">
+            <div data-og-title="twitter" style="font-weight:600;font-size:0.95rem"></div>
+            <div data-og-desc="twitter" style="font-size:0.85rem;color:var(--text-secondary);margin:4px 0"></div>
+            <div data-og-domain="twitter" style="font-size:0.8rem;color:var(--text-tertiary)"></div>
+          </div>
+        </div>`;
+      const applyPreviewImage = (element, imageUrl, fallbackText) => {
+        element.style.backgroundColor = 'var(--bg-tertiary)';
+        element.style.backgroundImage = '';
+        element.style.backgroundPosition = '';
+        element.style.backgroundSize = '';
+        element.textContent = fallbackText;
+        if (imageUrl) {
+          element.style.backgroundImage = `url("${imageUrl}")`;
+          element.style.backgroundPosition = 'center';
+          element.style.backgroundSize = 'cover';
+          element.textContent = '';
+        }
+      };
       const preview = () => {
         const title = document.getElementById('og-title').value || 'Untitled';
         const desc = document.getElementById('og-desc').value || '';
-        const img = document.getElementById('og-image').value;
-        const url = document.getElementById('og-url').value || 'example.com';
-        const domain = url.replace(/https?:\/\//, '').split('/')[0];
-        document.getElementById('og-previews').innerHTML = `
-          <label style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;display:block">Facebook Preview</label>
-          <div style="max-width:500px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);overflow:hidden;margin-bottom:24px">
-            <div style="height:260px;background:${img ? `url(${img}) center/cover` : 'var(--bg-tertiary)'};display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);font-size:0.9rem">${img ? '' : '🖼️ No image set'}</div>
-            <div style="padding:12px 16px"><div style="font-size:0.75rem;color:var(--text-tertiary);text-transform:uppercase">${domain}</div><div style="font-weight:600;margin:4px 0;font-size:1rem">${title}</div><div style="font-size:0.85rem;color:var(--text-secondary)">${desc}</div></div>
-          </div>
-          <label style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;display:block">Twitter/X Preview</label>
-          <div style="max-width:500px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden">
-            <div style="height:240px;background:${img ? `url(${img}) center/cover` : 'var(--bg-tertiary)'};display:flex;align-items:center;justify-content:center;color:var(--text-tertiary)">${img ? '' : '🖼️ No image'}</div>
-            <div style="padding:12px 16px"><div style="font-weight:600;font-size:0.95rem">${title}</div><div style="font-size:0.85rem;color:var(--text-secondary);margin:4px 0">${desc}</div><div style="font-size:0.8rem;color:var(--text-tertiary)">🔗 ${domain}</div></div>
-          </div>`;
+        const imageUrl = ToolRenderers.sanitizeHttpUrl(document.getElementById('og-image').value);
+        const safeUrl = ToolRenderers.sanitizeHttpUrl(document.getElementById('og-url').value) || 'https://example.com';
+        const domain = new URL(safeUrl).hostname;
+
+        // [TOOLIEST AUDIT] Fill OG preview cards with textContent/style assignments to avoid DOM XSS.
+        previews.querySelector('[data-og-domain="facebook"]').textContent = domain;
+        previews.querySelector('[data-og-title="facebook"]').textContent = title;
+        previews.querySelector('[data-og-desc="facebook"]').textContent = desc;
+        previews.querySelector('[data-og-title="twitter"]').textContent = title;
+        previews.querySelector('[data-og-desc="twitter"]').textContent = desc;
+        previews.querySelector('[data-og-domain="twitter"]').textContent = `🔗 ${domain}`;
+        applyPreviewImage(previews.querySelector('[data-og-image="facebook"]'), imageUrl, '🖼️ No image set');
+        applyPreviewImage(previews.querySelector('[data-og-image="twitter"]'), imageUrl, '🖼️ No image');
       };
       c.querySelector('.btn-primary').addEventListener('click', preview);
       preview();

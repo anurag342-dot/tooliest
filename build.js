@@ -605,6 +605,32 @@ function getVersionedAssetPath(pathname) {
   return `${pathname}?v=${ASSET_VERSION}`;
 }
 
+function replaceVersionedAssetReference(html, pathname) {
+  const escapedPath = pathname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return html.replace(new RegExp(`${escapedPath}\\?v=[^"'\\s)]+`, 'g'), getVersionedAssetPath(pathname));
+}
+
+function syncStaticPageAssetVersions() {
+  Object.values(STATIC_PAGE_SOURCE_FILES).forEach((sourceFile) => {
+    const sourcePath = path.join(__dirname, sourceFile);
+    const originalHtml = fs.readFileSync(sourcePath, 'utf8');
+    let nextHtml = originalHtml;
+
+    // [TOOLIEST AUDIT] Keep static page asset versions aligned with the current build output.
+    nextHtml = replaceVersionedAssetReference(nextHtml, CSS_BUNDLE_PATH);
+    nextHtml = replaceVersionedAssetReference(nextHtml, '/js/consent.js');
+    nextHtml = replaceVersionedAssetReference(nextHtml, '/bundle.min.js');
+    nextHtml = nextHtml.replace(
+      /window\.__TOOLIEST_ASSET_VERSION='[^']+'/g,
+      `window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}'`
+    );
+
+    if (nextHtml !== originalHtml) {
+      fs.writeFileSync(sourcePath, nextHtml);
+    }
+  });
+}
+
 function minifyCSS(css) {
   return css
     .replace(/\/\*[\s\S]*?\*\//g, '')       // remove comments
@@ -2148,6 +2174,7 @@ async function build() {
   validateToolRoutes(tools);
   await bundleJavascript();
   minifyCSSFile();
+  syncStaticPageAssetVersions();
   writeRoutingFiles(tools, categories);
   writeCleanStaticPages();
   writeHomePage(tools, categories);

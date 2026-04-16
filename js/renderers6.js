@@ -243,10 +243,17 @@ Object.assign(ToolRenderers.renderers, {
       const buf = await file.arrayBuffer();
       const ctx = new AudioContext();
       try {
-        return await ctx.decodeAudioData(buf);
+        const decoded = await ctx.decodeAudioData(buf);
+        return decoded;
       } catch(e) {
-        ctx.close();
         throw new Error('Cannot decode this file — browser may not support the format');
+      } finally {
+        // [TOOLIEST AUDIT] Always release the AudioContext so repeated conversions do not exhaust browser limits.
+        if (ctx.state !== 'closed') {
+          try {
+            await ctx.close();
+          } catch (_) {}
+        }
       }
     }
 
