@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260415v10';
+const ASSET_VERSION = '20260416v11';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const GOOGLE_TAG_ID = 'AW-18068794869';
 const GOOGLE_TAG_SNIPPET = `<!-- Google tag (gtag.js) -->

@@ -1,5 +1,5 @@
-const ASSET_VERSION = '20260415v10';
-const CACHE_NAME = 'tooliest-v28-offline';
+const ASSET_VERSION = '20260416v11';
+const CACHE_NAME = 'tooliest-v29-offline';
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap';
 const URLS_TO_CACHE = [
   '/',
@@ -8,6 +8,7 @@ const URLS_TO_CACHE = [
   '/contact',
   '/privacy',
   '/terms',
+  '/software',
   '/category/text',
   '/category/seo',
   '/category/css',

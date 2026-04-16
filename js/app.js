@@ -10,7 +10,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260415v10';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260416v11';
 
 // Safe localStorage helper — prevents crashes in private browsing or restricted environments
 function safeLocalGet(key, fallback) {
@@ -364,6 +364,20 @@ const App = {
       normalized.startsWith('/search/');
   },
 
+  shouldUseSpaNavigation(targetPathname = window.location.pathname) {
+    return this.isAppPath(window.location.pathname) && this.isAppPath(targetPathname);
+  },
+
+  goToPath(path, options = {}) {
+    const target = new URL(path, window.location.origin);
+    const nextPath = target.pathname + target.search + target.hash;
+    if (this.shouldUseSpaNavigation(target.pathname)) {
+      this.navigate(nextPath, options);
+      return;
+    }
+    window.location.assign(nextPath);
+  },
+
   navigate(path, options = {}) {
     const target = new URL(path, window.location.origin);
     const nextPath = target.pathname + target.search + target.hash;
@@ -397,13 +411,13 @@ const App = {
         this.searchQuery = e.target.value.toLowerCase();
         if (this.currentView === 'home') {
           this.renderToolsGrid();
-        } else if (this.searchQuery === '') {
+        } else if (this.searchQuery === '' && this.isAppPath(window.location.pathname)) {
           this.navigate(this.getCategoryPath(this.currentCategory), { replace: true });
         }
       });
       searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && this.searchQuery) {
-          this.navigate(this.getSearchPath(this.searchQuery));
+          this.goToPath(this.getSearchPath(this.searchQuery));
         }
       });
     }
@@ -418,12 +432,12 @@ const App = {
       const href = link.getAttribute('href') || '';
       if (href.startsWith('#/')) {
         e.preventDefault();
-        this.navigate(this.pathFromLegacyHash(href));
+        this.goToPath(this.pathFromLegacyHash(href));
         return;
       }
 
       const url = new URL(link.href, window.location.origin);
-      if (url.origin !== window.location.origin || !this.isAppPath(url.pathname)) return;
+      if (url.origin !== window.location.origin || !this.shouldUseSpaNavigation(url.pathname)) return;
 
       e.preventDefault();
       this.navigate(url.pathname + url.search + url.hash);
@@ -566,6 +580,13 @@ const App = {
   },
 
   handleRoute(options = {}) {
+    if (!this.isAppPath(window.location.pathname)) {
+      this.currentView = 'content';
+      this.activeToolId = null;
+      this.updateShortcutUI();
+      return;
+    }
+
     const route = this.getRoute();
     if (route.view === 'tool' && route.legacyPath) {
       this.navigate(this.getToolPath(route.toolId), { replace: true });
