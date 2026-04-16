@@ -1150,6 +1150,116 @@ const TOOLS = [
   },
 ];
 
+const TOOLIEST_CATEGORY_AUDIENCES = {
+  text: 'Writers, editors, students, marketers, and documentation teams handling everyday text workflows.',
+  seo: 'SEO specialists, content marketers, founders, and web teams improving search visibility and click-through rates.',
+  css: 'Front-end developers, UI designers, and product teams refining visual styles and interface polish.',
+  color: 'Designers, accessibility reviewers, and brand teams working with palettes, contrast, and visual systems.',
+  image: 'Designers, content creators, marketers, and developers editing graphics without leaving the browser.',
+  json: 'Developers, QA engineers, and API teams working with structured data, payloads, and configuration files.',
+  html: 'Front-end developers, technical SEOs, and publishers reviewing markup and page structure.',
+  javascript: 'JavaScript developers, QA engineers, and product teams debugging or preparing browser-side code.',
+  converter: 'Developers, analysts, and everyday users converting files, values, or formats quickly.',
+  encoding: 'Developers, security engineers, and API teams encoding, decoding, or inspecting transmitted data.',
+  finance: 'Investors, analysts, planners, and households making calculations before real money decisions.',
+  math: 'Students, teachers, engineers, and office teams running quick calculations with less manual effort.',
+  social: 'Social media managers, creators, and brand teams publishing within platform constraints.',
+  privacy: 'Privacy-conscious users, security teams, and developers validating content without uploads.',
+  ai: 'Content teams, founders, marketers, and operators who need faster first drafts and practical idea generation.',
+  developer: 'Developers, DevOps engineers, and technical teams shipping, debugging, and documenting software.',
+};
+
+function getTooliestCategory(tool) {
+  return TOOL_CATEGORIES.find((category) => category.id === tool.category) || { name: 'Online Tools' };
+}
+
+function getTooliestPrimaryTopic(tool) {
+  return (tool.tags && tool.tags[0]) || tool.name.toLowerCase();
+}
+
+function getTooliestActionSentence(tool) {
+  const description = String(tool.description || '').trim().replace(/\.+$/, '');
+  if (!description) {
+    return `${tool.name} helps you complete the task directly in your browser`;
+  }
+  return description.charAt(0).toUpperCase() + description.slice(1);
+}
+
+function buildTooliestEducation(tool) {
+  const categoryName = getTooliestCategory(tool).name.replace(/\s+Tools$/i, '').toLowerCase();
+  const action = getTooliestActionSentence(tool);
+  const primaryTopic = getTooliestPrimaryTopic(tool);
+  return `<strong>What does ${tool.name} do?</strong><br>${action}. Tooliest keeps this ${categoryName} workflow in your browser so you can work with ${primaryTopic} tasks instantly without uploads, installs, or account friction.<br><br><strong>When should you use it?</strong><br>Use ${tool.name} when you want a fast, private way to finish repeatable ${categoryName} work, verify the result immediately, and move on without sending your data to a server.`;
+}
+
+function buildTooliestWhyUse(tool) {
+  const action = getTooliestActionSentence(tool).replace(/\.$/, '');
+  return [
+    `${action} with a fast browser-based workflow instead of switching apps.`,
+    `Keep sensitive input on your device because Tooliest processes this tool locally in the browser.`,
+    `Get results you can review, copy, or download in seconds on desktop or mobile.`,
+  ];
+}
+
+function buildTooliestWhoUses(tool) {
+  return TOOLIEST_CATEGORY_AUDIENCES[tool.category] || 'Professionals, students, and everyday users who want quick results without extra setup.';
+}
+
+function buildTooliestFaq(tool) {
+  const categoryName = getTooliestCategory(tool).name.replace(/\s+Tools$/i, '').toLowerCase();
+  const action = getTooliestActionSentence(tool);
+  return [
+    {
+      q: `How do I use ${tool.name} online?`,
+      a: `Open Tooliest's ${tool.name}, enter your input, and run the tool. ${action}. Results are generated instantly in your browser with no signup required.`,
+    },
+    {
+      q: `Is ${tool.name} safe for sensitive data?`,
+      a: `Yes. Tooliest runs ${tool.name} client-side in your browser, so your input is not uploaded to a remote server for processing. That makes it a practical option when privacy matters.`,
+    },
+    {
+      q: `Why use ${tool.name} instead of another ${categoryName} tool?`,
+      a: `${tool.name} gives you a fast workflow, immediate output, and zero account friction. It is useful when you want to finish ${categoryName} tasks quickly without bouncing between downloads, dashboards, or server-based tools.`,
+    },
+  ];
+}
+
+function mergeTooliestList(existingValues, generatedValues, limit = generatedValues.length) {
+  const merged = [];
+  [...(Array.isArray(existingValues) ? existingValues : []), ...generatedValues].forEach((value) => {
+    const normalized = String(value || '').trim();
+    if (!normalized || merged.includes(normalized) || merged.length >= limit) return;
+    merged.push(normalized);
+  });
+  return merged;
+}
+
+function mergeTooliestFaq(existingFaq, generatedFaq, limit = generatedFaq.length) {
+  const merged = [];
+  const seenQuestions = new Set();
+  [...(Array.isArray(existingFaq) ? existingFaq : []), ...generatedFaq].forEach((item) => {
+    if (!item || !item.q || !item.a || merged.length >= limit) return;
+    const question = String(item.q).trim();
+    const answer = String(item.a).trim();
+    if (!question || !answer || seenQuestions.has(question)) return;
+    seenQuestions.add(question);
+    merged.push({ q: question, a: answer });
+  });
+  return merged;
+}
+
+// [TOOLIEST AUDIT] Fill missing AEO copy so every tool ships with crawlable explanations, benefits, and FAQs.
+TOOLS.forEach((tool) => {
+  if (!tool.education) {
+    tool.education = buildTooliestEducation(tool);
+  }
+  tool.whyUse = mergeTooliestList(tool.whyUse, buildTooliestWhyUse(tool), 3);
+  if (!tool.whoUses) {
+    tool.whoUses = buildTooliestWhoUses(tool);
+  }
+  tool.faq = mergeTooliestFaq(tool.faq, buildTooliestFaq(tool), 3);
+});
+
 // Count tools per category
 let favCache = [];
 try { favCache = JSON.parse(localStorage.getItem('tooliest_favorites') || '[]'); } catch (e) { /* localStorage unavailable */ }

@@ -102,6 +102,7 @@ const filesToBundle = [
   'js/renderers6.js',
   'js/ai.js',
 ];
+const TOOL_RENDERER_SOURCE_FILES = filesToBundle.filter((file) => /^js\/renderers\d*\.js$/.test(file));
 
 const SOFTWARE_CONTENT_CATEGORIES = [
   {
@@ -631,6 +632,75 @@ function syncStaticPageAssetVersions() {
   });
 }
 
+const rendererSourceCache = new Map();
+
+function normalizeSourcePath(relativePath) {
+  return String(relativePath || '').replace(/^\/+/, '').replace(/\//g, path.sep);
+}
+
+function getSourceModifiedDate(relativePaths) {
+  // [TOOLIEST AUDIT] Derive page freshness from source files so sitemap/schema dates reflect real changes.
+  const modifiedTimes = relativePaths
+    .map((relativePath) => path.join(__dirname, normalizeSourcePath(relativePath)))
+    .filter((absolutePath) => fs.existsSync(absolutePath))
+    .map((absolutePath) => fs.statSync(absolutePath).mtimeMs)
+    .filter(Boolean);
+
+  if (!modifiedTimes.length) {
+    return BUILD_DATE;
+  }
+
+  return new Date(Math.max(...modifiedTimes)).toISOString().split('T')[0];
+}
+
+function getRendererSourceFileForTool(toolId) {
+  for (const sourceFile of TOOL_RENDERER_SOURCE_FILES) {
+    if (!rendererSourceCache.has(sourceFile)) {
+      rendererSourceCache.set(sourceFile, fs.readFileSync(path.join(__dirname, sourceFile), 'utf8'));
+    }
+    const source = rendererSourceCache.get(sourceFile) || '';
+    if (source.includes(`'${toolId}'(`) || source.includes(`"${toolId}"(`)) {
+      return sourceFile;
+    }
+  }
+  return null;
+}
+
+function getToolLastModifiedDate(tool) {
+  const sourceFiles = ['js/tools.js', 'js/app.js'];
+  const rendererSourceFile = getRendererSourceFileForTool(tool.id);
+  if (rendererSourceFile) {
+    sourceFiles.push(rendererSourceFile);
+  }
+  if (tool.isAI) {
+    sourceFiles.push('js/ai.js');
+  }
+  return getSourceModifiedDate(sourceFiles);
+}
+
+function getCategoryLastModifiedDate(categoryId, tools) {
+  const categoryTools = tools.filter((tool) => tool.category === categoryId);
+  const sourceFiles = ['js/tools.js'];
+  const rendererFiles = new Set(categoryTools.map((tool) => getRendererSourceFileForTool(tool.id)).filter(Boolean));
+  rendererFiles.forEach((sourceFile) => sourceFiles.push(sourceFile));
+  if (categoryTools.some((tool) => tool.isAI)) {
+    sourceFiles.push('js/ai.js');
+  }
+  return getSourceModifiedDate(sourceFiles);
+}
+
+function getStaticPageLastModifiedDate(sourceFile) {
+  return getSourceModifiedDate([sourceFile]);
+}
+
+function getSiteLastModifiedDate() {
+  return getSourceModifiedDate(['js/app.js', 'js/tools.js']);
+}
+
+function getSoftwareContentLastModifiedDate() {
+  return getSourceModifiedDate(['build.js']);
+}
+
 function minifyCSS(css) {
   return css
     .replace(/\/\*[\s\S]*?\*\//g, '')       // remove comments
@@ -1074,18 +1144,19 @@ function renderCategoryPage(category, tools, categories) {
   const canonicalPath = getCategoryPath(category.id);
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
   const relatedCats = getRelatedCategories(category.id, getRenderableCategories(categories));
+  const categoryLastModified = getCategoryLastModifiedDate(category.id, tools);
   const categoryKeywords = meta.tools.slice(0, 5).map(t => t.name.toLowerCase()).join(', ') + `, ${category.name.toLowerCase()}, free online tools, tooliest`;
 
   const structuredData = [
     {
       '@context': 'https://schema.org',
-      '@type': 'CollectionPage',
-      name: category.name,
-      url: canonicalUrl,
-      description: meta.description,
-      dateModified: BUILD_DATE,
-      isPartOf: { '@type': 'WebSite', url: 'https://tooliest.com/' },
-    },
+        '@type': 'CollectionPage',
+        name: category.name,
+        url: canonicalUrl,
+        description: meta.description,
+        dateModified: categoryLastModified,
+        isPartOf: { '@type': 'WebSite', url: 'https://tooliest.com/' },
+      },
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
@@ -1189,6 +1260,7 @@ function renderToolPage(tool, tools, categories) {
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
   const description = tool.meta?.desc || tool.description;
   const plainEducation = stripHtml(tool.education || '');
+  const toolLastModified = getToolLastModifiedDate(tool);
   const toolKeywords = [...tool.tags, categoryName.toLowerCase(), 'free online tool', 'browser-based', 'tooliest'].join(', ');
 
   const structuredData = [
@@ -1215,10 +1287,31 @@ function renderToolPage(tool, tools, categories) {
       description,
       applicationCategory: 'UtilityApplication',
       operatingSystem: 'Any',
-      dateModified: BUILD_DATE,
+      dateModified: toolLastModified,
       browserRequirements: 'Requires a JavaScript-enabled modern web browser',
       featureList: tool.tags.join(', '),
-      softwareVersion: '2.5',
+      softwareVersion: ASSET_VERSION,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+      },
+    },
+    // [TOOLIEST AUDIT] Add SoftwareApplication schema so each tool qualifies for richer software-specific signals.
+    {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: tool.name,
+      url: canonicalUrl,
+      description,
+      applicationCategory: 'UtilityApplication',
+      applicationSubCategory: categoryName,
+      operatingSystem: 'Any',
+      browserRequirements: 'Requires a JavaScript-enabled modern web browser',
+      featureList: tool.tags.join(', '),
+      softwareVersion: ASSET_VERSION,
+      isAccessibleForFree: true,
+      dateModified: toolLastModified,
       offers: {
         '@type': 'Offer',
         price: '0',
@@ -1318,6 +1411,7 @@ function renderSoftwareGuideCards(items, mapItem) {
 }
 
 function renderSoftwareHubPage() {
+  const softwareLastModified = getSoftwareContentLastModifiedDate();
   const categorySections = SOFTWARE_CONTENT_CATEGORIES.map((category) => {
     const published = SOFTWARE_CLUSTERS.filter((cluster) => cluster.category === category.id);
     const roadmap = SOFTWARE_CLUSTER_OUTLINES.filter((cluster) => cluster.category === category.id);
@@ -1354,13 +1448,13 @@ function renderSoftwareHubPage() {
 
   const structuredData = [
     {
-      '@context': 'https://schema.org',
-      '@type': 'CollectionPage',
-      name: 'SEO Software Guides',
-      url: getAbsoluteUrl(SOFTWARE_HUB_PATH),
-      description: 'Browse Tooliest guides comparing SEO software, content optimization tools, technical crawlers, and keyword research platforms.',
-      dateModified: BUILD_DATE,
-    },
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'SEO Software Guides',
+        url: getAbsoluteUrl(SOFTWARE_HUB_PATH),
+        description: 'Browse Tooliest guides comparing SEO software, content optimization tools, technical crawlers, and keyword research platforms.',
+        dateModified: softwareLastModified,
+      },
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
@@ -1432,6 +1526,7 @@ function renderSoftwareHubPage() {
 
 function renderSoftwarePillarPage(cluster) {
   const category = getSoftwareCategory(cluster.category);
+  const softwareLastModified = getSoftwareContentLastModifiedDate();
   const comparisonCards = renderSoftwareGuideCards(cluster.comparisons, (comparison) => `<article class="guide-card">
       <span class="guide-card-eyebrow">Comparison article</span>
       <h3><a href="${getSoftwareArticlePath(cluster.slug, comparison.slug)}">${escapeHtml(comparison.title)}</a></h3>
@@ -1456,12 +1551,12 @@ function renderSoftwarePillarPage(cluster) {
       '@type': 'Article',
       headline: `${cluster.name} review and buying guide`,
       description: cluster.summary,
-      author: { '@type': 'Organization', name: 'Tooliest' },
-      publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
-      datePublished: BUILD_DATE,
-      dateModified: BUILD_DATE,
-      mainEntityOfPage: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)),
-    },
+        author: { '@type': 'Organization', name: 'Tooliest' },
+        publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
+        datePublished: softwareLastModified,
+        dateModified: softwareLastModified,
+        mainEntityOfPage: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)),
+      },
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
@@ -1556,18 +1651,19 @@ function renderSoftwarePillarPage(cluster) {
 }
 
 function renderSoftwareComparisonPage(cluster, comparison) {
+  const softwareLastModified = getSoftwareContentLastModifiedDate();
   const structuredData = [
     {
       '@context': 'https://schema.org',
       '@type': 'Article',
       headline: comparison.title,
       description: comparison.hook,
-      author: { '@type': 'Organization', name: 'Tooliest' },
-      publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
-      datePublished: BUILD_DATE,
-      dateModified: BUILD_DATE,
-      mainEntityOfPage: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, comparison.slug)),
-    },
+        author: { '@type': 'Organization', name: 'Tooliest' },
+        publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
+        datePublished: softwareLastModified,
+        dateModified: softwareLastModified,
+        mainEntityOfPage: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, comparison.slug)),
+      },
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
@@ -1638,18 +1734,19 @@ function renderSoftwareComparisonPage(cluster, comparison) {
 }
 
 function renderSoftwareUseCasePage(cluster, useCase) {
+  const softwareLastModified = getSoftwareContentLastModifiedDate();
   const structuredData = [
     {
       '@context': 'https://schema.org',
       '@type': 'Article',
       headline: useCase.title,
       description: useCase.hook,
-      author: { '@type': 'Organization', name: 'Tooliest' },
-      publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
-      datePublished: BUILD_DATE,
-      dateModified: BUILD_DATE,
-      mainEntityOfPage: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)),
-    },
+        author: { '@type': 'Organization', name: 'Tooliest' },
+        publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
+        datePublished: softwareLastModified,
+        dateModified: softwareLastModified,
+        mainEntityOfPage: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)),
+      },
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
@@ -1933,25 +2030,27 @@ function writeCleanStaticPages() {
 function writeSitemap(tools, categories) {
   console.log('Generating sitemap.xml...');
   const staticPages = [
-    { loc: 'https://tooliest.com/', priority: '1.0', changefreq: 'weekly' },
-    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.about), priority: '0.8', changefreq: 'monthly' },
-    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.contact), priority: '0.7', changefreq: 'monthly' },
-    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.privacy), priority: '0.6', changefreq: 'monthly' },
-    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.5', changefreq: 'monthly' },
-    { loc: getAbsoluteUrl(SOFTWARE_HUB_PATH), priority: '0.85', changefreq: 'weekly' },
-    { loc: getAbsoluteUrl('/sitemap.html'), priority: '0.7', changefreq: 'monthly' },
+    { loc: 'https://tooliest.com/', priority: '1.0', changefreq: 'weekly', lastmod: getSiteLastModifiedDate() },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.about), priority: '0.8', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('about.html') },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.contact), priority: '0.7', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('contact.html') },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.privacy), priority: '0.6', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('privacy.html') },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.5', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('terms.html') },
+    { loc: getAbsoluteUrl(SOFTWARE_HUB_PATH), priority: '0.85', changefreq: 'weekly', lastmod: getSoftwareContentLastModifiedDate() },
+    { loc: getAbsoluteUrl('/sitemap.html'), priority: '0.7', changefreq: 'monthly', lastmod: getSourceModifiedDate(['build.js', 'js/tools.js']) },
   ];
 
   const categoryPages = getRenderableCategories(categories).map((category) => ({
     loc: getAbsoluteUrl(getCategoryPath(category.id)),
     priority: '0.8',
     changefreq: 'monthly',
+    lastmod: getCategoryLastModifiedDate(category.id, tools),
   }));
 
   const toolPages = tools.map((tool) => ({
     loc: getAbsoluteUrl(getToolPath(tool.id)),
     priority: '0.9',
     changefreq: 'monthly',
+    lastmod: getToolLastModifiedDate(tool),
   }));
 
   const softwarePages = SOFTWARE_CLUSTERS.flatMap((cluster) => ([
@@ -1959,21 +2058,24 @@ function writeSitemap(tools, categories) {
       loc: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)),
       priority: '0.78',
       changefreq: 'monthly',
+      lastmod: getSoftwareContentLastModifiedDate(),
     },
     ...cluster.comparisons.map((comparison) => ({
       loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, comparison.slug)),
       priority: '0.72',
       changefreq: 'monthly',
+      lastmod: getSoftwareContentLastModifiedDate(),
     })),
     ...cluster.useCases.map((useCase) => ({
       loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)),
       priority: '0.71',
       changefreq: 'monthly',
+      lastmod: getSoftwareContentLastModifiedDate(),
     })),
   ]));
 
   const entries = [...staticPages, ...categoryPages, ...toolPages, ...softwarePages];
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.map((entry) => `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${BUILD_DATE}</lastmod>\n    <changefreq>${entry.changefreq}</changefreq>\n    <priority>${entry.priority}</priority>\n  </url>`).join('\n')}\n</urlset>\n`;
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.map((entry) => `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${entry.lastmod || BUILD_DATE}</lastmod>\n    <changefreq>${entry.changefreq}</changefreq>\n    <priority>${entry.priority}</priority>\n  </url>`).join('\n')}\n</urlset>\n`;
 
   fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), sitemap);
 }
@@ -1981,6 +2083,7 @@ function writeSitemap(tools, categories) {
 function writeHtmlSitemap(tools, categories) {
   console.log('Generating HTML sitemap page...');
   const renderableCategories = getRenderableCategories(categories);
+  const sitemapLastModified = getSourceModifiedDate(['build.js', 'js/tools.js']);
   const softwareBlock = `<div class="sitemap-category">
       <h2><a href="${SOFTWARE_HUB_PATH}">🧭 SEO Software Guides</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${SOFTWARE_CLUSTERS.length} published clusters)</span></h2>
       <ul>${SOFTWARE_CLUSTERS.map((cluster) => `<li><a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a> - ${escapeHtml(cluster.summary)}</li>`).join('')}</ul>
@@ -2016,9 +2119,9 @@ function writeHtmlSitemap(tools, categories) {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
       name: 'All Tooliest Tools — HTML Sitemap',
-      url: getAbsoluteUrl('/sitemap.html'),
-      description: `Browse all ${tools.length} free online tools on Tooliest organized by category.`,
-      dateModified: BUILD_DATE,
+        url: getAbsoluteUrl('/sitemap.html'),
+        description: `Browse all ${tools.length} free online tools on Tooliest organized by category.`,
+        dateModified: sitemapLastModified,
     },
     {
       '@context': 'https://schema.org',
@@ -2047,6 +2150,7 @@ function writeHomePage(tools, categories) {
   const renderableCategories = getRenderableCategories(categories);
   const featuredTools = tools.slice(0, 18);
   const featuredSoftwareGuides = SOFTWARE_CLUSTERS.slice(0, 3);
+  const siteLastModified = getSiteLastModifiedDate();
 
   const categoryTabsHtml = renderableCategories.map(cat =>
     `<a href="${getCategoryPath(cat.id)}" class="category-tab">${cat.icon} ${escapeHtml(cat.name)} <span class="tab-count">${cat.count}</span></a>`
@@ -2080,8 +2184,8 @@ function writeHomePage(tools, categories) {
       '@type': 'WebApplication',
       name: 'Tooliest',
       url: 'https://tooliest.com',
-      description: `${tools.length}+ free online tools for developers, designers, writers, and marketers. AI-powered features included.`,
-      dateModified: BUILD_DATE,
+        description: `${tools.length}+ free online tools for developers, designers, writers, and marketers. AI-powered features included.`,
+        dateModified: siteLastModified,
       applicationCategory: 'UtilityApplication',
       operatingSystem: 'Any',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },

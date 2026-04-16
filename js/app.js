@@ -1147,6 +1147,22 @@ const App = {
         'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' },
         'dateModified': new Date().toISOString().split('T')[0]
       };
+      const softwareSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        'name': tool.name,
+        'url': absoluteUrl,
+        'description': tool.meta?.desc || tool.description,
+        'applicationCategory': 'UtilityApplication',
+        'applicationSubCategory': catName,
+        'operatingSystem': 'Any',
+        'browserRequirements': 'Requires a JavaScript-enabled modern web browser',
+        'featureList': tool.tags.join(', '),
+        'softwareVersion': TOOLIEST_ASSET_VERSION,
+        'isAccessibleForFree': true,
+        'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' },
+        'dateModified': new Date().toISOString().split('T')[0]
+      };
       const breadcrumb = {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
@@ -1170,7 +1186,8 @@ const App = {
         ],
         'tool': { '@type': 'HowToTool', 'name': 'Web Browser' }
       };
-      [toolSchema, breadcrumb, howTo].forEach(schema => {
+      // [TOOLIEST AUDIT] Keep runtime tool schema aligned with pre-rendered pages for richer search coverage.
+      [toolSchema, softwareSchema, breadcrumb, howTo].forEach(schema => {
         const script = document.createElement('script');
         script.type = 'application/ld+json';
         script.setAttribute('data-dynamic-schema', 'true');
