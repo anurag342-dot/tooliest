@@ -37,6 +37,7 @@ const STATIC_PAGE_PATHS = {
   privacy: '/privacy',
   terms: '/terms',
 };
+const SOFTWARE_HUB_PATH = '/software';
 const STATIC_PAGE_SOURCE_FILES = {
   about: 'about.html',
   contact: 'contact.html',
@@ -66,6 +67,7 @@ const RESERVED_ROOT_SEGMENTS = new Set([
   'contact',
   'privacy',
   'terms',
+  'software',
   'category',
   'search',
   'tool',
@@ -100,6 +102,480 @@ const filesToBundle = [
   'js/renderers6.js',
   'js/ai.js',
 ];
+
+const SOFTWARE_CONTENT_CATEGORIES = [
+  {
+    id: 'all-in-one',
+    name: 'All-in-One SEO Suites',
+    description: 'Complete SEO platforms for teams that want research, audits, reporting, and workflow tools in one place.',
+  },
+  {
+    id: 'content-optimization',
+    name: 'Content Optimization Platforms',
+    description: 'Briefing and optimization tools that help content teams plan, refresh, and improve rankings without guesswork.',
+  },
+  {
+    id: 'technical-seo',
+    name: 'Technical SEO and Search Intelligence',
+    description: 'Crawlers, rank trackers, and market-intelligence tools built for audits, migrations, and high-stakes SEO visibility.',
+  },
+  {
+    id: 'keyword-research',
+    name: 'Keyword Discovery and Niche Research',
+    description: 'Lighter-weight tools for finding realistic keyword opportunities before you spend months on the wrong content.',
+  },
+];
+
+const SOFTWARE_CLUSTER_OUTLINES = [
+  {
+    slug: 'se-ranking',
+    name: 'SE Ranking',
+    category: 'all-in-one',
+    bestFor: 'agencies and in-house teams that want strong reporting without Semrush-level spend',
+    summary: 'SE Ranking is the value-first SEO suite that usually comes up when teams want rank tracking, audits, and reporting in one dashboard without enterprise pricing.',
+    pillarTitle: 'SE Ranking review: where it wins, where it feels lightweight, and who should actually buy it',
+    comparisons: ['SE Ranking vs Semrush for agencies', 'SE Ranking vs Mangools for solo marketers', 'SE Ranking vs AccuRanker for rank tracking'],
+    useCases: ['SE Ranking for local SEO', 'SE Ranking for small businesses', 'SE Ranking reporting workflows for agencies'],
+  },
+  {
+    slug: 'moz-pro',
+    name: 'Moz Pro',
+    category: 'all-in-one',
+    bestFor: 'beginners and teams that prefer a calmer, simpler SEO workflow',
+    summary: 'Moz Pro still matters because it feels approachable, trusted, and easier to adopt for teams that do not want a huge operational learning curve.',
+    pillarTitle: 'Moz Pro review: is the classic SEO suite still worth paying for?',
+    comparisons: ['Moz Pro vs Ahrefs for link research', 'Moz Pro vs SE Ranking for growing teams', 'Moz Pro vs Semrush for all-in-one SEO'],
+    useCases: ['Moz Pro for local SEO', 'Moz Pro for in-house marketing teams', 'Moz Pro for SEO beginners'],
+  },
+  {
+    slug: 'mangools',
+    name: 'Mangools',
+    category: 'all-in-one',
+    bestFor: 'freelancers, bloggers, and small teams that want a lightweight SEO stack',
+    summary: 'Mangools wins people over because it feels fast, friendly, and budget-aware, especially for creators who do not need an enterprise suite.',
+    pillarTitle: 'Mangools review: the easiest SEO toolset for solo creators?',
+    comparisons: ['Mangools vs Ahrefs for bloggers', 'Mangools vs Ubersuggest for budget SEO', 'Mangools vs SE Ranking for small teams'],
+    useCases: ['Mangools for affiliate sites', 'Mangools for freelance SEO', 'Mangools keyword research workflow'],
+  },
+  {
+    slug: 'ubersuggest',
+    name: 'Ubersuggest',
+    category: 'all-in-one',
+    bestFor: 'beginners who want keyword ideas, light audits, and an easy onboarding curve',
+    summary: 'Ubersuggest is often the “just get me started” SEO tool because the workflow is straightforward and the price feels less intimidating.',
+    pillarTitle: 'Ubersuggest review: a good starter SEO tool or too limited long term?',
+    comparisons: ['Ubersuggest vs Mangools for beginners', 'Ubersuggest vs Semrush on a budget', 'Ubersuggest vs LowFruits for new sites'],
+    useCases: ['Ubersuggest for small business SEO', 'Ubersuggest for content ideas', 'Ubersuggest alternatives for scaling teams'],
+  },
+  {
+    slug: 'surfer',
+    name: 'Surfer',
+    category: 'content-optimization',
+    bestFor: 'content teams that want strong optimization workflows and faster brief production',
+    summary: 'Surfer sits at the center of many content-led SEO stacks because it pairs SERP analysis with practical workflows for briefs, updates, and optimization.',
+    pillarTitle: 'Surfer review: does it still justify the price for content-led SEO?',
+    comparisons: ['Surfer vs Clearscope for editorial teams', 'Surfer vs Frase for AI-assisted workflows', 'Surfer vs NeuronWriter for budget-conscious teams'],
+    useCases: ['Surfer for content briefs', 'Surfer for refreshing old articles', 'Surfer for agency content production'],
+  },
+  {
+    slug: 'clearscope',
+    name: 'Clearscope',
+    category: 'content-optimization',
+    bestFor: 'teams that care deeply about editorial quality and cleaner optimization signals',
+    summary: 'Clearscope usually appeals to content leaders who want a more polished editorial experience and less noise in the optimization process.',
+    pillarTitle: 'Clearscope review: premium content optimization for serious editorial teams',
+    comparisons: ['Clearscope vs Surfer for content optimization', 'Clearscope vs Frase for AI briefs', 'Clearscope vs WriterZen for planning and optimization'],
+    useCases: ['Clearscope for enterprise content teams', 'Clearscope for content refreshes', 'Clearscope for editorial QA'],
+  },
+  {
+    slug: 'frase',
+    name: 'Frase',
+    category: 'content-optimization',
+    bestFor: 'teams that want AI help across research, outlining, and first-draft acceleration',
+    summary: 'Frase is attractive when the goal is speed: faster research, quicker outlines, and a less manual content briefing process.',
+    pillarTitle: 'Frase review: best for fast content workflows or too AI-heavy?',
+    comparisons: ['Frase vs Surfer for content teams', 'Frase vs NeuronWriter for affordability', 'Frase vs Clearscope for editorial quality'],
+    useCases: ['Frase for content briefs', 'Frase for updating blog posts', 'Frase for lean marketing teams'],
+  },
+  {
+    slug: 'neuronwriter',
+    name: 'NeuronWriter',
+    category: 'content-optimization',
+    bestFor: 'smaller SEO teams that want Surfer-like workflows with a calmer price tag',
+    summary: 'NeuronWriter earns attention because it covers much of the optimization workflow smaller teams want without feeling enterprise-heavy.',
+    pillarTitle: 'NeuronWriter review: the practical Surfer alternative for smaller teams',
+    comparisons: ['NeuronWriter vs Surfer for budget SEO', 'NeuronWriter vs Frase for AI assistance', 'NeuronWriter vs WriterZen for content planning'],
+    useCases: ['NeuronWriter for affiliate sites', 'NeuronWriter for niche content', 'NeuronWriter for content refresh projects'],
+  },
+  {
+    slug: 'writerzen',
+    name: 'WriterZen',
+    category: 'content-optimization',
+    bestFor: 'teams that want topic discovery, clustering, and content planning in one research workflow',
+    summary: 'WriterZen leans more into content planning and topic mapping than pure page-level optimization, which makes it useful earlier in the workflow.',
+    pillarTitle: 'WriterZen review: better for topic clusters than page-level optimization?',
+    comparisons: ['WriterZen vs Frase for planning', 'WriterZen vs Surfer for optimization', 'WriterZen vs LowFruits for opportunity finding'],
+    useCases: ['WriterZen for topic clusters', 'WriterZen for new websites', 'WriterZen for editorial planning'],
+  },
+  {
+    slug: 'similarweb',
+    name: 'Similarweb',
+    category: 'technical-seo',
+    bestFor: 'teams doing market research, competitor analysis, and executive reporting',
+    summary: 'Similarweb is less about classic SEO workflows and more about understanding the market, competitors, and where traffic appears to come from.',
+    pillarTitle: 'Similarweb review: when traffic intelligence beats another SEO suite',
+    comparisons: ['Similarweb vs Semrush for competitor research', 'Similarweb vs Ahrefs for market intelligence', 'Similarweb vs Nightwatch for visibility reporting'],
+    useCases: ['Similarweb for competitive analysis', 'Similarweb for market sizing', 'Similarweb for executive reports'],
+  },
+  {
+    slug: 'accuranker',
+    name: 'AccuRanker',
+    category: 'technical-seo',
+    bestFor: 'teams that care most about rank tracking accuracy and reporting depth',
+    summary: 'AccuRanker tends to win when rankings are the KPI and the team wants a specialist instead of an all-in-one suite.',
+    pillarTitle: 'AccuRanker review: the specialist rank tracker serious teams grow into',
+    comparisons: ['AccuRanker vs Nightwatch for rank tracking', 'AccuRanker vs SE Ranking for agencies', 'AccuRanker vs Semrush for tracking depth'],
+    useCases: ['AccuRanker for agencies', 'AccuRanker for enterprise reporting', 'AccuRanker for local keyword tracking'],
+  },
+  {
+    slug: 'nightwatch',
+    name: 'Nightwatch',
+    category: 'technical-seo',
+    bestFor: 'agencies and teams that want modern visibility reporting with strong segmentation',
+    summary: 'Nightwatch earns attention from reporting-focused teams because the dashboards, segmentation, and visibility workflows feel purpose-built.',
+    pillarTitle: 'Nightwatch review: smarter rank tracking for reporting-heavy teams',
+    comparisons: ['Nightwatch vs AccuRanker for agencies', 'Nightwatch vs Semrush for reporting', 'Nightwatch vs Similarweb for visibility insights'],
+    useCases: ['Nightwatch for agencies', 'Nightwatch for local SEO reporting', 'Nightwatch for AI visibility tracking'],
+  },
+  {
+    slug: 'lowfruits',
+    name: 'LowFruits',
+    category: 'keyword-research',
+    bestFor: 'new sites and niche publishers searching for realistic, low-authority opportunities',
+    summary: 'LowFruits is popular because it helps people find keyword opportunities they can actually compete for instead of chasing impossible head terms.',
+    pillarTitle: 'LowFruits review: one of the best keyword tools for low-authority sites?',
+    comparisons: ['LowFruits vs Keywords Everywhere for ideation', 'LowFruits vs Ahrefs for low-competition keywords', 'LowFruits vs Ubersuggest for new sites'],
+    useCases: ['LowFruits for niche sites', 'LowFruits for new domains', 'LowFruits for affiliate SEO'],
+  },
+  {
+    slug: 'keywords-everywhere',
+    name: 'Keywords Everywhere',
+    category: 'keyword-research',
+    bestFor: 'fast SERP research and lightweight keyword validation right inside the browser',
+    summary: 'Keywords Everywhere is useful when you want a cheaper, faster research assist layered onto your everyday browser workflow.',
+    pillarTitle: 'Keywords Everywhere review: the fastest way to validate keywords in your browser',
+    comparisons: ['Keywords Everywhere vs LowFruits for opportunity research', 'Keywords Everywhere vs Mangools for lightweight research', 'Keywords Everywhere vs Ahrefs for quick SERP checks'],
+    useCases: ['Keywords Everywhere for bloggers', 'Keywords Everywhere for content ideation', 'Keywords Everywhere for fast SERP analysis'],
+  },
+  {
+    slug: 'google-search-console',
+    name: 'Google Search Console',
+    category: 'technical-seo',
+    bestFor: 'every site owner who wants first-party Google search data before buying anything else',
+    summary: 'Google Search Console is the anchor for practical SEO because it shows real queries, real clicks, indexing issues, and performance data from Google itself.',
+    pillarTitle: 'Google Search Console guide: the free SEO tool every team should master first',
+    comparisons: ['Google Search Console vs Semrush', 'Google Search Console vs Ahrefs', 'Google Search Console vs Screaming Frog'],
+    useCases: ['Google Search Console for CTR improvements', 'Google Search Console for indexing issues', 'Google Search Console for query mining'],
+  },
+];
+
+const SOFTWARE_CLUSTERS = [];
+
+SOFTWARE_CLUSTERS.push({
+  slug: 'semrush',
+  name: 'Semrush',
+  category: 'all-in-one',
+  hook: 'If your team keeps bouncing between five SEO subscriptions and still feels blind, Semrush is usually the tool people reach for when they want one command center instead of a messy stack.',
+  summary: 'Semrush is a broad SEO platform for keyword research, competitor analysis, backlinks, site auditing, content planning, and reporting. It is rarely the cheapest option, but it often becomes the default pick when a team wants depth and speed in one place.',
+  bestFor: 'agencies, in-house SEO teams, and content-led growth teams that want one platform to coordinate research, reporting, and optimization',
+  notIdealFor: 'solo creators on a tight budget who only need one or two workflows and do not want a heavier learning curve',
+  pricing: 'Semrush usually makes sense when the time saved across keyword research, audits, and reporting is worth more than the subscription. It is a workflow purchase more than a casual utility purchase.',
+  verdict: 'Choose Semrush when you want breadth, team workflows, and a platform that can support both strategic planning and hands-on execution.',
+  strengths: [
+    'Very broad feature set spanning keywords, content, backlinks, technical SEO, and competitor research',
+    'Strong reporting and client-facing workflows for teams and agencies',
+    'Good fit for organizations that want one central source of SEO context',
+  ],
+  tradeoffs: [
+    'Can feel overwhelming for smaller teams',
+    'Pricing gets harder to justify if you only rely on two or three features',
+    'Some teams still prefer specialist tools for deep backlink research or rank tracking',
+  ],
+  whoShouldUse: [
+    'SEO agencies managing multiple client workflows',
+    'In-house teams building repeatable SEO operations',
+    'Content teams that want keyword research and optimization planning in one place',
+  ],
+  whoShouldSkip: [
+    'Freelancers who only need lightweight keyword research',
+    'Teams that already have separate specialist tools they truly like',
+    'Budget-sensitive creators still proving content-market fit',
+  ],
+  decisionSteps: [
+    'Start with the question “Do we need breadth or depth?” If breadth matters most, Semrush moves up fast.',
+    'Check whether multiple teammates need the same source of truth for audits, rankings, and planning.',
+    'Estimate whether saved research and reporting time can justify the higher monthly cost.',
+  ],
+  keywords: ['semrush review', 'is semrush worth it', 'semrush vs ahrefs', 'semrush for agencies', 'how to use semrush for content planning'],
+  relatedSlugs: ['ahrefs', 'similarweb', 'se-ranking'],
+  comparisons: [
+    {
+      slug: 'vs-ahrefs',
+      title: 'Semrush vs Ahrefs: which is better for keyword research and backlink analysis?',
+      competitor: 'Ahrefs',
+      competitorSlug: 'ahrefs',
+      targetQuery: 'semrush vs ahrefs for keyword research',
+      hook: 'This is the comparison most teams end up making when they can only justify one serious SEO suite.',
+      toolWins: ['Choose Semrush when you want broader workflow coverage across audits, content planning, and reporting.', 'Choose Semrush when multiple teams need one shared SEO dashboard instead of a narrower research tool.', 'Choose Semrush when competitor and advertising context matters alongside organic research.'],
+      competitorWins: ['Ahrefs often feels stronger when backlink research is the center of your decision.', 'Teams that want a cleaner research-first experience may prefer Ahrefs.', 'Writers and strategists sometimes find Ahrefs easier for quick exploratory work.'],
+      decisionFramework: ['If your main pain is fragmented workflow, Semrush is usually the better answer.', 'If your main pain is link intelligence depth, Ahrefs usually has the edge.', 'If you need broader reporting and planning, Semrush wins more often.'],
+      takeaway: 'Semrush is the better operating system for a broader SEO team, while Ahrefs is often the sharper instrument for link-led research.',
+    },
+    {
+      slug: 'vs-se-ranking',
+      title: 'Semrush vs SE Ranking: which one makes more sense for agencies and lean teams?',
+      competitor: 'SE Ranking',
+      competitorSlug: 'se-ranking',
+      targetQuery: 'semrush vs se ranking for agencies',
+      hook: 'If Semrush feels powerful but expensive, SE Ranking is usually the first realistic alternative people consider.',
+      toolWins: ['Semrush gives larger teams more breadth and stronger multi-workflow depth.', 'Semrush usually wins when research, content, audits, and competitive analysis all matter at once.', 'Agencies with more advanced deliverables often grow into Semrush faster.'],
+      competitorWins: ['SE Ranking is easier to justify when budget discipline matters every month.', 'Smaller agencies often prefer the lighter operational overhead.', 'If you mainly need reporting, rank tracking, and practical auditing, SE Ranking can feel more efficient.'],
+      decisionFramework: ['Choose Semrush if missing data depth costs you more than subscription savings.', 'Choose SE Ranking if you need a capable all-in-one without premium-suite pricing.', 'Be honest about whether your team will actually use Semrush breadth.'],
+      takeaway: 'Semrush is the stronger long-term command center, but SE Ranking is often the more rational short-term buy.',
+    },
+    {
+      slug: 'vs-similarweb',
+      title: 'Semrush vs Similarweb: better for SEO execution or market intelligence?',
+      competitor: 'Similarweb',
+      competitorSlug: 'similarweb',
+      targetQuery: 'semrush vs similarweb for competitor research',
+      hook: 'These tools overlap on competitor visibility, but they answer very different business questions once you get past the surface.',
+      toolWins: ['Semrush is better for day-to-day SEO execution and organic workflow decisions.', 'It connects keyword, audit, content, and rank workflows more directly.', 'Teams doing hands-on optimization usually get faster practical value from Semrush.'],
+      competitorWins: ['Similarweb is stronger when executive teams need market share and traffic-estimation context.', 'Broader digital market intelligence is where Similarweb shines.', 'Cross-channel competitive narratives feel more natural in Similarweb.'],
+      decisionFramework: ['If your team needs to ship SEO work, choose Semrush.', 'If leadership wants market understanding and category sizing, choose Similarweb.', 'Some organizations eventually use both for different layers of decision-making.'],
+      takeaway: 'Semrush is the operator’s tool. Similarweb is the market-intelligence tool.',
+    },
+  ],
+  useCases: [
+    {
+      slug: 'for-agencies',
+      title: 'Semrush for agencies: reporting, client workflows, and where the subscription pays for itself',
+      targetQuery: 'semrush for agencies',
+      hook: 'Agency teams do not buy Semrush because it looks impressive. They buy it when client reporting, research, and competitive insight start eating too many hours every week.',
+      audience: 'SEO and content agencies',
+      whyItFits: ['It centralizes research, reporting, and audit snapshots in one workflow.', 'It reduces tool-switching across account managers, strategists, and specialists.', 'It is easier to standardize deliverables when one platform anchors the process.'],
+      quickStart: ['Create a repeatable client setup checklist for projects, audits, and reporting views.', 'Pick one reporting cadence and standardize it before adding complexity.', 'Train the team on the core three workflows first: research, audit, and reporting.'],
+      watchouts: ['Do not pay for breadth your team never adopts.', 'Without process ownership, the platform can become underused.', 'Agencies should keep a lightweight SOP library so the tool stays operationally useful.'],
+      takeaway: 'Semrush earns its keep in agencies when it becomes part of your operating system, not just a dashboard you check occasionally.',
+    },
+    {
+      slug: 'for-content-planning',
+      title: 'How to use Semrush for content planning without overcomplicating your workflow',
+      targetQuery: 'how to use semrush for content planning',
+      hook: 'A lot of content teams buy Semrush and then use five percent of it. The smarter move is to build one clean planning workflow and ignore the rest until you need it.',
+      audience: 'content marketers and editors',
+      whyItFits: ['You can go from topic discovery to brief planning without jumping across tools.', 'It gives writers and strategists the same context for priority topics.', 'It helps content refresh work feel less random and more systematic.'],
+      quickStart: ['Start with one content pillar and collect realistic supporting topics.', 'Turn promising ideas into a simple editorial queue before chasing more keywords.', 'Use the same scoring criteria for new pages and refresh candidates.'],
+      watchouts: ['Avoid treating the tool as a content strategy replacement.', 'Do not chase every keyword just because it is visible.', 'Briefs still need human judgment around search intent and brand angle.'],
+      takeaway: 'Semrush is strongest for content planning when it helps your team make fewer, clearer decisions instead of generating more noise.',
+    },
+    {
+      slug: 'for-local-seo',
+      title: 'Semrush for local SEO: when it helps and when a lighter stack is enough',
+      targetQuery: 'semrush for local seo',
+      hook: 'Local teams sometimes assume they need a huge suite, but the real question is whether the suite saves enough time across location-level research and reporting to justify the cost.',
+      audience: 'local businesses and multi-location teams',
+      whyItFits: ['It works well when local SEO sits inside a broader content and technical strategy.', 'It helps teams coordinate local landing pages with wider keyword research.', 'Agencies handling many local clients can benefit from consistency.'],
+      quickStart: ['Map priority markets before expanding into low-value local keywords.', 'Separate “must-win” local pages from lower-priority experiments.', 'Tie local reporting to actual business outcomes, not just rank movement.'],
+      watchouts: ['Small local businesses may not need suite-level complexity.', 'A lighter toolset can be enough if local SEO is your only workflow.', 'The cost only makes sense when local work is part of a broader search program.'],
+      takeaway: 'Semrush is useful for local SEO when local work connects to a bigger SEO program. If not, a leaner setup can be smarter.',
+    },
+  ],
+});
+
+SOFTWARE_CLUSTERS.push({
+  slug: 'screaming-frog',
+  name: 'Screaming Frog',
+  category: 'technical-seo',
+  hook: 'When SEO problems live inside templates, canonicals, broken links, migrations, and metadata debt, Screaming Frog is often the tool that finally turns “something feels off” into a list you can act on.',
+  summary: 'Screaming Frog is a desktop crawler built for technical SEO audits, migrations, metadata analysis, canonical checks, and site-wide issue discovery. It is not flashy, but it is one of the most practical technical SEO tools for teams that need clarity fast.',
+  bestFor: 'technical SEOs, growth teams, and agencies handling audits, migrations, and site-wide cleanup work',
+  notIdealFor: 'non-technical teams that want a fully guided SEO suite with minimal setup',
+  pricing: 'Screaming Frog is usually worth it very quickly because one avoided migration error or one well-run audit can justify the cost.',
+  verdict: 'Choose Screaming Frog when your biggest SEO risk is technical complexity, not lack of keyword data.',
+  strengths: ['Excellent for fast technical audits and issue discovery', 'Strong fit for migrations, metadata reviews, and site-wide QA', 'Beloved by practitioners because it is practical and direct'],
+  tradeoffs: ['Feels more technical and less guided than all-in-one suites', 'Not the right tool if you mostly need keyword and content planning', 'Teams still need judgment to prioritize fixes after the crawl'],
+  whoShouldUse: ['Technical SEOs auditing complex sites', 'Agencies handling migrations and cleanup projects', 'In-house teams dealing with recurring indexing and template issues'],
+  whoShouldSkip: ['Teams looking for a friendlier content-first platform', 'Users who never touch technical implementation', 'Beginners who need more guidance than raw crawl data'],
+  decisionSteps: ['Ask whether your SEO bottleneck is technical health rather than content opportunity.', 'If migrations, duplicate metadata, canonicals, or crawl waste are recurring problems, Screaming Frog becomes very hard to ignore.', 'Pair it with a broader suite if keyword research and reporting are also critical.'],
+  keywords: ['screaming frog guide', 'how to use screaming frog', 'screaming frog vs sitebulb', 'screaming frog for technical seo', 'screaming frog audit'],
+  relatedSlugs: ['google-search-console', 'semrush', 'similarweb'],
+  comparisons: [
+    {
+      slug: 'vs-sitebulb',
+      title: 'Screaming Frog vs Sitebulb: which crawler is better for technical SEO audits?',
+      competitor: 'Sitebulb',
+      competitorSlug: 'sitebulb',
+      targetQuery: 'screaming frog vs sitebulb',
+      hook: 'This comparison usually comes down to a classic tradeoff: raw speed and flexibility versus more guided analysis.',
+      toolWins: ['Screaming Frog feels faster and more direct for experienced practitioners.', 'Many technical SEOs prefer the control and familiarity it offers.', 'It is excellent when you already know what you are looking for.'],
+      competitorWins: ['Sitebulb often feels friendlier and more guided for analysis.', 'Teams that want more interpretation may prefer its presentation style.', 'Some organizations adopt it faster because the learning curve feels softer.'],
+      decisionFramework: ['Choose Screaming Frog for practitioner speed and flexibility.', 'Choose Sitebulb for guidance and presentation comfort.', 'The right answer depends on technical maturity more than feature lists.'],
+      takeaway: 'Screaming Frog is usually the technician’s choice. Sitebulb is often the guided-analysis choice.',
+    },
+    {
+      slug: 'vs-semrush-site-audit',
+      title: 'Screaming Frog vs Semrush Site Audit: do you need a crawler or a suite audit?',
+      competitor: 'Semrush Site Audit',
+      competitorSlug: 'semrush',
+      targetQuery: 'screaming frog vs semrush site audit',
+      hook: 'A lot of teams assume these are substitutes. They overlap, but they support very different working styles.',
+      toolWins: ['Screaming Frog gives technical teams more crawl-level control and visibility.', 'It is better for hands-on audits and migration QA.', 'You can investigate edge cases more directly.'],
+      competitorWins: ['Semrush Site Audit fits better into a broader all-in-one workflow.', 'Non-technical stakeholders often prefer suite dashboards.', 'It is easier when you want technical checks without becoming a crawler expert.'],
+      decisionFramework: ['Choose Screaming Frog for hands-on technical depth.', 'Choose Semrush Site Audit for a more integrated suite workflow.', 'Many advanced teams use both for different layers of review.'],
+      takeaway: 'Screaming Frog is the deeper diagnostic tool. Semrush Site Audit is the easier integrated layer.',
+    },
+    {
+      slug: 'vs-ahrefs-site-audit',
+      title: 'Screaming Frog vs Ahrefs Site Audit: which one is better for technical cleanup work?',
+      competitor: 'Ahrefs Site Audit',
+      competitorSlug: 'ahrefs',
+      targetQuery: 'screaming frog vs ahrefs site audit',
+      hook: 'If you already use Ahrefs, it is tempting to stay inside one ecosystem. The question is whether the built-in audit is enough for the technical work you actually do.',
+      toolWins: ['Screaming Frog is stronger when the team needs granular investigation.', 'It is better for template-level QA and migration prep.', 'Technical specialists usually move faster in it once they know the workflow.'],
+      competitorWins: ['Ahrefs Site Audit is more convenient when you want everything under one subscription.', 'It fits teams already centered on Ahrefs research workflows.', 'It can be sufficient for lighter technical monitoring.'],
+      decisionFramework: ['Choose Screaming Frog for specialist technical work.', 'Choose Ahrefs Site Audit for convenience and lighter monitoring.', 'Use the specialist tool if technical issues create real business risk.'],
+      takeaway: 'If your technical work is mission-critical, Screaming Frog is usually the safer bet.',
+    },
+  ],
+  useCases: [
+    {
+      slug: 'for-broken-links',
+      title: 'How to use Screaming Frog to find broken links before they quietly hurt your site',
+      targetQuery: 'how to find broken links with screaming frog',
+      hook: 'Broken links rarely announce themselves. They slowly erode user experience, waste crawl budget, and create avoidable cleanup debt.',
+      audience: 'technical SEOs and website managers',
+      whyItFits: ['It surfaces broken internal and external links quickly across the whole site.', 'You can turn vague quality concerns into a fixable task list.', 'It is practical for recurring site hygiene checks.'],
+      quickStart: ['Run a full crawl before making assumptions about where the damage is.', 'Separate high-value broken links from low-impact noise.', 'Fix template-level causes first so issues do not reappear.'],
+      watchouts: ['Do not treat every broken URL as equally important.', 'Context matters: traffic pages deserve faster attention.', 'Broken-link reports are only useful if they feed into an actual fix workflow.'],
+      takeaway: 'Screaming Frog turns broken-link cleanup into a manageable system instead of a scattered guessing game.',
+    },
+    {
+      slug: 'for-site-migrations',
+      title: 'Screaming Frog for site migrations: a practical checklist for launch week',
+      targetQuery: 'screaming frog for site migrations',
+      hook: 'Migrations fail when teams rely on hope and a homepage spot check. Screaming Frog helps you replace hope with a repeatable process.',
+      audience: 'SEO teams and agencies handling migrations',
+      whyItFits: ['It is ideal for pre-launch and post-launch URL validation.', 'You can verify redirects, canonicals, metadata, and status codes at scale.', 'It gives migration work a concrete QA rhythm.'],
+      quickStart: ['Crawl the current site before launch and keep the export as a baseline.', 'Validate redirect behavior and canonical targets after launch.', 'Re-check critical templates and high-value page groups immediately.'],
+      watchouts: ['Do not wait until launch day to define success checks.', 'One clean homepage redirect does not mean the migration is healthy.', 'Keep the crawl output connected to engineering fixes, not just SEO notes.'],
+      takeaway: 'Screaming Frog shines during migrations because it makes QA measurable and repeatable.',
+    },
+    {
+      slug: 'for-metadata-and-canonicals',
+      title: 'How to audit metadata and canonicals with Screaming Frog without drowning in exports',
+      targetQuery: 'audit metadata and canonicals with screaming frog',
+      hook: 'Metadata and canonical problems get expensive when they spread across templates. The right crawl helps you spot patterns instead of chasing page-by-page noise.',
+      audience: 'technical SEOs and content operations teams',
+      whyItFits: ['You can audit titles, descriptions, canonicals, and duplicates at scale.', 'Template issues become visible much faster than with manual checks.', 'It is one of the quickest ways to connect content problems to implementation problems.'],
+      quickStart: ['Group pages by template or section before prioritizing fixes.', 'Look for repeated issues rather than isolated weird pages.', 'Treat canonical mismatches as strategy questions, not just technical bugs.'],
+      watchouts: ['Do not optimize metadata in isolation from search intent.', 'Duplicate patterns matter more than one-off anomalies.', 'Canonical tags can hide bigger information-architecture issues.'],
+      takeaway: 'Screaming Frog works best here when it helps you find repeated structural mistakes, not just interesting one-off errors.',
+    },
+  ],
+});
+
+SOFTWARE_CLUSTERS.push({
+  slug: 'ahrefs',
+  name: 'Ahrefs',
+  category: 'all-in-one',
+  hook: 'If your team wants research depth without drowning in a giant operations layer, Ahrefs is usually the tool that feels sharpest right away.',
+  summary: 'Ahrefs is a research-heavy SEO platform known for backlink intelligence, keyword exploration, and content-gap workflows. It is often chosen by teams that care more about discovering opportunities quickly than managing every SEO task inside one giant system.',
+  bestFor: 'SEO strategists, content teams, and publishers who want strong backlink and keyword research with a cleaner research-first workflow',
+  notIdealFor: 'teams that need the broadest possible reporting and workflow coverage inside a single platform',
+  pricing: 'Ahrefs tends to feel worth it when research quality drives your results. If rank tracking, agency reporting, and workflow breadth matter more than research depth, another tool may fit better.',
+  verdict: 'Choose Ahrefs when your biggest need is finding the right opportunities fast and understanding why competitors are winning.',
+  strengths: ['Excellent reputation for backlink and content-gap research workflows', 'Fast, focused interface for strategy and investigation work', 'Great fit for publishers, SaaS teams, and content strategists'],
+  tradeoffs: ['Less of an all-in-one operating system than Semrush for some teams', 'Price still feels serious for smaller creators', 'Teams wanting deep reporting specialization may still pair it with other tools'],
+  whoShouldUse: ['Content-led SEO teams researching new clusters', 'Publishers and affiliate operators who depend on competitive intelligence', 'Strategists who care deeply about links, topic gaps, and opportunity discovery'],
+  whoShouldSkip: ['Teams wanting a more budget-friendly entry point', 'Organizations mostly buying for reporting workflows', 'Users who need gentle onboarding more than research depth'],
+  decisionSteps: ['Ask whether your bottleneck is discovery or operational execution.', 'If content gaps, backlink opportunities, and competitor research are the pain points, Ahrefs rises quickly.', 'If wider reporting and team workflow management matter more, compare it carefully with Semrush or SE Ranking.'],
+  keywords: ['ahrefs review', 'ahrefs for beginners', 'ahrefs vs semrush', 'how to use ahrefs', 'is ahrefs worth it'],
+  relatedSlugs: ['semrush', 'moz-pro', 'mangools'],
+  comparisons: [
+    {
+      slug: 'vs-semrush',
+      title: 'Ahrefs vs Semrush: which SEO suite is better for research-first teams?',
+      competitor: 'Semrush',
+      competitorSlug: 'semrush',
+      targetQuery: 'ahrefs vs semrush for content teams',
+      hook: 'This decision usually comes down to a simple tension: do you want deeper research feel or broader workflow coverage?',
+      toolWins: ['Ahrefs wins when backlink analysis and content-gap discovery sit at the center of your workflow.', 'Many strategists prefer the sharper research-first experience.', 'It is often easier to stay focused when the interface feels less operationally crowded.'],
+      competitorWins: ['Semrush wins when you want one platform for a broader set of marketing and reporting jobs.', 'Cross-team visibility is often easier in Semrush.', 'Agencies needing workflow breadth may outgrow Ahrefs-only setups faster.'],
+      decisionFramework: ['Pick Ahrefs for research-first strategy teams.', 'Pick Semrush for broader operational coverage.', 'If content and links drive most of your wins, Ahrefs has a strong case.'],
+      takeaway: 'Ahrefs feels like the sharper research blade; Semrush feels like the broader operating system.',
+    },
+    {
+      slug: 'vs-moz-pro',
+      title: 'Ahrefs vs Moz Pro: which one feels better for everyday SEO work?',
+      competitor: 'Moz Pro',
+      competitorSlug: 'moz-pro',
+      targetQuery: 'ahrefs vs moz pro',
+      hook: 'Teams comparing Ahrefs and Moz Pro are usually balancing research depth against simplicity and comfort.',
+      toolWins: ['Ahrefs is the stronger pick for deeper competitive and backlink work.', 'It reveals opportunities faster for experienced strategists.', 'Content teams chasing growth generally get more strategic value from Ahrefs.'],
+      competitorWins: ['Moz Pro often feels friendlier for beginners and calmer teams.', 'Some in-house teams value the lower learning friction.', 'If you want a steadier, simpler workflow, Moz Pro can be easier to adopt.'],
+      decisionFramework: ['Pick Ahrefs if research depth matters more than simplicity.', 'Pick Moz Pro if adoption speed and comfort matter more.', 'The right answer depends on team maturity more than hype.'],
+      takeaway: 'Ahrefs is usually stronger, but Moz Pro can still be the easier fit for less mature teams.',
+    },
+    {
+      slug: 'vs-mangools',
+      title: 'Ahrefs vs Mangools: is the premium suite worth it for solo creators?',
+      competitor: 'Mangools',
+      competitorSlug: 'mangools',
+      targetQuery: 'ahrefs vs mangools for bloggers',
+      hook: 'Solo creators often know Ahrefs is stronger. The real question is whether they actually need that much tool.',
+      toolWins: ['Ahrefs is clearly better for advanced research and competitive depth.', 'It gives growing publishers more room to scale their strategy.', 'If links and content gaps are core to your business, the difference shows fast.'],
+      competitorWins: ['Mangools is much easier to justify when budget is real.', 'The learning curve feels lighter and more welcoming.', 'Smaller creators often get enough value without premium-suite overhead.'],
+      decisionFramework: ['Pick Ahrefs if SEO is already a serious revenue channel.', 'Pick Mangools if you want clarity, speed, and lower monthly pressure.', 'Do not buy complexity you will not use.'],
+      takeaway: 'Ahrefs is better. Mangools is often enough. That difference matters.',
+    },
+  ],
+  useCases: [
+    {
+      slug: 'for-beginners',
+      title: 'Ahrefs for beginners: how to get real value without getting overwhelmed',
+      targetQuery: 'ahrefs for beginners',
+      hook: 'Beginners do not struggle with Ahrefs because it is bad. They struggle because it can show far more data than they know how to prioritize.',
+      audience: 'new SEO practitioners and in-house marketers',
+      whyItFits: ['It teaches competitive thinking quickly when used with restraint.', 'You can get meaningful wins from a few workflows instead of trying everything.', 'It helps beginners see why pages rank, not just what keyword volume looks like.'],
+      quickStart: ['Focus on one workflow first: competitor pages, content gaps, or backlinks.', 'Create a tiny weekly routine instead of opening every report.', 'Document what “good opportunity” means before you start exploring.'],
+      watchouts: ['Do not confuse more data with a better strategy.', 'Avoid exporting huge lists before you know what you want.', 'A narrow workflow creates better learning than random clicking.'],
+      takeaway: 'Ahrefs becomes beginner-friendly once you treat it like a focused research partner, not a data buffet.',
+    },
+    {
+      slug: 'for-low-competition-keywords',
+      title: 'How to use Ahrefs to find low-competition keywords you can actually rank for',
+      targetQuery: 'how to use ahrefs to find low competition keywords',
+      hook: 'Most teams do not need more keyword ideas. They need a faster way to reject the ones they should never chase.',
+      audience: 'publishers, SaaS teams, and niche site builders',
+      whyItFits: ['Ahrefs is strong at showing where competitors are already proving demand.', 'It helps you spot realistic content openings instead of chasing vanity topics.', 'The research process feels strategic rather than random.'],
+      quickStart: ['Start with competitor pages that already match your business model.', 'Pull topic patterns before you evaluate individual keywords.', 'Use keyword difficulty as a clue, not a decision by itself.'],
+      watchouts: ['Low difficulty does not always mean good intent.', 'Do not forget to check what kind of pages already rank.', 'A realistic keyword is only valuable if it helps the business.'],
+      takeaway: 'Ahrefs is best for low-competition keyword work when you use it to find patterns, not just single lucky terms.',
+    },
+    {
+      slug: 'for-saas-seo',
+      title: 'Ahrefs for SaaS SEO: building a content roadmap around product-adjacent intent',
+      targetQuery: 'ahrefs for saas seo',
+      hook: 'SaaS teams waste a lot of content effort when they publish around traffic instead of product-adjacent demand. Ahrefs can help fix that quickly.',
+      audience: 'SaaS marketing teams',
+      whyItFits: ['It is strong for finding adjacent opportunities competitors already win.', 'The platform helps content strategists connect topics back to business value.', 'It works well for cluster planning and gap analysis.'],
+      quickStart: ['Map product-adjacent jobs to competitor content patterns.', 'Separate traffic content from bottom-funnel support content.', 'Use one cluster at a time so the roadmap stays realistic.'],
+      watchouts: ['Do not let top-of-funnel ideas crowd out product-relevant content.', 'A large backlog is not the same as a strategy.', 'Cross-check search opportunity with sales relevance.'],
+      takeaway: 'Ahrefs helps SaaS teams most when it narrows the roadmap to opportunities that actually support the product story.',
+    },
+  ],
+});
 
 function escapeHtml(value = '') {
   return String(value)
@@ -152,6 +628,31 @@ function getCategoryPath(categoryId) {
   return categoryId && categoryId !== 'all'
     ? `/category/${encodeURIComponent(categoryId)}`
     : '/';
+}
+
+function getSoftwareCategory(categoryId) {
+  return SOFTWARE_CONTENT_CATEGORIES.find((category) => category.id === categoryId) || SOFTWARE_CONTENT_CATEGORIES[0];
+}
+
+function getSoftwareToolPath(toolSlug) {
+  return `${SOFTWARE_HUB_PATH}/${encodeURIComponent(toolSlug)}`;
+}
+
+function getSoftwareArticlePath(toolSlug, articleSlug) {
+  return `${getSoftwareToolPath(toolSlug)}/${encodeURIComponent(articleSlug)}`;
+}
+
+function getSoftwareCluster(toolSlug) {
+  return SOFTWARE_CLUSTERS.find((cluster) => cluster.slug === toolSlug) || null;
+}
+
+function getSoftwareGuideHref(toolSlug) {
+  const fullCluster = getSoftwareCluster(toolSlug);
+  return fullCluster ? getSoftwareToolPath(toolSlug) : `${SOFTWARE_HUB_PATH}#${encodeURIComponent(toolSlug)}`;
+}
+
+function getSoftwareOutline(toolSlug) {
+  return SOFTWARE_CLUSTER_OUTLINES.find((cluster) => cluster.slug === toolSlug) || null;
 }
 
 function getRenderableCategories(categories) {
@@ -321,6 +822,7 @@ function renderFooter() {
           <li><a href="${STATIC_PAGE_PATHS.contact}">Contact</a></li>
           <li><a href="${STATIC_PAGE_PATHS.privacy}">Privacy Policy</a></li>
           <li><a href="${STATIC_PAGE_PATHS.terms}">Terms of Service</a></li>
+          <li><a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a></li>
           <li><a href="/sitemap.html">All Tools (Sitemap)</a></li>
         </ul>
       </div>
@@ -785,6 +1287,407 @@ function renderToolPage(tool, tools, categories) {
   });
 }
 
+function renderSoftwareGuideCards(items, mapItem) {
+  return `<div class="guide-card-grid">${items.map((item) => mapItem(item)).join('')}</div>`;
+}
+
+function renderSoftwareHubPage() {
+  const categorySections = SOFTWARE_CONTENT_CATEGORIES.map((category) => {
+    const published = SOFTWARE_CLUSTERS.filter((cluster) => cluster.category === category.id);
+    const roadmap = SOFTWARE_CLUSTER_OUTLINES.filter((cluster) => cluster.category === category.id);
+    const publishedHtml = published.length
+      ? renderSoftwareGuideCards(published, (cluster) => `<article class="guide-card">
+          <span class="guide-card-eyebrow">Published guide</span>
+          <h3><a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a></h3>
+          <p>${escapeHtml(cluster.summary)}</p>
+          <ul>${cluster.keywords.slice(0, 3).map((keyword) => `<li>${escapeHtml(keyword)}</li>`).join('')}</ul>
+          <div class="guide-card-actions">
+            <a href="${getSoftwareToolPath(cluster.slug)}">Read the pillar guide</a>
+          </div>
+        </article>`)
+      : '';
+    const roadmapHtml = roadmap.length
+      ? renderSoftwareGuideCards(roadmap, (cluster) => `<article class="guide-card guide-card-outline" id="${escapeAttr(cluster.slug)}">
+          <span class="guide-card-eyebrow">Roadmap cluster</span>
+          <h3>${escapeHtml(cluster.name)}</h3>
+          <p>${escapeHtml(cluster.summary)}</p>
+          <p><strong>Best for:</strong> ${escapeHtml(cluster.bestFor)}</p>
+          <p><strong>Pillar page:</strong> ${escapeHtml(cluster.pillarTitle)}</p>
+          <div class="guide-chip-row">${cluster.comparisons.map((comparison) => `<span class="guide-chip">${escapeHtml(comparison)}</span>`).join('')}</div>
+          <div class="guide-chip-row">${cluster.useCases.map((useCase) => `<span class="guide-chip">${escapeHtml(useCase)}</span>`).join('')}</div>
+        </article>`)
+      : '';
+
+    return `<section class="tool-content-section">
+      <h2>${escapeHtml(category.name)}</h2>
+      <p>${escapeHtml(category.description)}</p>
+      ${publishedHtml}
+      ${roadmapHtml}
+    </section>`;
+  }).join('');
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'SEO Software Guides',
+      url: getAbsoluteUrl(SOFTWARE_HUB_PATH),
+      description: 'Browse Tooliest guides comparing SEO software, content optimization tools, technical crawlers, and keyword research platforms.',
+      dateModified: BUILD_DATE,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: getAbsoluteUrl('/') },
+        { '@type': 'ListItem', position: 2, name: 'SEO Software Guides', item: getAbsoluteUrl(SOFTWARE_HUB_PATH) },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Published SEO software guides',
+      itemListElement: SOFTWARE_CLUSTERS.map((cluster, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)),
+        name: cluster.name,
+      })),
+    },
+  ];
+
+  const mainContent = `<main class="main-content" id="main-content">
+    <section class="tool-page">
+      <div class="tool-page-header">
+        <div class="tool-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">›</span>
+          <span>SEO Software Guides</span>
+        </div>
+        <h1 style="margin:0">SEO Software Guides and Content Clusters</h1>
+        <p>Tooliest now includes a dedicated content hub for SEO software buyers. We started with full clusters for Semrush, Ahrefs, and Screaming Frog, then mapped the next wave of guides across all-in-one suites, content optimization platforms, technical SEO tools, and keyword research products.</p>
+        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">These pages are designed to answer real decision questions like “Which tool is worth the money?”, “What is best for small teams?”, and “What should I buy for a specific workflow?” in a more useful, less robotic way.</p>
+      </div>
+      <div class="tool-content-sections">
+        <section class="tool-content-section">
+          <h2>How this content hub is structured</h2>
+          <ul>
+            <li>Each published cluster starts with one pillar page that explains who the tool is for, where it shines, what it costs in time and budget, and where it feels limited.</li>
+            <li>Every pillar page links into comparison articles so readers can make trade-offs with confidence instead of bouncing back to Google.</li>
+            <li>Use-case articles answer narrower questions like whether a tool works for agencies, SaaS teams, local SEO, migrations, or content planning.</li>
+            <li>The roadmap cards below show the next ${SOFTWARE_CLUSTER_OUTLINES.length} clusters we would publish to deepen topical authority around SEO software.</li>
+          </ul>
+        </section>
+        ${categorySections}
+        <section class="tool-content-section">
+          <h2>Internal linking blueprint</h2>
+          <p>Authority should flow from this hub into each tool pillar, then into every comparison article and use-case page. Comparison pages should link back to both tool pillars and forward into the most relevant use case so readers never hit a dead end.</p>
+          <ul>
+            <li>Pillar pages link to every comparison and use-case page in their cluster.</li>
+            <li>Comparison pages link back to both tools, plus one recommended follow-up use case.</li>
+            <li>Use-case pages link back to the pillar and one comparison page that helps the reader validate the choice.</li>
+            <li>Cross-cluster pages like “best SEO tools for agencies” should later link into Semrush, SE Ranking, AccuRanker, and Nightwatch.</li>
+          </ul>
+          <p>You can also pair these guides with Tooliest’s own <a href="${getCategoryPath('seo')}">SEO tools</a> when users want to act on what they just learned instead of leaving the site to do the work elsewhere.</p>
+        </section>
+      </div>
+    </section>
+  </main>`;
+
+  return renderPageShell({
+    title: 'SEO Software Guides, Comparisons, and Content Clusters | Tooliest',
+    description: 'Browse Tooliest SEO software guides covering Semrush, Ahrefs, Screaming Frog, and a roadmap of high-intent content clusters for SEO buyers.',
+    canonicalPath: SOFTWARE_HUB_PATH,
+    structuredData,
+    mainContent,
+    keywords: 'seo software guides, semrush review, ahrefs review, screaming frog guide, seo tool comparisons, content clusters',
+  });
+}
+
+function renderSoftwarePillarPage(cluster) {
+  const category = getSoftwareCategory(cluster.category);
+  const comparisonCards = renderSoftwareGuideCards(cluster.comparisons, (comparison) => `<article class="guide-card">
+      <span class="guide-card-eyebrow">Comparison article</span>
+      <h3><a href="${getSoftwareArticlePath(cluster.slug, comparison.slug)}">${escapeHtml(comparison.title)}</a></h3>
+      <p>${escapeHtml(comparison.hook)}</p>
+      <div class="guide-chip-row"><span class="guide-chip">${escapeHtml(comparison.targetQuery)}</span></div>
+    </article>`);
+  const useCaseCards = renderSoftwareGuideCards(cluster.useCases, (useCase) => `<article class="guide-card">
+      <span class="guide-card-eyebrow">Use-case article</span>
+      <h3><a href="${getSoftwareArticlePath(cluster.slug, useCase.slug)}">${escapeHtml(useCase.title)}</a></h3>
+      <p>${escapeHtml(useCase.hook)}</p>
+      <div class="guide-chip-row"><span class="guide-chip">${escapeHtml(useCase.targetQuery)}</span></div>
+    </article>`);
+  const relatedCards = renderSoftwareGuideCards(cluster.relatedSlugs.map((slug) => getSoftwareCluster(slug) || getSoftwareOutline(slug)).filter(Boolean), (related) => `<article class="guide-card guide-card-outline">
+      <span class="guide-card-eyebrow">Related guide</span>
+      <h3><a href="${getSoftwareGuideHref(related.slug)}">${escapeHtml(related.name)}</a></h3>
+      <p>${escapeHtml(related.summary)}</p>
+    </article>`);
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: `${cluster.name} review and buying guide`,
+      description: cluster.summary,
+      author: { '@type': 'Organization', name: 'Tooliest' },
+      publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
+      datePublished: BUILD_DATE,
+      dateModified: BUILD_DATE,
+      mainEntityOfPage: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: getAbsoluteUrl('/') },
+        { '@type': 'ListItem', position: 2, name: 'SEO Software Guides', item: getAbsoluteUrl(SOFTWARE_HUB_PATH) },
+        { '@type': 'ListItem', position: 3, name: cluster.name, item: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)) },
+      ],
+    },
+  ];
+
+  const mainContent = `<main class="main-content" id="main-content">
+    <section class="tool-page">
+      <div class="tool-page-header">
+        <div class="tool-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">›</span>
+          <a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a>
+          <span class="separator">›</span>
+          <span>${escapeHtml(cluster.name)}</span>
+        </div>
+        <h1 style="margin:0">${escapeHtml(cluster.name)} review: who it is really for, where it wins, and what to read next</h1>
+        <p>${escapeHtml(cluster.hook)}</p>
+        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Category: ${escapeHtml(category.name)} · Best for: ${escapeHtml(cluster.bestFor)}</p>
+      </div>
+      <div class="tool-content-sections">
+        <section class="tool-content-section">
+          <h2>Quick take</h2>
+          <p>${escapeHtml(cluster.summary)}</p>
+          <p>${escapeHtml(cluster.pricing)}</p>
+          <p><strong>Bottom line:</strong> ${escapeHtml(cluster.verdict)}</p>
+        </section>
+        <section class="tool-content-section">
+          <h2>Who should use ${escapeHtml(cluster.name)}?</h2>
+          <p><strong>Best for:</strong> ${escapeHtml(cluster.bestFor)}</p>
+          <p><strong>Not ideal for:</strong> ${escapeHtml(cluster.notIdealFor)}</p>
+          <div class="guide-two-col">
+            <div>
+              <h3>Strong fit</h3>
+              <ul>${cluster.whoShouldUse.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+            </div>
+            <div>
+              <h3>Usually skip</h3>
+              <ul>${cluster.whoShouldSkip.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+            </div>
+          </div>
+        </section>
+        <section class="tool-content-section">
+          <h2>Pros and tradeoffs</h2>
+          <div class="guide-two-col">
+            <div>
+              <h3>What it does well</h3>
+              <ul>${cluster.strengths.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+            </div>
+            <div>
+              <h3>Where it gets harder</h3>
+              <ul>${cluster.tradeoffs.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+            </div>
+          </div>
+        </section>
+        <section class="tool-content-section">
+          <h2>A simple decision framework</h2>
+          <ol>${cluster.decisionSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join('')}</ol>
+          <div class="guide-chip-row">${cluster.keywords.map((keyword) => `<span class="guide-chip">${escapeHtml(keyword)}</span>`).join('')}</div>
+        </section>
+        <section class="tool-content-section">
+          <h2>Comparison articles</h2>
+          <p>If you already know the shortlist, start here. These pages help readers decide faster instead of comparing screenshots and pricing tables in six browser tabs.</p>
+          ${comparisonCards}
+        </section>
+        <section class="tool-content-section">
+          <h2>Use-case articles</h2>
+          <p>These pages go deeper on the jobs people actually hire the tool for, whether that is agency reporting, SaaS content planning, local SEO, migrations, or technical cleanup work.</p>
+          ${useCaseCards}
+        </section>
+        <section class="tool-content-section">
+          <h2>Related software guides</h2>
+          ${relatedCards}
+        </section>
+      </div>
+    </section>
+  </main>`;
+
+  return renderPageShell({
+    title: `${cluster.name} Review, Alternatives, and Use Cases | Tooliest`,
+    description: cluster.summary,
+    canonicalPath: getSoftwareToolPath(cluster.slug),
+    structuredData,
+    mainContent,
+    keywords: cluster.keywords.join(', '),
+  });
+}
+
+function renderSoftwareComparisonPage(cluster, comparison) {
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: comparison.title,
+      description: comparison.hook,
+      author: { '@type': 'Organization', name: 'Tooliest' },
+      publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
+      datePublished: BUILD_DATE,
+      dateModified: BUILD_DATE,
+      mainEntityOfPage: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, comparison.slug)),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: getAbsoluteUrl('/') },
+        { '@type': 'ListItem', position: 2, name: 'SEO Software Guides', item: getAbsoluteUrl(SOFTWARE_HUB_PATH) },
+        { '@type': 'ListItem', position: 3, name: cluster.name, item: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)) },
+        { '@type': 'ListItem', position: 4, name: comparison.title, item: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, comparison.slug)) },
+      ],
+    },
+  ];
+
+  const mainContent = `<main class="main-content" id="main-content">
+    <section class="tool-page">
+      <div class="tool-page-header">
+        <div class="tool-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">›</span>
+          <a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a>
+          <span class="separator">›</span>
+          <a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a>
+          <span class="separator">›</span>
+          <span>${escapeHtml(comparison.title)}</span>
+        </div>
+        <h1 style="margin:0">${escapeHtml(comparison.title)}</h1>
+        <p>${escapeHtml(comparison.hook)}</p>
+        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Search intent: ${escapeHtml(comparison.targetQuery)}</p>
+      </div>
+      <div class="tool-content-sections">
+        <section class="tool-content-section">
+          <h2>Quick answer</h2>
+          <p>${escapeHtml(comparison.takeaway)}</p>
+          <p>If you want the shorter version: choose ${escapeHtml(cluster.name)} when your workflow matches the strengths below. Choose ${escapeHtml(comparison.competitor)} when the opposite side of the tradeoff matters more.</p>
+        </section>
+        <section class="tool-content-section">
+          <h2>When ${escapeHtml(cluster.name)} usually wins</h2>
+          <ul>${comparison.toolWins.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        </section>
+        <section class="tool-content-section">
+          <h2>When ${escapeHtml(comparison.competitor)} usually wins</h2>
+          <ul>${comparison.competitorWins.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        </section>
+        <section class="tool-content-section">
+          <h2>Decision framework</h2>
+          <ol>${comparison.decisionFramework.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ol>
+          <p>Still undecided? Go back to the <a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)} pillar page</a> or compare it with the next closest guide in the cluster.</p>
+        </section>
+        <section class="tool-content-section">
+          <h2>Next best pages to read</h2>
+          ${renderSoftwareGuideCards(cluster.useCases.slice(0, 2), (useCase) => `<article class="guide-card">
+            <span class="guide-card-eyebrow">Use-case follow-up</span>
+            <h3><a href="${getSoftwareArticlePath(cluster.slug, useCase.slug)}">${escapeHtml(useCase.title)}</a></h3>
+            <p>${escapeHtml(useCase.hook)}</p>
+          </article>`)}
+        </section>
+      </div>
+    </section>
+  </main>`;
+
+  return renderPageShell({
+    title: `${comparison.title} | Tooliest`,
+    description: comparison.takeaway,
+    canonicalPath: getSoftwareArticlePath(cluster.slug, comparison.slug),
+    structuredData,
+    mainContent,
+    keywords: `${comparison.targetQuery}, ${cluster.name.toLowerCase()}, ${comparison.competitor.toLowerCase()}, seo tool comparison`,
+  });
+}
+
+function renderSoftwareUseCasePage(cluster, useCase) {
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: useCase.title,
+      description: useCase.hook,
+      author: { '@type': 'Organization', name: 'Tooliest' },
+      publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
+      datePublished: BUILD_DATE,
+      dateModified: BUILD_DATE,
+      mainEntityOfPage: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: getAbsoluteUrl('/') },
+        { '@type': 'ListItem', position: 2, name: 'SEO Software Guides', item: getAbsoluteUrl(SOFTWARE_HUB_PATH) },
+        { '@type': 'ListItem', position: 3, name: cluster.name, item: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)) },
+        { '@type': 'ListItem', position: 4, name: useCase.title, item: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)) },
+      ],
+    },
+  ];
+
+  const mainContent = `<main class="main-content" id="main-content">
+    <section class="tool-page">
+      <div class="tool-page-header">
+        <div class="tool-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">›</span>
+          <a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a>
+          <span class="separator">›</span>
+          <a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a>
+          <span class="separator">›</span>
+          <span>${escapeHtml(useCase.title)}</span>
+        </div>
+        <h1 style="margin:0">${escapeHtml(useCase.title)}</h1>
+        <p>${escapeHtml(useCase.hook)}</p>
+        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Audience focus: ${escapeHtml(useCase.audience)} · Search intent: ${escapeHtml(useCase.targetQuery)}</p>
+      </div>
+      <div class="tool-content-sections">
+        <section class="tool-content-section">
+          <h2>Why this workflow fits ${escapeHtml(cluster.name)}</h2>
+          <ul>${useCase.whyItFits.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        </section>
+        <section class="tool-content-section">
+          <h2>How to get started without wasting time</h2>
+          <ol>${useCase.quickStart.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ol>
+        </section>
+        <section class="tool-content-section">
+          <h2>What usually goes wrong</h2>
+          <ul>${useCase.watchouts.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+          <p><strong>Takeaway:</strong> ${escapeHtml(useCase.takeaway)}</p>
+        </section>
+        <section class="tool-content-section">
+          <h2>Related decision pages</h2>
+          ${renderSoftwareGuideCards(cluster.comparisons.slice(0, 2), (comparison) => `<article class="guide-card">
+            <span class="guide-card-eyebrow">Comparison article</span>
+            <h3><a href="${getSoftwareArticlePath(cluster.slug, comparison.slug)}">${escapeHtml(comparison.title)}</a></h3>
+            <p>${escapeHtml(comparison.hook)}</p>
+          </article>`)}
+        </section>
+      </div>
+    </section>
+  </main>`;
+
+  return renderPageShell({
+    title: `${useCase.title} | Tooliest`,
+    description: useCase.hook,
+    canonicalPath: getSoftwareArticlePath(cluster.slug, useCase.slug),
+    structuredData,
+    mainContent,
+    keywords: `${useCase.targetQuery}, ${cluster.name.toLowerCase()}, seo software, use case guide`,
+  });
+}
+
 async function bundleJavascript() {
   console.log('Bundling JavaScript...');
   const combinedCode = filesToBundle
@@ -855,6 +1758,31 @@ function writeCategoryPages(tools, categories) {
   });
 }
 
+function writeSoftwareContentPages() {
+  console.log('Generating SEO software content hub...');
+  const hubDir = path.join(__dirname, SOFTWARE_HUB_PATH.replace(/^\/+/, ''));
+  fs.mkdirSync(hubDir, { recursive: true });
+  fs.writeFileSync(path.join(hubDir, 'index.html'), renderSoftwareHubPage());
+
+  SOFTWARE_CLUSTERS.forEach((cluster) => {
+    const clusterDir = path.join(hubDir, cluster.slug);
+    fs.mkdirSync(clusterDir, { recursive: true });
+    fs.writeFileSync(path.join(clusterDir, 'index.html'), renderSoftwarePillarPage(cluster));
+
+    cluster.comparisons.forEach((comparison) => {
+      const articleDir = path.join(clusterDir, comparison.slug);
+      fs.mkdirSync(articleDir, { recursive: true });
+      fs.writeFileSync(path.join(articleDir, 'index.html'), renderSoftwareComparisonPage(cluster, comparison));
+    });
+
+    cluster.useCases.forEach((useCase) => {
+      const articleDir = path.join(clusterDir, useCase.slug);
+      fs.mkdirSync(articleDir, { recursive: true });
+      fs.writeFileSync(path.join(articleDir, 'index.html'), renderSoftwareUseCasePage(cluster, useCase));
+    });
+  });
+}
+
 function renderRedirectsFile(tools, categories) {
   return [
     '# Legacy tool URLs',
@@ -875,6 +1803,26 @@ function renderHeadersFile(tools, categories) {
     .flatMap((category) => [getCategoryPath(category.id), htmlPageCacheRule, '']);
   const toolHeaders = tools
     .flatMap((tool) => [getToolPath(tool.id), htmlPageCacheRule, '']);
+  const softwareHeaders = [
+    SOFTWARE_HUB_PATH,
+    htmlPageCacheRule,
+    '',
+    ...SOFTWARE_CLUSTERS.flatMap((cluster) => [
+      getSoftwareToolPath(cluster.slug),
+      htmlPageCacheRule,
+      '',
+      ...cluster.comparisons.flatMap((comparison) => [
+        getSoftwareArticlePath(cluster.slug, comparison.slug),
+        htmlPageCacheRule,
+        '',
+      ]),
+      ...cluster.useCases.flatMap((useCase) => [
+        getSoftwareArticlePath(cluster.slug, useCase.slug),
+        htmlPageCacheRule,
+        '',
+      ]),
+    ]),
+  ];
 
   return [
     '/*',
@@ -922,6 +1870,7 @@ function renderHeadersFile(tools, categories) {
     ...cleanStaticPageHeaders,
     ...categoryHeaders,
     ...toolHeaders,
+    ...softwareHeaders,
     '/tool/*',
     htmlPageCacheRule,
     '',
@@ -963,6 +1912,7 @@ function writeSitemap(tools, categories) {
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.contact), priority: '0.7', changefreq: 'monthly' },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.privacy), priority: '0.6', changefreq: 'monthly' },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.5', changefreq: 'monthly' },
+    { loc: getAbsoluteUrl(SOFTWARE_HUB_PATH), priority: '0.85', changefreq: 'weekly' },
     { loc: getAbsoluteUrl('/sitemap.html'), priority: '0.7', changefreq: 'monthly' },
   ];
 
@@ -978,7 +1928,25 @@ function writeSitemap(tools, categories) {
     changefreq: 'monthly',
   }));
 
-  const entries = [...staticPages, ...categoryPages, ...toolPages];
+  const softwarePages = SOFTWARE_CLUSTERS.flatMap((cluster) => ([
+    {
+      loc: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)),
+      priority: '0.78',
+      changefreq: 'monthly',
+    },
+    ...cluster.comparisons.map((comparison) => ({
+      loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, comparison.slug)),
+      priority: '0.72',
+      changefreq: 'monthly',
+    })),
+    ...cluster.useCases.map((useCase) => ({
+      loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)),
+      priority: '0.71',
+      changefreq: 'monthly',
+    })),
+  ]));
+
+  const entries = [...staticPages, ...categoryPages, ...toolPages, ...softwarePages];
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.map((entry) => `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${BUILD_DATE}</lastmod>\n    <changefreq>${entry.changefreq}</changefreq>\n    <priority>${entry.priority}</priority>\n  </url>`).join('\n')}\n</urlset>\n`;
 
   fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), sitemap);
@@ -987,6 +1955,10 @@ function writeSitemap(tools, categories) {
 function writeHtmlSitemap(tools, categories) {
   console.log('Generating HTML sitemap page...');
   const renderableCategories = getRenderableCategories(categories);
+  const softwareBlock = `<div class="sitemap-category">
+      <h2><a href="${SOFTWARE_HUB_PATH}">🧭 SEO Software Guides</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${SOFTWARE_CLUSTERS.length} published clusters)</span></h2>
+      <ul>${SOFTWARE_CLUSTERS.map((cluster) => `<li><a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a> - ${escapeHtml(cluster.summary)}</li>`).join('')}</ul>
+    </div>`;
   const categoryBlocks = renderableCategories.map(cat => {
     const catTools = getCategoryTools(tools, cat.id);
     return `<div class="sitemap-category">
@@ -1007,6 +1979,7 @@ function writeHtmlSitemap(tools, categories) {
         <p>Browse every free online tool on Tooliest, organized by category. ${tools.length} tools across ${renderableCategories.length} categories — all free, all browser-based.</p>
       </div>
       <div class="tool-content-sections">
+        ${softwareBlock}
         ${categoryBlocks}
       </div>
     </div>
@@ -1047,12 +2020,19 @@ function writeHomePage(tools, categories) {
   console.log('Generating pre-rendered index.html...');
   const renderableCategories = getRenderableCategories(categories);
   const featuredTools = tools.slice(0, 18);
+  const featuredSoftwareGuides = SOFTWARE_CLUSTERS.slice(0, 3);
 
   const categoryTabsHtml = renderableCategories.map(cat =>
     `<a href="${getCategoryPath(cat.id)}" class="category-tab">${cat.icon} ${escapeHtml(cat.name)} <span class="tab-count">${cat.count}</span></a>`
   ).join('');
 
   const toolCardsHtml = featuredTools.map(tool => renderStaticToolCard(tool, categories)).join('');
+  const softwareCardsHtml = renderSoftwareGuideCards(featuredSoftwareGuides, (cluster) => `<article class="guide-card">
+      <span class="guide-card-eyebrow">SEO software guide</span>
+      <h3><a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a></h3>
+      <p>${escapeHtml(cluster.summary)}</p>
+      <div class="guide-chip-row">${cluster.keywords.slice(0, 3).map((keyword) => `<span class="guide-chip">${escapeHtml(keyword)}</span>`).join('')}</div>
+    </article>`);
 
   const structuredData = [
     {
@@ -1130,6 +2110,14 @@ function writeHomePage(tools, categories) {
       </div>
     </section>
     <section class="categories-section"><div class="category-tabs" id="category-tabs">${categoryTabsHtml}</div></section>
+    <section class="tools-section">
+      <div class="tool-content-section">
+        <h2>SEO software buying guides</h2>
+        <p>If you are comparing SEO software instead of just looking for a browser tool, we now have editorial guides for Semrush, Ahrefs, Screaming Frog, and the next cluster of tools we recommend evaluating.</p>
+        ${softwareCardsHtml}
+        <p style="margin-top:16px"><a href="${SOFTWARE_HUB_PATH}">Browse the full SEO software hub</a></p>
+      </div>
+    </section>
     <section class="tools-section"><div class="tools-grid" id="tools-grid">${toolCardsHtml}</div></section>
   </main>`;
 
@@ -1166,6 +2154,7 @@ async function build() {
   writeToolPages(tools, categories);
   writeLegacyToolPages(tools);
   writeCategoryPages(tools, categories);
+  writeSoftwareContentPages();
   writeHtmlSitemap(tools, categories);
   writeSitemap(tools, categories);
   console.log('Build complete.');

@@ -358,6 +358,72 @@
 /inflation-calculator
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
+/software
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/semrush
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/semrush/vs-ahrefs
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/semrush/vs-se-ranking
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/semrush/vs-similarweb
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/semrush/for-agencies
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/semrush/for-content-planning
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/semrush/for-local-seo
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/screaming-frog
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/screaming-frog/vs-sitebulb
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/screaming-frog/vs-semrush-site-audit
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/screaming-frog/vs-ahrefs-site-audit
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/screaming-frog/for-broken-links
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/screaming-frog/for-site-migrations
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/screaming-frog/for-metadata-and-canonicals
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/ahrefs
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/ahrefs/vs-semrush
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/ahrefs/vs-moz-pro
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/ahrefs/vs-mangools
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/ahrefs/for-beginners
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/ahrefs/for-low-competition-keywords
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/software/ahrefs/for-saas-seo
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
 /tool/*
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
