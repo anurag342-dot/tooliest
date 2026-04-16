@@ -12,6 +12,7 @@
 
   const CONSENT_KEY = 'tooliest_cookie_consent';
   const CONSENT_VERSION = '2';
+  let releaseBannerFocus = null;
 
   // --- Google Consent Mode v2: set defaults as early as possible ---
   window.dataLayer = window.dataLayer || [];
@@ -74,6 +75,50 @@
     } catch (e) { /* storage not available */ }
   }
 
+  function getFocusableElements(root) {
+    if (!root) return [];
+    return Array.from(root.querySelectorAll('a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+      .filter((element) => !element.hasAttribute('hidden') && element.getAttribute('aria-hidden') !== 'true');
+  }
+
+  function activateBannerFocusTrap(banner) {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const handleKeydown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        handleReject();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = getFocusableElements(banner);
+      if (!focusable.length) {
+        event.preventDefault();
+        banner.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    banner.addEventListener('keydown', handleKeydown);
+    requestAnimationFrame(() => {
+      const focusable = getFocusableElements(banner);
+      (focusable[0] || banner).focus();
+    });
+
+    return function releaseFocusTrap() {
+      banner.removeEventListener('keydown', handleKeydown);
+      previousFocus?.focus?.();
+    };
+  }
+
   function bindBannerActions() {
     const banner = document.getElementById('cookie-banner');
     if (!banner || banner.dataset.bound === 'true') return;
@@ -86,6 +131,8 @@
   function hideBanner() {
     const banner = document.getElementById('cookie-banner');
     document.body.classList.remove('cookie-banner-open');
+    releaseBannerFocus?.();
+    releaseBannerFocus = null;
     if (banner) {
       banner.classList.remove('banner-visible');
       banner.classList.add('banner-hidden');
@@ -115,6 +162,11 @@
       document.body.classList.add('cookie-banner-open');
       banner.classList.remove('banner-hidden', 'banner-visible');
       banner.setAttribute('aria-hidden', 'false');
+      banner.setAttribute('role', 'dialog');
+      banner.setAttribute('aria-modal', 'true');
+      banner.tabIndex = -1;
+      releaseBannerFocus?.();
+      releaseBannerFocus = activateBannerFocusTrap(banner);
 
       // Animate in
       requestAnimationFrame(() => {

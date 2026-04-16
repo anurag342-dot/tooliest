@@ -93,9 +93,10 @@ const ToolRenderers = {
         const words = t.trim() ? t.trim().split(/\s+/).length : 0;
         const chars = t.length;
         const charsNoSpace = t.replace(/\s/g, '').length;
-        const sentences = t.trim() ? (t.match(/[.!?]+/g) || []).length || (t.trim() ? 1 : 0) : 0;
+        const sentenceBreaks = t.match(/(?:[.!?…]+|;+(?=\s|$)|(?:--|—)+(?=\s+[A-Z0-9]))/g);
+        const sentences = t.trim() ? (sentenceBreaks || []).length || 1 : 0;
         const paragraphs = t.trim() ? t.split(/\n\s*\n/).filter(p => p.trim()).length : 0;
-        const readTime = Math.max(1, Math.ceil(words / 200));
+        const readTime = words === 0 ? 0 : Math.max(1, Math.ceil(words / 200));
         document.getElementById('wc-stats').innerHTML = [
           ['Words', words], ['Characters', chars], ['No Spaces', charsNoSpace],
           ['Sentences', sentences], ['Paragraphs', paragraphs], ['Read Time', readTime + ' min']
@@ -254,7 +255,11 @@ const ToolRenderers = {
           else if (type === 'url') r = encode ? encodeURIComponent(t) : decodeURIComponent(t);
           else if (type === 'html') {
             if (encode) { const d = document.createElement('div'); d.textContent = t; r = d.innerHTML; }
-            else { const d = document.createElement('div'); d.innerHTML = t; r = d.textContent; }
+            else {
+              // [TOOLIEST AUDIT] Decode HTML entities without touching live DOM via innerHTML.
+              const doc = new DOMParser().parseFromString(t, 'text/html');
+              r = doc.body.textContent || '';
+            }
           }
           else if (type === 'binary') r = encode ? t.split('').map(c => c.charCodeAt(0).toString(2).padStart(8,'0')).join(' ') : t.split(' ').map(b => String.fromCharCode(parseInt(b,2))).join('');
           else if (type === 'hex') r = encode ? t.split('').map(c => c.charCodeAt(0).toString(16).padStart(2,'0')).join(' ') : t.split(' ').map(h => String.fromCharCode(parseInt(h,16))).join('');
@@ -279,17 +284,25 @@ const ToolRenderers = {
         <div class="flex gap-2 mb-4"><button class="btn btn-primary" id="mt-gen">✨ Generate Meta Tags</button><button class="btn btn-secondary" id="mt-ai">🤖 AI Suggest Description</button></div>
         <div class="input-group"><label>Generated HTML</label><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><button class="copy-btn hidden" id="copy-btn">Copy</button></div></div></div>`;
       document.getElementById('mt-gen').addEventListener('click', () => {
-        const title = document.getElementById('mt-title').value || 'Untitled';
-        const desc = document.getElementById('mt-desc').value || '';
-        const kw = document.getElementById('mt-keywords').value || '';
-        const url = document.getElementById('mt-url').value || '';
-        const author = document.getElementById('mt-author').value || '';
-        let html = `<!-- Primary Meta Tags -->\n<title>${title}</title>\n<meta name="title" content="${title}">\n<meta name="description" content="${desc}">`;
-        if (kw) html += `\n<meta name="keywords" content="${kw}">`;
-        if (author) html += `\n<meta name="author" content="${author}">`;
-        html += `\n\n<!-- Open Graph / Facebook -->\n<meta property="og:type" content="website">\n<meta property="og:title" content="${title}">\n<meta property="og:description" content="${desc}">`;
-        if (url) html += `\n<meta property="og:url" content="${url}">`;
-        html += `\n\n<!-- Twitter -->\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="${title}">\n<meta name="twitter:description" content="${desc}">`;
+        const titleValue = document.getElementById('mt-title').value || 'Untitled';
+        const descValue = document.getElementById('mt-desc').value || '';
+        const keywordsValue = document.getElementById('mt-keywords').value || '';
+        const urlValue = document.getElementById('mt-url').value || '';
+        const authorValue = document.getElementById('mt-author').value || '';
+        const safeTitleText = ToolRenderers.escapeHtml(titleValue);
+        const safeTitleAttr = ToolRenderers.escapeAttr(titleValue);
+        const safeDescAttr = ToolRenderers.escapeAttr(descValue);
+        const safeKeywordsAttr = ToolRenderers.escapeAttr(keywordsValue);
+        const safeUrlAttr = ToolRenderers.escapeAttr(urlValue);
+        const safeAuthorAttr = ToolRenderers.escapeAttr(authorValue);
+
+        // [TOOLIEST AUDIT] Escape all user-provided values before building preview markup.
+        let html = `<!-- Primary Meta Tags -->\n<title>${safeTitleText}</title>\n<meta name="title" content="${safeTitleAttr}">\n<meta name="description" content="${safeDescAttr}">`;
+        if (keywordsValue) html += `\n<meta name="keywords" content="${safeKeywordsAttr}">`;
+        if (authorValue) html += `\n<meta name="author" content="${safeAuthorAttr}">`;
+        html += `\n\n<!-- Open Graph / Facebook -->\n<meta property="og:type" content="website">\n<meta property="og:title" content="${safeTitleAttr}">\n<meta property="og:description" content="${safeDescAttr}">`;
+        if (urlValue) html += `\n<meta property="og:url" content="${safeUrlAttr}">`;
+        html += `\n\n<!-- Twitter -->\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="${safeTitleAttr}">\n<meta name="twitter:description" content="${safeDescAttr}">`;
         const out = document.getElementById('tool-output'); const btn = document.getElementById('copy-btn');
         out.classList.remove('empty'); out.textContent = html; btn.classList.remove('hidden'); out.appendChild(btn);
       });
@@ -460,10 +473,60 @@ const ToolRenderers = {
         const vals = {};
         (fields[type]||[]).forEach(([id]) => vals[id] = document.getElementById('sf-'+id)?.value || '');
         let schema = {'@context': 'https://schema.org'};
-        if (type === 'Article') Object.assign(schema, {'@type':'Article', headline: vals.headline, author: {'@type':'Person', name: vals.author}, datePublished: vals.datePublished, description: vals.description, url: vals.url});
-        else if (type === 'FAQPage') { schema['@type'] = 'FAQPage'; schema.mainEntity = []; for (let i = 1; i <= 3; i++) if (vals['q'+i]) schema.mainEntity.push({'@type':'Question', name: vals['q'+i], acceptedAnswer: {'@type':'Answer', text: vals['a'+i]}}); }
-        else if (type === 'Product') Object.assign(schema, {'@type':'Product', name: vals.name, description: vals.description, brand: {'@type':'Brand', name: vals.brand}, offers: {'@type':'Offer', price: vals.price, priceCurrency: vals.currency || 'USD'}});
-        else Object.assign(schema, {'@type': type, ...vals});
+        if (type === 'Article') {
+          Object.assign(schema, {
+            '@type': 'Article',
+            headline: vals.headline,
+            author: { '@type': 'Person', name: vals.author },
+            datePublished: vals.datePublished,
+            description: vals.description,
+            url: vals.url,
+          });
+        } else if (type === 'FAQPage') {
+          schema['@type'] = 'FAQPage';
+          schema.mainEntity = [];
+          for (let i = 1; i <= 3; i++) {
+            if (vals['q' + i]) {
+              schema.mainEntity.push({
+                '@type': 'Question',
+                name: vals['q' + i],
+                acceptedAnswer: { '@type': 'Answer', text: vals['a' + i] },
+              });
+            }
+          }
+        } else if (type === 'Product') {
+          Object.assign(schema, {
+            '@type': 'Product',
+            name: vals.name,
+            description: vals.description,
+            brand: { '@type': 'Brand', name: vals.brand },
+            offers: { '@type': 'Offer', price: vals.price, priceCurrency: vals.currency || 'USD' },
+          });
+        } else if (type === 'Organization') {
+          Object.assign(schema, {
+            '@type': 'Organization',
+            name: vals.name,
+            url: vals.url,
+            logo: vals.logo,
+            description: vals.description,
+          });
+        } else if (type === 'LocalBusiness') {
+          Object.assign(schema, {
+            '@type': 'LocalBusiness',
+            name: vals.name,
+            address: vals.address,
+            telephone: vals.phone,
+            url: vals.url,
+          });
+        } else if (type === 'Person') {
+          Object.assign(schema, {
+            '@type': 'Person',
+            name: vals.name,
+            jobTitle: vals.jobTitle,
+            url: vals.url,
+            email: vals.email,
+          });
+        }
         const json = JSON.stringify(schema, null, 2);
         const wrapped = `<script type="application/ld+json">\n${json}\n</script>`;
         const out = document.getElementById('tool-output'); const btn = document.getElementById('copy-btn');

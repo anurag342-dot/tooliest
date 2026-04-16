@@ -16,7 +16,14 @@ const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260416v11';
 function safeLocalGet(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
-    return raw !== null ? JSON.parse(raw) : fallback;
+    if (raw === null) return fallback;
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      // [TOOLIEST AUDIT] Surface corrupted localStorage values instead of failing silently.
+      console.warn(`[Tooliest] Failed to parse localStorage key "${key}":`, e);
+      return fallback;
+    }
   } catch (e) {
     return fallback;
   }
@@ -232,6 +239,62 @@ const App = {
     if (shortcutButton) {
       shortcutButton.textContent = showHints ? 'View Shortcuts' : 'Desktop Shortcut Tips';
     }
+  },
+
+  getFocusableElements(root) {
+    if (!root) return [];
+    return Array.from(root.querySelectorAll('a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+      .filter((element) => !element.hasAttribute('hidden') && element.getAttribute('aria-hidden') !== 'true');
+  },
+
+  activateOverlayFocusTrap(overlay, panel, onDismiss) {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusPanel = () => {
+      const focusable = this.getFocusableElements(panel);
+      (focusable[0] || panel)?.focus();
+    };
+    const handleKeydown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onDismiss();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = this.getFocusableElements(panel);
+      if (!focusable.length) {
+        event.preventDefault();
+        panel?.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    overlay.addEventListener('keydown', handleKeydown);
+    requestAnimationFrame(focusPanel);
+
+    return () => {
+      overlay.removeEventListener('keydown', handleKeydown);
+      previousFocus?.focus?.();
+    };
+  },
+
+  dismissManagedOverlay(overlayId) {
+    const overlay = document.getElementById(overlayId);
+    if (!overlay) return false;
+    if (typeof overlay.__tooliestDismiss === 'function') {
+      overlay.__tooliestDismiss();
+    } else {
+      overlay.remove();
+    }
+    return true;
   },
 
   normalizeLegacyHashRoute() {
@@ -697,7 +760,7 @@ const App = {
 
   getCategoriesHTML() {
     const tabs = TOOL_CATEGORIES.map(c =>
-      `<button class="category-tab${c.id === this.currentCategory ? ' active' : ''}" data-category="${c.id}" aria-pressed="${c.id === this.currentCategory}">
+      `<button class="category-tab${c.id === this.currentCategory ? ' active' : ''}" data-category="${c.id}" aria-label="${c.name} category, ${c.count} tool${c.count === 1 ? '' : 's'}" aria-pressed="${c.id === this.currentCategory}">
         <span>${c.icon}</span> ${c.name} <span class="tab-count">${c.count}</span>
       </button>`
     ).join('');
@@ -1162,6 +1225,9 @@ const App = {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'polite');
+    toast.setAttribute('aria-atomic', 'true');
     (document.getElementById('toast-container') || document.body).appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 2500);
@@ -1346,7 +1412,7 @@ const App = {
     const steps = this.getWelcomeTourSteps();
     const overlay = document.createElement('div');
     overlay.id = 'welcome-tour-overlay';
-    overlay.innerHTML = `<div class="tour-panel" role="dialog" aria-modal="true" aria-label="Welcome to Tooliest">
+    overlay.innerHTML = `<div class="tour-panel" role="dialog" aria-modal="true" aria-label="Welcome to Tooliest" tabindex="-1">
       <div class="tour-header">
         <div>
           <h2>Welcome to Tooliest</h2>
@@ -1382,6 +1448,7 @@ const App = {
     const stepEls = Array.from(overlay.querySelectorAll('.tour-step'));
     const dotEls = Array.from(overlay.querySelectorAll('.tour-dot'));
     let activeStep = 0;
+    let releaseFocus = null;
 
     const syncTourState = () => {
       const compact = this.shouldUseCompactTour();
@@ -1417,9 +1484,12 @@ const App = {
 
     const dismiss = () => {
       window.removeEventListener('resize', syncTourState);
+      releaseFocus?.();
       safeLocalSet('tooliest_tour_completed', '1');
       overlay.remove();
     };
+    overlay.__tooliestDismiss = dismiss;
+    releaseFocus = this.activateOverlayFocusTrap(overlay, panel, dismiss);
 
     overlay.addEventListener('click', (event) => {
       if (event.target === overlay) dismiss();
@@ -1588,6 +1658,7 @@ const App = {
     const comparisonRoot = document.getElementById('tool-comparison-root');
     const closeButton = document.getElementById('compare-close-btn');
     const compareTool = TOOLS.find(tool => tool.id === compareToolId);
+    const iframeSandbox = 'allow-same-origin allow-scripts allow-forms allow-downloads';
 
     if (!comparisonRoot || !compareTool) {
       this.toast('Choose a related tool to compare.', 'error');
@@ -1600,14 +1671,14 @@ const App = {
           <strong>${primaryTool.name}</strong>
           <span>Current tool</span>
         </div>
-        <iframe src="${this.getToolPath(primaryTool.id)}?embed=1" title="${primaryTool.name} comparison panel" loading="lazy"></iframe>
+        <iframe src="${this.getToolPath(primaryTool.id)}?embed=1" title="${primaryTool.name} comparison panel" loading="lazy" sandbox="${iframeSandbox}" referrerpolicy="no-referrer"></iframe>
       </div>
       <div class="compare-pane">
         <div class="compare-pane-header">
           <strong>${compareTool.name}</strong>
           <span>Related tool</span>
         </div>
-        <iframe src="${this.getToolPath(compareTool.id)}?embed=1" title="${compareTool.name} comparison panel" loading="lazy"></iframe>
+        <iframe src="${this.getToolPath(compareTool.id)}?embed=1" title="${compareTool.name} comparison panel" loading="lazy" sandbox="${iframeSandbox}" referrerpolicy="no-referrer"></iframe>
       </div>
     </div>`;
     closeButton?.classList.remove('hidden');
@@ -1623,11 +1694,11 @@ const App = {
   // ===== FEAT-03: KEYBOARD SHORTCUTS PANEL =====
   showShortcuts() {
     const existing = document.getElementById('shortcuts-overlay');
-    if (existing) { existing.remove(); return; }
+    if (existing) { this.dismissManagedOverlay('shortcuts-overlay'); return; }
     const showKeyboardShortcuts = this.shouldShowKeyboardShortcutHints();
     const overlay = document.createElement('div');
     overlay.id = 'shortcuts-overlay';
-    overlay.innerHTML = `<div class="shortcuts-panel">
+    overlay.innerHTML = `<div class="shortcuts-panel" role="dialog" aria-modal="true" aria-label="Tooliest keyboard shortcuts" tabindex="-1">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
         <h2 style="font-size:1.2rem;font-weight:700">${showKeyboardShortcuts ? '⌨️ Keyboard Shortcuts' : '⌨️ Desktop Shortcut Tips'}</h2>
         <button id="shortcuts-close" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer">✕</button>
@@ -1646,17 +1717,25 @@ const App = {
         </div>`}
     </div>`;
     document.body.appendChild(overlay);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-    document.getElementById('shortcuts-close')?.addEventListener('click', () => overlay.remove());
+    const panel = overlay.querySelector('.shortcuts-panel');
+    let releaseFocus = null;
+    const dismiss = () => {
+      releaseFocus?.();
+      overlay.remove();
+    };
+    overlay.__tooliestDismiss = dismiss;
+    releaseFocus = this.activateOverlayFocusTrap(overlay, panel, dismiss);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
+    document.getElementById('shortcuts-close')?.addEventListener('click', dismiss);
   },
 
   // ===== FEAT-05: WHAT'S NEW CHANGELOG =====
   showChangelog() {
     const existing = document.getElementById('changelog-overlay');
-    if (existing) { existing.remove(); return; }
+    if (existing) { this.dismissManagedOverlay('changelog-overlay'); return; }
     const overlay = document.createElement('div');
     overlay.id = 'changelog-overlay';
-    overlay.innerHTML = `<div class="changelog-panel">
+    overlay.innerHTML = `<div class="changelog-panel" role="dialog" aria-modal="true" aria-label="Tooliest changelog" tabindex="-1">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
         <h2 style="font-size:1.2rem;font-weight:700">🆕 What's New</h2>
         <button id="changelog-close" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer">✕</button>
@@ -1674,8 +1753,16 @@ const App = {
       `).join('')}
     </div>`;
     document.body.appendChild(overlay);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-    document.getElementById('changelog-close')?.addEventListener('click', () => overlay.remove());
+    const panel = overlay.querySelector('.changelog-panel');
+    let releaseFocus = null;
+    const dismiss = () => {
+      releaseFocus?.();
+      overlay.remove();
+    };
+    overlay.__tooliestDismiss = dismiss;
+    releaseFocus = this.activateOverlayFocusTrap(overlay, panel, dismiss);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
+    document.getElementById('changelog-close')?.addEventListener('click', dismiss);
     safeLocalSet('tooliest_changelog_seen', TOOLIEST_CHANGELOG[0].version);
   },
 };
@@ -1698,14 +1785,15 @@ document.addEventListener('keydown', (e) => {
   }
   // Esc: close overlays
   if (e.key === 'Escape') {
-    document.getElementById('shortcuts-overlay')?.remove();
-    document.getElementById('changelog-overlay')?.remove();
+    if (App.dismissManagedOverlay('shortcuts-overlay')) return;
+    if (App.dismissManagedOverlay('changelog-overlay')) return;
+    if (App.dismissManagedOverlay('welcome-tour-overlay')) return;
     return;
   }
   // Don't trigger letter shortcuts if typing in input fields
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) return;
   if (e.key === '?') { e.preventDefault(); App.showShortcuts(); }
-  if (e.key === 'h' || e.key === 'H') { App.navigate(App.getHomePath()); }
+  if (e.key === 'h' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) { App.navigate(App.getHomePath()); }
   if (e.key === 't' || e.key === 'T') { App.toggleTheme(); }
 });
 

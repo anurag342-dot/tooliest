@@ -80,22 +80,17 @@ const AI = {
       'also': ['additionally', 'furthermore', 'moreover', 'besides', 'likewise'],
     };
     
-    let result = text;
-    const words = text.split(/\b/);
-    
-    result = words.map(word => {
-      const lower = word.toLowerCase().trim();
-      if (synonymMap[lower]) {
-        const syns = synonymMap[lower];
-        const replacement = syns[Math.floor(Math.random() * syns.length)];
-        // Maintain capitalization
-        if (word[0] === word[0].toUpperCase()) {
-          return replacement.charAt(0).toUpperCase() + replacement.slice(1);
-        }
-        return replacement;
+    // [TOOLIEST AUDIT] Replace whole words directly so punctuation stays intact and multi-word synonyms remain valid.
+    let result = text.replace(/\b([A-Za-z]+)\b/g, (word) => {
+      const lower = word.toLowerCase();
+      if (!synonymMap[lower]) return word;
+      const syns = synonymMap[lower];
+      const replacement = syns[Math.floor(Math.random() * syns.length)];
+      if (word[0] === word[0].toUpperCase()) {
+        return replacement.charAt(0).toUpperCase() + replacement.slice(1);
       }
-      return word;
-    }).join('');
+      return replacement;
+    });
     
     // Style adjustments
     if (style === 'formal') {
@@ -180,10 +175,13 @@ const AI = {
       `Why Most People Fail at ${topic} (And How to Succeed)`,
       `${topic} Case Study: Real Results and Lessons Learned`,
     ];
-    
-    // Shuffle and pick
-    const shuffled = templates.sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
+
+    for (let i = templates.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [templates[i], templates[j]] = [templates[j], templates[i]];
+    }
+
+    return templates.slice(0, count);
   },
 
   // Meta Description Writer
