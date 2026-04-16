@@ -2,14 +2,137 @@
 // TOOLIEST.COM — Tool Renderers (All 55 tools)
 // ============================================
 
+const TOOL_RENDERER_CHUNKS = {
+  'renderers2.min.js': [
+    'css-minifier', 'css-beautifier', 'gradient-generator', 'box-shadow-generator',
+    'flexbox-playground', 'css-animation-generator', 'color-picker', 'palette-generator',
+    'contrast-checker', 'hex-to-rgb', 'color-blindness-sim', 'image-compressor',
+    'image-resizer', 'image-cropper', 'image-to-base64', 'base64-to-image',
+    'image-converter',
+  ],
+  'renderers3.min.js': [
+    'json-formatter', 'json-validator', 'json-minifier', 'json-to-csv', 'csv-to-json',
+    'html-minifier', 'html-beautifier', 'html-entity-encoder', 'html-table-generator',
+    'markdown-to-html', 'js-minifier', 'js-beautifier', 'regex-tester', 'js-obfuscator',
+    'unit-converter', 'temperature-converter', 'number-base-converter', 'timezone-converter',
+    'base64-encoder', 'url-encoder', 'jwt-decoder', 'hash-generator',
+  ],
+  'renderers4.min.js': [
+    'twitter-counter', 'instagram-caption', 'hashtag-generator', 'youtube-thumbnail',
+    'password-security-suite', 'uuid-generator', 'fake-data-generator', 'ai-text-summarizer',
+    'ai-paraphraser', 'ai-email-writer', 'ai-blog-ideas', 'ai-meta-writer',
+    'cron-parser', 'diff-checker', 'sql-formatter', 'chmod-calculator', 'image-exif-stripper',
+  ],
+  'renderers5.min.js': [
+    'loan-mortgage-analyzer', 'compound-interest', 'sip-calculator', 'retirement-calculator',
+    'roi-calculator', 'debt-payoff', 'inflation-calculator', 'percentage-calculator',
+    'age-calculator', 'tip-calculator', 'bmi-calculator',
+  ],
+  'renderers6.min.js': ['audio-converter'],
+};
+
+const TOOL_RENDERER_CHUNK_MAP = Object.entries(TOOL_RENDERER_CHUNKS).reduce((map, [chunkFile, toolIds]) => {
+  toolIds.forEach((toolId) => {
+    map[toolId] = chunkFile;
+  });
+  return map;
+}, {});
+
 const ToolRenderers = {
-  render(toolId, container) {
-    const fn = this.renderers[toolId];
-    if (fn) {
+  rendererChunkMap: TOOL_RENDERER_CHUNK_MAP,
+  loadedRendererChunks: new Set(),
+  loadingRendererChunks: new Map(),
+
+  getSafeErrorMessage(error) {
+    return String(error && error.message ? error.message : error || 'Unknown error')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  },
+
+  renderLoadingState(container, message = 'This tool is loading...') {
+    container.innerHTML = `<div class="tool-workspace-body" style="text-align:center;padding:40px">
+      <p style="font-size:0.9rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;color:var(--text-tertiary)">Loading</p>
+      <p style="color:var(--text-secondary)">${this.escapeHtml(message)}</p>
+    </div>`;
+  },
+
+  renderErrorState(container, error) {
+    const safeMessage = this.getSafeErrorMessage(error);
+    container.innerHTML = `<div class="tool-workspace-body" style="text-align:center;padding:40px">
+      <p style="font-size:0.9rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;color:var(--accent-tertiary)">Error</p>
+      <p style="color:var(--text-secondary);margin-bottom:8px">Something went wrong loading this tool.</p>
+      <p style="color:var(--text-tertiary);font-size:0.85rem">Error: ${safeMessage}</p>
+      <button class="btn btn-secondary" style="margin-top:16px" onclick="location.reload()">Reload Page</button>
+    </div>`;
+  },
+
+  async loadRendererChunk(chunkFile) {
+    if (!chunkFile) return;
+    if (this.loadedRendererChunks.has(chunkFile)) return;
+    if (this.loadingRendererChunks.has(chunkFile)) {
+      await this.loadingRendererChunks.get(chunkFile);
+      return;
+    }
+
+    const version = typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '20260416v12';
+    const chunkPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      // [TOOLIEST AUDIT] Lazy-load non-core renderer chunks so the first render ships a much smaller JS payload.
+      script.src = `/js/${chunkFile}?v=${encodeURIComponent(version)}`;
+      script.async = true;
+      script.dataset.tooliestRendererChunk = chunkFile;
+      script.onload = () => {
+        this.loadedRendererChunks.add(chunkFile);
+        this.loadingRendererChunks.delete(chunkFile);
+        resolve();
+      };
+      script.onerror = () => {
+        this.loadingRendererChunks.delete(chunkFile);
+        reject(new Error(`Failed to load renderer chunk: ${chunkFile}`));
+      };
+      document.head.appendChild(script);
+    });
+
+    this.loadingRendererChunks.set(chunkFile, chunkPromise);
+    await chunkPromise;
+  },
+  async render(toolId, container) {
+    container.dataset.tooliestRendererToolId = toolId;
+    let rendererFn = this.renderers[toolId];
+    const chunkFile = this.rendererChunkMap[toolId];
+
+    if (!rendererFn && chunkFile) {
+      this.renderLoadingState(container);
       try {
-        fn(container);
-        App.setupAutoSave('tool-input', toolId);
+        await this.loadRendererChunk(chunkFile);
       } catch (err) {
+        console.error('[Tooliest] Error loading renderer chunk:', toolId, err);
+        this.renderErrorState(container, err);
+        return;
+      }
+
+      if (!container.isConnected || container.dataset.tooliestRendererToolId !== toolId) {
+        return;
+      }
+      rendererFn = this.renderers[toolId];
+    }
+
+    if (!rendererFn) {
+      this.renderErrorState(container, 'Tool renderer not found.');
+      return;
+    }
+
+    try {
+      rendererFn(container);
+      App.setupAutoSave('tool-input', toolId);
+    } catch (err) {
+      console.error('[Tooliest] Error rendering tool:', toolId, err);
+      this.renderErrorState(container, err);
+    }
+    return;
+    /*
         console.error('[Tooliest] Error rendering tool:', toolId, err);
         const safeMessage = String(err && err.message ? err.message : 'Unknown error')
           .replace(/&/g, '&amp;')
@@ -26,6 +149,7 @@ const ToolRenderers = {
     } else {
       container.innerHTML = '<div class="tool-workspace-body"><p style="color:var(--text-tertiary);text-align:center;padding:40px">This tool is loading...</p></div>';
     }
+    */
   },
 
   // Helper to build standard tool layout

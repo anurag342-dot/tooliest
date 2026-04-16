@@ -1,5 +1,6 @@
-const ASSET_VERSION = '20260416v11';
-const CACHE_NAME = 'tooliest-v29-offline';
+const ASSET_VERSION = '20260416v12';
+// [TOOLIEST AUDIT] Tie the offline cache name to the asset version so old release caches are purged automatically.
+const CACHE_NAME = `tooliest-${ASSET_VERSION}-offline`;
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap';
 const URLS_TO_CACHE = [
   '/',

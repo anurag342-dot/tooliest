@@ -7,8 +7,9 @@ const crypto = require('crypto');
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260416v11';
+const ASSET_VERSION = '20260416v12';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
+const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const GOOGLE_TAG_ID = 'AW-18068794869';
 const GOOGLE_TAG_SNIPPET = `<!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}"></script>
@@ -51,7 +52,7 @@ const ROOT_STATIC_FILE_PATHS = [
   '/sitemap.html',
   '/sitemap.xml',
   '/sw.js',
-  '/bundle.min.js',
+  `/${BUNDLE_OUTPUT_FILE}`,
   '/favicon.svg',
   '/favicon.ico',
   '/favicon-48.png',
@@ -78,7 +79,7 @@ const RESERVED_ROOT_SEGMENTS = new Set([
   'ads.txt',
   'manifest.json',
   'sw.js',
-  'bundle.min.js',
+  BUNDLE_OUTPUT_FILE,
   'css',
   'js',
   'favicon.svg',
@@ -91,18 +92,24 @@ const RESERVED_ROOT_SEGMENTS = new Set([
   'social-card.jpg',
 ]);
 
-const filesToBundle = [
+const CORE_BUNDLE_FILES = [
   'js/app.js',
   'js/tools.js',
   'js/renderers.js',
+  'js/ai.js',
+];
+const LAZY_RENDERER_SOURCE_FILES = [
   'js/renderers2.js',
   'js/renderers3.js',
   'js/renderers4.js',
   'js/renderers5.js',
   'js/renderers6.js',
-  'js/ai.js',
 ];
-const TOOL_RENDERER_SOURCE_FILES = filesToBundle.filter((file) => /^js\/renderers\d*\.js$/.test(file));
+const LAZY_RENDERER_CHUNKS = LAZY_RENDERER_SOURCE_FILES.map((sourceFile) => ({
+  sourceFile,
+  outputFile: sourceFile.replace(/\.js$/, '.min.js'),
+}));
+const TOOL_RENDERER_SOURCE_FILES = ['js/renderers.js', ...LAZY_RENDERER_SOURCE_FILES];
 
 const SOFTWARE_CONTENT_CATEGORIES = [
   {
@@ -620,7 +627,7 @@ function syncStaticPageAssetVersions() {
     // [TOOLIEST AUDIT] Keep static page asset versions aligned with the current build output.
     nextHtml = replaceVersionedAssetReference(nextHtml, CSS_BUNDLE_PATH);
     nextHtml = replaceVersionedAssetReference(nextHtml, '/js/consent.js');
-    nextHtml = replaceVersionedAssetReference(nextHtml, '/bundle.min.js');
+    nextHtml = replaceVersionedAssetReference(nextHtml, `/${BUNDLE_OUTPUT_FILE}`);
     nextHtml = nextHtml.replace(
       /window\.__TOOLIEST_ASSET_VERSION='[^']+'/g,
       `window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}'`
@@ -702,14 +709,82 @@ function getSoftwareContentLastModifiedDate() {
 }
 
 function minifyCSS(css) {
-  return css
-    .replace(/\/\*[\s\S]*?\*\//g, '')       // remove comments
-    .replace(/\s*([{}:;,>~+])\s*/g, '$1')  // remove whitespace around tokens
-    .replace(/;}/g, '}')                    // remove trailing semicolons
-    .replace(/\s{2,}/g, ' ')               // collapse whitespace
-    .replace(/^\s+|\s+$/gm, '')            // trim lines
-    .replace(/\n+/g, '')                    // remove newlines
-    .trim();
+  // [TOOLIEST AUDIT] Minify conservatively so url()/data values keep their internal punctuation untouched.
+  let result = '';
+  let quote = '';
+  let inComment = false;
+  let parenDepth = 0;
+  let pendingSpace = false;
+
+  for (let index = 0; index < css.length; index += 1) {
+    const char = css[index];
+    const nextChar = css[index + 1];
+
+    if (inComment) {
+      if (char === '*' && nextChar === '/') {
+        inComment = false;
+        index += 1;
+      }
+      continue;
+    }
+
+    if (!quote && char === '/' && nextChar === '*') {
+      inComment = true;
+      index += 1;
+      continue;
+    }
+
+    if (quote) {
+      result += char;
+      if (char === '\\' && index + 1 < css.length) {
+        result += css[index + 1];
+        index += 1;
+        continue;
+      }
+      if (char === quote) {
+        quote = '';
+      }
+      continue;
+    }
+
+    if (char === '"' || char === '\'') {
+      if (pendingSpace && !result.endsWith(' ')) {
+        result += ' ';
+      }
+      pendingSpace = false;
+      quote = char;
+      result += char;
+      continue;
+    }
+
+    if (/\s/.test(char)) {
+      if (parenDepth > 0) {
+        result += char;
+      } else if (result && !/[{:;,>~+[(]/.test(result.slice(-1))) {
+        pendingSpace = true;
+      }
+      continue;
+    }
+
+    if (char === '(') {
+      parenDepth += 1;
+    } else if (char === ')') {
+      parenDepth = Math.max(0, parenDepth - 1);
+    }
+
+    if (pendingSpace && !/[{}:;,>~+)]/.test(char) && !result.endsWith(' ')) {
+      result += ' ';
+    }
+    pendingSpace = false;
+
+    if (parenDepth === 0 && /[{}:;,>~+]/.test(char) && result.endsWith(' ')) {
+      result = result.slice(0, -1);
+    }
+
+    result += char;
+  }
+
+  return result.replace(/;}/g, '}').trim();
 }
 
 function getToolPath(toolId) {
@@ -1029,7 +1104,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   ${renderCookieBanner()}
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-  <script src="${getVersionedAssetPath('/bundle.min.js')}" defer></script>
+  <script src="${getVersionedAssetPath(`/${BUNDLE_OUTPUT_FILE}`)}" defer></script>
 </body>
 </html>`;
 }
@@ -1811,19 +1886,50 @@ function renderSoftwareUseCasePage(cluster, useCase) {
   });
 }
 
-async function bundleJavascript() {
-  console.log('Bundling JavaScript...');
-  const combinedCode = filesToBundle
-    .filter(file => fs.existsSync(file))
-    .map(file => fs.readFileSync(file, 'utf8'))
-    .join('\n;');
+function getMinifyInputMap(sourceFiles) {
+  return sourceFiles
+    .filter((file) => fs.existsSync(path.join(__dirname, file)))
+    .reduce((inputs, file) => {
+      inputs[file] = fs.readFileSync(path.join(__dirname, file), 'utf8');
+      return inputs;
+    }, {});
+}
 
-  const minified = await minify(combinedCode, {
+async function writeMinifiedJavascript(sourceFiles, outputFile) {
+  const inputs = getMinifyInputMap(sourceFiles);
+  const inputFiles = Object.keys(inputs);
+  if (!inputFiles.length) {
+    throw new Error(`No JavaScript sources found for ${outputFile}`);
+  }
+
+  const normalizedOutputFile = outputFile.replace(/\\/g, '/');
+  const outputPath = path.join(__dirname, outputFile);
+  const sourceMapFile = `${path.posix.basename(normalizedOutputFile)}.map?v=${ASSET_VERSION}`;
+  const minified = await minify(inputs, {
+    compress: true,
+    mangle: true,
     format: { comments: false },
+    sourceMap: {
+      filename: normalizedOutputFile,
+      url: sourceMapFile,
+    },
   });
 
-  fs.writeFileSync('bundle.min.js', minified.code);
-  console.log(`Created bundle.min.js (${(minified.code.length / 1024).toFixed(2)} KB)`);
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, minified.code);
+  if (minified.map) {
+    fs.writeFileSync(`${outputPath}.map`, minified.map);
+  }
+  console.log(`Created ${outputFile} from ${inputFiles.length} source file(s) (${(minified.code.length / 1024).toFixed(2)} KB)`);
+}
+
+async function bundleJavascript() {
+  console.log('Bundling JavaScript...');
+  // [TOOLIEST AUDIT] Ship the SPA core separately from secondary renderer chunks and emit source maps for debugging.
+  await writeMinifiedJavascript(CORE_BUNDLE_FILES, BUNDLE_OUTPUT_FILE);
+  for (const chunk of LAZY_RENDERER_CHUNKS) {
+    await writeMinifiedJavascript([chunk.sourceFile], chunk.outputFile);
+  }
 }
 
 function writeToolPages(tools, categories) {
@@ -1966,7 +2072,7 @@ function renderHeadersFile(tools, categories) {
     '/js/*',
     '  Cache-Control: public, max-age=31536000, immutable',
     '',
-    '/bundle.min.js',
+    `/${BUNDLE_OUTPUT_FILE}`,
     '  Cache-Control: public, max-age=31536000, immutable',
     '',
     '/favicon*',

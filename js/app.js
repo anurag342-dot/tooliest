@@ -10,7 +10,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260416v11';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260416v12';
 
 // Safe localStorage helper — prevents crashes in private browsing or restricted environments
 function safeLocalGet(key, fallback) {
@@ -1022,7 +1022,7 @@ const App = {
     main.innerHTML = this.getToolPageHTML(tool, catName, related, compareCandidates, isEmbed);
     // Render tool UI
     const workspace = document.getElementById('tool-workspace');
-    ToolRenderers.render(toolId, workspace);
+    void ToolRenderers.render(toolId, workspace);
     this.enhanceRuntimeMedia(main, tool);
 
     if (!isEmbed) {
