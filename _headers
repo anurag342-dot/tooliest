@@ -7,7 +7,7 @@
   Permissions-Policy: geolocation=(), microphone=(), camera=()
 
   # Content Security Policy
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src 'self' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; connect-src 'self' https://esm.sh https://unpkg.com https://cdn.jsdelivr.net
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src 'self' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://partner.googleadservices.com https://www.googletagmanager.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'
 
 # Static assets - aggressive caching
 /css/*
@@ -27,6 +27,9 @@
 
 /manifest.json
   Cache-Control: public, max-age=86400
+
+/sw.js
+  Cache-Control: no-cache, no-store
 
 /search
   X-Robots-Tag: noindex, follow
@@ -431,7 +434,7 @@
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
 /sitemap.xml
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=86400
   Content-Type: application/xml
 
 /robots.txt

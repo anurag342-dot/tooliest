@@ -4,13 +4,18 @@ const vm = require('vm');
 const { minify } = require('terser');
 const crypto = require('crypto');
 
+function getBuildEnv(name, fallback) {
+  const value = process.env[name];
+  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260416v12';
+const ASSET_VERSION = '20260417v13';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
-const GOOGLE_TAG_ID = 'AW-18068794869';
+const GOOGLE_TAG_ID = getBuildEnv('GOOGLE_TAG_ID', 'AW-18068794869');
 const GOOGLE_TAG_SNIPPET = `<!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}"></script>
   <script>
@@ -20,12 +25,23 @@ const GOOGLE_TAG_SNIPPET = `<!-- Google tag (gtag.js) -->
 
   gtag('config', '${GOOGLE_TAG_ID}');
   </script>`;
-const ADSENSE_CLIENT = 'ca-pub-3155132462698504';
+const ADSENSE_CLIENT = getBuildEnv('ADSENSE_CLIENT', 'ca-pub-3155132462698504');
 const ADSENSE_SCRIPT_URL = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
 const CONSENT_DEFAULTS_INLINE = `<script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>`;
 const LEGACY_TOOL_PATH_REDIRECT_INLINE = `<script>(function(){var match=window.location.pathname.match(/^\\/tool\\/([^/]+)\\/?$/);if(!match)return;var target='/' + match[1] + (window.location.search||'') + (window.location.hash||'');window.location.replace(target);})();</script>`;
 const ADSENSE_SCRIPT_TAG = `<script>window.addEventListener('load',function(){var s=document.createElement('script');s.src='${ADSENSE_SCRIPT_URL}';s.async=true;s.crossOrigin='anonymous';document.head.appendChild(s);});</script>`;
 const THEME_BOOTSTRAP_INLINE = `<script>try{const savedTheme=localStorage.getItem('tooliest_theme');if(savedTheme==='light'||savedTheme==='dark'){document.documentElement.setAttribute('data-theme',savedTheme);}}catch(_){}</script>`;
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data: https:",
+  "frame-src 'self' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com",
+  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://partner.googleadservices.com https://www.googletagmanager.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net",
+  "object-src 'none'",
+  "base-uri 'self'",
+].join('; ');
 const BRAND_ICON_PATHS = {
   svg: '/favicon.svg',
   png48: '/favicon-48.png',
@@ -2014,6 +2030,10 @@ function writeSoftwareContentPages() {
 
 function renderRedirectsFile(tools, categories) {
   return [
+    '# Canonical host redirects',
+    'http://www.tooliest.com/*    https://tooliest.com/:splat    301!',
+    'https://www.tooliest.com/*    https://tooliest.com/:splat    301!',
+    '',
     '# Legacy tool URLs',
     '/tool/*    /:splat    301!',
     '',
@@ -2063,7 +2083,7 @@ function renderHeadersFile(tools, categories) {
     '  Permissions-Policy: geolocation=(), microphone=(), camera=()',
     '',
     '  # Content Security Policy',
-    "  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src 'self' https://www.googletagmanager.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; connect-src 'self' https://esm.sh https://unpkg.com https://cdn.jsdelivr.net",
+    `  Content-Security-Policy: ${CONTENT_SECURITY_POLICY}`,
     '',
     '# Static assets - aggressive caching',
     '/css/*',
@@ -2083,6 +2103,9 @@ function renderHeadersFile(tools, categories) {
     '',
     '/manifest.json',
     '  Cache-Control: public, max-age=86400',
+    '',
+    '/sw.js',
+    '  Cache-Control: no-cache, no-store',
     '',
     '/search',
     '  X-Robots-Tag: noindex, follow',
@@ -2107,7 +2130,7 @@ function renderHeadersFile(tools, categories) {
     htmlPageCacheRule,
     '',
     '/sitemap.xml',
-    '  Cache-Control: public, max-age=3600',
+    '  Cache-Control: public, max-age=86400',
     '  Content-Type: application/xml',
     '',
     '/robots.txt',
