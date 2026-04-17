@@ -632,6 +632,12 @@ const TOOLS = [
     icon: '📊',
     tags: ['html', 'table', 'generator', 'grid'],
     isAI: false,
+    education: '<strong>HTML tables and when to use them</strong><br>HTML tables are the correct semantic element for displaying tabular data — information with a meaningful row/column relationship. They should <em>not</em> be used for layout (use CSS Grid/Flexbox instead). Accessible tables include <code>&lt;thead&gt;</code>, <code>&lt;th scope="col"&gt;</code>, and a <code>&lt;caption&gt;</code> element for screen-reader clarity.',
+    whyUse: ['Generate HTML table markup instantly without hand-coding', 'Customize rows, columns, headers, and border styles visually', 'Copy paste-ready code into your HTML project'],
+    whoUses: 'Web developers, bloggers, marketing teams, and content managers needing structured data tables without writing raw HTML.',
+    faq: [
+      { q: 'When should I use an HTML table?', a: 'Use HTML tables for tabular data — schedules, comparison charts, pricing tables, or data grids. Avoid tables for page layout; use CSS Grid or Flexbox instead. Semantic tables also improve accessibility for screen readers.' }
+    ],
     meta: { title: 'HTML Table Generator - Create Tables Online Free | Tooliest', desc: 'Generate HTML tables with a visual editor. Set rows, columns, headers, and styling. Copy code instantly.' }
   },
   {
@@ -642,6 +648,12 @@ const TOOLS = [
     icon: '📝',
     tags: ['markdown', 'html', 'convert', 'preview'],
     isAI: false,
+    education: '<strong>Why Markdown?</strong><br>Markdown is a lightweight markup language created by John Gruber in 2004. It is the standard writing format for README files (GitHub), documentation (Docusaurus, MkDocs), blog posts (Ghost, Jekyll), and content management systems. Converting Markdown to HTML is the final step before rendering it in a browser. This converter handles headings, bold, italic, lists, code blocks, tables, and links.',
+    whyUse: ['Convert Markdown to clean HTML for CMS and blog publishing', 'Live preview shows formatted output as you type', 'Handles headings, lists, code blocks, tables, and links'],
+    whoUses: 'Technical writers, developers writing README files, bloggers using static site generators, and content teams managing documentation.',
+    faq: [
+      { q: 'What is Markdown?', a: 'Markdown is a lightweight markup language that uses plain text formatting symbols to add structure — for example, **bold** becomes <strong>bold</strong>, and # Heading 1 becomes <h1>. It is widely used for GitHub READMEs, documentation, and blog posts.' }
+    ],
     meta: { title: 'Markdown to HTML Converter - Convert MD Free | Tooliest', desc: 'Convert Markdown to HTML code online. Live preview with syntax highlighting.' }
   },
 
@@ -667,6 +679,12 @@ const TOOLS = [
     icon: '✨',
     tags: ['javascript', 'beautify', 'format', 'prettify'],
     isAI: false,
+    education: '<strong>Why beautify JavaScript?</strong><br>When JavaScript is minified for production, variable names are shortened and whitespace removed — making it unreadable for debugging. Running minified code through a beautifier restores indentation and line breaks, making logic readable again. This is essential when debugging vendor scripts, analyzing third-party code, or reviewing source map-less production bundles.',
+    whyUse: ['Convert minified or compressed JavaScript back to readable, indented code', 'Debug third-party scripts and vendor libraries by restoring formatting', 'Improve code readability before doing a code review'],
+    whoUses: 'Front-end developers debugging production bundles, security researchers reviewing third-party scripts, and QA engineers analyzing client-side code.',
+    faq: [
+      { q: 'What is the difference between a JS beautifier and a formatter?', a: 'They essentially do the same thing: add consistent indentation, line breaks, and spacing to JavaScript code. "Beautifier" is the traditional term, while "formatter" is used by modern tools like Prettier. Both make code more readable for humans.' }
+    ],
     meta: { title: 'JavaScript Beautifier - Format JS Code Free | Tooliest', desc: 'Beautify and format JavaScript code online. Convert minified JS to readable, indented code.' }
   },
   {
@@ -721,6 +739,12 @@ const TOOLS = [
     icon: '🌡️',
     tags: ['temperature', 'celsius', 'fahrenheit', 'kelvin'],
     isAI: false,
+    education: '<strong>Temperature scales explained</strong><br>There are three main temperature scales: <strong>Celsius (°C)</strong> is the metric standard used by most countries, with 0° as water\'s freezing point and 100° as boiling. <strong>Fahrenheit (°F)</strong> is used primarily in the United States, with 32° freezing and 212° boiling. <strong>Kelvin (K)</strong> is the scientific absolute scale, starting at absolute zero (−273.15°C), and is used in physics, astronomy, and chemistry.',
+    whyUse: ['Convert between Celsius, Fahrenheit, and Kelvin instantly', 'See all three scales simultaneously for full context', 'Works offline — no network request required'],
+    whoUses: 'Students, scientists, travelers, home cooks, and anyone converting temperatures between unit systems.',
+    faq: [
+      { q: 'What is the formula to convert Celsius to Fahrenheit?', a: 'To convert Celsius to Fahrenheit: °F = (°C × 9/5) + 32. For example, 100°C = (100 × 1.8) + 32 = 212°F. To convert back: °C = (°F − 32) × 5/9.' }
+    ],
     meta: { title: 'Temperature Converter - Celsius, Fahrenheit, Kelvin | Tooliest', desc: 'Convert temperatures between Celsius, Fahrenheit, and Kelvin. Free instant temperature converter.' }
   },
   {
@@ -731,6 +755,12 @@ const TOOLS = [
     icon: '🔢',
     tags: ['binary', 'hex', 'octal', 'decimal'],
     isAI: false,
+    education: '<strong>Number bases in computing</strong><br>Computers represent numbers in different bases: <strong>Binary (base 2)</strong> uses only 0 and 1, and is the native language of digital hardware. <strong>Octal (base 8)</strong> was historically used in computing and is still seen in Unix file permissions. <strong>Decimal (base 10)</strong> is the human-standard number system. <strong>Hexadecimal (base 16, 0–9 + A–F)</strong> is widely used in programming for memory addresses, color codes (#FF5733), and bytecodes.',
+    whyUse: ['Convert numbers between binary, octal, decimal, and hexadecimal instantly', 'Essential for debugging low-level code, network addresses, and bitwise operations', 'Shows all bases simultaneously for quick cross-reference'],
+    whoUses: 'Computer science students, embedded systems developers, network engineers, and programmers working with low-level data.',
+    faq: [
+      { q: 'What is hexadecimal used for in programming?', a: 'Hexadecimal (base 16) is used for memory addresses, color codes (e.g. #FF5733 in CSS), machine code, and binary data representation. It is more compact than binary — one hex digit represents exactly 4 binary bits.' }
+    ],
     meta: { title: 'Number Base Converter - Binary, Hex, Octal | Tooliest', desc: 'Convert numbers between binary, decimal, octal, and hexadecimal. Free number base converter tool.' }
   },
   {
@@ -741,6 +771,12 @@ const TOOLS = [
     icon: '🕐',
     tags: ['timezone', 'time', 'convert', 'utc'],
     isAI: false,
+    education: '<strong>Understanding time zones</strong><br>Time zones offset from Coordinated Universal Time (UTC), the world\'s primary time standard. UTC+0 is Greenwich Mean Time (GMT). The United States uses UTC−5 (EST) to UTC−8 (PST). India uses UTC+5:30 (IST), a non-standard 30-minute offset. Some regions also observe Daylight Saving Time (DST), adding an hour during summer months.',
+    whyUse: ['Convert between time zones for scheduling global meetings and calls', 'See current time in any city worldwide', 'Handles Daylight Saving Time automatically'],
+    whoUses: 'Remote teams scheduling cross-timezone meetings, travelers planning itineraries, developers coordinating deployments across regions, and freelancers working with international clients.',
+    faq: [
+      { q: 'What is the difference between UTC and GMT?', a: 'UTC (Coordinated Universal Time) and GMT (Greenwich Mean Time) share the same base offset (UTC+0) but are technically different standards. UTC is the international atomic time standard used for technical purposes, while GMT is a time zone observed in the UK during winter. In practice, they are equivalent for everyday use.' }
+    ],
     meta: { title: 'Time Zone Converter - Convert Times Worldwide | Tooliest', desc: 'Convert times between time zones. Find the time anywhere in the world. Free timezone converter.' }
   },
 
@@ -766,6 +802,12 @@ const TOOLS = [
     icon: '🔗',
     tags: ['url', 'encode', 'decode', 'percent encoding'],
     isAI: false,
+    education: '<strong>URL encoding and percent-encoding</strong><br>URLs can only contain a limited set of ASCII characters. Special characters (spaces, &, =, ?, #) must be percent-encoded — replaced with a % followed by their two-digit hex value. For example, a space becomes %20 and & becomes %26. This is essential when constructing query strings, API parameters, and embedding URLs inside other URLs.',
+    whyUse: ['Encode special characters in URLs for safe HTTP transmission', 'Decode percent-encoded URLs back to readable form', 'Build query strings and API parameters correctly'],
+    whoUses: 'Web developers, API engineers, QA testers, and data analysts constructing and debugging HTTP requests.',
+    faq: [
+      { q: 'What is the difference between encodeURI and encodeURIComponent?', a: 'encodeURI encodes a full URL, leaving characters like / and ? intact. encodeURIComponent encodes a URL component (like a query parameter value), converting / and ? to %2F and %3F. Use encodeURIComponent for individual parameter values to avoid breaking URL structure.' }
+    ],
     meta: { title: 'URL Encoder & Decoder - Encode URLs Online Free | Tooliest', desc: 'Encode and decode URLs online. Convert special characters to percent-encoded format and back.' }
   },
   {
@@ -823,6 +865,12 @@ const TOOLS = [
     icon: '🎂',
     tags: ['age', 'birthday', 'date', 'calculator'],
     isAI: false,
+    education: '<strong>How age is calculated precisely</strong><br>An exact age calculation accounts for leap years, the varying length of months, and whether the current date is before or after the birthday in the current year. "Year difference" alone overcounts by 1 if the birthday hasn\'t occurred yet this year. This calculator returns years, months, and remaining days — and also shows how many days until your next birthday.',
+    whyUse: ['Calculate exact age in years, months, and days', 'Find how many days until your next birthday', 'Useful for form validation, legal age checks, and milestone tracking'],
+    whoUses: 'Parents tracking children\'s development, professionals verifying age eligibility, developers testing date logic, and anyone curious about exact time spans.',
+    faq: [
+      { q: 'How do I calculate my exact age?', a: 'Your exact age in years is the number of full birthday anniversaries that have passed. To get months and days, subtract additional time from the last birthday. For example, born January 15, 2000, on April 17, 2026: you are 26 years, 3 months, and 2 days old.' }
+    ],
     meta: { title: 'Age Calculator - Calculate Exact Age Online | Tooliest', desc: 'Calculate your exact age in years, months, and days. Find days until your next birthday.' }
   },
   {
@@ -833,6 +881,12 @@ const TOOLS = [
     icon: '⚖️',
     tags: ['bmi', 'health', 'weight', 'body mass'],
     isAI: false,
+    education: '<strong>Understanding BMI and its limitations</strong><br>Body Mass Index (BMI) is calculated as weight (kg) ÷ height² (m²). The WHO classifies results as: Underweight (&lt;18.5), Normal (18.5–24.9), Overweight (25–29.9), and Obese (≥30). BMI is a useful screening tool but has known limitations — it does not directly measure body fat and can misclassify muscular individuals as overweight.',
+    whyUse: ['Calculate BMI instantly in both metric (kg/cm) and imperial (lbs/in) units', 'Get WHO health category classification with context', 'Understand BMI as a starting point for health conversations'],
+    whoUses: 'Individuals tracking personal health, healthcare professionals doing initial screenings, and fitness coaches monitoring client progress.',
+    faq: [
+      { q: 'What is a healthy BMI range?', a: 'According to the WHO, a BMI between 18.5 and 24.9 is considered "normal weight." Below 18.5 is underweight, 25–29.9 is overweight, and 30 or above is classified as obese. BMI is a population-level screening metric and should be interpreted alongside other health indicators.' }
+    ],
     meta: { title: 'BMI Calculator - Body Mass Index Calculator | Tooliest', desc: 'Calculate your Body Mass Index (BMI). Get health category classification and weight recommendations.' }
   },
 
@@ -844,6 +898,12 @@ const TOOLS = [
     icon: '💵',
     tags: ['tip', 'restaurant', 'split bill', 'calculator'],
     isAI: false,
+    education: '<strong>Tipping customs around the world</strong><br>Tipping norms vary significantly by country. In the United States, 15–20% is standard for restaurants. In the UK, 10–12.5% is common. In Japan and South Korea, tipping is often considered rude. This calculator handles any tip percentage, splits the bill evenly or by custom amounts, and shows per-person totals including the tip.',
+    whyUse: ['Calculate tip amounts for any tip percentage instantly', 'Split bills evenly between any number of people', 'Shows individual share and total bill at a glance'],
+    whoUses: 'Restaurant diners, travelers navigating foreign tipping customs, event organizers splitting catering costs, and group outing planners.',
+    faq: [
+      { q: 'How much should I tip at a restaurant?', a: 'In the United States, 15% is the minimum for adequate service, 18–20% is standard for good service, and 20%+ is for exceptional service. For a $50 bill: 15% = $7.50, 18% = $9.00, 20% = $10.00.' }
+    ],
     meta: { title: 'Tip Calculator - Calculate Tips & Split Bills | Tooliest', desc: 'Calculate restaurant tips and split bills evenly. Choose tip percentage and number of people.' }
   },
 
@@ -856,6 +916,12 @@ const TOOLS = [
     icon: '🐦',
     tags: ['twitter', 'x', 'character limit', '280'],
     isAI: false,
+    education: '<strong>Twitter/X character counting rules</strong><br>Twitter/X allows 280 characters per post for standard accounts (previously 140). URLs are always counted as 23 characters regardless of actual length. Emojis count as 2 characters. Twitter Blue subscribers can post longer-form content up to 25,000 characters. This counter reflects standard 280-character rules and shows a real-time visual indicator.',
+    whyUse: ['Count characters in real time as you compose your tweet', 'Visual countdown indicator shows when you are approaching the 280-character limit', 'Handles URL (23-char) and emoji (2-char) counting accurately'],
+    whoUses: 'Social media managers, journalists, marketers, and creators crafting optimized posts for Twitter/X.',
+    faq: [
+      { q: 'How many characters does Twitter/X allow?', a: 'Standard Twitter/X accounts can post up to 280 characters per tweet. URLs always count as 23 characters. Emojis count as 2 characters. Twitter Blue subscribers get extended post length up to 25,000 characters.' }
+    ],
     meta: { title: 'Twitter Character Counter - X Post Length Checker | Tooliest', desc: 'Count characters for Twitter/X posts. See remaining characters with visual limit indicator.' }
   },
   {
@@ -866,6 +932,12 @@ const TOOLS = [
     icon: '📷',
     tags: ['instagram', 'caption', 'ai', 'social media'],
     isAI: true,
+    education: '<strong>What makes a great Instagram caption?</strong><br>Top-performing Instagram captions typically open with a hook (a question or surprising fact) within the first 125 characters — since only those characters show without tapping "More." They end with a clear call-to-action (like, comment, follow, link in bio) and include 3–5 relevant hashtags. Emojis add visual personality and increase engagement rates by up to 15%.',
+    whyUse: ['Generate engaging Instagram captions from a simple topic or keyword', 'Get emoji suggestions that match the post mood', 'Multiple tone options: fun, professional, inspirational, or promotional'],
+    whoUses: 'Social media managers, content creators, small business owners, influencers, and anyone who regularly posts to Instagram.',
+    faq: [
+      { q: 'How long should an Instagram caption be?', a: 'Instagram captions can be up to 2,200 characters, but only the first 125 characters show in the feed before the "More" tap. For maximum impact, put your most important message in the first two lines, then expand with details, hashtags, or calls-to-action below.' }
+    ],
     meta: { title: 'Instagram Caption Generator - AI Captions Free | Tooliest', desc: 'Generate engaging Instagram captions with AI. Get emoji suggestions and hashtag ideas.' }
   },
   {
@@ -876,6 +948,12 @@ const TOOLS = [
     icon: '#️⃣',
     tags: ['hashtag', 'social media', 'ai', 'trending'],
     isAI: true,
+    education: '<strong>Hashtag strategy for social media reach</strong><br>Hashtags categorize content and make it discoverable to users following specific topics. On Instagram, the sweet spot is 5–10 highly relevant hashtags — not the maximum 30 (which signals spam). On TikTok, 3–5 niche hashtags outperform broad ones. On LinkedIn, 3–5 professional hashtags are effective. Mix broad (#marketing) with niche (#emailmarketingtips) to balance reach and targeting.',
+    whyUse: ['Generate relevant hashtags for Instagram, TikTok, Twitter, and LinkedIn', "Mix broad and niche hashtags for maximum reach without triggering spam filters", 'Get category-specific hashtag suggestions based on your topic'],
+    whoUses: 'Social media managers, content creators, brand marketers, bloggers, and small business owners growing organic social reach.',
+    faq: [
+      { q: 'How many hashtags should I use on Instagram?', a: 'Instagram\'s own research and creator accounts suggest 3–10 highly relevant hashtags perform better than 30 generic ones. Focus on hashtags with 10K–1M posts for the best balance of discoverability and competition. Avoid banned or overused hashtags.' }
+    ],
     meta: { title: 'Hashtag Generator - AI Social Media Hashtags | Tooliest', desc: 'Generate trending hashtags for social media. AI-powered suggestions for Instagram, Twitter, and TikTok.' }
   },
   {
@@ -886,6 +964,12 @@ const TOOLS = [
     icon: '▶️',
     tags: ['youtube', 'thumbnail', 'preview', 'video'],
     isAI: false,
+    education: '<strong>Why thumbnails matter on YouTube</strong><br>YouTube thumbnails are the #1 factor in click-through rate (CTR), which directly influences YouTube\'s recommendation algorithm. The ideal thumbnail is 1280×720px (16:9 ratio), under 2MB, and uses high-contrast colors, readable text at small sizes, and a human face with expressive emotion (proven to increase clicks by up to 30%). Preview at multiple sizes before uploading.',
+    whyUse: ['Preview thumbnails at actual YouTube search result and suggested video sizes', 'Test how your title, face, and colors appear at small screen sizes', 'Catch readability issues before publishing'],
+    whoUses: 'YouTubers, video marketers, content strategists, and thumbnail designers optimizing video click-through rates.',
+    faq: [
+      { q: 'What is the ideal YouTube thumbnail size?', a: 'YouTube recommends 1280×720 pixels with a 16:9 aspect ratio, under 2MB in JPG, GIF, or PNG format. Always check how it looks at the small card thumbnail size (320×180) — text must remain readable at that scale.' }
+    ],
     meta: { title: 'YouTube Thumbnail Previewer - Test Thumbnails | Tooliest', desc: 'Preview YouTube thumbnails in search results and recommended feeds. Test before uploading.' }
   },
 
@@ -914,6 +998,12 @@ const TOOLS = [
     icon: '🆔',
     tags: ['uuid', 'guid', 'unique id', 'random'],
     isAI: false,
+    education: '<strong>What is a UUID?</strong><br>UUID (Universally Unique Identifier) is a 128-bit identifier standardized by RFC 4122. Version 4 UUIDs are randomly generated and have a collision probability so low it is statistically negligible (1 in 5.3×10³¶ per generated pair). UUIDs are used as primary keys in databases, session tokens, transaction IDs, and anywhere a unique identifier is needed without a central registry.',
+    whyUse: ['Generate cryptographically random UUID v4 identifiers instantly', 'Bulk generate multiple UUIDs at once for batch operations', 'Copy a UUID to clipboard with one click'],
+    whoUses: 'Backend developers, database architects, DevOps engineers, and QA teams needing unique identifiers for records, sessions, and tests.',
+    faq: [
+      { q: 'What is the difference between UUID v1 and UUID v4?', a: 'UUID v1 is generated from the current timestamp and MAC address — it is time-based and can expose when and where it was created. UUID v4 is randomly generated with no traceable information. Use v4 for general-purpose identifiers and v1 only when time-ordering is specifically required.' }
+    ],
     meta: { title: 'UUID Generator - Generate Random UUIDs v4 | Tooliest', desc: 'Generate random UUID v4 identifiers. Create unique IDs for databases, APIs, and applications.' }
   },
   {
@@ -924,6 +1014,12 @@ const TOOLS = [
     icon: '🎭',
     tags: ['fake data', 'mock', 'test data', 'generator'],
     isAI: false,
+    education: '<strong>Why use fake data for testing?</strong><br>Using real user data in development and testing environments is a major GDPR and HIPAA compliance risk. Realistic fake (synthetic) data — with valid-looking names, emails, phone numbers, addresses, and credit card numbers — lets you build and test features without exposing real user information. All data generated by this tool is completely fictional.',
+    whyUse: ['Generate realistic test data for frontend prototypes and database seeding', 'Avoid GDPR compliance risk by never using real user data in development', 'Generate names, emails, addresses, phone numbers, and more in bulk'],
+    whoUses: 'Software developers, QA engineers, data scientists building test datasets, and UX designers prototyping with realistic placeholder content.',
+    faq: [
+      { q: 'Is it legal to use fake data generators?', a: 'Yes. Synthetic test data generators create completely fictional data. The generated names, emails, and addresses do not correspond to real people, making them safe for development, testing, and demonstration purposes without any privacy or compliance risk.' }
+    ],
     meta: { title: 'Fake Data Generator - Generate Test Data Free | Tooliest', desc: 'Generate realistic fake data for testing. Names, emails, addresses, phone numbers, and more.' }
   },
   {
@@ -934,6 +1030,12 @@ const TOOLS = [
     icon: '🥷',
     tags: ['exif', 'metadata', 'remove', 'privacy', 'gps', 'stripper'],
     isAI: false,
+    education: '<strong>What is EXIF metadata and why does it matter?</strong><br>EXIF (Exchangeable Image File Format) data is hidden metadata embedded in photos by cameras and smartphones. It includes GPS coordinates (your exact location when the photo was taken), camera make/model, time and date, exposure settings, and even the device serial number. Sharing photos without stripping EXIF can inadvertently expose where you live, work, or travel.',
+    whyUse: ['Remove GPS coordinates and location data from photos before sharing', 'Strip camera brand/model, date, and device information for privacy', '100% offline processing — your photos never leave your browser'],
+    whoUses: 'Privacy-conscious individuals, journalists protecting sources, activists, travel bloggers, and anyone sharing images publicly online.',
+    faq: [
+      { q: 'Can my GPS location be tracked from a photo?', a: 'Yes. Smartphones embed GPS coordinates in every photo by default unless location access is disabled for the camera app. The exact latitude and longitude of where the photo was taken is stored in the EXIF data and is readable by anyone with the photo file. Stripping EXIF before sharing publicly is a critical privacy step.' }
+    ],
     meta: { title: 'Image EXIF Metadata Stripper - Remove GPS Info For Free | Tooliest', desc: 'Strip EXIF metadata, GPS locations, and camera data from your images 100% locally. Protect your privacy.' }
   },
 
@@ -962,6 +1064,12 @@ const TOOLS = [
     icon: '🔄',
     tags: ['paraphrase', 'rephrase', 'rewrite', 'ai'],
     isAI: true,
+    education: '<strong>What is paraphrasing and when to use it?</strong><br>Paraphrasing rewrites text in different words while preserving the original meaning. It is a fundamental writing skill used for: avoiding plagiarism in academic work, simplifying complex text for a different audience, changing the tone (formal to casual), and refreshing repetitive content. AI paraphrasing tools identify synonyms and restructure sentences while maintaining semantic accuracy.',
+    whyUse: ['Rephrase text in formal, casual, creative, or academic styles', 'Simplify complex passages for a wider audience', 'Refresh repetitive copy without changing the underlying message'],
+    whoUses: 'Students avoiding plagiarism, content writers refreshing copy, marketers adapting tone for different audiences, and non-native speakers improving fluency.',
+    faq: [
+      { q: 'Is AI paraphrasing considered plagiarism?', a: 'Paraphrasing with proper attribution is not plagiarism. However, submitting AI-paraphrased content without attribution in academic contexts may violate your institution\'s academic integrity policy. Always cite the original source and check your school or organization\'s guidelines on AI-assisted writing.' }
+    ],
     meta: { title: 'AI Paraphraser - Rephrase Text Free Online | Tooliest', desc: 'Paraphrase text with AI. Rephrase in formal, casual, or creative styles while keeping meaning intact.' }
   },
   {
@@ -972,6 +1080,12 @@ const TOOLS = [
     icon: '✉️',
     tags: ['email', 'write', 'ai', 'professional'],
     isAI: true,
+    education: '<strong>The anatomy of an effective professional email</strong><br>Professional emails follow a clear structure: a specific subject line (not "Hello"), a personalized opener, a concise body with one clear purpose per email, and a specific call-to-action. The average professional receives 121 emails per day — getting to the point quickly and using a clear subject line are the two highest-impact improvements.',
+    whyUse: ['Generate professional email drafts from a single sentence prompt', 'Choose from multiple tones: formal, friendly, assertive, or apologetic', 'Overcome writer\'s block for difficult emails like complaints, follow-ups, and negotiations'],
+    whoUses: 'Business professionals, customer support teams, salespeople, recruiters, and anyone who needs to send professional emails quickly.',
+    faq: [
+      { q: 'How do I write a professional email?', a: 'A strong professional email has: (1) a specific subject line summarizing the request, (2) a greeting with the recipient\'s name, (3) a brief opening that states your purpose, (4) a concise body — 3–4 sentences maximum, (5) a clear call-to-action, and (6) a professional sign-off like "Best regards" or "Sincerely."' }
+    ],
     meta: { title: 'AI Email Writer - Generate Professional Emails | Tooliest', desc: 'Write professional emails with AI. Choose tone, style, and purpose. Generate emails from simple prompts.' }
   },
   {
@@ -982,6 +1096,12 @@ const TOOLS = [
     icon: '💡',
     tags: ['blog', 'ideas', 'ai', 'content'],
     isAI: true,
+    education: '<strong>How to generate blog ideas that rank</strong><br>The best blog ideas sit at the intersection of what your audience searches for and what you can write authoritatively about. SEO-driven ideas target specific long-tail keywords (e.g., "best JSON formatter for developers" rather than just "JSON"). Content-driven ideas answer common questions directly ("how to," "what is," "why does"). This generator combines both approaches.',
+    whyUse: ['Generate blog post ideas and headline variations from any keyword or topic', 'Get content angles like tutorials, listicles, comparisons, and opinion pieces', 'Break through content blocks instantly with AI-powered brainstorming'],
+    whoUses: 'Content marketers, bloggers, SEO specialists, digital agencies, and founders building content-driven growth strategies.',
+    faq: [
+      { q: 'How do I come up with blog post ideas?', a: 'Effective blog ideas come from: (1) keyword research (what questions do people search?), (2) competitor gaps (what topics do they miss?), (3) customer questions (what do your users ask repeatedly?), and (4) trending topics in your niche. This generator combines all four angles to surface actionable ideas.' }
+    ],
     meta: { title: 'AI Blog Idea Generator - Content Ideas Free | Tooliest', desc: 'Generate blog post ideas from any topic. Get outlines, title suggestions, and content angles with AI.' }
   },
   {
@@ -992,6 +1112,12 @@ const TOOLS = [
     icon: '🏷️',
     tags: ['meta description', 'seo', 'ai', 'google'],
     isAI: true,
+    education: '<strong>What is a meta description and why does it matter?</strong><br>A meta description is the 150–160 character summary shown below your page title in Google search results. While it is not a direct ranking factor, it strongly influences click-through rate (CTR). A compelling meta description with the target keyword and a clear value proposition can improve CTR by 5–10%, effectively increasing your traffic without changing your ranking position.',
+    whyUse: ['Generate compelling meta descriptions that improve search click-through rates', 'Ensure descriptions stay within the 150–160 character Google limit', 'Include primary keywords naturally for both SEO and user relevance'],
+    whoUses: 'SEO specialists, content marketers, bloggers, web developers, and anyone optimizing pages for Google search performance.',
+    faq: [
+      { q: 'How long should a meta description be?', a: 'Google typically displays meta descriptions up to 155–160 characters on desktop and around 120 characters on mobile. Write descriptions that are 140–155 characters to stay within limits on both devices. Include your primary keyword and a clear call-to-action ("Learn how," "Get started," "Try free").' }
+    ],
     meta: { title: 'AI Meta Description Generator - SEO Optimized | Tooliest', desc: 'Generate SEO-optimized meta descriptions with AI. Create compelling descriptions for better CTR.' }
   },
 
@@ -1093,6 +1219,12 @@ const TOOLS = [
     icon: '💹',
     tags: ['sip', 'mutual fund', 'investment', 'returns'],
     isAI: true,
+    education: '<strong>What is a SIP and how does it work?</strong><br>A Systematic Investment Plan (SIP) is a disciplined investment method where a fixed amount is invested in mutual funds at regular intervals (monthly, weekly, or quarterly). SIPs harness <em>rupee cost averaging</em> — buying more units when prices are low and fewer when high — reducing the impact of market volatility. The long-term compound growth from consistent small investments is the core power of SIP.',
+    whyUse: ['Calculate total returns and wealth growth from monthly SIP contributions', 'See a visual chart comparing invested amount vs. returns over time', 'Compare different contribution amounts and expected return rates'],
+    whoUses: 'Retail investors, financial planners, millennials building wealth through mutual funds, and anyone planning disciplined long-term investing.',
+    faq: [
+      { q: 'What is rupee cost averaging in SIP?', a: 'Rupee cost averaging (or dollar cost averaging) is the practice of investing a fixed amount at regular intervals regardless of market price. When prices are low, you buy more units; when prices are high, you buy fewer. Over time, this lowers the average cost per unit compared to investing a lump sum at market peak.' }
+    ],
     meta: { title: 'SIP Calculator - Systematic Investment Plan Returns | Tooliest', desc: 'Calculate SIP returns and wealth growth. Visual chart showing invested amount vs returns over time.' }
   },
   {
@@ -1103,6 +1235,12 @@ const TOOLS = [
     icon: '🏖️',
     tags: ['retirement', 'pension', 'savings', 'financial planning'],
     isAI: true,
+    education: '<strong>The 4% retirement rule explained</strong><br>The 4% rule (Bengen\'s rule) suggests that retirees can withdraw 4% of their retirement savings annually with a high probability of not running out of money over a 30-year retirement. For example, $1M in retirement savings = $40,000/year. However, with longer life expectancies and lower bond yields, many financial planners now recommend a 3–3.5% withdrawal rate.',
+    whyUse: ['Project retirement savings based on current contributions and expected returns', 'Adjust for inflation to see real purchasing power at retirement', 'Calculate how much you need to save to reach your retirement income goal'],
+    whoUses: 'Individuals planning retirement, financial advisors running client scenarios, and anyone wondering if they are on track to retire comfortably.',
+    faq: [
+      { q: 'How much do I need to retire?', a: 'A common rule of thumb is to save 25× your desired annual retirement income (the "25x rule," based on the 4% withdrawal rate). For $50,000/year of retirement income, you need $1.25M. This varies with your expected lifestyle, health costs, Social Security income, and investment returns.' }
+    ],
     meta: { title: 'Retirement Calculator - Retirement Savings Planner | Tooliest', desc: 'Plan your retirement savings. Calculate how much you need to save with inflation-adjusted projections.' }
   },
   {
@@ -1113,6 +1251,12 @@ const TOOLS = [
     icon: '📊',
     tags: ['roi', 'return on investment', 'profit', 'loss'],
     isAI: true,
+    education: '<strong>Return on Investment (ROI) explained</strong><br>ROI measures the profitability of an investment relative to its cost. The formula is ROI = (Net Profit ÷ Cost of Investment) × 100. For example, investing $10,000 and receiving $13,000 back gives ROI = (3,000 ÷ 10,000) × 100 = 30%. Annualized ROI adjusts for time, enabling fair comparison between investments held for different durations.',
+    whyUse: ['Calculate ROI and annualized returns for any investment', 'Compare multiple investments with different time horizons fairly', 'See visual profit/loss charts with break-even analysis'],
+    whoUses: 'Business owners evaluating marketing campaigns, investors comparing asset returns, startup founders measuring product ROI, and finance students.',
+    faq: [
+      { q: 'What is a good ROI?', a: 'A "good" ROI depends on the investment type and risk level. The S\u0026P 500 averages ~10% annually (historical). Real estate averages 8–12% including appreciation. Marketing campaigns targeting 300–500% ROI on ad spend. For individual stock picks, beating the S\u0026P 500 index is considered outperformance.' }
+    ],
     meta: { title: 'ROI Calculator - Return on Investment Calculator | Tooliest', desc: 'Calculate ROI and annualized returns. Compare investments with visual charts and profit analysis.' }
   },
   {
@@ -1123,6 +1267,12 @@ const TOOLS = [
     icon: '🎯',
     tags: ['debt', 'payoff', 'snowball', 'avalanche'],
     isAI: true,
+    education: '<strong>Snowball vs. Avalanche debt payoff methods</strong><br>The <strong>Debt Snowball</strong> method pays off the smallest debt first, then rolls that payment to the next — creating psychological momentum. The <strong>Debt Avalanche</strong> method pays the highest-interest debt first, minimizing total interest paid mathematically. Avalanche saves more money; Snowball is better for motivation. This calculator shows both strategies with a timeline and total interest comparison.',
+    whyUse: ['Compare debt snowball and avalanche payoff strategies side by side', 'See your exact debt-free date and total interest saved', 'Create a realistic payoff plan with a visual monthly timeline'],
+    whoUses: 'Individuals with credit card debt, student loans, or multiple debts, personal finance enthusiasts, and financial coaches guiding debt reduction plans.',
+    faq: [
+      { q: 'What is the debt snowball method?', a: 'The debt snowball method prioritizes paying off your smallest debt first while making minimum payments on larger debts. Once the smallest is paid off, you roll its payment amount to the next smallest debt. This builds psychological momentum — the feeling of eliminating accounts motivates continued progress.' }
+    ],
     meta: { title: 'Debt Payoff Calculator - Get Debt Free | Tooliest', desc: 'Plan your debt payoff with snowball & avalanche methods. See your debt-free date and total interest saved.' }
   },
   // ===== AUDIO TOOLS =====
@@ -1146,6 +1296,12 @@ const TOOLS = [
     icon: '📉',
     tags: ['inflation', 'purchasing power', 'cpi', 'cost of living'],
     isAI: true,
+    education: '<strong>How inflation erodes purchasing power</strong><br>Inflation is the rate at which prices rise over time, measured by the Consumer Price Index (CPI). At 3% annual inflation, $100 today will only buy $74 worth of goods in 10 years. This is why investing is necessary to preserve wealth — savings accounts earning below the inflation rate lose purchasing power in real terms. Central banks target 2% inflation as the optimal balance between growth and stability.',
+    whyUse: ['Calculate how much purchasing power your money loses to inflation over time', 'Find the inflation-adjusted equivalent of a historical price today', 'Plan salary negotiations and investment returns factoring in real inflation'],
+    whoUses: 'Personal finance planners, investors calculating real returns, HR professionals adjusting salaries, policy analysts, and economists.',
+    faq: [
+      { q: 'What is the current inflation rate?', a: 'Inflation rates change frequently. In the United States, the Federal Reserve targets a 2% annual inflation rate. From 2021–2023, the US experienced peak inflation of 8–9% (the highest since the 1980s) before cooling back toward the 2–3% range. Check the US Bureau of Labor Statistics (BLS) for the most current CPI data.' }
+    ],
     meta: { title: 'Inflation Calculator - Purchasing Power Calculator | Tooliest', desc: 'Calculate how inflation affects your money over time. See purchasing power decline with visual charts.' }
   },
 ];

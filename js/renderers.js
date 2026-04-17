@@ -58,13 +58,23 @@ const ToolRenderers = {
     </div>`;
   },
 
-  renderErrorState(container, error) {
+  renderErrorState(container, error, toolId) {
     const safeMessage = this.getSafeErrorMessage(error);
+    // [TOOLIEST AUDIT WARN-02] Log error details to console for easier diagnosis.
+    if (toolId) console.error('[Tooliest] Tool render failed:', toolId, error);
+    const repoUrl = typeof TOOLIEST_REPOSITORY_URL !== 'undefined' ? TOOLIEST_REPOSITORY_URL : 'https://github.com/anurag342-dot/tooliest';
+    const issueTitle = encodeURIComponent(`Tool render error${toolId ? ': ' + toolId : ''}`);
+    const issueBody = encodeURIComponent(`**Tool:** ${toolId || 'unknown'}\n**Error:** ${safeMessage}\n**Steps to reproduce:** [describe what you did]\n**Browser:** [your browser and version]`);
+    const bugUrl = `${repoUrl}/issues/new?title=${issueTitle}&body=${issueBody}`;
     container.innerHTML = `<div class="tool-workspace-body" style="text-align:center;padding:40px">
-      <p style="font-size:0.9rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;color:var(--accent-tertiary)">Error</p>
+      <p style="font-size:1.6rem;margin-bottom:8px">⚠️</p>
+      <p style="font-size:0.9rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;color:var(--accent-tertiary)">Tool Error</p>
       <p style="color:var(--text-secondary);margin-bottom:8px">Something went wrong loading this tool.</p>
-      <p style="color:var(--text-tertiary);font-size:0.85rem">Error: ${safeMessage}</p>
-      <button class="btn btn-secondary" style="margin-top:16px" onclick="location.reload()">Reload Page</button>
+      <p style="color:var(--text-tertiary);font-size:0.85rem;margin-bottom:20px">Error: ${safeMessage}</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="location.reload()">↺ Reload Page</button>
+        <a href="${bugUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="text-decoration:none">🐛 Report Bug</a>
+      </div>
     </div>`;
   },
 
@@ -109,7 +119,7 @@ const ToolRenderers = {
         await this.loadRendererChunk(chunkFile);
       } catch (err) {
         console.error('[Tooliest] Error loading renderer chunk:', toolId, err);
-        this.renderErrorState(container, err);
+      this.renderErrorState(container, err, toolId);
         return;
       }
 
@@ -120,7 +130,7 @@ const ToolRenderers = {
     }
 
     if (!rendererFn) {
-      this.renderErrorState(container, 'Tool renderer not found.');
+      this.renderErrorState(container, 'Tool renderer not found.', toolId);
       return;
     }
 
@@ -129,7 +139,7 @@ const ToolRenderers = {
       App.setupAutoSave('tool-input', toolId);
     } catch (err) {
       console.error('[Tooliest] Error rendering tool:', toolId, err);
-      this.renderErrorState(container, err);
+      this.renderErrorState(container, err, toolId);
     }
     return;
     /*

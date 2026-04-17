@@ -449,7 +449,12 @@ const App = {
     const method = options.replace ? 'replaceState' : 'pushState';
 
     history[method]({}, '', nextPath);
-    this.handleRoute(options);
+    // [TOOLIEST AUDIT Phase 9] View Transitions API — native app-like transitions on Chrome 111+.
+    if (document.startViewTransition && !options.skipTransition) {
+      document.startViewTransition(() => this.handleRoute(options));
+    } else {
+      this.handleRoute(options);
+    }
   },
 
   syncSearchInputs(value = '') {
@@ -2031,11 +2036,44 @@ const App = {
 };
 
 // === Clipboard Helper ===
-function copyToClipboard(text, btn) {
-  navigator.clipboard.writeText(text).then(() => {
-    App.toast('Copied to clipboard!');
-    if (btn) { btn.textContent = '✓ Copied'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500); }
-  });
+// [TOOLIEST AUDIT Phase 9] Hardened: async/await, failure toast, fallback for older browsers.
+async function copyToClipboard(text, btn) {
+  const originalText = btn ? btn.textContent : null;
+  const originalLabel = btn ? btn.getAttribute('aria-label') : null;
+  const markCopied = () => {
+    if (!btn) return;
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    btn.setAttribute('aria-label', 'Copied to clipboard');
+    setTimeout(() => {
+      btn.textContent = originalText || 'Copy';
+      btn.classList.remove('copied');
+      if (originalLabel) btn.setAttribute('aria-label', originalLabel);
+    }, 1800);
+  };
+  // Modern Clipboard API
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      App.toast('Copied to clipboard!');
+      markCopied();
+      return;
+    } catch (_) { /* fall through to legacy */ }
+  }
+  // Legacy fallback (non-HTTPS or older browsers)
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    if (ok) { App.toast('Copied to clipboard!'); markCopied(); }
+    else throw new Error('execCommand failed');
+  } catch (err) {
+    App.toast('Copy failed — please select and copy manually.', 'error');
+  }
 }
 
 // === Global Keyboard Shortcuts ===
@@ -2057,7 +2095,8 @@ document.addEventListener('keydown', (e) => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) return;
   if (e.key === '?') { e.preventDefault(); App.showShortcuts(); }
   if (e.key === 'h' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) { App.navigate(App.getHomePath()); }
-  if (e.key === 't' || e.key === 'T') { App.toggleTheme(); }
+  // [TOOLIEST AUDIT] Only fire theme toggle on lowercase 't' — Shift+T was triggering unintentionally.
+  if (e.key === 't' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) { App.toggleTheme(); }
 });
 
 // === INIT ===
