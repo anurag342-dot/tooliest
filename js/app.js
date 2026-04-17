@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '2.9', date: '2026-04-17', items: ['Rebuilt Image EXIF Privacy Stripper with explicit clean-download actions and lossless metadata stripping for JPEG, PNG, and WebP'] },
   { version: '2.8', date: '2026-04-17', items: ['Auto-linked visible labels to tool inputs for broader accessibility coverage'] },
   { version: '2.7', date: '2026-04-17', items: ['Cut compare view overhead by reusing the live current workspace', 'Added a weekly popularity section powered by local usage history', 'Added an opt-in email capture prompt for repeat Tooliest users'] },
   { version: '2.6', date: '2026-04-17', items: ['Added browser-based QR Code Generator with PNG download', 'Added Ctrl + / shortcut to reopen your most recently used tool', 'Refreshed featured tool discovery to surface QR workflows faster'] },
@@ -13,7 +14,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260417v17';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260417v18';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 

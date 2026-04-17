@@ -12,6 +12,278 @@ const _normalizeQrUrl = (value) => {
   if (/^[\w.-]+\.[a-z]{2,}(?:[/?#]|$)/i.test(trimmed)) return `https://${trimmed}`;
   return trimmed;
 };
+const _formatBytes = (value) => {
+  const bytes = Number(value || 0);
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+};
+const _concatUint8Arrays = (chunks) => {
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const output = new Uint8Array(totalLength);
+  let offset = 0;
+  chunks.forEach((chunk) => {
+    output.set(chunk, offset);
+    offset += chunk.length;
+  });
+  return output;
+};
+const _asciiFromBytes = (bytes, offset, length) => {
+  let text = '';
+  for (let index = 0; index < length; index += 1) {
+    text += String.fromCharCode(bytes[offset + index]);
+  }
+  return text;
+};
+const _startsWithAscii = (bytes, text, offset = 0) => {
+  if (!bytes || offset + text.length > bytes.length) return false;
+  for (let index = 0; index < text.length; index += 1) {
+    if (bytes[offset + index] !== text.charCodeAt(index)) return false;
+  }
+  return true;
+};
+const _readUint32BE = (bytes, offset) => (
+  ((bytes[offset] << 24) >>> 0) +
+  (bytes[offset + 1] << 16) +
+  (bytes[offset + 2] << 8) +
+  bytes[offset + 3]
+);
+const _readUint32LE = (bytes, offset) => (
+  bytes[offset] +
+  (bytes[offset + 1] << 8) +
+  (bytes[offset + 2] << 16) +
+  ((bytes[offset + 3] << 24) >>> 0)
+);
+const _writeUint32LE = (bytes, offset, value) => {
+  bytes[offset] = value & 0xff;
+  bytes[offset + 1] = (value >>> 8) & 0xff;
+  bytes[offset + 2] = (value >>> 16) & 0xff;
+  bytes[offset + 3] = (value >>> 24) & 0xff;
+};
+const _isJpegBytes = (bytes) => bytes?.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8;
+const _isPngBytes = (bytes) => bytes?.length > 8 && _startsWithAscii(bytes, 'PNG', 1);
+const _isWebpBytes = (bytes) => bytes?.length > 12 && _startsWithAscii(bytes, 'RIFF', 0) && _startsWithAscii(bytes, 'WEBP', 8);
+const _createCleanImageName = (fileName, fallbackExtension) => {
+  const raw = String(fileName || 'image').trim() || 'image';
+  const dotIndex = raw.lastIndexOf('.');
+  const baseName = dotIndex > 0 ? raw.slice(0, dotIndex) : raw;
+  const extension = dotIndex > 0 ? raw.slice(dotIndex + 1) : fallbackExtension;
+  return `cleaned-${baseName}.${extension || fallbackExtension || 'img'}`;
+};
+const _downloadBlob = (blob, fileName) => {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+};
+const _stripJpegMetadata = (bytes) => {
+  if (!_isJpegBytes(bytes)) throw new Error('This JPEG file could not be parsed safely.');
+  const keptSegments = [bytes.slice(0, 2)];
+  const removedLabels = new Set();
+  let offset = 2;
+
+  while (offset < bytes.length) {
+    if (bytes[offset] !== 0xff) {
+      keptSegments.push(bytes.slice(offset));
+      break;
+    }
+
+    const markerStart = offset;
+    while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
+    if (offset >= bytes.length) break;
+
+    const marker = bytes[offset];
+    if ((marker >= 0xd0 && marker <= 0xd7) || marker === 0x01 || marker === 0xd9) {
+      keptSegments.push(bytes.slice(markerStart, offset + 1));
+      offset += 1;
+      if (marker === 0xd9) break;
+      continue;
+    }
+
+    if (marker === 0xda) {
+      keptSegments.push(bytes.slice(markerStart));
+      break;
+    }
+
+    if (offset + 2 >= bytes.length) {
+      throw new Error('This JPEG file has an invalid metadata segment.');
+    }
+
+    const segmentLength = (bytes[offset + 1] << 8) | bytes[offset + 2];
+    const segmentEnd = offset + 1 + segmentLength;
+    if (segmentLength < 2 || segmentEnd > bytes.length) {
+      throw new Error('This JPEG file has a damaged metadata block.');
+    }
+
+    const payload = bytes.slice(offset + 3, segmentEnd);
+    let keepSegment = true;
+
+    if (marker === 0xe1) {
+      keepSegment = false;
+      removedLabels.add(_startsWithAscii(payload, 'Exif') ? 'EXIF metadata' : 'APP1 metadata');
+      if (_startsWithAscii(payload, 'http://ns.adobe.com/xap/1.0/')) removedLabels.add('XMP metadata');
+    } else if (marker === 0xed) {
+      keepSegment = false;
+      removedLabels.add('IPTC/Photoshop metadata');
+    } else if (marker === 0xfe) {
+      keepSegment = false;
+      removedLabels.add('comment metadata');
+    } else if (marker === 0xe2) {
+      const keepsColorProfile = _startsWithAscii(payload, 'ICC_PROFILE') || _startsWithAscii(payload, 'FPXR');
+      if (!keepsColorProfile) {
+        keepSegment = false;
+        removedLabels.add('APP2 metadata');
+      }
+    } else if (marker >= 0xe3 && marker <= 0xef && marker !== 0xee) {
+      keepSegment = false;
+      removedLabels.add(`APP${marker - 0xe0} metadata`);
+    }
+
+    if (keepSegment) keptSegments.push(bytes.slice(markerStart, segmentEnd));
+    offset = segmentEnd;
+  }
+
+  return {
+    bytes: _concatUint8Arrays(keptSegments),
+    removedLabels: Array.from(removedLabels),
+  };
+};
+const _stripPngMetadata = (bytes) => {
+  if (!_isPngBytes(bytes)) throw new Error('This PNG file could not be parsed safely.');
+  const signature = bytes.slice(0, 8);
+  const keptChunks = [signature];
+  const removedLabels = new Set();
+  let offset = 8;
+
+  while (offset + 12 <= bytes.length) {
+    const chunkLength = _readUint32BE(bytes, offset);
+    const chunkType = _asciiFromBytes(bytes, offset + 4, 4);
+    const chunkEnd = offset + 12 + chunkLength;
+    if (chunkEnd > bytes.length) {
+      throw new Error('This PNG file has a damaged metadata chunk.');
+    }
+
+    const chunkBytes = bytes.slice(offset, chunkEnd);
+    const removableChunks = new Map([
+      ['eXIf', 'EXIF metadata'],
+      ['tEXt', 'text metadata'],
+      ['zTXt', 'compressed text metadata'],
+      ['iTXt', 'international text metadata'],
+      ['tIME', 'timestamp metadata'],
+    ]);
+
+    if (removableChunks.has(chunkType)) {
+      removedLabels.add(removableChunks.get(chunkType));
+    } else {
+      keptChunks.push(chunkBytes);
+    }
+
+    offset = chunkEnd;
+    if (chunkType === 'IEND') break;
+  }
+
+  return {
+    bytes: _concatUint8Arrays(keptChunks),
+    removedLabels: Array.from(removedLabels),
+  };
+};
+const _stripWebpMetadata = (bytes) => {
+  if (!_isWebpBytes(bytes)) throw new Error('This WebP file could not be parsed safely.');
+  const chunks = [];
+  const removedLabels = new Set();
+  let offset = 12;
+  let vp8xChunkIndex = -1;
+
+  while (offset + 8 <= bytes.length) {
+    const chunkType = _asciiFromBytes(bytes, offset, 4);
+    const chunkSize = _readUint32LE(bytes, offset + 4);
+    const paddedSize = chunkSize + (chunkSize % 2);
+    const chunkEnd = offset + 8 + paddedSize;
+    if (chunkEnd > bytes.length) {
+      throw new Error('This WebP file has a damaged chunk.');
+    }
+
+    if (chunkType === 'EXIF') {
+      removedLabels.add('EXIF metadata');
+      offset = chunkEnd;
+      continue;
+    }
+    if (chunkType === 'XMP ') {
+      removedLabels.add('XMP metadata');
+      offset = chunkEnd;
+      continue;
+    }
+
+    const chunkBytes = bytes.slice(offset, chunkEnd);
+    if (chunkType === 'VP8X' && chunkSize >= 10) {
+      vp8xChunkIndex = chunks.length;
+    }
+    chunks.push({ type: chunkType, bytes: chunkBytes });
+    offset = chunkEnd;
+  }
+
+  if (vp8xChunkIndex >= 0 && removedLabels.size) {
+    const updatedChunk = chunks[vp8xChunkIndex].bytes.slice();
+    updatedChunk[8] &= ~0x0c;
+    chunks[vp8xChunkIndex].bytes = updatedChunk;
+  }
+
+  const payload = _concatUint8Arrays(chunks.map((chunk) => chunk.bytes));
+  const output = new Uint8Array(12 + payload.length);
+  output.set([0x52, 0x49, 0x46, 0x46], 0);
+  _writeUint32LE(output, 4, payload.length + 4);
+  output.set([0x57, 0x45, 0x42, 0x50], 8);
+  output.set(payload, 12);
+
+  return {
+    bytes: output,
+    removedLabels: Array.from(removedLabels),
+  };
+};
+const _buildLosslessCleanImage = async (file) => {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const originalExtension = String(file.name || '').split('.').pop()?.toLowerCase() || '';
+
+  if (_isJpegBytes(bytes)) {
+    const cleaned = _stripJpegMetadata(bytes);
+    return {
+      blob: new Blob([cleaned.bytes], { type: 'image/jpeg' }),
+      extension: originalExtension === 'jpeg' ? 'jpeg' : 'jpg',
+      removedLabels: cleaned.removedLabels,
+      formatLabel: 'JPEG',
+      lossless: true,
+    };
+  }
+
+  if (_isPngBytes(bytes)) {
+    const cleaned = _stripPngMetadata(bytes);
+    return {
+      blob: new Blob([cleaned.bytes], { type: 'image/png' }),
+      extension: 'png',
+      removedLabels: cleaned.removedLabels,
+      formatLabel: 'PNG',
+      lossless: true,
+    };
+  }
+
+  if (_isWebpBytes(bytes)) {
+    const cleaned = _stripWebpMetadata(bytes);
+    return {
+      blob: new Blob([cleaned.bytes], { type: 'image/webp' }),
+      extension: 'webp',
+      removedLabels: cleaned.removedLabels,
+      formatLabel: 'WebP',
+      lossless: true,
+    };
+  }
+
+  throw new Error('Lossless metadata stripping is currently available for JPEG, PNG, and WebP files. HEIC/HEIF images need conversion first, which would re-encode the image.');
+};
 const _renderQrToCanvas = (canvas, payload, options = {}) => {
   if (typeof qrcode !== 'function') {
     throw new Error('Bundled QR engine unavailable');
@@ -207,17 +479,20 @@ Object.assign(ToolRenderers.renderers, {
       <div class="file-upload-zone" id="ex-drop">
         <div class="upload-icon">🥷</div>
         <p>Drop image or click to upload</p>
-        <p class="upload-hint">100% privacy: Image is cleaned instantly in your browser</p>
-        <input type="file" id="ex-file" accept="image/jpeg,image/png,image/heic,image/webp" style="display:none">
+        <p class="upload-hint">Lossless cleanup for JPEG, PNG, and WebP. Everything stays in your browser.</p>
+        <input type="file" id="ex-file" accept="image/jpeg,image/png,image/webp" style="display:none">
       </div>
       <div class="result-stats mt-4 hidden" id="ex-stats"></div>
       <div id="ex-metadata" class="mt-4 hidden" style="background:rgba(244,63,94,0.1);border:1px solid #f43f5e;border-radius:var(--radius-md);padding:16px;">
-        <h3 style="color:#f43f5e;font-size:1rem;display:flex;align-items:center;gap:8px">⚠️ Metadata Found!</h3>
-        <p style="font-size:0.85rem;margin-top:8px;color:var(--text-secondary)" id="ex-meta-desc">We found tracking data inside your photo (camera details, GPS, orientation). All this data will be permanently wiped.</p>
+        <h3 style="color:#f43f5e;font-size:1rem;display:flex;align-items:center;gap:8px">Metadata Found</h3>
+        <p style="font-size:0.85rem;margin-top:8px;color:var(--text-secondary)" id="ex-meta-desc">Tracking metadata was detected and will be removed from the clean download below.</p>
       </div>
       <div id="ex-clean" class="mt-4 hidden" style="background:rgba(16,185,129,0.1);border:1px solid #10b981;border-radius:var(--radius-md);padding:16px;">
-        <h3 style="color:#10b981;font-size:1rem;display:flex;align-items:center;gap:8px">✅ Completely Cleaned</h3>
-        <p style="font-size:0.85rem;margin-top:8px;color:var(--text-secondary)">All metadata was successfully stripped. Your image is now safe to share online anonymously.</p>
+        <h3 id="ex-clean-title" style="color:#10b981;font-size:1rem;display:flex;align-items:center;gap:8px">Clean image ready</h3>
+        <p id="ex-clean-desc" style="font-size:0.85rem;margin-top:8px;color:var(--text-secondary)">Your privacy-safe image is ready to download.</p>
+        <div id="ex-preview-wrap" class="mt-3 hidden" style="padding:12px;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:var(--radius-md);text-align:center">
+          <img id="ex-preview" alt="Cleaned image preview" style="max-width:100%;max-height:320px;border-radius:var(--radius-md);display:block;margin:0 auto">
+        </div>
         <div id="ex-action" class="mt-3"></div>
       </div>
     </div>`;
@@ -226,8 +501,14 @@ Object.assign(ToolRenderers.renderers, {
     const fileInput = document.getElementById('ex-file');
     const statsDiv = document.getElementById('ex-stats');
     const metaWarn = document.getElementById('ex-metadata');
+    const metaDesc = document.getElementById('ex-meta-desc');
     const cleanDiv = document.getElementById('ex-clean');
+    const cleanTitle = document.getElementById('ex-clean-title');
+    const cleanDesc = document.getElementById('ex-clean-desc');
     const actionDiv = document.getElementById('ex-action');
+    const previewWrap = document.getElementById('ex-preview-wrap');
+    const previewImage = document.getElementById('ex-preview');
+    let activePreviewUrl = '';
 
     zone.addEventListener('click', () => fileInput.click());
     zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
@@ -235,100 +516,112 @@ Object.assign(ToolRenderers.renderers, {
     zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
     fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
 
-    function handleFile(file) {
+    const resetPreview = () => {
+      if (activePreviewUrl) {
+        URL.revokeObjectURL(activePreviewUrl);
+        activePreviewUrl = '';
+      }
+      previewImage.removeAttribute('src');
+      previewWrap.classList.add('hidden');
+    };
+
+    const renderStats = (items) => {
+      statsDiv.classList.remove('hidden');
+      statsDiv.innerHTML = items.map(([label, value]) => `
+        <div class="stat-card">
+          <div class="stat-num" style="font-size:1rem;word-break:break-word">${ToolRenderers.escapeHtml(value)}</div>
+          <div class="stat-lbl">${ToolRenderers.escapeHtml(label)}</div>
+        </div>
+      `).join('');
+    };
+
+    async function handleFile(file) {
+      fileInput.value = '';
       if (!file || !file.type.startsWith('image/')) {
         App.toast('Please upload an image file', 'error');
         return;
       }
 
-      statsDiv.classList.remove('hidden');
-      statsDiv.innerHTML = [
-        ['File Name', file.name],
-        ['Format', file.type.split('/')[1].toUpperCase()],
-        ['Original Size', (file.size / 1024).toFixed(1) + 'KB']
-      ].map(([l, v]) => `<div class="stat-card"><div class="stat-num" style="font-size:1rem;word-break:break-all">${v}</div><div class="stat-lbl">${l}</div></div>`).join('');
-
       metaWarn.classList.add('hidden');
       cleanDiv.classList.add('hidden');
+      actionDiv.innerHTML = '';
+      resetPreview();
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const buffer = e.target.result;
-        let array = new Uint8Array(buffer);
-        let hasExif = checkExif(array);
+      renderStats([
+        ['File Name', file.name],
+        ['Format', (file.type.split('/')[1] || 'image').toUpperCase()],
+        ['Original Size', _formatBytes(file.size)],
+        ['Status', 'Scanning and preparing clean download'],
+      ]);
 
-        if (hasExif) {
+      try {
+        const startedAt = performance.now();
+        const cleaned = await _buildLosslessCleanImage(file);
+        const cleanBlob = cleaned.blob;
+        const removedLabels = cleaned.removedLabels;
+        const removedText = removedLabels.length ? removedLabels.join(', ') : 'No removable privacy metadata detected';
+        const savedBytes = Math.max(0, file.size - cleanBlob.size);
+        const downloadName = _createCleanImageName(file.name, cleaned.extension);
+
+        renderStats([
+          ['File Name', file.name],
+          ['Format', cleaned.formatLabel],
+          ['Original Size', _formatBytes(file.size)],
+          ['Clean Size', _formatBytes(cleanBlob.size)],
+          ['Method', cleaned.lossless ? 'Lossless metadata stripping' : 'Re-encoded export'],
+        ]);
+
+        if (removedLabels.length) {
           metaWarn.classList.remove('hidden');
+          metaDesc.textContent = `Removed ${removedText}. Download the clean image below.`;
+          cleanTitle.textContent = 'Metadata removed successfully';
+          cleanDesc.textContent = 'Your clean image is ready. This version was rewritten without re-encoding, so the picture quality stays the same.';
+        } else {
+          metaWarn.classList.add('hidden');
+          cleanTitle.textContent = 'No removable metadata detected';
+          cleanDesc.textContent = 'This file did not contain removable EXIF, XMP, or text metadata. You can still download the verified copy below.';
         }
 
-        // To reliably strip metadata AND preserve the exact image content without
-        // complex manual ArrayBuffer manipulation for all formats, we use an HTML5 Canvas trick.
-        // Drawing an image to Canvas and exporting it inherently strips all EXIF metadata.
-        const url = URL.createObjectURL(new Blob([array], {type: file.type}));
-        const img = new Image();
-        img.alt = 'Uploaded image for EXIF stripping';
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          
-          if (file.type === 'image/jpeg') {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-          }
-          
-          ctx.drawImage(img, 0, 0);
+        cleanDiv.classList.remove('hidden');
+        activePreviewUrl = URL.createObjectURL(cleanBlob);
+        previewImage.src = activePreviewUrl;
+        previewWrap.classList.remove('hidden');
 
-          canvas.toBlob((blob) => {
-            if (!blob) {
-              App.toast('Failed to secure image', 'error');
-              return;
-            }
-            
-            cleanDiv.classList.remove('hidden');
-            
-            const btn = document.createElement('button');
-            btn.className = 'btn btn-success';
-            btn.innerHTML = '💾 Download Safe Image';
-            btn.onclick = () => {
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(blob);
-              a.download = 'cleaned_' + file.name;
-              a.click();
-            };
-            
-            actionDiv.innerHTML = '';
-            actionDiv.appendChild(btn);
-            
-            // Add size comparison
-            const saved = file.size - blob.size;
-            if (saved > 0 || hasExif) {
-               const p = document.createElement('p');
-               p.style.fontSize = '0.85rem';
-               p.style.marginTop = '8px';
-               p.style.color = 'var(--text-tertiary)';
-               p.textContent = `Cleaned size: ${(blob.size/1024).toFixed(1)}KB (-${(Math.max(0, saved)/1024).toFixed(1)}KB metadata removed)`;
-               actionDiv.appendChild(p);
-            }
-          }, file.type === 'image/png' ? 'image/png' : 'image/jpeg', 1.0); // Maintain maximum quality
-        };
-        img.src = url;
-      };
-      reader.readAsArrayBuffer(file);
-    }
+        actionDiv.innerHTML = `
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button type="button" class="btn btn-success" id="ex-download">Download Clean Image</button>
+            <button type="button" class="btn btn-secondary" id="ex-reset">Choose Another Image</button>
+          </div>
+          <div style="margin-top:12px;font-size:0.85rem;color:var(--text-tertiary);display:grid;gap:6px">
+            <p style="margin:0"><strong>Removed:</strong> ${ToolRenderers.escapeHtml(removedText)}</p>
+            <p style="margin:0"><strong>Clean size:</strong> ${ToolRenderers.escapeHtml(_formatBytes(cleanBlob.size))}${savedBytes ? ` (${ToolRenderers.escapeHtml(_formatBytes(savedBytes))} smaller)` : ''}</p>
+          </div>
+        `;
 
-    function checkExif(buf) {
-      if (buf[0] !== 0xFF || buf[1] !== 0xD8) return false; // Not a JPEG
-      let offset = 2;
-      while (offset < buf.length) {
-        if (buf[offset] !== 0xFF) break;
-        if (buf[offset + 1] === 0xE1) { // APP1 EXIF segment marker
-           return true; 
+        document.getElementById('ex-download')?.addEventListener('click', () => {
+          _downloadBlob(cleanBlob, downloadName);
+        });
+        document.getElementById('ex-reset')?.addEventListener('click', () => {
+          fileInput.click();
+        });
+
+        if (typeof App !== 'undefined' && typeof App.recordToolPerformance === 'function') {
+          App.recordToolPerformance('image-exif-stripper', 'Strip metadata', performance.now() - startedAt);
         }
-        offset += 2 + (buf[offset + 2] << 8) + buf[offset + 3];
+      } catch (error) {
+        console.error('[Tooliest] EXIF stripping failed:', error);
+        metaWarn.classList.add('hidden');
+        cleanDiv.classList.remove('hidden');
+        cleanTitle.textContent = 'Could not create a clean download';
+        cleanDesc.textContent = error.message || 'This image format could not be processed safely in your browser.';
+        actionDiv.innerHTML = `
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button type="button" class="btn btn-secondary" id="ex-try-again">Choose Another Image</button>
+          </div>
+        `;
+        document.getElementById('ex-try-again')?.addEventListener('click', () => fileInput.click());
+        App.toast(error.message || 'Could not remove the image metadata.', 'error');
       }
-      return false; // Heuristic check primarily focused on JPEG where EXIF is common.
     }
   },
 
