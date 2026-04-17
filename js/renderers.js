@@ -22,6 +22,7 @@ const TOOL_RENDERER_CHUNKS = {
     'password-security-suite', 'uuid-generator', 'fake-data-generator', 'ai-text-summarizer',
     'ai-paraphraser', 'ai-email-writer', 'ai-blog-ideas', 'ai-meta-writer',
     'cron-parser', 'diff-checker', 'sql-formatter', 'chmod-calculator', 'image-exif-stripper',
+    'qr-code-generator',
   ],
   'renderers5.min.js': [
     'loan-mortgage-analyzer', 'compound-interest', 'sip-calculator', 'retirement-calculator',
@@ -86,7 +87,7 @@ const ToolRenderers = {
       return;
     }
 
-    const version = typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '20260416v12';
+    const version = typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '20260417v14';
     const chunkPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       // [TOOLIEST AUDIT] Lazy-load non-core renderer chunks so the first render ships a much smaller JS payload.

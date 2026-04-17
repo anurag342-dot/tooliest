@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '2.6', date: '2026-04-17', items: ['Added browser-based QR Code Generator with PNG download', 'Added Ctrl + / shortcut to reopen your most recently used tool', 'Refreshed featured tool discovery to surface QR workflows faster'] },
   { version: '2.5', date: '2026-04-06', items: ['Added prerendered category pages for SEO', 'Added favorites export and import backup', 'Introduced welcome tour and performance metrics', 'Added side-by-side comparison mode for related tools'] },
   { version: '2.4', date: '2026-04-06', items: ['Added dark/light theme toggle', 'Keyboard shortcuts panel (press ?)', 'Tool sharing via Web Share API', 'Cross-category related tools'] },
   { version: '2.3', date: '2026-04-05', items: ['Expanded structured data across tool pages', 'Improved accessibility states for favorites and categories', 'Strengthened offline caching and font loading'] },
@@ -10,7 +11,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260417v13';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260417v14';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 
 // Safe localStorage helper — prevents crashes in private browsing or restricted environments
@@ -1015,6 +1016,7 @@ const App = {
   getFeaturedTools(limit = 6) {
     const featuredIds = [
       'word-counter',
+      'qr-code-generator',
       'json-formatter',
       'meta-tag-generator',
       'password-security-suite',
@@ -1517,6 +1519,15 @@ const App = {
     </section>`;
   },
 
+  openMostRecentTool() {
+    const recent = safeLocalGet('tooliest_recent', []).find((toolId) => TOOLS.some((tool) => tool.id === toolId));
+    if (!recent) {
+      this.toast('Use a tool once and then Ctrl + / will bring it back instantly.', 'error');
+      return;
+    }
+    this.navigate(this.getToolPath(recent));
+  },
+
   // ===== FEAT-04: WEB SHARE API =====
   shareTool(tool) {
     const url = this.getAbsoluteUrl(this.getToolPath(tool.id));
@@ -1974,6 +1985,7 @@ const App = {
       ${showKeyboardShortcuts
         ? `<div class="shortcut-list">
           <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Search tools</span></div>
+          <div class="shortcut-item"><kbd>Ctrl</kbd> + <kbd>/</kbd><span>Open last-used tool</span></div>
           <div class="shortcut-item"><kbd>?</kbd><span>Show shortcuts</span></div>
           <div class="shortcut-item"><kbd>H</kbd><span>Go home</span></div>
           <div class="shortcut-item"><kbd>T</kbd><span>Toggle theme</span></div>
@@ -2082,6 +2094,11 @@ document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault();
     App.focusSearch();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === '/' || e.code === 'Slash')) {
+    e.preventDefault();
+    App.openMostRecentTool();
     return;
   }
   // Esc: close overlays

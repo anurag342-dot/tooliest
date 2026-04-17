@@ -513,6 +513,24 @@ const TOOLS = [
     ],
     meta: { title: 'Image Format Converter - Convert to PNG, JPEG, WebP, AVIF | Tooliest', desc: 'Convert image formats instantly entirely in your browser. Download as PNG, WebP, JPEG or AVIF completely offline.' }
   },
+  {
+    id: 'qr-code-generator',
+    name: 'QR Code Generator',
+    description: 'Generate downloadable QR codes for URLs, text, email, phone numbers, and Wi-Fi details right in your browser.',
+    category: 'image',
+    icon: 'QR',
+    tags: ['qr code', 'generator', 'url to qr', 'wifi qr', 'marketing'],
+    isAI: false,
+    education: '<strong>What is a QR code?</strong><br>A QR code is a scannable two-dimensional barcode that stores URLs, text, contact details, and other lightweight data. Phones can read QR codes instantly, which makes them useful for menus, event signage, packaging, Wi-Fi sharing, and marketing campaigns. Tooliest generates QR codes entirely in your browser, so the content you encode never touches a server.',
+    whyUse: ['Create QR codes for landing pages, offers, menus, downloads, and handouts in seconds', 'Generate downloadable PNG output with custom size, margin, colors, and error correction', 'Keep sensitive payloads private because generation happens 100% in your browser'],
+    whoUses: 'Marketers, restaurant owners, event organizers, teachers, small businesses, developers, and anyone who needs a fast scannable link or contact shortcut.',
+    faq: [
+      { q: 'How do I create a QR code for a URL?', a: 'Choose URL mode, paste the full web address, and click Generate QR Code. Tooliest renders the code instantly in your browser and lets you download a PNG without uploading anything.' },
+      { q: 'Can I make a QR code for Wi-Fi login details?', a: 'Yes. Select Wi-Fi mode, enter the network name, password, and security type, then generate the code. Compatible scanners can join the network without manually typing the password.' },
+      { q: 'Is this QR code generator private?', a: 'Yes. Tooliest generates the QR image locally in your browser, so the content you encode is not sent to any external server.' }
+    ],
+    meta: { title: 'QR Code Generator - Create QR Codes Online Free | Tooliest', desc: 'Generate QR codes for URLs, text, email, phone numbers, and Wi-Fi. Free browser-based QR code generator with instant PNG download.' }
+  },
 
   // ===== JSON TOOLS =====
   {

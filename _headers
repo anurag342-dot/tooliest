@@ -208,6 +208,9 @@
 /image-converter
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
+/qr-code-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
 /json-formatter
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 

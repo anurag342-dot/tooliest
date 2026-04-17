@@ -4,6 +4,53 @@
 // ============================================
 const _cs = (c) => { const b=c.querySelector('#copy-btn'); if(b) b.addEventListener('click', function(){copyToClipboard(document.getElementById('tool-output').textContent,this)}); };
 const _show = (text) => { const o=document.getElementById('tool-output'),b=document.getElementById('copy-btn'); o.classList.remove('empty'); o.textContent=text; if(b){b.classList.remove('hidden');o.appendChild(b)} };
+const _sharedLoaders = { qrCode: null };
+const _loadQrCodeLibrary = async () => {
+  if (window.QRCode?.toCanvas) return window.QRCode;
+  if (_sharedLoaders.qrCode) return _sharedLoaders.qrCode;
+  const sources = [
+    'https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js',
+    'https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js',
+  ];
+  _sharedLoaders.qrCode = (async () => {
+    for (const src of sources) {
+      try {
+        await new Promise((resolve, reject) => {
+          const existing = document.querySelector(`script[data-tooliest-qr-src="${src}"]`);
+          if (existing) {
+            if (window.QRCode?.toCanvas) { resolve(); return; }
+            existing.addEventListener('load', resolve, { once: true });
+            existing.addEventListener('error', reject, { once: true });
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = src;
+          script.async = true;
+          script.dataset.tooliestQrSrc = src;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error(`Failed to load ${src}`));
+          document.head.appendChild(script);
+        });
+        if (window.QRCode?.toCanvas) return window.QRCode;
+      } catch (_) {}
+    }
+    throw new Error('QR code library unavailable');
+  })();
+  try {
+    return await _sharedLoaders.qrCode;
+  } catch (error) {
+    _sharedLoaders.qrCode = null;
+    throw error;
+  }
+};
+const _escapeQrWifiValue = (value) => String(value || '').replace(/([\\;,:"])/g, '\\$1');
+const _normalizeQrUrl = (value) => {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return '';
+  if (/^[a-z]+:/i.test(trimmed)) return trimmed;
+  if (/^[\w.-]+\.[a-z]{2,}(?:[/?#]|$)/i.test(trimmed)) return `https://${trimmed}`;
+  return trimmed;
+};
 
 Object.assign(ToolRenderers.renderers, {
   // ===== SOCIAL MEDIA =====
@@ -278,5 +325,174 @@ Object.assign(ToolRenderers.renderers, {
       }
       return false; // Heuristic check primarily focused on JPEG where EXIF is common.
     }
+  },
+
+  'qr-code-generator'(c) {
+    c.innerHTML = `<div class="tool-workspace-body">
+      <div class="input-group">
+        <label for="qr-mode">QR Code Type</label>
+        <select id="qr-mode">
+          <option value="url">URL</option>
+          <option value="text">Plain Text</option>
+          <option value="email">Email</option>
+          <option value="phone">Phone Number</option>
+          <option value="wifi">Wi-Fi Access</option>
+        </select>
+      </div>
+      <div id="qr-fields"></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px">
+        <div class="input-group">
+          <label for="qr-size">Image Size</label>
+          <select id="qr-size">
+            <option value="256">256 px</option>
+            <option value="384" selected>384 px</option>
+            <option value="512">512 px</option>
+            <option value="768">768 px</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="qr-margin">Quiet Zone</label>
+          <select id="qr-margin">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="4" selected>4</option>
+            <option value="6">6</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="qr-level">Error Correction</label>
+          <select id="qr-level">
+            <option value="L">Low</option>
+            <option value="M" selected>Medium</option>
+            <option value="Q">Quartile</option>
+            <option value="H">High</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="qr-dark">Dark Color</label>
+          <input type="color" id="qr-dark" value="#111827">
+        </div>
+        <div class="input-group">
+          <label for="qr-light">Light Color</label>
+          <input type="color" id="qr-light" value="#ffffff">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+        <button class="btn btn-primary" id="qr-generate">Generate QR Code</button>
+        <button class="btn btn-secondary hidden" id="qr-download">Download PNG</button>
+      </div>
+      <div class="stat-card mt-4" style="text-align:left">
+        <div style="font-weight:700;margin-bottom:6px">Private by design</div>
+        <p style="margin:0;color:var(--text-secondary);font-size:0.9rem">Tooliest creates the QR image entirely in your browser, so the content you encode is never uploaded.</p>
+      </div>
+      <div id="qr-preview-wrap" class="mt-4 hidden" style="text-align:center;padding:20px;background:var(--bg-glass);border:1px solid var(--border-color);border-radius:var(--radius-lg)">
+        <canvas id="qr-canvas" width="384" height="384" style="max-width:100%;height:auto;border-radius:var(--radius-md);background:#fff"></canvas>
+        <p id="qr-status" style="font-size:0.85rem;color:var(--text-tertiary);margin-top:12px" aria-live="polite">QR code ready for download.</p>
+      </div>
+    </div>`;
+
+    const fieldRoot = document.getElementById('qr-fields');
+    const modeInput = document.getElementById('qr-mode');
+    const generateBtn = document.getElementById('qr-generate');
+    const downloadBtn = document.getElementById('qr-download');
+    const previewWrap = document.getElementById('qr-preview-wrap');
+    const previewCanvas = document.getElementById('qr-canvas');
+    const statusText = document.getElementById('qr-status');
+
+    const renderFields = () => {
+      const mode = modeInput.value;
+      if (mode === 'wifi') {
+        fieldRoot.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <div class="input-group"><label for="qr-ssid">Wi-Fi Name (SSID)</label><input type="text" id="qr-ssid" placeholder="Office Wi-Fi"></div>
+          <div class="input-group"><label for="qr-password">Password</label><input type="text" id="qr-password" placeholder="SecurePassword123"></div>
+          <div class="input-group"><label for="qr-security">Security Type</label><select id="qr-security"><option value="WPA" selected>WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">Open Network</option></select></div>
+          <div class="input-group"><label for="qr-hidden">Hidden Network</label><select id="qr-hidden"><option value="false" selected>No</option><option value="true">Yes</option></select></div>
+        </div>`;
+        return;
+      }
+
+      const fieldConfig = {
+        url: { label: 'Website URL', placeholder: 'https://tooliest.com/tools/qr-code-generator', tag: 'input', type: 'url' },
+        text: { label: 'Text to Encode', placeholder: 'Type any text, code, or short message', tag: 'textarea' },
+        email: { label: 'Email Address', placeholder: 'hello@example.com', tag: 'input', type: 'email' },
+        phone: { label: 'Phone Number', placeholder: '+1 555 123 4567', tag: 'input', type: 'tel' },
+      };
+      const config = fieldConfig[mode] || fieldConfig.text;
+      fieldRoot.innerHTML = `<div class="input-group">
+        <label for="qr-primary">${config.label}</label>
+        ${config.tag === 'textarea'
+          ? `<textarea id="qr-primary" rows="4" placeholder="${config.placeholder}"></textarea>`
+          : `<input type="${config.type}" id="qr-primary" placeholder="${config.placeholder}">`}
+      </div>`;
+    };
+
+    const getPayload = () => {
+      const mode = modeInput.value;
+      if (mode === 'wifi') {
+        const ssid = document.getElementById('qr-ssid')?.value.trim() || '';
+        if (!ssid) {
+          App.toast('Enter the Wi-Fi network name first.', 'error');
+          return '';
+        }
+        const security = document.getElementById('qr-security')?.value || 'WPA';
+        const password = security === 'nopass' ? '' : (document.getElementById('qr-password')?.value || '');
+        const hidden = document.getElementById('qr-hidden')?.value === 'true' ? 'true' : 'false';
+        return `WIFI:T:${security};S:${_escapeQrWifiValue(ssid)};P:${_escapeQrWifiValue(password)};H:${hidden};;`;
+      }
+
+      const primary = document.getElementById('qr-primary')?.value.trim() || '';
+      if (!primary) {
+        App.toast('Add something to encode first.', 'error');
+        return '';
+      }
+      if (mode === 'url') return _normalizeQrUrl(primary);
+      if (mode === 'email') return `mailto:${primary}`;
+      if (mode === 'phone') return `tel:${primary.replace(/\s+/g, '')}`;
+      return primary;
+    };
+
+    const generate = async () => {
+      const payload = getPayload();
+      if (!payload) return;
+      const startedAt = performance.now();
+      generateBtn.disabled = true;
+      generateBtn.textContent = 'Generating...';
+      try {
+        await _loadQrCodeLibrary();
+        const size = Math.max(128, Math.min(1024, Number(document.getElementById('qr-size')?.value || 384)));
+        previewCanvas.width = size;
+        previewCanvas.height = size;
+        await window.QRCode.toCanvas(previewCanvas, payload, {
+          width: size,
+          margin: Math.max(0, Math.min(12, Number(document.getElementById('qr-margin')?.value || 4))),
+          errorCorrectionLevel: document.getElementById('qr-level')?.value || 'M',
+          color: {
+            dark: document.getElementById('qr-dark')?.value || '#111827',
+            light: document.getElementById('qr-light')?.value || '#ffffff',
+          },
+        });
+        previewWrap.classList.remove('hidden');
+        downloadBtn.classList.remove('hidden');
+        statusText.textContent = `QR code ready at ${size}px. Scan it now or download the PNG.`;
+        App.recordToolPerformance('qr-code-generator', 'Generate QR Code', performance.now() - startedAt);
+      } catch (error) {
+        console.error('[Tooliest] QR generation failed:', error);
+        App.toast('Could not generate the QR code right now.', 'error');
+      } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate QR Code';
+      }
+    };
+
+    modeInput.addEventListener('change', renderFields);
+    generateBtn.addEventListener('click', generate);
+    downloadBtn.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.href = previewCanvas.toDataURL('image/png');
+      link.download = `tooliest-${modeInput.value}-qr.png`;
+      link.click();
+    });
+
+    renderFields();
   },
 });
