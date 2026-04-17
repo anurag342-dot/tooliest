@@ -2,6 +2,9 @@
 http://www.tooliest.com/*    https://tooliest.com/:splat    301!
 https://www.tooliest.com/*    https://tooliest.com/:splat    301!
 
+# Canonical URL cleanup
+/index.html    /    301!
+
 # Legacy tool URLs
 /tool/*    /:splat    301!
 

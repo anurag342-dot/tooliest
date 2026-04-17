@@ -1957,40 +1957,11 @@ function writeToolPages(tools, categories) {
   });
 }
 
-function renderLegacyToolRedirectPage(toolId) {
-  const targetPath = getToolPath(toolId);
-  const targetUrl = getAbsoluteUrl(targetPath);
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Redirecting...</title>
-  <meta name="robots" content="noindex, follow">
-  <link rel="canonical" href="${escapeAttr(targetUrl)}">
-  <meta http-equiv="refresh" content="0; url=${escapeAttr(targetUrl)}">
-  <script>
-    (function () {
-      var target = ${JSON.stringify(targetPath)};
-      var search = window.location.search || '';
-      var hash = window.location.hash || '';
-      window.location.replace(target + search + hash);
-    })();
-  </script>
-</head>
-<body>
-  <p>Redirecting to <a href="${escapeAttr(targetPath)}">${escapeHtml(targetPath)}</a>...</p>
-</body>
-</html>`;
-}
-
-function writeLegacyToolPages(tools) {
-  console.log('Generating legacy /tool/* redirect pages...');
-  tools.forEach((tool) => {
-    const outputDir = path.join(__dirname, 'tool', tool.id);
-    fs.mkdirSync(outputDir, { recursive: true });
-    fs.writeFileSync(path.join(outputDir, 'index.html'), renderLegacyToolRedirectPage(tool.id));
-  });
+function removeDirectoryIfExists(relativeDir) {
+  const targetDir = path.join(__dirname, relativeDir);
+  if (!fs.existsSync(targetDir)) return;
+  // [TOOLIEST SEO] Remove deprecated generated routes so crawlers only see canonical server redirects.
+  fs.rmSync(targetDir, { recursive: true, force: true });
 }
 
 function writeCategoryPages(tools, categories) {
@@ -2033,6 +2004,9 @@ function renderRedirectsFile(tools, categories) {
     '# Canonical host redirects',
     'http://www.tooliest.com/*    https://tooliest.com/:splat    301!',
     'https://www.tooliest.com/*    https://tooliest.com/:splat    301!',
+    '',
+    '# Canonical URL cleanup',
+    '/index.html    /    301!',
     '',
     '# Legacy tool URLs',
     '/tool/*    /:splat    301!',
@@ -2161,11 +2135,7 @@ function writeSitemap(tools, categories) {
   const staticPages = [
     { loc: 'https://tooliest.com/', priority: '1.0', changefreq: 'weekly', lastmod: getSiteLastModifiedDate() },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.about), priority: '0.8', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('about.html') },
-    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.contact), priority: '0.7', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('contact.html') },
-    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.privacy), priority: '0.6', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('privacy.html') },
-    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.5', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('terms.html') },
     { loc: getAbsoluteUrl(SOFTWARE_HUB_PATH), priority: '0.85', changefreq: 'weekly', lastmod: getSoftwareContentLastModifiedDate() },
-    { loc: getAbsoluteUrl('/sitemap.html'), priority: '0.7', changefreq: 'monthly', lastmod: getSourceModifiedDate(['build.js', 'js/tools.js']) },
   ];
 
   const categoryPages = getRenderableCategories(categories).map((category) => ({
@@ -2299,14 +2269,6 @@ function writeHomePage(tools, categories) {
       '@type': 'WebSite',
       name: 'Tooliest',
       url: 'https://tooliest.com',
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: 'https://tooliest.com/search/{search_term_string}',
-        },
-        'query-input': 'required name=search_term_string',
-      },
     },
     {
       '@context': 'https://schema.org',
@@ -2407,12 +2369,12 @@ async function build() {
   validateToolRoutes(tools);
   await bundleJavascript();
   minifyCSSFile();
+  removeDirectoryIfExists('tool');
   syncStaticPageAssetVersions();
   writeRoutingFiles(tools, categories);
   writeCleanStaticPages();
   writeHomePage(tools, categories);
   writeToolPages(tools, categories);
-  writeLegacyToolPages(tools);
   writeCategoryPages(tools, categories);
   writeSoftwareContentPages();
   writeHtmlSitemap(tools, categories);
