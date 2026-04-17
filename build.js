@@ -2187,6 +2187,11 @@ function writeHtmlSitemap(tools, categories) {
   console.log('Generating HTML sitemap page...');
   const renderableCategories = getRenderableCategories(categories);
   const sitemapLastModified = getSourceModifiedDate(['build.js', 'js/tools.js']);
+  const renderSitemapToolLabel = (tool) => {
+    const icon = String(tool.icon || '').trim();
+    const shouldShowIcon = icon && /[^\u0000-\u007F]/.test(icon);
+    return `${shouldShowIcon ? `${escapeHtml(icon)} ` : ''}${escapeHtml(tool.name)}`;
+  };
   const softwareBlock = `<div class="sitemap-category">
       <h2><a href="${SOFTWARE_HUB_PATH}">🧭 SEO Software Guides</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${SOFTWARE_CLUSTERS.length} published clusters)</span></h2>
       <ul>${SOFTWARE_CLUSTERS.map((cluster) => `<li><a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a> - ${escapeHtml(cluster.summary)}</li>`).join('')}</ul>
@@ -2195,7 +2200,7 @@ function writeHtmlSitemap(tools, categories) {
     const catTools = getCategoryTools(tools, cat.id);
     return `<div class="sitemap-category">
       <h2><a href="${getCategoryPath(cat.id)}">${cat.icon} ${escapeHtml(cat.name)}</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${catTools.length} tools)</span></h2>
-      <ul>${catTools.map(t => `<li><a href="${getToolPath(t.id)}">${t.icon} ${escapeHtml(t.name)}</a> — ${escapeHtml(t.description.slice(0, 80))}</li>`).join('')}</ul>
+      <ul>${catTools.map(t => `<li><a href="${getToolPath(t.id)}">${renderSitemapToolLabel(t)}</a> — ${escapeHtml(t.description.slice(0, 80))}</li>`).join('')}</ul>
     </div>`;
   }).join('');
 
