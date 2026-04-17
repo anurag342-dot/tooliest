@@ -12,7 +12,7 @@ function getBuildEnv(name, fallback) {
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260417v14';
+const ASSET_VERSION = '20260417v15';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const GOOGLE_TAG_ID = getBuildEnv('GOOGLE_TAG_ID', 'AW-18068794869');
@@ -121,10 +121,14 @@ const LAZY_RENDERER_SOURCE_FILES = [
   'js/renderers5.js',
   'js/renderers6.js',
 ];
-const LAZY_RENDERER_CHUNKS = LAZY_RENDERER_SOURCE_FILES.map((sourceFile) => ({
-  sourceFile,
-  outputFile: sourceFile.replace(/\.js$/, '.min.js'),
-}));
+const LAZY_RENDERER_CHUNKS = [
+  { sourceFiles: ['js/renderers2.js'], outputFile: 'js/renderers2.min.js' },
+  { sourceFiles: ['js/renderers3.js'], outputFile: 'js/renderers3.min.js' },
+  // [TOOLIEST QR FIX] Bundle the QR engine into the same-origin renderer chunk so the tool never depends on a third-party runtime fetch.
+  { sourceFiles: ['node_modules/qrcode-generator/qrcode.js', 'js/renderers4.js'], outputFile: 'js/renderers4.min.js' },
+  { sourceFiles: ['js/renderers5.js'], outputFile: 'js/renderers5.min.js' },
+  { sourceFiles: ['js/renderers6.js'], outputFile: 'js/renderers6.min.js' },
+];
 const TOOL_RENDERER_SOURCE_FILES = ['js/renderers.js', ...LAZY_RENDERER_SOURCE_FILES];
 
 const SOFTWARE_CONTENT_CATEGORIES = [
@@ -1944,7 +1948,7 @@ async function bundleJavascript() {
   // [TOOLIEST AUDIT] Ship the SPA core separately from secondary renderer chunks and emit source maps for debugging.
   await writeMinifiedJavascript(CORE_BUNDLE_FILES, BUNDLE_OUTPUT_FILE);
   for (const chunk of LAZY_RENDERER_CHUNKS) {
-    await writeMinifiedJavascript([chunk.sourceFile], chunk.outputFile);
+    await writeMinifiedJavascript(chunk.sourceFiles, chunk.outputFile);
   }
 }
 

@@ -4,45 +4,6 @@
 // ============================================
 const _cs = (c) => { const b=c.querySelector('#copy-btn'); if(b) b.addEventListener('click', function(){copyToClipboard(document.getElementById('tool-output').textContent,this)}); };
 const _show = (text) => { const o=document.getElementById('tool-output'),b=document.getElementById('copy-btn'); o.classList.remove('empty'); o.textContent=text; if(b){b.classList.remove('hidden');o.appendChild(b)} };
-const _sharedLoaders = { qrCode: null };
-const _loadQrCodeLibrary = async () => {
-  if (window.QRCode?.toCanvas) return window.QRCode;
-  if (_sharedLoaders.qrCode) return _sharedLoaders.qrCode;
-  const sources = [
-    'https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js',
-    'https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js',
-  ];
-  _sharedLoaders.qrCode = (async () => {
-    for (const src of sources) {
-      try {
-        await new Promise((resolve, reject) => {
-          const existing = document.querySelector(`script[data-tooliest-qr-src="${src}"]`);
-          if (existing) {
-            if (window.QRCode?.toCanvas) { resolve(); return; }
-            existing.addEventListener('load', resolve, { once: true });
-            existing.addEventListener('error', reject, { once: true });
-            return;
-          }
-          const script = document.createElement('script');
-          script.src = src;
-          script.async = true;
-          script.dataset.tooliestQrSrc = src;
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error(`Failed to load ${src}`));
-          document.head.appendChild(script);
-        });
-        if (window.QRCode?.toCanvas) return window.QRCode;
-      } catch (_) {}
-    }
-    throw new Error('QR code library unavailable');
-  })();
-  try {
-    return await _sharedLoaders.qrCode;
-  } catch (error) {
-    _sharedLoaders.qrCode = null;
-    throw error;
-  }
-};
 const _escapeQrWifiValue = (value) => String(value || '').replace(/([\\;,:"])/g, '\\$1');
 const _normalizeQrUrl = (value) => {
   const trimmed = String(value || '').trim();
@@ -50,6 +11,50 @@ const _normalizeQrUrl = (value) => {
   if (/^[a-z]+:/i.test(trimmed)) return trimmed;
   if (/^[\w.-]+\.[a-z]{2,}(?:[/?#]|$)/i.test(trimmed)) return `https://${trimmed}`;
   return trimmed;
+};
+const _renderQrToCanvas = (canvas, payload, options = {}) => {
+  if (typeof qrcode !== 'function') {
+    throw new Error('Bundled QR engine unavailable');
+  }
+
+  const size = Math.max(128, Math.min(1024, Number(options.size || 384)));
+  const quietZoneModules = Math.max(0, Math.min(12, Number(options.margin || 4)));
+  const errorCorrectionLevel = options.errorCorrectionLevel || 'M';
+  const darkColor = options.darkColor || '#111827';
+  const lightColor = options.lightColor || '#ffffff';
+
+  const qr = qrcode(0, errorCorrectionLevel);
+  qr.addData(payload);
+  qr.make();
+
+  const moduleCount = qr.getModuleCount();
+  const totalModules = moduleCount + quietZoneModules * 2;
+  const cellSize = Math.max(1, Math.floor(size / totalModules));
+  const drawnSize = totalModules * cellSize;
+  const offset = Math.floor((size - drawnSize) / 2);
+  const context = canvas.getContext('2d');
+
+  canvas.width = size;
+  canvas.height = size;
+  context.imageSmoothingEnabled = false;
+  context.clearRect(0, 0, size, size);
+  context.fillStyle = lightColor;
+  context.fillRect(0, 0, size, size);
+
+  for (let row = 0; row < moduleCount; row += 1) {
+    for (let col = 0; col < moduleCount; col += 1) {
+      if (!qr.isDark(row, col)) continue;
+      context.fillStyle = darkColor;
+      context.fillRect(
+        offset + (quietZoneModules + col) * cellSize,
+        offset + (quietZoneModules + row) * cellSize,
+        cellSize,
+        cellSize
+      );
+    }
+  }
+
+  return { size, moduleCount, cellSize };
 };
 
 Object.assign(ToolRenderers.renderers, {
@@ -458,26 +463,20 @@ Object.assign(ToolRenderers.renderers, {
       generateBtn.disabled = true;
       generateBtn.textContent = 'Generating...';
       try {
-        await _loadQrCodeLibrary();
-        const size = Math.max(128, Math.min(1024, Number(document.getElementById('qr-size')?.value || 384)));
-        previewCanvas.width = size;
-        previewCanvas.height = size;
-        await window.QRCode.toCanvas(previewCanvas, payload, {
-          width: size,
-          margin: Math.max(0, Math.min(12, Number(document.getElementById('qr-margin')?.value || 4))),
+        const renderResult = _renderQrToCanvas(previewCanvas, payload, {
+          size: Number(document.getElementById('qr-size')?.value || 384),
+          margin: Number(document.getElementById('qr-margin')?.value || 4),
           errorCorrectionLevel: document.getElementById('qr-level')?.value || 'M',
-          color: {
-            dark: document.getElementById('qr-dark')?.value || '#111827',
-            light: document.getElementById('qr-light')?.value || '#ffffff',
-          },
+          darkColor: document.getElementById('qr-dark')?.value || '#111827',
+          lightColor: document.getElementById('qr-light')?.value || '#ffffff',
         });
         previewWrap.classList.remove('hidden');
         downloadBtn.classList.remove('hidden');
-        statusText.textContent = `QR code ready at ${size}px. Scan it now or download the PNG.`;
+        statusText.textContent = `QR code ready at ${renderResult.size}px with ${renderResult.moduleCount} modules. Scan it now or download the PNG.`;
         App.recordToolPerformance('qr-code-generator', 'Generate QR Code', performance.now() - startedAt);
       } catch (error) {
         console.error('[Tooliest] QR generation failed:', error);
-        App.toast('Could not generate the QR code right now.', 'error');
+        App.toast('Could not generate the QR code. The bundled QR engine hit an error.', 'error');
       } finally {
         generateBtn.disabled = false;
         generateBtn.textContent = 'Generate QR Code';
