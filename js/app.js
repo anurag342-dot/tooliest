@@ -3,6 +3,8 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '2.8', date: '2026-04-17', items: ['Auto-linked visible labels to tool inputs for broader accessibility coverage'] },
+  { version: '2.7', date: '2026-04-17', items: ['Cut compare view overhead by reusing the live current workspace', 'Added a weekly popularity section powered by local usage history', 'Added an opt-in email capture prompt for repeat Tooliest users'] },
   { version: '2.6', date: '2026-04-17', items: ['Added browser-based QR Code Generator with PNG download', 'Added Ctrl + / shortcut to reopen your most recently used tool', 'Refreshed featured tool discovery to surface QR workflows faster'] },
   { version: '2.5', date: '2026-04-06', items: ['Added prerendered category pages for SEO', 'Added favorites export and import backup', 'Introduced welcome tour and performance metrics', 'Added side-by-side comparison mode for related tools'] },
   { version: '2.4', date: '2026-04-06', items: ['Added dark/light theme toggle', 'Keyboard shortcuts panel (press ?)', 'Tool sharing via Web Share API', 'Cross-category related tools'] },
@@ -11,8 +13,9 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260417v15';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260417v17';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
+const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 
 // Safe localStorage helper — prevents crashes in private browsing or restricted environments
 function safeLocalGet(key, fallback) {
@@ -61,6 +64,8 @@ const App = {
   performanceDashboardCleanup: null,
   inputCapabilities: null,
   toolReadyStateTimer: null,
+  comparisonRestoreState: null,
+  emailCaptureTimer: null,
 
   init() {
     this.normalizeLegacyHashRoute();
@@ -749,11 +754,13 @@ const App = {
   },
 
   renderHome() {
+    this.closeToolComparison();
     const main = document.getElementById('main-content');
     const categoryMeta = this.getCategoryMeta(this.currentCategory);
     main.innerHTML = this.getHeroHTML() +
       this.getQuickStartHTML() +
       this.getRecentlyUsedHTML() +
+      this.getPopularThisWeekHTML() +
       this.getMostPopularHTML() +
       this.getFavoritesManagerHTML() +
       this.getCategoriesHTML() +
@@ -768,7 +775,7 @@ const App = {
     } else if (this.currentCategory === 'favorites') {
       this.updateSEO('Favorite Tools | Tooliest', 'Your saved Tooliest favorites on this device. Export or import them any time with no account required.', null);
     } else {
-      this.updateSEO('Tooliest — 80+ Free Online Tools Powered by AI', 'Access 80+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. AI-powered features included.', null);
+      this.updateSEO(`Tooliest — ${TOOLS.length}+ Free Online Tools Powered by AI`, `Access ${TOOLS.length}+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. AI-powered features included.`, null);
     }
   },
 
@@ -914,6 +921,41 @@ const App = {
       .slice(0, limit);
   },
 
+  getUsageEvents() {
+    const events = safeLocalGet('tooliest_usage_events', []);
+    if (!Array.isArray(events)) return [];
+    return events.filter((entry) =>
+      entry &&
+      typeof entry.toolId === 'string' &&
+      Number.isFinite(Number(entry.timestamp)) &&
+      TOOLS.some((tool) => tool.id === entry.toolId)
+    );
+  },
+
+  recordUsageEvent(toolId) {
+    const events = this.getUsageEvents();
+    events.push({
+      toolId,
+      timestamp: Date.now(),
+    });
+    safeLocalSet('tooliest_usage_events', JSON.stringify(events.slice(-250)));
+  },
+
+  getPopularThisWeekTools(limit = 6) {
+    const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    const weeklyCounts = this.getUsageEvents().reduce((acc, entry) => {
+      if (Number(entry.timestamp) < cutoff) return acc;
+      acc[entry.toolId] = (acc[entry.toolId] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(weeklyCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([toolId]) => TOOLS.find((tool) => tool.id === toolId))
+      .filter(Boolean)
+      .slice(0, limit);
+  },
+
   getSearchMatches(query, limit = 8) {
     const normalized = String(query || '').trim().toLowerCase();
     if (!normalized) return [];
@@ -1047,6 +1089,21 @@ const App = {
           <p>${totalUses ? `You have completed ${totalUses} tool action${totalUses === 1 ? '' : 's'} on this device. Keep momentum with the tools people open most.` : 'New to Tooliest? Start with the fastest, most useful tools before diving into the full directory.'}</p>
         </div>
         <div class="related-tools-grid">${featuredTools.map((tool) => this.getToolCardHTML(tool)).join('')}</div>
+      </div>
+    </section>`;
+  },
+
+  getPopularThisWeekHTML() {
+    const weeklyTools = this.getPopularThisWeekTools(6);
+    if (!weeklyTools.length) return '';
+
+    return `<section class="tools-section tools-section-condensed">
+      <div class="section-shell">
+        <div class="section-heading">
+          <h3>Popular This Week</h3>
+          <p>Based on your last 7 days of Tooliest usage in this browser, so you can jump back into the tools that are earning repeat opens right now.</p>
+        </div>
+        <div class="related-tools-grid">${weeklyTools.map((tool) => this.getToolCardHTML(tool)).join('')}</div>
       </div>
     </section>`;
   },
@@ -1233,6 +1290,7 @@ const App = {
   showTool(toolId) {
     const tool = TOOLS.find(t => t.id === toolId);
     if (!tool) { this.navigate(this.getHomePath(), { replace: true }); return; }
+    this.closeToolComparison();
     const isEmbed = this.isEmbedMode();
     this.currentView = 'tool';
     this.activeToolId = toolId;
@@ -1263,6 +1321,7 @@ const App = {
         this.openToolComparison(tool, compareToolId);
       });
       document.getElementById('compare-close-btn')?.addEventListener('click', () => this.closeToolComparison());
+      this.maybeShowEmailCapture(tool);
     }
 
     this.bindToolCardInteractions(main);
@@ -1498,6 +1557,7 @@ const App = {
   // ===== FEAT-02: TOOL USAGE TRACKING =====
   trackUsage(toolId) {
     this.toolUsage[toolId] = (this.toolUsage[toolId] || 0) + 1;
+    this.recordUsageEvent(toolId);
     // Store last-used timestamp
     const recent = safeLocalGet('tooliest_recent', []);
     const filtered = recent.filter(id => id !== toolId);
@@ -1560,6 +1620,121 @@ const App = {
 
     document.getElementById('show-tour-btn')?.addEventListener('click', () => this.showWelcomeTour(true));
     document.getElementById('show-shortcuts-btn')?.addEventListener('click', () => this.showShortcuts());
+  },
+
+  maybeShowEmailCapture(tool) {
+    if (this.isEmbedMode()) return;
+    if (document.getElementById('email-capture-overlay')) return;
+    if (safeLocalRead('tooliest_email_capture_disabled') === '1') return;
+    if (safeLocalRead('tooliest_email_capture_requested') === '1') return;
+
+    const totalUses = this.getTotalUsageCount();
+    const lastPromptTotal = Number(safeLocalRead('tooliest_email_capture_last_prompt_total') || 0);
+    if (totalUses < 3 || totalUses % 3 !== 0 || totalUses === lastPromptTotal) return;
+
+    safeLocalSet('tooliest_email_capture_last_prompt_total', String(totalUses));
+    if (this.emailCaptureTimer) {
+      clearTimeout(this.emailCaptureTimer);
+    }
+
+    this.emailCaptureTimer = window.setTimeout(() => {
+      this.emailCaptureTimer = null;
+      if (this.currentView === 'tool') {
+        this.showEmailCapture(tool);
+      }
+    }, 700);
+  },
+
+  openEmailCaptureInbox(email, tool) {
+    const subject = encodeURIComponent('Tooliest updates signup');
+    const body = encodeURIComponent(
+      `Please add this email to Tooliest updates:\n\n${email}\n\nMost recent tool: ${tool?.name || 'Tooliest'}\nTotal local uses: ${this.getTotalUsageCount()}\nPage: ${window.location.href}`
+    );
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(TOOLIEST_CONTACT_EMAIL)}&su=${subject}&body=${body}`;
+    const mailtoUrl = `mailto:${TOOLIEST_CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    const popup = window.open(gmailUrl, '_blank', 'noopener');
+    if (!popup) {
+      window.location.href = mailtoUrl;
+    }
+  },
+
+  showEmailCapture(tool) {
+    if (document.getElementById('email-capture-overlay')) return;
+
+    const totalUses = this.getTotalUsageCount();
+    const safeToolName = this.escapeHTML(tool?.name || 'Tooliest');
+    const overlay = document.createElement('div');
+    overlay.id = 'email-capture-overlay';
+    overlay.innerHTML = `<div class="email-capture-panel" role="dialog" aria-modal="true" aria-label="Join Tooliest updates" tabindex="-1">
+      <div class="email-capture-header">
+        <div>
+          <h2>Keep the best Tooliest launches coming</h2>
+          <p>You have used Tooliest ${totalUses} time${totalUses === 1 ? '' : 's'} on this device. Get weekly updates, new tool launches, and practical browser-first workflows.</p>
+        </div>
+        <button type="button" class="email-capture-close" id="email-capture-close" aria-label="Close email signup">Close</button>
+      </div>
+      <div class="email-capture-meta">
+        <span class="guide-chip">Latest tool: ${safeToolName}</span>
+        <span class="guide-chip">No account required</span>
+        <span class="guide-chip">Fully static workflow</span>
+      </div>
+      <form id="email-capture-form" class="email-capture-form" novalidate>
+        <div class="input-group">
+          <label for="email-capture-input">Email address</label>
+          <input type="email" id="email-capture-input" placeholder="you@example.com" autocomplete="email" required>
+        </div>
+        <p class="email-capture-note">Tooliest is a static site, so joining opens your email app with a prefilled signup message to the Tooliest inbox. You stay in control and nothing is sent silently.</p>
+        <div class="email-capture-actions">
+          <button type="submit" class="btn btn-primary">Join Updates</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="email-capture-later">Maybe Later</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="email-capture-never">Don't Show Again</button>
+        </div>
+        <a class="email-capture-link" href="/contact">Prefer the contact form instead?</a>
+      </form>
+    </div>`;
+
+    document.body.appendChild(overlay);
+    const panel = overlay.querySelector('.email-capture-panel');
+    const form = overlay.querySelector('#email-capture-form');
+    const input = overlay.querySelector('#email-capture-input');
+    let releaseFocus = null;
+
+    const dismiss = (options = {}) => {
+      if (options.disable) {
+        safeLocalSet('tooliest_email_capture_disabled', '1');
+      }
+      if (options.requested) {
+        safeLocalSet('tooliest_email_capture_requested', '1');
+      }
+      releaseFocus?.();
+      overlay.remove();
+    };
+
+    overlay.__tooliestDismiss = dismiss;
+    releaseFocus = this.activateOverlayFocusTrap(overlay, panel, () => dismiss());
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) dismiss();
+    });
+    document.getElementById('email-capture-close')?.addEventListener('click', () => dismiss());
+    document.getElementById('email-capture-later')?.addEventListener('click', () => dismiss());
+    document.getElementById('email-capture-never')?.addEventListener('click', () => {
+      dismiss({ disable: true });
+      this.toast('Email prompts turned off for this browser.');
+    });
+
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const email = String(input?.value || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        input?.focus();
+        this.toast('Enter a valid email address to prepare the signup message.', 'error');
+        return;
+      }
+
+      this.openEmailCaptureInbox(email, tool);
+      dismiss({ requested: true });
+      this.toast('Your email app is ready. Send the prefilled message to join Tooliest updates.');
+    });
   },
 
   exportFavorites() {
@@ -1938,19 +2113,43 @@ const App = {
     const closeButton = document.getElementById('compare-close-btn');
     const compareTool = TOOLS.find(tool => tool.id === compareToolId);
     const iframeSandbox = 'allow-same-origin allow-scripts allow-forms allow-downloads';
+    const workspace = document.getElementById('tool-workspace');
+    const performancePanel = document.getElementById('tool-performance-panel');
 
-    if (!comparisonRoot || !compareTool) {
+    if (!comparisonRoot || !compareTool || !workspace) {
       this.toast('Choose a related tool to compare.', 'error');
       return;
     }
 
+    if (compareTool.id === primaryTool.id) {
+      this.toast('Pick a different tool to compare against.', 'error');
+      return;
+    }
+
+    if (this.comparisonRestoreState) {
+      this.closeToolComparison();
+    }
+
+    const workspacePlaceholder = document.createElement('div');
+    workspacePlaceholder.hidden = true;
+    workspacePlaceholder.setAttribute('data-compare-placeholder', 'workspace');
+    workspace.parentNode?.insertBefore(workspacePlaceholder, workspace);
+
+    let performancePlaceholder = null;
+    if (performancePanel?.parentNode) {
+      performancePlaceholder = document.createElement('div');
+      performancePlaceholder.hidden = true;
+      performancePlaceholder.setAttribute('data-compare-placeholder', 'performance');
+      performancePanel.parentNode.insertBefore(performancePlaceholder, performancePanel);
+    }
+
     comparisonRoot.innerHTML = `<div class="compare-layout">
-      <div class="compare-pane">
+      <div class="compare-pane compare-pane-live">
         <div class="compare-pane-header">
           <strong>${primaryTool.name}</strong>
-          <span>Current tool</span>
+          <span>Live workspace</span>
         </div>
-        <iframe src="${this.getToolPath(primaryTool.id)}?embed=1" title="${primaryTool.name} comparison panel" loading="lazy" sandbox="${iframeSandbox}" referrerpolicy="no-referrer"></iframe>
+        <div class="compare-pane-body" id="compare-live-pane"></div>
       </div>
       <div class="compare-pane">
         <div class="compare-pane-header">
@@ -1960,11 +2159,42 @@ const App = {
         <iframe src="${this.getToolPath(compareTool.id)}?embed=1" title="${compareTool.name} comparison panel" loading="lazy" sandbox="${iframeSandbox}" referrerpolicy="no-referrer"></iframe>
       </div>
     </div>`;
+
+    const livePane = document.getElementById('compare-live-pane');
+    livePane?.appendChild(workspace);
+    if (performancePanel) {
+      livePane?.appendChild(performancePanel);
+    }
+
+    this.comparisonRestoreState = {
+      workspace,
+      workspacePlaceholder,
+      performancePanel,
+      performancePlaceholder,
+    };
+
     closeButton?.classList.remove('hidden');
     comparisonRoot.scrollIntoView({ behavior: 'smooth', block: 'start' });
   },
 
   closeToolComparison() {
+    if (this.comparisonRestoreState) {
+      const {
+        workspace,
+        workspacePlaceholder,
+        performancePanel,
+        performancePlaceholder,
+      } = this.comparisonRestoreState;
+
+      if (workspacePlaceholder?.parentNode) {
+        workspacePlaceholder.replaceWith(workspace);
+      }
+      if (performancePanel && performancePlaceholder?.parentNode) {
+        performancePlaceholder.replaceWith(performancePanel);
+      }
+      this.comparisonRestoreState = null;
+    }
+
     const comparisonRoot = document.getElementById('tool-comparison-root');
     comparisonRoot?.replaceChildren();
     document.getElementById('compare-close-btn')?.classList.add('hidden');
@@ -2103,6 +2333,7 @@ document.addEventListener('keydown', (e) => {
   }
   // Esc: close overlays
   if (e.key === 'Escape') {
+    if (App.dismissManagedOverlay('email-capture-overlay')) return;
     if (App.dismissManagedOverlay('shortcuts-overlay')) return;
     if (App.dismissManagedOverlay('changelog-overlay')) return;
     if (App.dismissManagedOverlay('welcome-tour-overlay')) return;

@@ -127,7 +127,7 @@
 }
 
 /* === Overlay Panels (Shortcuts + Changelog) === */
-#shortcuts-overlay, #changelog-overlay {
+#shortcuts-overlay, #changelog-overlay, #email-capture-overlay {
   position: fixed;
   inset: 0;
   z-index: 10001;
@@ -141,7 +141,7 @@
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-.shortcuts-panel, .changelog-panel {
+.shortcuts-panel, .changelog-panel, .email-capture-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -212,6 +212,73 @@ kbd {
 }
 
 .changelog-entry:last-child { border-bottom: none; }
+
+.email-capture-panel {
+  width: min(560px, 100%);
+}
+
+.email-capture-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.email-capture-header h2 {
+  font-size: 1.35rem;
+  margin-bottom: 8px;
+}
+
+.email-capture-header p {
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.email-capture-close {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.email-capture-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.email-capture-form {
+  display: grid;
+  gap: 14px;
+}
+
+.email-capture-note {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.email-capture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.email-capture-link {
+  color: var(--accent-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.email-capture-link:hover {
+  text-decoration: underline;
+}
 
 /* === Welcome Tour === */
 #welcome-tour-overlay {
@@ -1506,6 +1573,12 @@ body.nav-menu-open {
   background: var(--bg-secondary);
 }
 
+.compare-pane-body {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
 .compare-pane-header {
   display: flex;
   justify-content: space-between;
@@ -1526,6 +1599,15 @@ body.nav-menu-open {
   min-height: 720px;
   border: 0;
   background: var(--bg-secondary);
+}
+
+.compare-pane-live .tool-workspace,
+.compare-pane-live .tool-performance-panel {
+  margin-top: 0;
+}
+
+.compare-pane-live .tool-workspace {
+  min-height: 100%;
 }
 
 /* Tool workspace */
@@ -2624,6 +2706,12 @@ body.embed-mode .tool-page {
 
   .compare-pane iframe {
     min-height: 560px;
+  }
+
+  .email-capture-header,
+  .email-capture-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .hero-trust-strip {

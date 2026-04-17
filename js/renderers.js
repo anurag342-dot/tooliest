@@ -43,6 +43,7 @@ const ToolRenderers = {
   rendererChunkMap: TOOL_RENDERER_CHUNK_MAP,
   loadedRendererChunks: new Set(),
   loadingRendererChunks: new Map(),
+  accessibleLabelCounter: 0,
 
   getSafeErrorMessage(error) {
     return String(error && error.message ? error.message : error || 'Unknown error')
@@ -87,7 +88,7 @@ const ToolRenderers = {
       return;
     }
 
-    const version = typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '20260417v15';
+    const version = typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '20260417v17';
     const chunkPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       // [TOOLIEST AUDIT] Lazy-load non-core renderer chunks so the first render ships a much smaller JS payload.
@@ -109,7 +110,47 @@ const ToolRenderers = {
     this.loadingRendererChunks.set(chunkFile, chunkPromise);
     await chunkPromise;
   },
+  disconnectAccessibleLabelObserver(container) {
+    if (container?.__tooliestLabelObserver) {
+      container.__tooliestLabelObserver.disconnect();
+      delete container.__tooliestLabelObserver;
+    }
+  },
+
+  ensureAccessibleLabels(container) {
+    if (!container) return;
+    const linkVisibleLabels = () => {
+      container.querySelectorAll('.input-group').forEach((group) => {
+        const label = group.querySelector('label:not(.checkbox-label):not([for])');
+        if (!label) return;
+        const control = group.querySelector('input:not([type="hidden"]), textarea, select');
+        if (!control || label.closest('.checkbox-label')) return;
+        if (!control.id) {
+          this.accessibleLabelCounter += 1;
+          control.id = `tooliest-field-${this.accessibleLabelCounter}`;
+        }
+        label.setAttribute('for', control.id);
+      });
+    };
+
+    this.disconnectAccessibleLabelObserver(container);
+    linkVisibleLabels();
+
+    if (typeof MutationObserver !== 'function') return;
+    let rafId = 0;
+    const observer = new MutationObserver(() => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        linkVisibleLabels();
+      });
+    });
+    observer.observe(container, { childList: true, subtree: true });
+    container.__tooliestLabelObserver = observer;
+  },
+
   async render(toolId, container) {
+    this.disconnectAccessibleLabelObserver(container);
     container.dataset.tooliestRendererToolId = toolId;
     let rendererFn = this.renderers[toolId];
     const chunkFile = this.rendererChunkMap[toolId];
@@ -137,6 +178,7 @@ const ToolRenderers = {
 
     try {
       rendererFn(container);
+      this.ensureAccessibleLabels(container);
       App.setupAutoSave('tool-input', toolId);
     } catch (err) {
       console.error('[Tooliest] Error rendering tool:', toolId, err);

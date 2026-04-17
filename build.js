@@ -12,7 +12,7 @@ function getBuildEnv(name, fallback) {
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260417v15';
+const ASSET_VERSION = '20260417v17';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const GOOGLE_TAG_ID = getBuildEnv('GOOGLE_TAG_ID', 'AW-18068794869');
