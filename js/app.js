@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.1', date: '2026-04-18', items: ['Added a mobile quick-action bar on tool pages', 'Improved category tab scroll discoverability with swipe hints', 'Finished the remaining mobile audit navigation and paint polish'] },
   { version: '3.0', date: '2026-04-18', items: ['Hardened mobile safe-area handling and touch targets', 'Added reduced-motion and tablet layout improvements', 'Upgraded PWA metadata and mobile menu swipe dismissal'] },
   { version: '2.9', date: '2026-04-17', items: ['Rebuilt Image EXIF Privacy Stripper with explicit clean-download actions and lossless metadata stripping for JPEG, PNG, and WebP'] },
   { version: '2.8', date: '2026-04-17', items: ['Auto-linked visible labels to tool inputs for broader accessibility coverage'] },
@@ -15,7 +16,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260418v19';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260418v20';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -72,6 +73,8 @@ const App = {
   toolReadyStateTimer: null,
   comparisonRestoreState: null,
   emailCaptureTimer: null,
+  categoryTabsStateHandler: null,
+  categoryTabsResizeHandler: null,
 
   init() {
     this.normalizeLegacyHashRoute();
@@ -124,6 +127,7 @@ const App = {
       window.addEventListener('appinstalled', () => {
         this.deferredPrompt = null;
         document.getElementById('pwa-install-banner')?.remove();
+        document.body.classList.remove('pwa-install-open');
         const navBtn = document.getElementById('nav-install-btn');
         if (navBtn) navBtn.style.display = 'none';
       });
@@ -721,6 +725,7 @@ const App = {
       !this.searchQuery &&
       (route.view === 'home' || route.view === 'category');
     const preservedScrollY = preserveCollectionScroll ? window.scrollY : 0;
+    document.body.classList.toggle('tool-view-active', route.view === 'tool' && Boolean(route.toolId) && !this.isEmbedMode());
     document.getElementById('nav-links')?.classList.remove('mobile-open');
     document.body.classList.remove('nav-menu-open');
     const mobileMenuButton = document.getElementById('mobile-menu-btn');
@@ -834,7 +839,10 @@ const App = {
         <span>${c.icon}</span> ${c.name} <span class="tab-count">${c.count}</span>
       </button>`
     ).join('');
-    return `<section class="categories-section"><div class="category-tabs" id="category-tabs">${tabs}</div></section>`;
+    return `<section class="categories-section">
+      <div class="category-tabs" id="category-tabs">${tabs}</div>
+      <p class="category-scroll-indicator" id="category-scroll-indicator" aria-hidden="true">Swipe to see more categories →</p>
+    </section>`;
   },
 
   bindCategoryTabs() {
@@ -844,6 +852,42 @@ const App = {
         this.navigate(this.getCategoryPath(this.currentCategory), { replace: true, preserveScroll: true });
       });
     });
+
+    const categoryTabs = document.getElementById('category-tabs');
+    if (!categoryTabs) return;
+
+    if (!this.categoryTabsStateHandler) {
+      this.categoryTabsStateHandler = () => this.updateCategoryTabsOverflowState();
+    }
+    if (!this.categoryTabsResizeHandler) {
+      this.categoryTabsResizeHandler = () => this.updateCategoryTabsOverflowState();
+      window.addEventListener('resize', this.categoryTabsResizeHandler, { passive: true });
+    }
+    if (categoryTabs.dataset.overflowBound !== 'true') {
+      categoryTabs.dataset.overflowBound = 'true';
+      categoryTabs.addEventListener('scroll', this.categoryTabsStateHandler, { passive: true });
+    }
+
+    requestAnimationFrame(this.categoryTabsStateHandler);
+  },
+
+  updateCategoryTabsOverflowState() {
+    const categoryTabs = document.getElementById('category-tabs');
+    const section = categoryTabs?.closest('.categories-section');
+    const hint = document.getElementById('category-scroll-indicator');
+    if (!categoryTabs || !section) return;
+
+    const overflow = categoryTabs.scrollWidth - categoryTabs.clientWidth > 24;
+    const atStart = categoryTabs.scrollLeft <= 12;
+    const atEnd = categoryTabs.scrollLeft + categoryTabs.clientWidth >= categoryTabs.scrollWidth - 12;
+
+    section.classList.toggle('has-scrollable-tabs', overflow);
+    section.classList.toggle('is-scrolled', overflow && !atStart);
+    section.classList.toggle('is-scroll-end', !overflow || atEnd);
+
+    if (hint) {
+      hint.hidden = !overflow || !atStart || atEnd;
+    }
   },
 
   setActiveCategory(id) {
@@ -915,8 +959,34 @@ const App = {
     if (favCat) favCat.count = this.favorites.length;
     
     // Refresh without destroying search query
-    this.renderHome();
+    if (this.currentView === 'tool') {
+      this.syncFavoriteButtons(toolId);
+    } else if (this.currentView !== 'search') {
+      this.renderHome();
+    }
     this.toast(this.favorites.includes(toolId) ? 'Added to favorites ⭐' : 'Removed from favorites');
+  },
+
+  syncFavoriteButtons(toolId) {
+    const isFav = this.favorites.includes(toolId);
+    const toolName = TOOLS.find((tool) => tool.id === toolId)?.name || toolId;
+    document.querySelectorAll(`.tool-card[data-tool-id="${toolId}"] .fav-btn`).forEach((button) => {
+      button.classList.toggle('active', isFav);
+      button.setAttribute('aria-label', isFav ? 'Remove from favorites' : 'Add to favorites');
+      button.setAttribute('aria-pressed', String(isFav));
+      button.textContent = isFav ? 'â­' : 'â˜†';
+    });
+
+    const toolFavoriteButton = document.getElementById('mobile-tool-favorite-btn');
+    if (toolFavoriteButton && this.activeToolId === toolId) {
+      toolFavoriteButton.classList.toggle('active', isFav);
+      toolFavoriteButton.setAttribute('aria-pressed', String(isFav));
+      toolFavoriteButton.setAttribute('aria-label', isFav ? `Remove ${toolName} from favorites` : `Save ${toolName} to favorites`);
+      const icon = toolFavoriteButton.querySelector('.mobile-tool-nav-icon');
+      const label = toolFavoriteButton.querySelector('.mobile-tool-nav-label');
+      if (icon) icon.textContent = isFav ? '★' : '☆';
+      if (label) label.textContent = isFav ? 'Saved' : 'Save';
+    }
   },
 
   getToolCardHTML(tool) {
@@ -1312,6 +1382,24 @@ const App = {
       ${this.getToolContentSectionsHTML(tool)}
       ${this.getAdHTML('tool-bottom')}
       ${related.length ? `<div class="related-tools"><h3>You May Also Like</h3><div class="related-tools-grid">${related.map(r => this.getToolCardHTML(r)).join('')}</div></div>` : ''}
+      <nav class="mobile-tool-nav" aria-label="Quick actions for ${tool.name}">
+        <button type="button" class="mobile-tool-nav-btn" id="mobile-tool-home-btn" aria-label="Go to the Tooliest home page">
+          <span class="mobile-tool-nav-icon" aria-hidden="true">⌂</span>
+          <span class="mobile-tool-nav-label">Home</span>
+        </button>
+        <button type="button" class="mobile-tool-nav-btn" id="mobile-tool-search-btn" aria-label="Search Tooliest tools">
+          <span class="mobile-tool-nav-icon" aria-hidden="true">⌕</span>
+          <span class="mobile-tool-nav-label">Search</span>
+        </button>
+        <button type="button" class="mobile-tool-nav-btn${this.favorites.includes(tool.id) ? ' active' : ''}" id="mobile-tool-favorite-btn" aria-label="${this.favorites.includes(tool.id) ? `Remove ${tool.name} from favorites` : `Save ${tool.name} to favorites`}" aria-pressed="${this.favorites.includes(tool.id)}">
+          <span class="mobile-tool-nav-icon" aria-hidden="true">${this.favorites.includes(tool.id) ? '★' : '☆'}</span>
+          <span class="mobile-tool-nav-label">${this.favorites.includes(tool.id) ? 'Saved' : 'Save'}</span>
+        </button>
+        <button type="button" class="mobile-tool-nav-btn" id="mobile-tool-share-btn" aria-label="Share ${tool.name}">
+          <span class="mobile-tool-nav-icon" aria-hidden="true">↗</span>
+          <span class="mobile-tool-nav-label">Share</span>
+        </button>
+      </nav>
     </div>`;
   },
 
@@ -1342,6 +1430,10 @@ const App = {
       this.startToolPerformanceTracking(tool);
       document.getElementById('share-tool-btn')?.addEventListener('click', () => this.shareTool(tool));
       document.getElementById('print-tool-btn')?.addEventListener('click', () => this.printToolPage());
+      document.getElementById('mobile-tool-home-btn')?.addEventListener('click', () => this.navigate(this.getHomePath()));
+      document.getElementById('mobile-tool-search-btn')?.addEventListener('click', () => this.focusSearch());
+      document.getElementById('mobile-tool-favorite-btn')?.addEventListener('click', () => this.toggleFavorite(tool.id));
+      document.getElementById('mobile-tool-share-btn')?.addEventListener('click', () => this.shareTool(tool));
       document.getElementById('compare-tool-btn')?.addEventListener('click', () => {
         document.getElementById('compare-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
@@ -1401,18 +1493,25 @@ const App = {
         <button id="pwa-close-btn" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:1rem;padding:4px">✕</button>
       </div>`;
     document.body.appendChild(banner);
+    document.body.classList.add('pwa-install-open');
     document.getElementById('pwa-install-btn').addEventListener('click', async () => {
       if (this.deferredPrompt) {
         this.deferredPrompt.prompt();
         const { outcome } = await this.deferredPrompt.userChoice;
-        if (outcome === 'accepted') banner.remove();
+        if (outcome === 'accepted') {
+          banner.remove();
+          document.body.classList.remove('pwa-install-open');
+        }
         this.deferredPrompt = null;
       }
     });
     document.getElementById('pwa-close-btn').addEventListener('click', () => {
       safeLocalSet('tooliest_pwa_dismissed', '1');
       banner.classList.remove('show');
-      setTimeout(() => banner.remove(), 300);
+      setTimeout(() => {
+        banner.remove();
+        document.body.classList.remove('pwa-install-open');
+      }, 300);
     });
     requestAnimationFrame(() => banner.classList.add('show'));
   },

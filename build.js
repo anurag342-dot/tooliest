@@ -12,7 +12,7 @@ function getBuildEnv(name, fallback) {
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260418v19';
+const ASSET_VERSION = '20260418v20';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const GOOGLE_TAG_ID = getBuildEnv('GOOGLE_TAG_ID', 'AW-18068794869');
@@ -2341,8 +2341,17 @@ function writeHomePage(tools, categories) {
         <div class="hero-stat"><div class="stat-value">${renderableCategories.length}</div><div class="stat-label">Categories</div></div>
         <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
       </div>
+      <div class="hero-trust-strip" aria-label="Tooliest trust highlights">
+        <span class="trust-badge">🔒 100% Private — No Uploads</span>
+        <span class="trust-badge">⚡ Instant Browser Results</span>
+        <span class="trust-badge">📲 PWA Ready + Offline Support</span>
+        <span class="trust-badge">🆓 Forever Free Utilities</span>
+      </div>
     </section>
-    <section class="categories-section"><div class="category-tabs" id="category-tabs">${categoryTabsHtml}</div></section>
+    <section class="categories-section">
+      <div class="category-tabs" id="category-tabs">${categoryTabsHtml}</div>
+      <p class="category-scroll-indicator" id="category-scroll-indicator" aria-hidden="true">Swipe to see more categories →</p>
+    </section>
     <section class="tools-section">
       <div class="tool-content-section">
         <h2>SEO software buying guides</h2>
