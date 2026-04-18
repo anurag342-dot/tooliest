@@ -12,7 +12,7 @@ function getBuildEnv(name, fallback) {
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260418v22';
+const ASSET_VERSION = '20260418v23';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const GOOGLE_TAG_ID = getBuildEnv('GOOGLE_TAG_ID', 'AW-18068794869');
@@ -2286,7 +2286,6 @@ function writeHomePage(tools, categories) {
   console.log('Generating pre-rendered index.html...');
   const renderableCategories = getRenderableCategories(categories);
   const featuredTools = getStaticHomeFeaturedTools(tools);
-  const featuredSoftwareGuides = SOFTWARE_CLUSTERS.slice(0, 3);
   const siteLastModified = getSiteLastModifiedDate();
 
   const categoryTabsHtml = renderableCategories.map(cat =>
@@ -2294,13 +2293,6 @@ function writeHomePage(tools, categories) {
   ).join('');
 
   const toolCardsHtml = featuredTools.map(tool => renderStaticToolCard(tool, categories)).join('');
-  const softwareCardsHtml = renderSoftwareGuideCards(featuredSoftwareGuides, (cluster) => `<article class="guide-card">
-      <span class="guide-card-eyebrow">SEO software guide</span>
-      <h3><a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a></h3>
-      <p>${escapeHtml(cluster.summary)}</p>
-      <div class="guide-chip-row">${cluster.keywords.slice(0, 3).map((keyword) => `<span class="guide-chip">${escapeHtml(keyword)}</span>`).join('')}</div>
-    </article>`);
-
   const structuredData = [
     {
       '@context': 'https://schema.org',
@@ -2377,14 +2369,6 @@ function writeHomePage(tools, categories) {
     <section class="categories-section">
       <div class="category-tabs" id="category-tabs">${categoryTabsHtml}</div>
       <p class="category-scroll-indicator" id="category-scroll-indicator" aria-hidden="true">Swipe to see more categories →</p>
-    </section>
-    <section class="tools-section">
-      <div class="tool-content-section">
-        <h2>SEO software buying guides</h2>
-        <p>If you are comparing SEO software instead of just looking for a browser tool, we now have editorial guides for Semrush, Ahrefs, Screaming Frog, and the next cluster of tools we recommend evaluating.</p>
-        ${softwareCardsHtml}
-        <p style="margin-top:16px"><a href="${SOFTWARE_HUB_PATH}">Browse the full SEO software hub</a></p>
-      </div>
     </section>
     <section class="tools-section"><div class="tools-grid" id="tools-grid">${toolCardsHtml}</div></section>
   </main>`;
