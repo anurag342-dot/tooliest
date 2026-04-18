@@ -1099,7 +1099,7 @@ body.nav-menu-open {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 22px;
-  contain: layout style paint;
+  min-width: 0;
 }
 
 .panel-actions {
@@ -1198,7 +1198,7 @@ body.nav-menu-open {
   max-width: var(--max-width);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: 20px;
 }
 
@@ -1221,7 +1221,7 @@ body.nav-menu-open {
   position: relative;
   overflow: hidden;
   touch-action: manipulation;
-  contain: layout style paint;
+  min-width: 0;
 }
 
 .tool-card-link {
@@ -1354,6 +1354,9 @@ body.nav-menu-open {
   font-size: 0.7rem;
   color: var(--text-tertiary);
   font-weight: 500;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .tool-card .ai-badge {
@@ -1389,7 +1392,7 @@ body.nav-menu-open {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 24px;
-  contain: layout style paint;
+  min-width: 0;
 }
 
 .tool-content-section h2 {
@@ -1484,7 +1487,7 @@ body.nav-menu-open {
   border-radius: var(--radius-lg);
   padding: 18px;
   height: 100%;
-  contain: layout style paint;
+  min-width: 0;
 }
 
 .tool-proof-card span {
@@ -1915,7 +1918,7 @@ select {
   border-radius: var(--radius-md);
   padding: 14px;
   text-align: center;
-  contain: layout style paint;
+  min-width: 0;
 }
 
 .stat-card .stat-num {
@@ -3387,7 +3390,7 @@ body.embed-mode .tool-page {
 
 .guide-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 16px;
   margin-top: 18px;
   content-visibility: auto;
@@ -3399,7 +3402,7 @@ body.embed-mode .tool-page {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 18px;
-  contain: layout style paint;
+  min-width: 0;
 }
 
 .guide-card-outline {
@@ -3464,6 +3467,9 @@ body.embed-mode .tool-page {
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
   font-size: 0.82rem;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .guide-two-col {
