@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.4', date: '2026-04-18', items: ['Made FAQ, why-use, and who-uses sections visible in the live SPA tool pages', 'Restored category FAQ/supporting sections during normal client-side navigation'] },
   { version: '3.3', date: '2026-04-18', items: ['Removed the redundant Popular This Week panel from the homepage', 'Kept Recently Used and Most Popular On This Device as the primary personal discovery sections'] },
   { version: '3.2', date: '2026-04-18', items: ['Cut mobile render-blocking CSS with an inline critical shell', 'Preserved prerendered home and category pages on first load', 'Batched large tool-grid rendering to keep the main thread responsive'] },
   { version: '3.1', date: '2026-04-18', items: ['Added a mobile quick-action bar on tool pages', 'Improved category tab scroll discoverability with swipe hints', 'Finished the remaining mobile audit navigation and paint polish'] },
@@ -18,7 +19,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260418v24';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260418v25';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -439,7 +440,60 @@ const App = {
       title: `${category.name} | Tooliest`,
       description: `Explore ${count} free ${lowerName} on Tooliest. Browser-based utilities with no signup, no uploads, and no server processing.`,
       intro: `Browse Tooliest's ${lowerName} and launch every tool instantly in your browser without sending your data to a server.`,
+      faq: this.getCategoryFaqItems(category, tools),
     };
+  },
+
+  getFeaturedToolNames(tools, limit = 3) {
+    return tools.slice(0, limit).map((tool) => tool.name).join(', ');
+  },
+
+  getCategoryFaqItems(category, categoryTools) {
+    const lowerName = category.name.toLowerCase();
+    const featuredNames = this.getFeaturedToolNames(categoryTools, 3);
+    const examples = featuredNames
+      ? `You can use ${featuredNames} and other ${lowerName} directly in your browser without signups or uploads.`
+      : `You can use Tooliest's ${lowerName} directly in your browser without signups or uploads.`;
+
+    return [
+      {
+        q: `What can I do with Tooliest's ${lowerName}?`,
+        a: `${examples} These tools are built for quick, practical tasks so you can finish work faster while keeping your input on your own device.`,
+      },
+      {
+        q: `Are Tooliest's ${lowerName} free to use?`,
+        a: `Yes. All Tooliest ${lowerName} are free to use, require no signup, and work in modern desktop and mobile browsers.`,
+      },
+      {
+        q: `Do Tooliest's ${lowerName} upload my data?`,
+        a: 'No. Tooliest processes your input locally in the browser whenever possible, so text, files, and settings stay on your device instead of being sent to a server.',
+      },
+    ];
+  },
+
+  getRelatedCategories(categoryId) {
+    const relations = {
+      text: ['seo', 'html', 'developer'],
+      seo: ['text', 'social', 'ai'],
+      css: ['color', 'html', 'image'],
+      color: ['css', 'image', 'ai'],
+      image: ['color', 'css', 'converter'],
+      json: ['html', 'javascript', 'developer'],
+      html: ['css', 'json', 'javascript'],
+      javascript: ['html', 'json', 'developer'],
+      converter: ['encoding', 'math', 'image'],
+      encoding: ['converter', 'privacy', 'developer'],
+      finance: ['math', 'converter'],
+      math: ['finance', 'converter'],
+      social: ['seo', 'ai', 'text'],
+      privacy: ['encoding', 'developer'],
+      ai: ['text', 'seo', 'social'],
+      developer: ['javascript', 'json', 'encoding'],
+    };
+    const relatedIds = relations[categoryId] || [];
+    return relatedIds
+      .map((id) => this.getCategoryById(id))
+      .filter(Boolean);
   },
 
   getRelatedTools(tool, limit = 5) {
@@ -881,6 +935,7 @@ const App = {
     this.closeToolComparison();
     const main = document.getElementById('main-content');
     const categoryMeta = this.getCategoryMeta(this.currentCategory);
+    const categoryContentHtml = categoryMeta ? this.getCategoryContentSectionsHTML(categoryMeta) : '';
     main.innerHTML = this.getHeroHTML() +
       this.getQuickStartHTML() +
       this.getRecentlyUsedHTML() +
@@ -888,6 +943,7 @@ const App = {
       this.getFavoritesManagerHTML() +
       this.getCategoriesHTML() +
       '<section class="tools-section"><div class="tools-grid" id="tools-grid"></div></section>' +
+      categoryContentHtml +
       this.getAdHTML('home-bottom');
     this.renderToolsGrid();
     this.bindCategoryTabs();
@@ -1380,17 +1436,78 @@ const App = {
       'Run the action or conversion to get instant results in your browser.',
       'Copy, download, or reuse the output without sending your data to a server.',
     ];
+    const whyUseHtml = Array.isArray(tool.whyUse) && tool.whyUse.length
+      ? `<section class="tool-content-section">
+        <h2>Why Use ${this.escapeHTML(tool.name)}?</h2>
+        <ul>${tool.whyUse.map((reason) => `<li>${this.escapeHTML(reason)}</li>`).join('')}</ul>
+      </section>`
+      : '';
+    const whoUsesHtml = tool.whoUses
+      ? `<section class="tool-content-section">
+        <h2>Who Uses ${this.escapeHTML(tool.name)}?</h2>
+        <p>${this.escapeHTML(tool.whoUses)}</p>
+      </section>`
+      : '';
+    const faqHtml = Array.isArray(tool.faq) && tool.faq.length
+      ? `<section class="tool-content-section">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-list">${tool.faq.map((item) => `<details class="faq-item"><summary>${this.escapeHTML(item.q)}</summary><p>${this.escapeHTML(item.a)}</p></details>`).join('')}</div>
+      </section>`
+      : '';
 
     return `<div class="tool-content-sections">
       <section class="tool-content-section">
-        <h2>What Is ${tool.name}?</h2>
-        <p>${tool.description}</p>
+        <h2>What Is ${this.escapeHTML(tool.name)}?</h2>
+        <p>${this.escapeHTML(tool.description)}</p>
         ${tool.education ? `<div class="tool-education-copy">${tool.education}</div>` : `<p>${fallbackExplain}</p>`}
       </section>
       <section class="tool-content-section">
-        <h2>How To Use ${tool.name}</h2>
-        <ol>${steps.map(step => `<li>${step}</li>`).join('')}</ol>
+        <h2>How To Use ${this.escapeHTML(tool.name)}</h2>
+        <ol>${steps.map(step => `<li>${this.escapeHTML(step)}</li>`).join('')}</ol>
       </section>
+      ${whyUseHtml}
+      ${whoUsesHtml}
+      ${faqHtml}
+    </div>`;
+  },
+
+  getCategoryContentSectionsHTML(meta) {
+    if (!meta) return '';
+    const relatedCategories = this.getRelatedCategories(meta.category.id);
+    const topToolsHtml = `<section class="tool-content-section">
+      <h2>Best ${this.escapeHTML(meta.category.name)} to Start With</h2>
+      <p>These are some of the most useful ${this.escapeHTML(meta.category.name.toLowerCase())} on Tooliest when you want fast results without extra tabs, accounts, or uploads:</p>
+      <ul>${meta.tools.slice(0, 6).map((tool) => `<li><a href="${this.getToolPath(tool.id)}"><strong>${this.escapeHTML(tool.name)}</strong></a> - ${this.escapeHTML(tool.description)}</li>`).join('')}</ul>
+    </section>`;
+    const benefitsHtml = `<section class="tool-content-section">
+      <h2>Why Use Browser-Based ${this.escapeHTML(meta.category.name)}?</h2>
+      <p>Tooliest's ${this.escapeHTML(meta.category.name.toLowerCase())} are designed for quick, practical work. You can launch a tool instantly, finish the task in one browser tab, and move on without handing your content to a server.</p>
+      <ul>
+        <li>Launch any tool instantly with no signup or account setup</li>
+        <li>Keep your input on your own device for better privacy</li>
+        <li>Move between related tools quickly with direct internal links</li>
+        <li>Use the same workflows on desktop and mobile browsers</li>
+      </ul>
+    </section>`;
+    const relatedCategoriesHtml = relatedCategories.length
+      ? `<section class="tool-content-section">
+        <h2>Related Tool Categories</h2>
+        <p>Looking for more? Explore these related categories on Tooliest:</p>
+        <ul>${relatedCategories.map((category) => `<li><a href="${this.getCategoryPath(category.id)}">${category.icon} ${this.escapeHTML(category.name)}</a> - ${TOOLS.filter((tool) => tool.category === category.id).length} free tools</li>`).join('')}</ul>
+      </section>`
+      : '';
+    const faqHtml = Array.isArray(meta.faq) && meta.faq.length
+      ? `<section class="tool-content-section">
+        <h2>${this.escapeHTML(meta.category.name)} FAQ</h2>
+        <div class="faq-list">${meta.faq.map((item) => `<details class="faq-item"><summary>${this.escapeHTML(item.q)}</summary><p>${this.escapeHTML(item.a)}</p></details>`).join('')}</div>
+      </section>`
+      : '';
+
+    return `<div class="tool-content-sections" style="margin-top:32px">
+      ${topToolsHtml}
+      ${benefitsHtml}
+      ${relatedCategoriesHtml}
+      ${faqHtml}
     </div>`;
   },
 
