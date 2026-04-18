@@ -12,7 +12,7 @@ function getBuildEnv(name, fallback) {
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260418v25';
+const ASSET_VERSION = '20260418v26';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const GOOGLE_TAG_ID = getBuildEnv('GOOGLE_TAG_ID', 'AW-18068794869');
@@ -1383,7 +1383,6 @@ function renderToolPage(tool, tools, categories) {
   const canonicalPath = getToolPath(tool.id);
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
   const description = tool.meta?.desc || tool.description;
-  const plainEducation = stripHtml(tool.education || '');
   const toolLastModified = getToolLastModifiedDate(tool);
   const toolKeywords = [...tool.tags, categoryName.toLowerCase(), 'free online tool', 'browser-based', 'tooliest'].join(', ');
 
@@ -1507,7 +1506,6 @@ function renderToolPage(tool, tools, categories) {
           <a class="btn btn-secondary btn-sm" href="${canonicalPath}" aria-label="Open the interactive ${escapeAttr(tool.name)} tool">Open Interactive Tool</a>
         </div>
         <p>${escapeHtml(tool.description)}</p>
-        ${plainEducation ? `<p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">${escapeHtml(plainEducation)}</p>` : ''}
       </div>
       <div class="tool-workspace">
         <div class="tool-workspace-body">
