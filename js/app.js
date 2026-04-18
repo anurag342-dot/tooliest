@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.3', date: '2026-04-18', items: ['Removed the redundant Popular This Week panel from the homepage', 'Kept Recently Used and Most Popular On This Device as the primary personal discovery sections'] },
   { version: '3.2', date: '2026-04-18', items: ['Cut mobile render-blocking CSS with an inline critical shell', 'Preserved prerendered home and category pages on first load', 'Batched large tool-grid rendering to keep the main thread responsive'] },
   { version: '3.1', date: '2026-04-18', items: ['Added a mobile quick-action bar on tool pages', 'Improved category tab scroll discoverability with swipe hints', 'Finished the remaining mobile audit navigation and paint polish'] },
   { version: '3.0', date: '2026-04-18', items: ['Hardened mobile safe-area handling and touch targets', 'Added reduced-motion and tablet layout improvements', 'Upgraded PWA metadata and mobile menu swipe dismissal'] },
@@ -17,7 +18,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260418v23';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260418v24';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -866,7 +867,6 @@ const App = {
     wrapper.id = 'home-dynamic-panels';
     wrapper.innerHTML = this.getQuickStartHTML() +
       this.getRecentlyUsedHTML() +
-      this.getPopularThisWeekHTML() +
       this.getMostPopularHTML() +
       this.getFavoritesManagerHTML();
 
@@ -884,7 +884,6 @@ const App = {
     main.innerHTML = this.getHeroHTML() +
       this.getQuickStartHTML() +
       this.getRecentlyUsedHTML() +
-      this.getPopularThisWeekHTML() +
       this.getMostPopularHTML() +
       this.getFavoritesManagerHTML() +
       this.getCategoriesHTML() +
@@ -1181,41 +1180,6 @@ const App = {
       .slice(0, limit);
   },
 
-  getUsageEvents() {
-    const events = safeLocalGet('tooliest_usage_events', []);
-    if (!Array.isArray(events)) return [];
-    return events.filter((entry) =>
-      entry &&
-      typeof entry.toolId === 'string' &&
-      Number.isFinite(Number(entry.timestamp)) &&
-      TOOLS.some((tool) => tool.id === entry.toolId)
-    );
-  },
-
-  recordUsageEvent(toolId) {
-    const events = this.getUsageEvents();
-    events.push({
-      toolId,
-      timestamp: Date.now(),
-    });
-    safeLocalSet('tooliest_usage_events', JSON.stringify(events.slice(-250)));
-  },
-
-  getPopularThisWeekTools(limit = 6) {
-    const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000);
-    const weeklyCounts = this.getUsageEvents().reduce((acc, entry) => {
-      if (Number(entry.timestamp) < cutoff) return acc;
-      acc[entry.toolId] = (acc[entry.toolId] || 0) + 1;
-      return acc;
-    }, {});
-
-    return Object.entries(weeklyCounts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([toolId]) => TOOLS.find((tool) => tool.id === toolId))
-      .filter(Boolean)
-      .slice(0, limit);
-  },
-
   getSearchMatches(query, limit = 8) {
     const normalized = String(query || '').trim().toLowerCase();
     if (!normalized) return [];
@@ -1349,21 +1313,6 @@ const App = {
           <p>${totalUses ? `You have completed ${totalUses} tool action${totalUses === 1 ? '' : 's'} on this device. Keep momentum with the tools people open most.` : 'New to Tooliest? Start with the fastest, most useful tools before diving into the full directory.'}</p>
         </div>
         <div class="related-tools-grid">${featuredTools.map((tool) => this.getToolCardHTML(tool)).join('')}</div>
-      </div>
-    </section>`;
-  },
-
-  getPopularThisWeekHTML() {
-    const weeklyTools = this.getPopularThisWeekTools(6);
-    if (!weeklyTools.length) return '';
-
-    return `<section class="tools-section tools-section-condensed">
-      <div class="section-shell">
-        <div class="section-heading">
-          <h3>Popular This Week</h3>
-          <p>Based on your last 7 days of Tooliest usage in this browser, so you can jump back into the tools that are earning repeat opens right now.</p>
-        </div>
-        <div class="related-tools-grid">${weeklyTools.map((tool) => this.getToolCardHTML(tool)).join('')}</div>
       </div>
     </section>`;
   },
@@ -1859,7 +1808,6 @@ const App = {
   // ===== FEAT-02: TOOL USAGE TRACKING =====
   trackUsage(toolId) {
     this.toolUsage[toolId] = (this.toolUsage[toolId] || 0) + 1;
-    this.recordUsageEvent(toolId);
     // Store last-used timestamp
     const recent = safeLocalGet('tooliest_recent', []);
     const filtered = recent.filter(id => id !== toolId);
