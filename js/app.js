@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.2', date: '2026-04-18', items: ['Cut mobile render-blocking CSS with an inline critical shell', 'Preserved prerendered home and category pages on first load', 'Batched large tool-grid rendering to keep the main thread responsive'] },
   { version: '3.1', date: '2026-04-18', items: ['Added a mobile quick-action bar on tool pages', 'Improved category tab scroll discoverability with swipe hints', 'Finished the remaining mobile audit navigation and paint polish'] },
   { version: '3.0', date: '2026-04-18', items: ['Hardened mobile safe-area handling and touch targets', 'Added reduced-motion and tablet layout improvements', 'Upgraded PWA metadata and mobile menu swipe dismissal'] },
   { version: '2.9', date: '2026-04-17', items: ['Rebuilt Image EXIF Privacy Stripper with explicit clean-download actions and lossless metadata stripping for JPEG, PNG, and WebP'] },
@@ -16,7 +17,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260418v20';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260418v21';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -75,6 +76,9 @@ const App = {
   emailCaptureTimer: null,
   categoryTabsStateHandler: null,
   categoryTabsResizeHandler: null,
+  initialRouteHandled: false,
+  pendingGridRenderToken: 0,
+  homeEnhancementTask: null,
 
   init() {
     this.normalizeLegacyHashRoute();
@@ -143,8 +147,28 @@ const App = {
       }
     });
     if (!this.isEmbedMode()) {
-      window.setTimeout(() => this.maybeShowWelcomeTour(), 900);
+      this.scheduleIdleTask(() => this.maybeShowWelcomeTour(), 1800);
     }
+  },
+
+  scheduleIdleTask(callback, timeout = 1200) {
+    if ('requestIdleCallback' in window) {
+      return window.requestIdleCallback((deadline) => {
+        callback(deadline || { didTimeout: false, timeRemaining: () => 0 });
+      }, { timeout });
+    }
+    return window.setTimeout(() => {
+      callback({ didTimeout: true, timeRemaining: () => 0 });
+    }, Math.min(timeout, 120));
+  },
+
+  cancelIdleTask(handle) {
+    if (handle == null) return;
+    if ('cancelIdleCallback' in window) {
+      window.cancelIdleCallback(handle);
+      return;
+    }
+    clearTimeout(handle);
   },
 
   initInputCapabilities() {
@@ -708,10 +732,13 @@ const App = {
 
   handleRoute(options = {}) {
     this.hideDesktopSearchPreview();
+    this.cancelHomeEnhancement();
+    this.pendingGridRenderToken += 1;
     if (!this.isAppPath(window.location.pathname)) {
       this.currentView = 'content';
       this.activeToolId = null;
       this.updateShortcutUI();
+      this.initialRouteHandled = true;
       return;
     }
 
@@ -738,7 +765,11 @@ const App = {
       this.performanceDashboardCleanup = null;
     }
 
-    if (route.view === 'tool' && route.toolId) {
+    const usedStaticShell = !this.initialRouteHandled && this.tryHydratePreRenderedRoute(route);
+
+    if (usedStaticShell) {
+      this.activeToolId = null;
+    } else if (route.view === 'tool' && route.toolId) {
       this.showTool(route.toolId);
     } else if (route.view === 'category' && route.categoryId) {
       this.searchQuery = '';
@@ -759,6 +790,8 @@ const App = {
       this.syncSearchInputs('');
       this.renderHome();
     }
+
+    this.initialRouteHandled = true;
 
     if (preserveCollectionScroll) {
       window.scrollTo(0, preservedScrollY);
@@ -785,6 +818,73 @@ const App = {
     }
 
     this.updateShortcutUI();
+  },
+
+  tryHydratePreRenderedRoute(route) {
+    if (this.isEmbedMode()) return false;
+    const main = document.getElementById('main-content');
+    if (!main) return false;
+
+    if (route.view === 'home' && main.querySelector('.hero') && main.querySelector('#tools-grid')) {
+      this.currentView = 'home';
+      this.currentCategory = 'all';
+      this.searchQuery = '';
+      this.syncSearchInputs('');
+      this.bindCategoryTabs();
+      this.scheduleHomeEnhancement();
+      return true;
+    }
+
+    if (route.view === 'category' && route.categoryId) {
+      const existingGrid = main.querySelector('.tools-grid');
+      if (!existingGrid) return false;
+      if (!existingGrid.id) {
+        existingGrid.id = 'tools-grid';
+      }
+      this.currentView = 'home';
+      this.currentCategory = route.categoryId;
+      this.searchQuery = '';
+      this.syncSearchInputs('');
+      return true;
+    }
+
+    return false;
+  },
+
+  cancelHomeEnhancement() {
+    if (!this.homeEnhancementTask) return;
+    this.cancelIdleTask(this.homeEnhancementTask);
+    this.homeEnhancementTask = null;
+  },
+
+  scheduleHomeEnhancement() {
+    this.cancelHomeEnhancement();
+    if (this.currentView !== 'home' || this.currentCategory !== 'all' || this.searchQuery) return;
+    this.homeEnhancementTask = this.scheduleIdleTask(() => {
+      this.homeEnhancementTask = null;
+      this.enhanceStaticHomeShell();
+    }, 2200);
+  },
+
+  enhanceStaticHomeShell() {
+    if (this.currentView !== 'home' || this.currentCategory !== 'all' || this.searchQuery) return;
+    const main = document.getElementById('main-content');
+    const categoriesSection = main?.querySelector('.categories-section');
+    if (!main || !categoriesSection || main.querySelector('#home-dynamic-panels')) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.id = 'home-dynamic-panels';
+    wrapper.innerHTML = this.getQuickStartHTML() +
+      this.getRecentlyUsedHTML() +
+      this.getPopularThisWeekHTML() +
+      this.getMostPopularHTML() +
+      this.getFavoritesManagerHTML();
+
+    if (!wrapper.innerHTML.trim()) return;
+
+    categoriesSection.before(wrapper);
+    this.bindHomeFeaturePanels();
+    this.bindToolCardInteractions(wrapper);
   },
 
   renderHome() {
@@ -847,8 +947,18 @@ const App = {
 
   bindCategoryTabs() {
     document.querySelectorAll('.category-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        this.currentCategory = tab.dataset.category;
+      tab.addEventListener('click', (event) => {
+        const categoryId = tab.dataset.category || (() => {
+          const href = tab.getAttribute('href');
+          if (!href) return '';
+          const parsed = this.parsePath(new URL(href, window.location.origin).pathname);
+          return parsed.view === 'category' ? parsed.categoryId : '';
+        })();
+        if (!categoryId) return;
+        if (tab.tagName === 'A') {
+          event.preventDefault();
+        }
+        this.currentCategory = categoryId;
         this.navigate(this.getCategoryPath(this.currentCategory), { replace: true, preserveScroll: true });
       });
     });
@@ -892,35 +1002,96 @@ const App = {
 
   setActiveCategory(id) {
     document.querySelectorAll('.category-tab').forEach(t => {
-      t.classList.toggle('active', t.dataset.category === id);
-      t.setAttribute('aria-pressed', t.dataset.category === id);
+      const matches = t.dataset.category === id;
+      t.classList.toggle('active', matches);
+      t.setAttribute('aria-pressed', matches);
+      t.setAttribute('aria-current', matches ? 'page' : 'false');
     });
   },
 
-  renderToolsGrid() {
-    let tools = (this.currentCategory === 'all') 
-      ? [...TOOLS] 
-      : (this.currentCategory === 'favorites') 
-        ? TOOLS.filter(t => this.favorites.includes(t.id))
-        : TOOLS.filter(t => t.category === this.currentCategory);
-        
+  getToolsForCurrentGrid() {
+    let tools = (this.currentCategory === 'all')
+      ? [...TOOLS]
+      : (this.currentCategory === 'favorites')
+        ? TOOLS.filter((tool) => this.favorites.includes(tool.id))
+        : TOOLS.filter((tool) => tool.category === this.currentCategory);
+
     if (this.searchQuery) {
       const q = this.searchQuery;
-      tools = TOOLS.filter(t =>
-        t.name.toLowerCase().includes(q) ||
-        t.description.toLowerCase().includes(q) ||
-        t.tags.some(tag => tag.includes(q)) ||
-        t.category.includes(q)
+      tools = TOOLS.filter((tool) =>
+        tool.name.toLowerCase().includes(q) ||
+        tool.description.toLowerCase().includes(q) ||
+        tool.tags.some((tag) => tag.includes(q)) ||
+        tool.category.includes(q)
       );
     }
+
+    return tools;
+  },
+
+  renderToolsGrid() {
+    const tools = this.getToolsForCurrentGrid();
     const grid = document.getElementById('tools-grid');
     if (!grid) return;
-    grid.innerHTML = tools.length ? tools.map(t => this.getToolCardHTML(t)).join('') : '<div class="text-center" style="grid-column:1/-1;padding:60px 20px;color:var(--text-tertiary)"><h3>No tools found</h3><p>Try a different search or category</p></div>';
+
+    const renderToken = ++this.pendingGridRenderToken;
+    if (!tools.length) {
+      grid.innerHTML = '<div class="text-center" style="grid-column:1/-1;padding:60px 20px;color:var(--text-tertiary)"><h3>No tools found</h3><p>Try a different search or category</p></div>';
+      return;
+    }
+
+    const isTouch = Boolean(this.inputCapabilities?.touchPreferred);
+    const initialBatchSize = this.searchQuery
+      ? Math.min(tools.length, isTouch ? 12 : 16)
+      : Math.min(tools.length, isTouch ? 10 : 14);
+    const chunkSize = isTouch ? 8 : 12;
+    const renderCards = (slice) => slice.map((tool) => this.getToolCardHTML(tool)).join('');
+
+    grid.innerHTML = renderCards(tools.slice(0, initialBatchSize));
     this.bindToolCardInteractions(grid);
+
+    if (initialBatchSize >= tools.length) {
+      return;
+    }
+
+    grid.insertAdjacentHTML('beforeend', '<div class="tools-grid-sentinel" aria-live="polite">Loading more tools…</div>');
+    let nextIndex = initialBatchSize;
+
+    const appendNextChunk = (deadline) => {
+      if (renderToken !== this.pendingGridRenderToken) return;
+      const sentinel = grid.querySelector('.tools-grid-sentinel');
+      if (!sentinel) return;
+
+      let appended = 0;
+      while (nextIndex < tools.length) {
+        if (deadline && !deadline.didTimeout && deadline.timeRemaining() <= 8 && appended > 0) {
+          break;
+        }
+        const sliceEnd = Math.min(nextIndex + chunkSize, tools.length);
+        sentinel.insertAdjacentHTML('beforebegin', renderCards(tools.slice(nextIndex, sliceEnd)));
+        appended += sliceEnd - nextIndex;
+        nextIndex = sliceEnd;
+        if (!deadline && appended >= chunkSize) {
+          break;
+        }
+      }
+
+      this.bindToolCardInteractions(grid);
+
+      if (nextIndex >= tools.length) {
+        sentinel.remove();
+        return;
+      }
+
+      this.scheduleIdleTask(appendNextChunk, 260);
+    };
+
+    this.scheduleIdleTask(appendNextChunk, 260);
   },
 
   bindToolCardInteractions(root = document) {
     root.querySelectorAll('.tool-card').forEach(card => {
+      if (!card.dataset.toolId) return;
       if (card.dataset.bound === 'true') return;
       card.dataset.bound = 'true';
 
@@ -1423,7 +1594,9 @@ const App = {
     main.innerHTML = this.getToolPageHTML(tool, catName, related, compareCandidates, isEmbed);
     // Render tool UI
     const workspace = document.getElementById('tool-workspace');
-    void ToolRenderers.render(toolId, workspace);
+    window.requestAnimationFrame(() => {
+      void ToolRenderers.render(toolId, workspace);
+    });
     this.enhanceRuntimeMedia(main, tool);
 
     if (!isEmbed) {

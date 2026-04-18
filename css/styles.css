@@ -989,7 +989,7 @@ body.nav-menu-open {
 
 .hero h1 {
   font-size: clamp(2.5rem, 6vw, 4.5rem);
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.1;
   margin-bottom: 20px;
   animation: fadeInUp 0.6s ease 0.1s both;
@@ -1099,6 +1099,7 @@ body.nav-menu-open {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 22px;
+  contain: layout style paint;
 }
 
 .panel-actions {
@@ -1201,6 +1202,14 @@ body.nav-menu-open {
   gap: 20px;
 }
 
+.tools-grid-sentinel {
+  grid-column: 1 / -1;
+  padding-top: 4px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 0.88rem;
+}
+
 /* === Tool Card === */
 .tool-card {
   background: var(--bg-card);
@@ -1212,6 +1221,7 @@ body.nav-menu-open {
   position: relative;
   overflow: hidden;
   touch-action: manipulation;
+  contain: layout style paint;
 }
 
 .tool-card-link {
@@ -1379,6 +1389,7 @@ body.nav-menu-open {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 24px;
+  contain: layout style paint;
 }
 
 .tool-content-section h2 {
@@ -1473,6 +1484,7 @@ body.nav-menu-open {
   border-radius: var(--radius-lg);
   padding: 18px;
   height: 100%;
+  contain: layout style paint;
 }
 
 .tool-proof-card span {
@@ -1903,6 +1915,7 @@ select {
   border-radius: var(--radius-md);
   padding: 14px;
   text-align: center;
+  contain: layout style paint;
 }
 
 .stat-card .stat-num {
@@ -3377,6 +3390,8 @@ body.embed-mode .tool-page {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
   margin-top: 18px;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 360px;
 }
 
 .guide-card {
@@ -3384,6 +3399,7 @@ body.embed-mode .tool-page {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 18px;
+  contain: layout style paint;
 }
 
 .guide-card-outline {
