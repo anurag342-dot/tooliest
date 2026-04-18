@@ -81,6 +81,17 @@
       .filter((element) => !element.hasAttribute('hidden') && element.getAttribute('aria-hidden') !== 'true');
   }
 
+  function updateBannerLayout() {
+    const banner = document.getElementById('cookie-banner');
+    const rootStyle = document.documentElement.style;
+    if (!banner || banner.classList.contains('banner-hidden')) {
+      rootStyle.setProperty('--cookie-banner-height', '0px');
+      return;
+    }
+
+    rootStyle.setProperty('--cookie-banner-height', `${banner.offsetHeight}px`);
+  }
+
   function activateBannerFocusTrap(banner) {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const handleKeydown = (event) => {
@@ -138,6 +149,7 @@
       banner.classList.add('banner-hidden');
       banner.setAttribute('aria-hidden', 'true');
     }
+    updateBannerLayout();
   }
 
   function handleAccept() {
@@ -167,11 +179,13 @@
       banner.tabIndex = -1;
       releaseBannerFocus?.();
       releaseBannerFocus = activateBannerFocusTrap(banner);
+      updateBannerLayout();
 
       // Animate in
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           banner.classList.add('banner-visible');
+          updateBannerLayout();
         });
       });
     };
@@ -204,9 +218,15 @@
     open: function () {
       showBanner();
     },
+    refreshLayout: function () {
+      updateBannerLayout();
+    },
     getStatus: function () {
       return getSavedConsent();
     }
   };
+
+  window.addEventListener('resize', updateBannerLayout, { passive: true });
+  window.addEventListener('orientationchange', updateBannerLayout, { passive: true });
 
 })();

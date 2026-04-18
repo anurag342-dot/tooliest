@@ -1,12 +1,66 @@
 {
-  "name": "Tooliest — Free Online Tools",
+  "name": "Tooliest - Free Online Tools",
   "short_name": "Tooliest",
-  "description": "80+ free online tools for developers, designers, writers, and marketers. AI-powered.",
-  "start_url": "/",
+  "description": "80+ free browser-based online tools for developers, designers, writers, and marketers. No signup, no uploads, all private.",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "browser"
+  ],
+  "orientation": "portrait-primary",
   "theme_color": "#8b5cf6",
   "background_color": "#0a0a0f",
+  "categories": [
+    "utilities",
+    "productivity",
+    "developer"
+  ],
+  "lang": "en",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Word Counter",
+      "short_name": "Word Count",
+      "description": "Count words and characters instantly",
+      "url": "/word-counter?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/favicon-48.png",
+          "sizes": "48x48",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "JSON Formatter",
+      "short_name": "JSON",
+      "description": "Format and validate JSON in your browser",
+      "url": "/json-formatter?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/favicon-48.png",
+          "sizes": "48x48",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Color Picker",
+      "short_name": "Colors",
+      "description": "Pick, convert, and compare colors",
+      "url": "/color-picker?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/favicon-48.png",
+          "sizes": "48x48",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
   "icons": [
     {
       "src": "icon-192.png",

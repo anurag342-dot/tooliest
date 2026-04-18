@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.0', date: '2026-04-18', items: ['Hardened mobile safe-area handling and touch targets', 'Added reduced-motion and tablet layout improvements', 'Upgraded PWA metadata and mobile menu swipe dismissal'] },
   { version: '2.9', date: '2026-04-17', items: ['Rebuilt Image EXIF Privacy Stripper with explicit clean-download actions and lossless metadata stripping for JPEG, PNG, and WebP'] },
   { version: '2.8', date: '2026-04-17', items: ['Auto-linked visible labels to tool inputs for broader accessibility coverage'] },
   { version: '2.7', date: '2026-04-17', items: ['Cut compare view overhead by reusing the live current workspace', 'Added a weekly popularity section powered by local usage history', 'Added an opt-in email capture prompt for repeat Tooliest users'] },
@@ -14,9 +15,13 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260417v18';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260418v19';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
+const TOOLIEST_THEME_COLORS = {
+  dark: '#8b5cf6',
+  light: '#f8f9fc',
+};
 
 // Safe localStorage helper — prevents crashes in private browsing or restricted environments
 function safeLocalGet(key, fallback) {
@@ -549,6 +554,8 @@ const App = {
     const mobileBtn = document.getElementById('mobile-menu-btn');
     const navLinks = document.getElementById('nav-links');
     let mobileMenuScrollResetTimer = 0;
+    let mobileMenuTouchStartX = 0;
+    let mobileMenuTouchStartY = 0;
     const syncMobileMenuState = () => {
       const isOpen = navLinks?.classList.contains('mobile-open');
       document.body.classList.toggle('nav-menu-open', Boolean(isOpen));
@@ -596,6 +603,27 @@ const App = {
       navLinks.scrollTop = 0;
       syncMobileMenuState();
     };
+    const bindMobileMenuSwipeDismiss = () => {
+      if (!navLinks || navLinks.dataset.swipeBound === 'true') return;
+      navLinks.dataset.swipeBound = 'true';
+      navLinks.addEventListener('touchstart', (event) => {
+        const touch = event.touches?.[0];
+        if (!touch) return;
+        mobileMenuTouchStartX = touch.clientX;
+        mobileMenuTouchStartY = touch.clientY;
+      }, { passive: true });
+      navLinks.addEventListener('touchend', (event) => {
+        const touch = event.changedTouches?.[0];
+        if (!touch || !navLinks.classList.contains('mobile-open')) return;
+        const deltaX = touch.clientX - mobileMenuTouchStartX;
+        const deltaY = touch.clientY - mobileMenuTouchStartY;
+        const horizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+        if (horizontalSwipe && deltaX > 72) {
+          closeMobileMenu();
+        }
+      }, { passive: true });
+    };
+    bindMobileMenuSwipeDismiss();
     mobileBtn?.addEventListener('click', (e) => {
       e.stopPropagation();
       if (navLinks?.classList.contains('mobile-open')) {
@@ -1538,6 +1566,7 @@ const App = {
   initTheme() {
     const saved = safeLocalRead('tooliest_theme', 'dark') || 'dark';
     document.documentElement.setAttribute('data-theme', saved);
+    this.updateThemeChrome(saved);
     // Update toggle button icon after DOM loads
     setTimeout(() => {
       const btn = document.getElementById('theme-toggle-btn');
@@ -1549,10 +1578,20 @@ const App = {
     const current = document.documentElement.getAttribute('data-theme') || 'dark';
     const next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
+    this.updateThemeChrome(next);
     safeLocalSet('tooliest_theme', next);
     const btn = document.getElementById('theme-toggle-btn');
     if (btn) btn.textContent = next === 'light' ? '🌙' : '☀️';
     this.toast(next === 'light' ? 'Light mode enabled ☀️' : 'Dark mode enabled 🌙');
+  },
+
+  updateThemeChrome(theme) {
+    const themeName = theme === 'light' ? 'light' : 'dark';
+    const color = TOOLIEST_THEME_COLORS[themeName];
+    document.documentElement.style.colorScheme = themeName;
+    document.querySelectorAll('meta[name="theme-color"]:not([media])').forEach((meta) => {
+      meta.setAttribute('content', color);
+    });
   },
 
   // ===== FEAT-02: TOOL USAGE TRACKING =====

@@ -10,9 +10,9 @@ function getBuildEnv(name, fallback) {
 }
 
 const SITE_URL = 'https://tooliest.com';
-const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap';
+const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260417v18';
+const ASSET_VERSION = '20260418v19';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const GOOGLE_TAG_ID = getBuildEnv('GOOGLE_TAG_ID', 'AW-18068794869');
@@ -1075,7 +1075,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   ${CONSENT_DEFAULTS_INLINE}
   ${GOOGLE_TAG_SNIPPET}
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeAttr(description)}">
   <meta name="keywords" content="${escapeAttr(pageKeywords)}">
@@ -1083,6 +1083,9 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="robots" content="index, follow">
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="theme-color" content="#8b5cf6">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#8b5cf6">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8f9fc">
+  <meta name="color-scheme" content="dark light">
   ${THEME_BOOTSTRAP_INLINE}
   <link rel="manifest" href="/manifest.json">
   <meta property="og:type" content="website">
@@ -1107,8 +1110,8 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <link rel="apple-touch-icon" href="${BRAND_ICON_PATHS.appleTouch}" sizes="180x180">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="${FONT_URL}">
-  <link rel="stylesheet" href="${FONT_URL}">
+  <link rel="stylesheet" href="${FONT_URL}" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="${FONT_URL}"></noscript>
   <link rel="stylesheet" href="${getVersionedAssetPath(CSS_BUNDLE_PATH)}">
   <script>window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}';</script>
   <script src="${getVersionedAssetPath('/js/consent.js')}" defer></script>
