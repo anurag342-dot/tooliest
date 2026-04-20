@@ -569,15 +569,15 @@ const App = {
 
   bindEvents() {
     // Search
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) {
-      searchInput.placeholder = `Search ${TOOLS.length}+ tools...`;
-    }
-    // BUG-14: Make mobile search placeholder dynamic too
-    const mobileSearchEl = document.getElementById('mobile-search-input');
-    if (mobileSearchEl) {
-      mobileSearchEl.placeholder = `Search ${TOOLS.length}+ tools...`;
-    }
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) {
+        searchInput.placeholder = 'Search tools...';
+      }
+      // BUG-14: Make mobile search placeholder dynamic too
+      const mobileSearchEl = document.getElementById('mobile-search-input');
+      if (mobileSearchEl) {
+        mobileSearchEl.placeholder = 'Search tools...';
+      }
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
         const normalizedQuery = e.target.value.trim().toLowerCase();
@@ -968,11 +968,11 @@ const App = {
   getHeroHTML() {
     const categoryCount = this.getVisibleCategories().length;
     return `<section class="hero">
-      <div class="hero-badge"><span class="pulse-dot"></span> ${TOOLS.length}+ Browser-Based Tools • Free &amp; No Signup</div>
+      <div class="hero-badge"><span class="pulse-dot"></span> Browser-Based Tools • Free &amp; No Signup</div>
       <h1>Every Tool You Need.<br><span class="gradient-text">${TOOLS.length}+ Free Online Tools — Zero Installs.</span></h1>
-      <p>${TOOLS.length}+ powerful online tools for developers, designers, writers, and marketers. Free, private, and ready in one tab. Search, launch, and finish faster with Tooliest.</p>
+      <p>Free online tools for developers, designers, writers, and marketers. Private, fast, and ready in one tab so you can search, launch, and finish faster with Tooliest.</p>
       <div class="hero-stats">
-        <div class="hero-stat"><div class="stat-value">${TOOLS.length}+</div><div class="stat-label">Free Tools</div></div>
+        <div class="hero-stat"><div class="stat-value">1</div><div class="stat-label">Tab Needed</div></div>
         <div class="hero-stat"><div class="stat-value">${categoryCount}</div><div class="stat-label">Categories</div></div>
         <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
       </div>
@@ -980,7 +980,7 @@ const App = {
         <span class="trust-badge">🔒 100% Private — No Uploads</span>
         <span class="trust-badge">⚡ Instant Browser Results</span>
         <span class="trust-badge">📲 PWA Ready + Offline Support</span>
-        <span class="trust-badge">🆓 Forever Free Utilities</span>
+        <span class="trust-badge">🧭 No Account Friction</span>
       </div>
     </section>`;
   },
@@ -1749,7 +1749,7 @@ const App = {
         <h3>${t.icon} ${t.name}</h3><p>${t.description}</p>
       </a>`).join('') || '<p>No tools found. Try different keywords.</p>'}
     </div>`;
-    this.updateSEO(`Search: ${q} | Tooliest`, `Search Tooliest's 80+ free online tools for "${q}".`, null);
+    this.updateSEO(`Search: ${q} | Tooliest`, `Search Tooliest's free online tools for "${q}".`, null);
   },
 
   setupAutoSave(inputId, storageKey) {

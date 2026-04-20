@@ -1445,6 +1445,13 @@ const TOOLIEST_SEO_OVERRIDES = {
   'contrast-checker': {
     metaDesc: 'Check WCAG color contrast ratios instantly for text and UI states. Free, browser-based, and no signup required. Test your colors with Tooliest.',
     summaryHeading: 'How Do I Check WCAG Contrast Ratios Online?',
+    howToHeading: 'How Can I Check Contrast Step by Step?',
+    howToSteps: [
+      { name: 'Choose the foreground color', text: 'Pick or paste the text color you want to test so the checker can calculate the contrast ratio correctly.' },
+      { name: 'Choose the background color', text: 'Set the background color behind the text or interface element you are reviewing.' },
+      { name: 'Read the ratio and WCAG level', text: 'Review the reported contrast ratio and whether the pairing passes WCAG AA or AAA for normal and large text.' },
+      { name: 'Adjust until the colors pass', text: 'Tweak one or both colors and rerun the check until the ratio meets the accessibility target you need.' },
+    ],
     aeoSnippet: {
       heading: 'What Is a WCAG Contrast Ratio?',
       answer: 'A WCAG contrast ratio measures the difference in luminance between foreground and background colors. For normal body text, WCAG AA usually requires at least 4.5 to 1, while larger text can pass at 3 to 1.',
@@ -1455,6 +1462,97 @@ const TOOLIEST_SEO_OVERRIDES = {
     ],
     faqExtras: [
       { q: 'What color contrast ratio passes WCAG AA?', a: 'For normal-sized text, WCAG AA usually requires a ratio of at least 4.5:1. Large text can pass at 3:1, and stronger contrast is usually better for readability in real-world lighting conditions.' },
+      { q: 'Does 3:1 pass for large text?', a: 'Yes. WCAG AA allows large text to pass at 3:1 because bigger text is easier to read than body copy at the same color difference. Normal body text usually still needs at least 4.5:1.' },
+      { q: 'What contrast ratio is needed for WCAG AAA?', a: 'WCAG AAA raises the bar to 7:1 for normal text and 4.5:1 for large text. Teams that want stronger readability often use AAA targets for critical reading interfaces.' },
+    ],
+  },
+  'bmi-calculator': {
+    metaDesc: 'Calculate BMI instantly with metric or imperial inputs and see your weight category in seconds. Free, private, and no signup required. Check BMI with Tooliest.',
+    summaryHeading: 'How Do I Calculate BMI and Read the Result Online?',
+    howToHeading: 'How Can I Calculate BMI Step by Step?',
+    howToSteps: [
+      { name: 'Enter your height and weight', text: 'Add your height and weight using the units you prefer so the calculator can compute your body mass index.' },
+      { name: 'Choose metric or imperial units', text: 'Switch between centimeters and kilograms or feet, inches, and pounds if needed.' },
+      { name: 'Calculate the BMI value', text: 'Run the calculator to get the BMI number immediately without having to work through the formula yourself.' },
+      { name: 'Read the category and limitations', text: 'Review the BMI category and use it as a screening reference, not a full medical diagnosis.' },
+    ],
+    aeoSnippet: {
+      heading: 'What Is BMI?',
+      answer: 'BMI stands for Body Mass Index, a screening metric that compares weight with height. For adults, it is usually calculated as weight in kilograms divided by height in meters squared, or by an equivalent imperial formula.',
+    },
+    contentHighlights: [
+      'Adult BMI categories commonly use these cutoffs: under 18.5 underweight, 18.5 to 24.9 normal, 25 to 29.9 overweight, and 30 or above obese.',
+      'BMI is useful for fast population-level screening, but it does not directly measure body fat and can misclassify very muscular people, some athletes, and some older adults.',
+    ],
+    faqExtras: [
+      { q: 'What is BMI and how is it calculated?', a: 'BMI is a quick screening formula that compares body weight with height. In metric units it uses weight in kilograms divided by height in meters squared. In imperial units it uses pounds and inches with a conversion factor.' },
+      { q: 'Can I calculate BMI with feet, inches, and pounds?', a: 'Yes. A BMI calculator can accept imperial inputs such as feet, inches, and pounds, then convert them behind the scenes so you do not have to do the unit math manually.' },
+      { q: 'Why can BMI be misleading for athletes or muscular people?', a: 'BMI does not distinguish between body fat and lean mass. A muscular person can score as overweight even when their actual body-fat level is healthy, which is why BMI should be combined with other health measures.' },
+    ],
+  },
+  'keyword-density': {
+    metaDesc: 'Check keyword density, term frequency, and repeated phrases in your content. Free, browser-based, and no signup required. Analyze SEO copy with Tooliest.',
+    summaryHeading: 'How Do I Check Keyword Density Without Stuffing Keywords?',
+    howToHeading: 'How Can I Check Keyword Density Step by Step?',
+    howToSteps: [
+      { name: 'Paste the content', text: 'Add the article, landing-page copy, or product text you want to review for repeated terms.' },
+      { name: 'Review the most-used phrases', text: 'Look at the highest-frequency terms and repeated keywords so you can see which topics dominate the draft.' },
+      { name: 'Compare density with readability', text: 'Check whether the target phrase appears naturally or so often that the copy starts to sound forced.' },
+      { name: 'Revise and recheck the draft', text: 'Edit the content, then rerun the checker until the wording feels natural and still covers the topic clearly.' },
+    ],
+    faqExtras: [
+      { q: 'How do I check keyword density for a page?', a: 'Paste the page copy into the checker and review how often the main terms appear relative to the total word count. Use the report as a guide, then read the copy out loud to make sure it still sounds natural.' },
+      { q: 'Is keyword density still important for SEO?', a: 'It matters as a supporting signal, not a magic ranking number. Search engines care more about topic coverage, clarity, and relevance than hitting a rigid density target.' },
+      { q: 'What keyword density usually looks unnatural or spammy?', a: 'There is no universal cutoff, but repeated exact-match keywords that make the copy feel forced are a warning sign. If the phrase appears so often that a human reader notices it, you are probably overdoing it.' },
+    ],
+  },
+  'percentage-calculator': {
+    metaDesc: 'Calculate percentages, percentage change, discounts, and markup in seconds. Free, browser-based, and no signup required. Use Tooliest now.',
+    summaryHeading: 'How Do I Calculate Percentages Online?',
+    howToHeading: 'How Can I Calculate Percentages Step by Step?',
+    howToSteps: [
+      { name: 'Choose the percentage formula', text: 'Pick whether you need a percentage of a number, percentage change, or what percent one number is of another.' },
+      { name: 'Enter the numbers', text: 'Add the base number and the comparison value so the calculator can apply the right formula.' },
+      { name: 'Review the result', text: 'Check the percentage output and use it to confirm discounts, markups, growth, or ratios.' },
+      { name: 'Switch scenarios if needed', text: 'Change the inputs or formula mode to compare another discount, growth rate, or percentage share quickly.' },
+    ],
+    faqExtras: [
+      { q: 'How do I find X% of a number?', a: 'Multiply the number by the percentage expressed as a decimal. For example, 15% of 200 equals 0.15 x 200, which is 30.' },
+      { q: 'How do I calculate percentage change?', a: 'Subtract the old value from the new value, divide by the old value, and multiply by 100. That shows the increase or decrease as a percentage of the starting point.' },
+      { q: 'What is the difference between percentage change and percentage difference?', a: 'Percentage change measures movement from an original value to a new value. Percentage difference compares two values without treating one as the starting baseline.' },
+      { q: 'Can I use a percentage calculator for discounts and markups?', a: 'Yes. Percentage calculators are useful for sales discounts, tax amounts, price increases, margins, and quick budgeting math.' },
+    ],
+  },
+  'age-calculator': {
+    metaDesc: 'Calculate exact age in years, months, and days from a birth date. Free, browser-based, and no signup required. Check exact age with Tooliest.',
+    summaryHeading: 'How Do I Calculate Exact Age Online?',
+    howToHeading: 'How Can I Calculate Age Step by Step?',
+    howToSteps: [
+      { name: 'Enter the birth date', text: 'Add the date of birth you want to measure so the calculator has the correct starting point.' },
+      { name: 'Choose the comparison date', text: 'Use today or set a custom past or future date if you need the exact age for a specific moment.' },
+      { name: 'Calculate the full age breakdown', text: 'Run the calculator to see the result in years, months, and days instead of using a rough year difference.' },
+      { name: 'Review the next birthday details', text: 'Check how many days remain until the next birthday or milestone date if that helps your planning.' },
+    ],
+    faqExtras: [
+      { q: 'How do leap years affect exact age calculations?', a: 'Leap years matter because February can contain 29 days. Precise age calculations account for the varying length of months and leap years instead of relying on a flat day count.' },
+      { q: 'Can I calculate age on a future or past date?', a: 'Yes. That is useful for legal thresholds, planning milestones, form validation, or checking how old someone was on a particular date.' },
+      { q: 'Why is exact age different from just subtracting the birth year?', a: 'A simple year subtraction ignores whether the birthday has already happened in the current year. Exact age also tracks the remaining months and days after the last birthday.' },
+    ],
+  },
+  'tip-calculator': {
+    metaDesc: 'Calculate tips and split restaurant bills instantly with per-person totals. Free, browser-based, and no signup required. Use Tooliest now.',
+    summaryHeading: 'How Do I Calculate a Tip and Split the Bill?',
+    howToHeading: 'How Can I Calculate a Tip Step by Step?',
+    howToSteps: [
+      { name: 'Enter the bill amount', text: 'Add the pre-tip total so the calculator can work out the gratuity and final amount accurately.' },
+      { name: 'Choose the tip percentage', text: 'Set the percentage you want to leave based on service level, local custom, or group agreement.' },
+      { name: 'Add the number of people', text: 'Enter how many people are splitting the check if you want individual totals with tip included.' },
+      { name: 'Review the total per person', text: 'Check the tip amount, final bill, and per-person share before you pay.' },
+    ],
+    faqExtras: [
+      { q: 'What tip percentage is standard in the United States?', a: 'A common range is 15% to 20% for sit-down restaurant service, with 18% to 20% often treated as the normal range for good service.' },
+      { q: 'How do I split a bill with tip included?', a: 'First calculate the tip, add it to the bill total, and then divide the final number by the number of people paying. A tip calculator handles those steps automatically.' },
+      { q: 'Should I tip the same amount for takeout or delivery?', a: 'Takeout and delivery often use different tipping norms than full table service. Local custom matters, but many people still tip for delivery and may use a smaller percentage for simple takeout orders.' },
     ],
   },
   'json-formatter': {
@@ -1480,12 +1578,22 @@ const TOOLIEST_SEO_OVERRIDES = {
   'json-validator': {
     metaDesc: 'Validate JSON online and catch syntax errors like trailing commas, bad quotes, and missing braces. Free, private, no signup. Check JSON with Tooliest.',
     summaryHeading: 'How Do I Validate JSON Online Before Shipping It?',
+    howToHeading: 'How Can I Validate JSON Step by Step?',
+    howToSteps: [
+      { name: 'Paste the JSON payload', text: 'Drop the JSON string, config file, or API response into the editor so the validator can inspect the structure.' },
+      { name: 'Run the validation check', text: 'Start the check to see whether the JSON is valid and where any syntax issue appears.' },
+      { name: 'Read the error details', text: 'Review the reported line, column, or message so you can fix missing braces, quotes, commas, or other structural problems quickly.' },
+      { name: 'Revalidate before you ship it', text: 'Test the corrected JSON again until it passes cleanly, then copy it back into your request, config, or fixture file.' },
+    ],
     contentHighlights: [
       'Trailing commas, missing closing braces, and single quotes are among the most common reasons copied API payloads fail JSON parsing.',
       'Running a validator before saving config files or request bodies helps catch syntax issues before they turn into broken deploys or failed API calls.',
     ],
     faqExtras: [
+      { q: 'How do I validate JSON online before shipping it?', a: 'Paste the JSON into the validator and run the check. Tooliest will tell you whether the structure is valid and help you spot syntax issues before the payload reaches production code or an API endpoint.' },
       { q: 'What kinds of JSON errors does a validator catch?', a: 'A JSON validator catches structural problems such as trailing commas, invalid quotes, missing colons, mismatched brackets, and property names that are not wrapped in double quotes.' },
+      { q: 'Will a JSON validator catch trailing commas and unquoted keys?', a: 'Yes. Those are two of the most common validation failures. A good validator will flag them immediately because valid JSON requires double-quoted keys and does not allow trailing commas.' },
+      { q: 'Can I validate an API response before saving it as a config or fixture?', a: 'Yes. That is one of the safest uses for a JSON validator. It lets you confirm the payload is structurally valid before you reuse it in tests, fixtures, config files, or documentation.' },
     ],
   },
   'markdown-to-html': {
@@ -1533,6 +1641,13 @@ const TOOLIEST_SEO_OVERRIDES = {
   'regex-tester': {
     metaDesc: 'Test regex patterns online with live matches, groups, and instant feedback. Free, browser-based, and no signup required. Debug regex with Tooliest.',
     summaryHeading: 'How Do I Test a Regular Expression Online?',
+    howToHeading: 'How Can I Test Regex Patterns Step by Step?',
+    howToSteps: [
+      { name: 'Paste the sample text', text: 'Add the text you want to search so you can see exactly what the pattern matches.' },
+      { name: 'Enter the regex and flags', text: 'Type the regular expression, then enable flags such as global, case-insensitive, or multiline if the test needs them.' },
+      { name: 'Inspect matches and capture groups', text: 'Review the highlighted matches and any capture groups to confirm the pattern behaves the way you expect.' },
+      { name: 'Refine the pattern and copy it', text: 'Tweak anchors, quantifiers, or groups until the test is correct, then copy the final expression back into your project.' },
+    ],
     aeoSnippet: {
       heading: 'How Do I Write a Regex for Email Validation?',
       answer: 'A simple email pattern often looks like `^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$`. It is useful for basic client-side checks, but full email validation usually needs additional business rules because real addresses can be more complex than a short regex allows.',
@@ -1543,16 +1658,42 @@ const TOOLIEST_SEO_OVERRIDES = {
     ],
     faqExtras: [
       { q: 'Can I debug regex capture groups online?', a: 'Yes. Paste the pattern and sample text, then review the highlighted matches and captured groups. That makes it much easier to see whether anchors, optional groups, or quantifiers are behaving the way you expected.' },
+      { q: 'What regex pattern works for basic email validation?', a: 'A common starter pattern is `^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$`. It is helpful for simple client-side validation, but production email validation often needs additional rules beyond a single compact regex.' },
+      { q: 'Why does the same regex behave differently across languages or tools?', a: 'Regex engines are similar but not identical. Some languages support features such as lookbehind, named groups, or Unicode classes differently, so a pattern that works in one environment may need adjustment in another.' },
     ],
-    changelog: [
-      { date: '2026-04-20', text: 'Added richer developer examples and stronger snippet-targeted copy for common regex questions.' },
-      { date: '2026-04-18', text: 'Improved the crawlable explanation and FAQ visibility on first load.' },
-      { date: '2026-03-15', text: 'Launched the browser-based regex tester and live match workflow.' },
+      changelog: [
+        { date: '2026-04-20', text: 'Added richer developer examples and stronger snippet-targeted copy for common regex questions.' },
+        { date: '2026-04-18', text: 'Improved the crawlable explanation and FAQ visibility on first load.' },
+        { date: '2026-03-15', text: 'Launched the browser-based regex tester and live match workflow.' },
+      ],
+    },
+  'diff-checker': {
+    metaDesc: 'Compare two texts online and highlight additions, deletions, and edits instantly. Free, browser-based, and no signup required. Compare text with Tooliest.',
+    summaryHeading: 'How Do I Compare Two Texts Online?',
+    howToHeading: 'How Can I Compare Two Texts Step by Step?',
+    howToSteps: [
+      { name: 'Paste the original text', text: 'Add the first version of the text, code, or document into the left input.' },
+      { name: 'Paste the revised text', text: 'Add the second version into the comparison field so the checker can line up the changes.' },
+      { name: 'Review added and removed lines', text: 'Scan the highlighted differences to see which lines were inserted, deleted, or modified.' },
+      { name: 'Use the diff to verify the edit', text: 'Confirm the changes you intended were actually applied before you publish, merge, or send the updated version.' },
+    ],
+    faqExtras: [
+      { q: 'What is a diff checker used for?', a: 'A diff checker compares two versions of text and highlights what changed between them. It is helpful for code review, document edits, config changes, and QA checks.' },
+      { q: 'Can I compare code, prose, or config files with a diff checker?', a: 'Yes. Diff tools work well for source code, plain text, copy drafts, release notes, and many types of configuration content.' },
+      { q: 'What do added and removed lines mean in a diff?', a: 'Added lines show content that appears only in the newer version, while removed lines show content that existed only in the older version. Modified sections usually appear as a combination of both.' },
+      { q: 'Can I use a diff checker before publishing an edited document?', a: 'Yes. It is a simple way to confirm the final draft contains the edits you expected and does not accidentally drop or duplicate important lines.' },
     ],
   },
   'chmod-calculator': {
     metaDesc: 'Calculate chmod values like 644 and 755 with symbolic permissions and fast octal conversion. Free, browser-based, no signup. Try Tooliest now.',
     summaryHeading: 'How Do I Convert chmod Permissions Online?',
+    howToHeading: 'How Can I Convert chmod Permissions Step by Step?',
+    howToSteps: [
+      { name: 'Set owner, group, and other permissions', text: 'Choose the read, write, and execute permissions you want for the owner, group, and everyone else.' },
+      { name: 'Review the octal value', text: 'Check the numeric chmod value that the permission combination produces, such as 644 or 755.' },
+      { name: 'Confirm the symbolic notation', text: 'Use the symbolic output like rwxr-xr-x to verify the permission set in a format Linux users recognize instantly.' },
+      { name: 'Copy the final permission mode', text: 'Reuse the numeric or symbolic value in your shell command, deployment notes, or hosting workflow.' },
+    ],
     aeoSnippet: {
       heading: 'What Does chmod 755 Mean?',
       answer: 'chmod 755 gives the owner read, write, and execute permissions, while the group and everyone else get read and execute permissions. It is a common setting for directories and scripts that should be accessible but not writable by other users.',
@@ -1563,11 +1704,14 @@ const TOOLIEST_SEO_OVERRIDES = {
     ],
     faqExtras: [
       { q: 'What is the difference between chmod 755 and 644?', a: 'chmod 755 allows the owner to read, write, and execute, while group members and others can read and execute. chmod 644 removes execute access, which makes it a better default for standard text files and assets.' },
+      { q: 'When should I use chmod 755 on a directory?', a: 'chmod 755 is common on directories that need to be readable and traversable by the web server or other users, but writable only by the owner. It is also common for executable scripts that others need to run.' },
+      { q: 'What does rwxr-xr-x mean in symbolic notation?', a: 'The symbolic string rwxr-xr-x maps directly to chmod 755. The owner gets read, write, and execute, while the group and others get read and execute only.' },
     ],
   },
   'cron-parser': {
     metaDesc: 'Parse cron expressions into plain English and validate schedule syntax instantly. Free, browser-based, and no signup required. Decode cron with Tooliest.',
     summaryHeading: 'How Do I Read a Cron Expression Online?',
+    howToHeading: 'How Can I Parse a Cron Expression Step by Step?',
     aeoSnippet: {
       heading: 'What Is a Cron Expression?',
       answer: 'A cron expression is a compact schedule format used on Unix-like systems to run recurring tasks. The standard five-field version uses minute, hour, day of month, month, and day of week to describe when a command should run.',
@@ -1578,6 +1722,8 @@ const TOOLIEST_SEO_OVERRIDES = {
     ],
     faqExtras: [
       { q: 'What cron expression runs every 5 minutes?', a: 'In standard five-field cron syntax, `*/5 * * * *` means run the task every five minutes. The `*/5` segment tells cron to use every fifth minute value across the hour.' },
+      { q: 'How many fields are in a standard cron expression?', a: 'The standard Unix cron format uses five fields: minute, hour, day of month, month, and day of week. Some systems add a sixth field for seconds or a year, which is why parser documentation matters.' },
+      { q: 'What is the difference between day-of-month and day-of-week in cron?', a: 'Day-of-month targets calendar dates such as the 1st or 15th, while day-of-week targets weekday names or numbers. Depending on the scheduler, combining both fields can be more permissive than people expect, so it is worth verifying the parsed output.' },
     ],
   },
   'loan-mortgage-analyzer': {
@@ -1591,13 +1737,15 @@ const TOOLIEST_SEO_OVERRIDES = {
     ],
     methodology: '<strong>Calculation methodology</strong><p>This calculator uses the standard amortizing-loan payment formula for principal and interest, then layers in optional taxes, insurance, and extra-payment assumptions so you can compare realistic monthly-payment scenarios. Mortgage estimates are informational only and do not replace lender disclosures, underwriting decisions, or advice from a licensed housing professional.</p>',
     accuracyDisclaimer: 'Mortgage, tax, insurance, and payoff results are estimates for planning purposes only. Confirm final costs with your lender, closing disclosures, and local tax or insurance providers before making a borrowing decision.',
-    contentHighlights: [
-      'Even a 1 percentage point rate change can materially alter the monthly payment on a long-term mortgage because interest compounds across the entire amortization schedule.',
-      'Many borrowers focus on principal and interest alone, but the full monthly payment often includes taxes, homeowners insurance, mortgage insurance, or HOA fees.',
-    ],
-    faqExtras: [
-      { q: 'What is the difference between principal and interest in a mortgage payment?', a: 'Principal is the amount you borrowed and are paying back, while interest is the cost charged by the lender for lending that money. Early mortgage payments usually go more heavily toward interest, and later payments shift more toward principal as the balance falls.' },
-    ],
+      contentHighlights: [
+        'Even a 1 percentage point rate change can materially alter the monthly payment on a long-term mortgage because interest compounds across the entire amortization schedule.',
+        'Many borrowers focus on principal and interest alone, but the full monthly payment often includes taxes, homeowners insurance, mortgage insurance, or HOA fees.',
+      ],
+      faqExtras: [
+        { q: 'What is the difference between principal and interest in a mortgage payment?', a: 'Principal is the amount you borrowed and are paying back, while interest is the cost charged by the lender for lending that money. Early mortgage payments usually go more heavily toward interest, and later payments shift more toward principal as the balance falls.' },
+        { q: 'How do extra payments affect a mortgage payoff date?', a: 'Extra payments reduce principal sooner, which lowers future interest charges and can shorten the total payoff timeline significantly, especially on long loans.' },
+        { q: 'What is the difference between APR and interest rate?', a: 'The interest rate reflects the cost of borrowing principal, while APR includes the interest rate plus certain lender fees and financing costs. APR is often more useful when you compare competing loan offers.' },
+      ],
     referenceLinks: [
       { label: 'Consumer Financial Protection Bureau: How mortgage lenders calculate monthly payments', url: 'https://www.consumerfinance.gov/ask-cfpb/how-do-mortgage-lenders-calculate-monthly-payments-en-1965/' },
       { label: 'Consumer Financial Protection Bureau: How mortgage amortization works', url: 'https://www.consumerfinance.gov/ask-cfpb/how-does-paying-down-a-mortgage-work-en-1943/' },
@@ -1623,13 +1771,16 @@ const TOOLIEST_SEO_OVERRIDES = {
       heading: 'What Is the Compound Interest Formula?',
       answer: 'The standard compound interest formula is A = P(1 + r / n)^(nt), where P is the starting principal, r is the annual interest rate, n is the number of compounding periods per year, and t is the number of years. Regular contributions add another layer because new deposits start compounding from the date they are added.',
     },
-    contentHighlights: [
-      'The Rule of 72 is a quick mental shortcut: divide 72 by the annual return to estimate how many years it may take an investment to double.',
-      'Starting earlier usually matters more than contributing larger amounts later because compounding needs time to stack gains on top of prior gains.',
-    ],
-    faqExtras: [
-      { q: 'What is the Rule of 72?', a: 'The Rule of 72 is a shortcut for estimating how long it may take an investment to double. Divide 72 by the expected annual return; for example, a 9% return implies roughly 8 years to double.' },
-    ],
+      contentHighlights: [
+        'The Rule of 72 is a quick mental shortcut: divide 72 by the annual return to estimate how many years it may take an investment to double.',
+        'Starting earlier usually matters more than contributing larger amounts later because compounding needs time to stack gains on top of prior gains.',
+      ],
+      faqExtras: [
+        { q: 'What is the Rule of 72?', a: 'The Rule of 72 is a shortcut for estimating how long it may take an investment to double. Divide 72 by the expected annual return; for example, a 9% return implies roughly 8 years to double.' },
+        { q: 'How much will $10,000 grow in 10 years?', a: 'That depends on the return rate, how often interest compounds, and whether you keep adding money. At 7% annual growth with no extra contributions, $10,000 would grow to roughly $19,700 after 10 years.' },
+        { q: 'Does monthly compounding grow faster than yearly compounding?', a: 'Yes, if the stated annual rate is the same. More frequent compounding gives interest more chances to earn additional interest during the year, although the difference is usually modest unless the rate or time horizon is large.' },
+        { q: 'Do recurring contributions matter more than a higher starting balance?', a: 'Both matter, but consistent contributions can dramatically change long-term outcomes because every new deposit gets its own compounding runway. For many savers, contribution discipline is one of the biggest controllable factors.' },
+      ],
     referenceLinks: [
       { label: 'Investor.gov: Compound Interest Calculator', url: 'https://www.investor.gov/financial-tools-calculators/calculators/compound-interest-calculator' },
       { label: 'Investor.gov: What is compound interest?', url: 'https://www.investor.gov/introduction-investing/investing-basics/glossary/compound-interest' },
@@ -1645,13 +1796,15 @@ const TOOLIEST_SEO_OVERRIDES = {
     summaryHeading: 'How Much Can a SIP Grow Over Time?',
     methodology: '<strong>Calculation methodology</strong><p>This calculator estimates Systematic Investment Plan growth by applying recurring contribution assumptions over the selected investment horizon with the annual return you provide. It is a planning tool only and should not be treated as investment advice or a promise of future fund performance.</p>',
     accuracyDisclaimer: 'SIP projections depend heavily on return assumptions, market volatility, and contribution consistency. Use the output as an estimate, then compare it with official fund documents and licensed-adviser guidance.',
-    contentHighlights: [
-      'A SIP works by investing a fixed amount at regular intervals, which can reduce the temptation to time the market and can smooth entry points over long periods.',
-      'Longer investment horizons and contribution consistency often influence the final corpus as much as headline return assumptions do.',
-    ],
-    faqExtras: [
-      { q: 'What is SIP in mutual funds?', a: 'SIP stands for Systematic Investment Plan. It means investing a fixed amount at regular intervals into a fund or investment product instead of trying to time a lump-sum entry.' },
-    ],
+      contentHighlights: [
+        'A SIP works by investing a fixed amount at regular intervals, which can reduce the temptation to time the market and can smooth entry points over long periods.',
+        'Longer investment horizons and contribution consistency often influence the final corpus as much as headline return assumptions do.',
+      ],
+      faqExtras: [
+        { q: 'What is SIP in mutual funds?', a: 'SIP stands for Systematic Investment Plan. It means investing a fixed amount at regular intervals into a fund or investment product instead of trying to time a lump-sum entry.' },
+        { q: 'Does increasing the monthly SIP amount matter more than chasing higher returns?', a: 'In many real plans, steadily increasing the contribution amount has a major impact because it puts more money to work over time. Return assumptions still matter, but contribution consistency is one of the biggest levers you control directly.' },
+        { q: 'Can I use this SIP calculator for yearly or irregular contributions?', a: 'It is best for recurring contribution planning. If your contributions are irregular, use the results as an estimate and model several scenarios rather than treating one output as exact.' },
+      ],
     referenceLinks: [
       { label: 'Investor.gov: Savings Goal Calculator', url: 'https://www.investor.gov/financial-tools-calculators/calculators/savings-goal-calculator' },
       { label: 'Investor.gov: Compound Interest Calculator', url: 'https://www.investor.gov/financial-tools-calculators/calculators/compound-interest-calculator' },
@@ -1662,13 +1815,16 @@ const TOOLIEST_SEO_OVERRIDES = {
     summaryHeading: 'How Much Do I Need to Retire Comfortably?',
     methodology: '<strong>Calculation methodology</strong><p>This calculator estimates retirement needs using your time horizon, current savings, planned contributions, growth assumptions, and expected withdrawal needs. It is an educational planning tool only and should be combined with official benefit statements, tax guidance, and advice tailored to your circumstances.</p>',
     accuracyDisclaimer: 'Retirement outputs are estimates, not guarantees. Inflation, healthcare costs, tax treatment, Social Security timing, and investment returns can all materially change the amount you ultimately need.',
-    contentHighlights: [
-      'A common starting estimate is the 4% rule, which suggests a portfolio near 25 times your planned first-year retirement spending may be a reasonable planning baseline.',
-      'Retirement planning works best when it includes both investment growth assumptions and real-world costs such as inflation, taxes, healthcare, and benefit timing.',
-    ],
-    faqExtras: [
-      { q: 'How much do I need to retire?', a: 'A common starting framework is to multiply planned annual retirement spending by 25, which mirrors the 4% rule. It is only a rough planning benchmark, so you should still stress-test inflation, taxes, healthcare, and Social Security timing.' },
-    ],
+      contentHighlights: [
+        'A common starting estimate is the 4% rule, which suggests a portfolio near 25 times your planned first-year retirement spending may be a reasonable planning baseline.',
+        'Retirement planning works best when it includes both investment growth assumptions and real-world costs such as inflation, taxes, healthcare, and benefit timing.',
+      ],
+      faqExtras: [
+        { q: 'How much do I need to retire?', a: 'A common starting framework is to multiply planned annual retirement spending by 25, which mirrors the 4% rule. It is only a rough planning benchmark, so you should still stress-test inflation, taxes, healthcare, and Social Security timing.' },
+        { q: 'What is the 4% rule?', a: 'The 4% rule is a retirement-planning guideline suggesting that an initial withdrawal near 4% of a diversified portfolio may be sustainable for around 30 years in many historical scenarios. It is a rule of thumb, not a guarantee.' },
+        { q: 'Should I include Social Security and inflation in retirement planning?', a: 'Yes. Social Security can offset part of your income need, while inflation can raise the amount you actually need to spend over time. Ignoring either one can distort the target savings number.' },
+        { q: 'How much yearly income does a $1 million retirement portfolio support?', a: 'Using the classic 4% rule as a rough planning shortcut, a $1 million portfolio suggests about $40,000 of first-year withdrawals. Real-world retirement income can be higher or lower depending on taxes, market conditions, spending flexibility, and how long retirement lasts.' },
+      ],
     referenceLinks: [
       { label: 'SSA: Get a benefits estimate', url: 'https://www.ssa.gov/prepare/get-benefits-estimate' },
       { label: 'SSA: Plan for retirement', url: 'https://www.ssa.gov/retirement/plan-for-retirement' },
@@ -1677,16 +1833,39 @@ const TOOLIEST_SEO_OVERRIDES = {
   'roi-calculator': {
     metaDesc: 'Calculate ROI, compare returns, and understand annualized performance in seconds. Free, browser-based, and no signup required. Try Tooliest now.',
     summaryHeading: 'How Do I Calculate Return on Investment Online?',
+    howToHeading: 'How Can I Calculate ROI Step by Step?',
+    howToSteps: [
+      { name: 'Enter the starting cost', text: 'Add the amount you invested or spent so the calculator has the baseline needed for the ROI comparison.' },
+      { name: 'Enter the ending value or profit', text: 'Add the current value, sale amount, or net return you received from the investment or project.' },
+      { name: 'Include the time period', text: 'Set the holding period if you want to compare annualized return instead of looking at plain ROI alone.' },
+      { name: 'Compare the return figures', text: 'Review the raw ROI result and the annualized return so you can compare opportunities on a more equal basis.' },
+    ],
     methodology: '<strong>Calculation methodology</strong><p>This calculator estimates return on investment by comparing the ending value with the starting cost, and it can also annualize results when you provide a time period. ROI is a useful comparison metric, but it does not capture every risk, tax, fee, or cash-flow nuance on its own.</p>',
     accuracyDisclaimer: 'ROI calculations simplify real-world investing. Fees, taxes, varying cash flows, and timing effects can materially change the true performance of an investment or project.',
     contentHighlights: [
       'Plain ROI is useful for quick comparisons, while annualized return helps compare outcomes that ran for different lengths of time.',
       'A higher ROI does not always mean the better decision if one option carries much more risk, takes far longer, or locks up cash for years.',
     ],
+    faqExtras: [
+      { q: 'What is the ROI formula?', a: 'The basic ROI formula is `(gain - cost) / cost x 100`. If you spent $1,000 and ended with $1,300, the gain is $300 and the ROI is 30 percent.' },
+      { q: 'What is the difference between ROI and annualized return?', a: 'ROI measures the total percentage gain or loss over the whole holding period. Annualized return converts that outcome into a yearly rate so you can compare projects or investments that lasted for different lengths of time.' },
+      { q: 'Can ROI be negative?', a: 'Yes. ROI becomes negative when the ending value is lower than the starting cost, which means the investment or project lost money overall.' },
+    ],
+    referenceLinks: [
+      { label: 'Investor.gov: Annual Return', url: 'https://www.investor.gov/introduction-investing/investing-basics/glossary/annual-return' },
+      { label: 'Investor.gov: Risk and return', url: 'https://www.investor.gov/additional-resources/information/youth/teachers-classroom-resources/risk-and-return' },
+    ],
   },
   'debt-payoff': {
     metaDesc: 'Plan debt snowball and avalanche payoff strategies with timelines and interest comparisons. Free, browser-based, no signup. Compare debt plans with Tooliest.',
     summaryHeading: 'Which Debt Payoff Strategy Clears Balances Faster?',
+    howToHeading: 'How Can I Build a Debt Payoff Plan Step by Step?',
+    howToSteps: [
+      { name: 'List each balance and interest rate', text: 'Enter every debt along with its balance, rate, and minimum payment so the payoff plan reflects your real obligations.' },
+      { name: 'Choose snowball or avalanche', text: 'Pick the payoff strategy you want to model and add any extra monthly amount you can send above the minimums.' },
+      { name: 'Review the payoff timeline', text: 'Run the calculator to see your projected debt-free date, total interest, and the order in which balances would be cleared.' },
+      { name: 'Adjust the monthly extra payment', text: 'Change the extra-payment amount or switch strategies to compare how much time and interest each plan can save.' },
+    ],
     methodology: '<strong>Calculation methodology</strong><p>This planner compares debt-payoff strategies by combining your balances, interest rates, minimum payments, and any extra monthly amount you can put toward debt. It is designed for educational scenario planning and should not replace individualized credit counseling or legal advice.</p>',
     accuracyDisclaimer: 'Debt payoff timelines are estimates based on the balances, rates, and payment assumptions you enter. Actual lender fees, changing rates, missed payments, or promotional terms can change the schedule materially.',
     contentHighlights: [
@@ -1695,6 +1874,12 @@ const TOOLIEST_SEO_OVERRIDES = {
     ],
     faqExtras: [
       { q: 'What is the debt avalanche method?', a: 'The debt avalanche method means paying minimums on every balance, then sending your extra money to the debt with the highest interest rate first. It usually minimizes total interest paid over time.' },
+      { q: 'Should I pay debt first or build an emergency fund first?', a: 'Many people try to keep a modest emergency cushion while paying down high-interest debt. The right balance depends on income stability, interest costs, and whether one surprise expense would force you to borrow again.' },
+      { q: 'Do extra monthly payments really change the payoff date much?', a: 'Yes. Extra payments reduce principal sooner, which lowers future interest charges and can shorten the payoff timeline more than many borrowers expect.' },
+    ],
+    referenceLinks: [
+      { label: 'Consumer Financial Protection Bureau: How to reduce your debt', url: 'https://www.consumerfinance.gov/about-us/blog/how-reduce-your-debt/' },
+      { label: 'Consumer Financial Protection Bureau: How to get a handle on debt', url: 'https://www.consumerfinance.gov/about-us/blog/how-get-handle-debt/' },
     ],
   },
   'inflation-calculator': {
@@ -1702,14 +1887,19 @@ const TOOLIEST_SEO_OVERRIDES = {
     summaryHeading: 'How Does Inflation Change Purchasing Power Over Time?',
     methodology: '<strong>Calculation methodology</strong><p>This calculator estimates purchasing-power changes using the inflation rate assumptions you enter. When you compare historical figures, remember that official inflation indexes use broad baskets of goods and services, so personal experience can differ from the headline rate.</p>',
     accuracyDisclaimer: 'Inflation outputs are planning estimates. Real household costs vary by geography, spending mix, tax changes, and the difference between personal expenses and broad consumer price indexes.',
-    contentHighlights: [
-      'Inflation erodes purchasing power over time, which means the same dollar amount buys less when prices rise year after year.',
-      'Long-term financial planning usually works best when savings targets, retirement assumptions, and salary goals are adjusted for inflation rather than viewed in nominal dollars alone.',
-    ],
-    referenceLinks: [
-      { label: 'U.S. Bureau of Labor Statistics: CPI Inflation Calculator', url: 'https://www.bls.gov/data/inflation_calculator_inside.htm' },
-      { label: 'U.S. Bureau of Labor Statistics: Inflation and prices overview', url: 'https://www.bls.gov/bls/inflation.htm' },
-    ],
+      contentHighlights: [
+        'Inflation erodes purchasing power over time, which means the same dollar amount buys less when prices rise year after year.',
+        'Long-term financial planning usually works best when savings targets, retirement assumptions, and salary goals are adjusted for inflation rather than viewed in nominal dollars alone.',
+      ],
+      faqExtras: [
+        { q: 'What is inflation in simple terms?', a: 'Inflation is the rate at which prices for goods and services rise over time. When inflation goes up, each dollar buys a little less than it did before.' },
+        { q: 'How much purchasing power does 3% inflation remove over time?', a: 'At 3% annual inflation, money loses purchasing power gradually each year. Over long periods, that compounds, which is why a fixed dollar amount often buys much less after 10, 20, or 30 years.' },
+        { q: 'Why does the inflation-adjusted amount differ from my personal budget experience?', a: 'Official inflation measures use broad baskets of goods and services across many households. Your personal costs may rise faster or slower depending on rent, healthcare, transport, food, taxes, and where you live.' },
+      ],
+      referenceLinks: [
+        { label: 'U.S. Bureau of Labor Statistics: CPI Inflation Calculator', url: 'https://www.bls.gov/data/inflation_calculator_inside.htm' },
+        { label: 'U.S. Bureau of Labor Statistics: Inflation and prices overview', url: 'https://www.bls.gov/bls/inflation.htm' },
+      ],
   },
   'audio-converter': {
     metaDesc: 'Convert audio files between MP3, WAV, FLAC, M4A, OGG, and more without uploads. Free, private, no signup. Convert audio with Tooliest now.',

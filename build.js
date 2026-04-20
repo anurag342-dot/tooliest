@@ -823,13 +823,13 @@ function writeOgAssets(tools, categories) {
   const siteDir = path.join(ogRoot, 'site');
   [ogRoot, toolDir, categoryDir, siteDir].forEach((dir) => fs.mkdirSync(dir, { recursive: true }));
 
-  const siteCards = [
-    {
-      file: 'home.svg',
-      eyebrow: `${tools.length}+ free online tools`,
-      title: 'Tooliest',
-      body: 'Browser-based tools for text, SEO, JSON, CSS, color, image, AI, and finance workflows. No signup required.',
-      badge: 'Zero installs',
+    const siteCards = [
+      {
+        file: 'home.svg',
+        eyebrow: 'Free online tools',
+        title: 'Tooliest',
+        body: 'Browser-based tools for text, SEO, JSON, CSS, color, image, AI, and finance workflows. No signup required.',
+        badge: 'Zero installs',
     },
     {
       file: 'about.svg',
@@ -2687,7 +2687,7 @@ function writeHomePage(tools, categories) {
   const crawlableDirectoryHtml = `<section class="tools-section" aria-labelledby="browse-all-tools-heading">
       <div class="tool-content-sections">
         <section class="tool-content-section">
-          <h2 id="browse-all-tools-heading">Browse All ${tools.length}+ Tools by Category</h2>
+          <h2 id="browse-all-tools-heading">Browse All Tools by Category</h2>
           <p>Every category below links to crawlable tool pages, so you can jump straight to the exact browser-based workflow you need without waiting for client-side search.</p>
         </section>
         ${renderableCategories.map((category) => {
@@ -2766,22 +2766,22 @@ function writeHomePage(tools, categories) {
   ];
 
   const mainContent = `<main class="main-content" id="main-content">
-    <section class="hero">
-      <div class="hero-badge"><span class="pulse-dot"></span> Free &amp; No Signup Required</div>
-      <h1>Every Tool You Need.<br><span class="gradient-text">${tools.length}+ Free Online Tools — Zero Installs.</span></h1>
-      <p>${tools.length}+ powerful online tools for developers, designers, writers, and marketers. Free, private, and ready in one tab. Search, launch, and finish faster with Tooliest.</p>
-      <div class="hero-stats">
-        <div class="hero-stat"><div class="stat-value">${tools.length}+</div><div class="stat-label">Free Tools</div></div>
-        <div class="hero-stat"><div class="stat-value">${renderableCategories.length}</div><div class="stat-label">Categories</div></div>
-        <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
-      </div>
-      <div class="hero-trust-strip" aria-label="Tooliest trust highlights">
-        <span class="trust-badge">🔒 100% Private — No Uploads</span>
-        <span class="trust-badge">⚡ Instant Browser Results</span>
-        <span class="trust-badge">📲 PWA Ready + Offline Support</span>
-        <span class="trust-badge">🆓 Forever Free Utilities</span>
-      </div>
-    </section>
+      <section class="hero">
+        <div class="hero-badge"><span class="pulse-dot"></span> Free &amp; No Signup Required</div>
+        <h1>Every Tool You Need.<br><span class="gradient-text">${tools.length}+ Free Online Tools — Zero Installs.</span></h1>
+        <p>Free online tools for developers, designers, writers, and marketers. Private, fast, and ready in one tab so you can search, launch, and finish faster with Tooliest.</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="stat-value">1</div><div class="stat-label">Tab Needed</div></div>
+          <div class="hero-stat"><div class="stat-value">${renderableCategories.length}</div><div class="stat-label">Categories</div></div>
+          <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
+        </div>
+        <div class="hero-trust-strip" aria-label="Tooliest trust highlights">
+          <span class="trust-badge">🔒 100% Private — No Uploads</span>
+          <span class="trust-badge">⚡ Instant Browser Results</span>
+          <span class="trust-badge">📲 PWA Ready + Offline Support</span>
+          <span class="trust-badge">🧭 No Account Friction</span>
+        </div>
+      </section>
     <section class="categories-section">
       <div class="category-tabs" id="category-tabs">${categoryTabsHtml}</div>
       <p class="category-scroll-indicator" id="category-scroll-indicator" aria-hidden="true">Swipe to see more categories →</p>
