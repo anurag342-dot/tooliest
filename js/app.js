@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.6', date: '2026-04-20', items: ['Reduced repeated tool-count messaging across the homepage hero', 'Bumped the asset version to flush stale cached homepage shells after the SEO refresh'] },
   { version: '3.5', date: '2026-04-18', items: ['Removed duplicate tool-introduction blocks from tool pages', 'Kept the structured What Is section as the single explanation area for each tool'] },
   { version: '3.4', date: '2026-04-18', items: ['Made FAQ, why-use, and who-uses sections visible in the live SPA tool pages', 'Restored category FAQ/supporting sections during normal client-side navigation'] },
   { version: '3.3', date: '2026-04-18', items: ['Removed the redundant Popular This Week panel from the homepage', 'Kept Recently Used and Most Popular On This Device as the primary personal discovery sections'] },
@@ -20,7 +21,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260418v26';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260420v27';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {

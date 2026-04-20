@@ -12,7 +12,7 @@ function getBuildEnv(name, fallback) {
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260418v26';
+const ASSET_VERSION = '20260420v27';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const INDEXNOW_KEY = getBuildEnv('INDEXNOW_KEY', 'tooliest-indexnow-20260420');
@@ -1178,7 +1178,7 @@ function renderNavbar() {
 
       <div class="nav-search">
         <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" placeholder="Search 80+ tools..." autocomplete="off">
+        <input type="text" id="search-input" placeholder="Search tools..." autocomplete="off">
         <span class="search-shortcut">Ctrl+K</span>
       </div>
 
@@ -1263,7 +1263,7 @@ function renderMobileSearchOverlay() {
       </div>
       <div style="position:relative;">
         <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-tertiary);pointer-events:none;">🔍</span>
-        <input type="text" id="mobile-search-input" placeholder="Search 80+ tools..." autocomplete="off"
+        <input type="text" id="mobile-search-input" placeholder="Search tools..." autocomplete="off"
           style="width:100%;padding:14px 16px 14px 44px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);font-size:1rem;outline:none;font-family:var(--font-primary);"
           aria-label="Search tools">
       </div>
