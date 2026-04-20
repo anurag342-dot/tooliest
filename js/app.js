@@ -366,13 +366,19 @@ const App = {
   parsePath(rawPath) {
     const url = new URL(rawPath, window.location.origin);
     let pathname = url.pathname.replace(/\/index\.html$/, '/');
+    const querySearch = url.searchParams.get('q');
 
     if (pathname.length > 1 && pathname.endsWith('/')) {
       pathname = pathname.slice(0, -1);
     }
 
     const parts = pathname.replace(/^\/+/, '').split('/').filter(Boolean);
-    if (parts.length === 0) return { view: 'home' };
+    if (parts.length === 0) {
+      if (querySearch) {
+        return { view: 'search', query: querySearch, queryParamSearch: true };
+      }
+      return { view: 'home' };
+    }
     if (parts[0] === 'tool' && parts[1]) {
       const legacyToolId = decodeURIComponent(parts[1]);
       if (this.findToolById(legacyToolId)) {
@@ -438,8 +444,8 @@ const App = {
       category,
       tools,
       count,
-      title: `${category.name} | Tooliest`,
-      description: `Explore ${count} free ${lowerName} on Tooliest. Browser-based utilities with no signup, no uploads, and no server processing.`,
+      title: `Free ${category.name} Online | Tooliest`,
+      description: `Explore ${count} free ${lowerName} on Tooliest. Browser-based utilities with no signup, no uploads, and no server processing. Explore the category now.`,
       intro: `Browse Tooliest's ${lowerName} and launch every tool instantly in your browser without sending your data to a server.`,
       faq: this.getCategoryFaqItems(category, tools),
     };
@@ -963,8 +969,8 @@ const App = {
     const categoryCount = this.getVisibleCategories().length;
     return `<section class="hero">
       <div class="hero-badge"><span class="pulse-dot"></span> ${TOOLS.length}+ Browser-Based Tools • Free &amp; No Signup</div>
-      <h1>Every Tool You Need.<br><span class="gradient-text">Zero Installs.</span></h1>
-      <p>${TOOLS.length}+ powerful online tools for developers, designers, writers, and marketers. All free, all instant, all AI-enhanced.</p>
+      <h1>Every Tool You Need.<br><span class="gradient-text">${TOOLS.length}+ Free Online Tools — Zero Installs.</span></h1>
+      <p>${TOOLS.length}+ powerful online tools for developers, designers, writers, and marketers. Free, private, and ready in one tab. Search, launch, and finish faster with Tooliest.</p>
       <div class="hero-stats">
         <div class="hero-stat"><div class="stat-value">${TOOLS.length}+</div><div class="stat-label">Free Tools</div></div>
         <div class="hero-stat"><div class="stat-value">${categoryCount}</div><div class="stat-label">Categories</div></div>
@@ -1431,12 +1437,36 @@ const App = {
   getToolContentSectionsHTML(tool) {
     const categoryName = TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || 'online tools';
     const fallbackExplain = `${tool.name} is part of Tooliest's ${categoryName.toLowerCase()} collection and runs directly in your browser, so your input stays on your device.`;
-    const steps = [
-      `Open the ${tool.name} workspace.`,
-      'Type, paste, upload, or adjust the input fields as needed.',
-      'Run the action or conversion to get instant results in your browser.',
-      'Copy, download, or reuse the output without sending your data to a server.',
-    ];
+    const steps = Array.isArray(tool.howToSteps) && tool.howToSteps.length
+      ? tool.howToSteps
+      : [
+        { name: `Open ${tool.name}`, text: `Launch ${tool.name} and add the input you want to process.` },
+        { name: 'Set the options', text: 'Adjust the fields or controls that affect the output.' },
+        { name: 'Generate the result', text: 'Run the tool and review the result instantly in your browser.' },
+        { name: 'Copy or export the output', text: 'Reuse the final result in the next step of your workflow.' },
+      ];
+    const relatedCategories = (tool.relatedCategoryIds || [])
+      .map((categoryId) => TOOL_CATEGORIES.find((candidate) => candidate.id === categoryId))
+      .filter(Boolean);
+    const snippetHtml = tool.aeoSnippet
+      ? `<section class="tool-content-section">
+        <h2>${this.escapeHTML(tool.aeoSnippet.heading)}</h2>
+        <p>${this.escapeHTML(tool.aeoSnippet.answer)}</p>
+      </section>`
+      : '';
+    const highlightsHtml = Array.isArray(tool.contentHighlights) && tool.contentHighlights.length
+      ? `<section class="tool-content-section">
+        <h2>Practical Examples & Benchmarks</h2>
+        <ul>${tool.contentHighlights.map((item) => `<li>${this.escapeHTML(item)}</li>`).join('')}</ul>
+      </section>`
+      : '';
+    const methodologyHtml = tool.methodology
+      ? `<section class="tool-content-section tool-methodology">
+        <h2>Methodology & Accuracy Notes</h2>
+        <div>${tool.methodology}</div>
+        ${tool.accuracyDisclaimer ? `<p class="tool-accuracy-disclaimer">${this.escapeHTML(tool.accuracyDisclaimer)}</p>` : ''}
+      </section>`
+      : '';
     const whyUseHtml = Array.isArray(tool.whyUse) && tool.whyUse.length
       ? `<section class="tool-content-section">
         <h2>Why Use ${this.escapeHTML(tool.name)}?</h2>
@@ -1455,21 +1485,47 @@ const App = {
         <div class="faq-list">${tool.faq.map((item) => `<details class="faq-item"><summary>${this.escapeHTML(item.q)}</summary><p>${this.escapeHTML(item.a)}</p></details>`).join('')}</div>
       </section>`
       : '';
+    const relatedCategoriesHtml = relatedCategories.length
+      ? `<section class="tool-content-section">
+        <h2>Explore Related Categories</h2>
+        <ul>${relatedCategories.map((category) => `<li><a href="${this.getCategoryPath(category.id)}">${this.escapeHTML(category.name)}</a> — ${category.count || 0} tools</li>`).join('')}</ul>
+      </section>`
+      : '';
+    const changelogHtml = Array.isArray(tool.changelog) && tool.changelog.length
+      ? `<section class="tool-content-section">
+        <h2>Changelog</h2>
+        <ul class="changelog-list">${tool.changelog.map((entry) => `<li><time datetime="${this.escapeHTML(entry.date)}">${this.escapeHTML(entry.date)}</time> — ${this.escapeHTML(entry.text)}</li>`).join('')}</ul>
+      </section>`
+      : '';
+    const referencesHtml = Array.isArray(tool.referenceLinks) && tool.referenceLinks.length
+      ? `<section class="tool-content-section">
+        <h2>Reference Sources</h2>
+        <ul>${tool.referenceLinks.map((item) => `<li><a href="${item.url}" target="_blank" rel="noopener noreferrer">${this.escapeHTML(item.label)}</a></li>`).join('')}</ul>
+      </section>`
+      : '';
 
-    return `<div class="tool-content-sections">
+    return `<article class="tool-article">
+      <div class="tool-content-sections">
       <section class="tool-content-section">
-        <h2>What Is ${this.escapeHTML(tool.name)}?</h2>
+        <h2>${this.escapeHTML(tool.summaryHeading || `What Is ${tool.name}?`)}</h2>
         <p>${this.escapeHTML(tool.description)}</p>
         ${tool.education ? `<div class="tool-education-copy">${tool.education}</div>` : `<p>${fallbackExplain}</p>`}
       </section>
+      ${snippetHtml}
+      ${methodologyHtml}
+      ${highlightsHtml}
       <section class="tool-content-section">
-        <h2>How To Use ${this.escapeHTML(tool.name)}</h2>
-        <ol>${steps.map(step => `<li>${this.escapeHTML(step)}</li>`).join('')}</ol>
+        <h2>${this.escapeHTML(tool.howToHeading || `How To Use ${tool.name}`)}</h2>
+        <ol>${steps.map((step) => `<li><strong>${this.escapeHTML(step.name)}</strong> — ${this.escapeHTML(step.text)}</li>`).join('')}</ol>
       </section>
       ${whyUseHtml}
       ${whoUsesHtml}
       ${faqHtml}
-    </div>`;
+      ${relatedCategoriesHtml}
+      ${changelogHtml}
+      ${referencesHtml}
+      </div>
+    </article>`;
   },
 
   getCategoryContentSectionsHTML(meta) {
@@ -1584,6 +1640,7 @@ const App = {
           </div>
         </div>
         <p>${tool.description}</p>
+        <p class="tool-last-updated"><time datetime="${tool.lastReviewed || ''}">Last reviewed: ${tool.lastReviewedLabel || tool.lastReviewed || ''}</time> · ${tool.reviewedBy || 'Reviewed by Tooliest'}</p>
         ${this.getToolTrustPanelHTML(tool, related)}
       </div>
       ${this.getAdHTML('tool-top')}
@@ -1753,8 +1810,12 @@ const App = {
     const ogTitle = document.querySelector('meta[property="og:title"]');
     const ogDesc = document.querySelector('meta[property="og:description"]');
     const ogUrl = document.querySelector('meta[property="og:url"]');
+    const ogImage = document.querySelector('meta[property="og:image"]');
+    const ogImageAlt = document.querySelector('meta[property="og:image:alt"]');
     const twTitle = document.querySelector('meta[name="twitter:title"]');
     const twDesc = document.querySelector('meta[name="twitter:description"]');
+    const twImage = document.querySelector('meta[name="twitter:image"]');
+    const twImageAlt = document.querySelector('meta[name="twitter:image:alt"]');
     const canonical = document.querySelector('link[rel="canonical"]');
     const robots = document.querySelector('meta[name="robots"]');
     const routePath = tool
@@ -1763,11 +1824,21 @@ const App = {
         ? this.getSearchPath(this.searchQuery)
         : this.getCategoryPath(this.currentCategory);
     const absoluteUrl = this.getAbsoluteUrl(routePath);
+    const socialImagePath = tool
+      ? (tool.ogImage || '/social-card.jpg')
+      : (this.currentCategory && !['all', 'favorites'].includes(this.currentCategory))
+        ? `/og/categories/${this.currentCategory}.svg`
+        : '/og/site/home.svg';
+    const socialImageUrl = this.getAbsoluteUrl(socialImagePath);
     if (ogTitle) ogTitle.setAttribute('content', title);
     if (ogDesc) ogDesc.setAttribute('content', description);
     if (ogUrl) ogUrl.setAttribute('content', absoluteUrl);
+    if (ogImage) ogImage.setAttribute('content', socialImageUrl);
+    if (ogImageAlt) ogImageAlt.setAttribute('content', tool?.ogImageAlt || 'Tooliest preview card');
     if (twTitle) twTitle.setAttribute('content', title);
     if (twDesc) twDesc.setAttribute('content', description);
+    if (twImage) twImage.setAttribute('content', socialImageUrl);
+    if (twImageAlt) twImageAlt.setAttribute('content', tool?.ogImageAlt || 'Tooliest preview card');
     if (canonical) canonical.setAttribute('href', absoluteUrl);
     if (robots) {
       robots.setAttribute('content', (this.currentView === 'search' || this.currentCategory === 'favorites') ? 'noindex, follow' : 'index, follow');
@@ -1786,23 +1857,7 @@ const App = {
         'applicationCategory': 'UtilityApplication',
         'operatingSystem': 'Any',
         'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' },
-        'dateModified': new Date().toISOString().split('T')[0]
-      };
-      const softwareSchema = {
-        '@context': 'https://schema.org',
-        '@type': 'SoftwareApplication',
-        'name': tool.name,
-        'url': absoluteUrl,
-        'description': tool.meta?.desc || tool.description,
-        'applicationCategory': 'UtilityApplication',
-        'applicationSubCategory': catName,
-        'operatingSystem': 'Any',
-        'browserRequirements': 'Requires a JavaScript-enabled modern web browser',
-        'featureList': tool.tags.join(', '),
-        'softwareVersion': TOOLIEST_ASSET_VERSION,
-        'isAccessibleForFree': true,
-        'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' },
-        'dateModified': new Date().toISOString().split('T')[0]
+        'dateModified': tool.lastReviewed || new Date().toISOString().split('T')[0]
       };
       const breadcrumb = {
         '@context': 'https://schema.org',
@@ -1819,16 +1874,28 @@ const App = {
         '@type': 'HowTo',
         'name': 'How to use ' + tool.name + ' online',
         'description': tool.meta?.desc || tool.description,
-        'step': [
-          { '@type': 'HowToStep', 'position': 1, 'name': 'Open the tool', 'text': 'Open ' + absoluteUrl + ' in your browser.' },
-          { '@type': 'HowToStep', 'position': 2, 'name': 'Enter your input', 'text': 'Type, paste, or upload your content into the tool workspace' },
-          { '@type': 'HowToStep', 'position': 3, 'name': 'Get results', 'text': 'Click the action button to process your input and get instant results' },
-          { '@type': 'HowToStep', 'position': 4, 'name': 'Copy or download', 'text': 'Copy the output to clipboard or download the result file' }
-        ],
-        'tool': { '@type': 'HowToTool', 'name': 'Web Browser' }
+        'step': (tool.howToSteps || []).map((step, index) => ({
+          '@type': 'HowToStep',
+          'position': index + 1,
+          'name': step.name,
+          'text': step.text
+        })),
+        'tool': { '@type': 'HowToTool', 'name': 'Tooliest ' + tool.name }
       };
+      const faqSchema = Array.isArray(tool.faq) && tool.faq.length ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        'mainEntity': tool.faq.map((item) => ({
+          '@type': 'Question',
+          'name': item.q,
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': item.a
+          }
+        }))
+      } : null;
       // [TOOLIEST AUDIT] Keep runtime tool schema aligned with pre-rendered pages for richer search coverage.
-      [toolSchema, softwareSchema, breadcrumb, howTo].forEach(schema => {
+      [toolSchema, breadcrumb, howTo, faqSchema].filter(Boolean).forEach(schema => {
         const script = document.createElement('script');
         script.type = 'application/ld+json';
         script.setAttribute('data-dynamic-schema', 'true');

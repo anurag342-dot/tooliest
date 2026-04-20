@@ -1395,6 +1395,11 @@ body.nav-menu-open {
   min-width: 0;
 }
 
+.tool-article {
+  display: grid;
+  gap: 20px;
+}
+
 .tool-content-section h2 {
   font-size: 1.2rem;
   font-weight: 700;
@@ -1422,6 +1427,47 @@ body.nav-menu-open {
 
 .tool-content-section li + li {
   margin-top: 8px;
+}
+
+.tool-methodology,
+.tool-accuracy-disclaimer {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+  border: 1px solid var(--border-color);
+}
+
+.tool-methodology strong,
+.tool-accuracy-disclaimer strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.tool-methodology p,
+.tool-accuracy-disclaimer p,
+.tool-methodology li,
+.tool-accuracy-disclaimer li {
+  color: var(--text-secondary);
+}
+
+.changelog-list {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.changelog-list li {
+  padding-left: 0;
+}
+
+.changelog-list time {
+  display: inline-block;
+  min-width: 90px;
+  margin-right: 10px;
+  color: var(--accent-primary);
+  font-weight: 700;
 }
 
 .tool-page-header {
@@ -1459,6 +1505,17 @@ body.nav-menu-open {
 .tool-page-header p {
   font-size: 1.05rem;
   color: var(--text-secondary);
+}
+
+.tool-last-updated {
+  margin-top: 14px;
+  font-size: 0.92rem !important;
+  color: var(--text-tertiary) !important;
+}
+
+.tool-last-updated time {
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 
 .tool-header-actions {
@@ -2242,13 +2299,13 @@ input[type="range"]::-webkit-slider-thumb:hover {
   margin-bottom: 40px;
 }
 
-.footer-brand h3 {
+.footer-brand-title {
   font-size: 1.3rem;
   font-weight: 800;
   margin-bottom: 12px;
 }
 
-.footer-brand h3 span {
+.footer-brand-title span {
   background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -2261,7 +2318,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   line-height: 1.7;
 }
 
-.footer-col h4 {
+.footer-col-title {
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -2288,6 +2345,22 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .footer-col ul li a:hover {
   color: var(--accent-primary);
+}
+
+.adsense-disclosure {
+  max-width: var(--max-width);
+  margin: 0 auto 24px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-card) 90%, transparent);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.adsense-disclosure a {
+  font-weight: 600;
 }
 
 .footer-bottom {

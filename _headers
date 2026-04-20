@@ -25,8 +25,19 @@
 /social-card*
   Cache-Control: public, max-age=2592000
 
+/og/*
+  Cache-Control: public, max-age=31536000, immutable
+
 /manifest.json
   Cache-Control: public, max-age=86400
+
+/indexnow-key.txt
+  Cache-Control: public, max-age=86400
+  Content-Type: text/plain; charset=utf-8
+
+/tooliest-indexnow-20260420.txt
+  Cache-Control: public, max-age=86400
+  Content-Type: text/plain; charset=utf-8
 
 /sw.js
   Cache-Control: no-cache, no-store
@@ -42,6 +53,10 @@
 # HTML pages
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
+
+/404.html
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Robots-Tag: noindex, follow
 
 /about
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
@@ -437,6 +452,22 @@
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
 /sitemap.xml
+  Cache-Control: public, max-age=86400
+  Content-Type: application/xml
+
+/sitemap-main.xml
+  Cache-Control: public, max-age=86400
+  Content-Type: application/xml
+
+/sitemap-tools.xml
+  Cache-Control: public, max-age=86400
+  Content-Type: application/xml
+
+/sitemap-categories.xml
+  Cache-Control: public, max-age=86400
+  Content-Type: application/xml
+
+/sitemap-software.xml
   Cache-Control: public, max-age=86400
   Content-Type: application/xml
 

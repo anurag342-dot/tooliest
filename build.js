@@ -15,6 +15,9 @@ const BUILD_DATE = new Date().toISOString().split('T')[0];
 const ASSET_VERSION = '20260418v26';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
+const INDEXNOW_KEY = getBuildEnv('INDEXNOW_KEY', 'tooliest-indexnow-20260420');
+const INDEXNOW_KEY_LOCATION_PATH = '/indexnow-key.txt';
+const INDEXNOW_VERIFICATION_PATH = `/${INDEXNOW_KEY}.txt`;
 const GOOGLE_TAG_ID = getBuildEnv('GOOGLE_TAG_ID', 'AW-18068794869');
 const GOOGLE_TAG_SNIPPET = `<script>(function(){var loaded=false;function boot(){if(loaded)return;loaded=true;var s=document.createElement('script');s.src='https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}';s.async=true;document.head.appendChild(s);window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('js',new Date());window.gtag('config','${GOOGLE_TAG_ID}');}window.addEventListener('load',function(){if('requestIdleCallback' in window){requestIdleCallback(boot,{timeout:4000});return;}setTimeout(boot,2500);});})();</script>`;
 const ADSENSE_CLIENT = getBuildEnv('ADSENSE_CLIENT', 'ca-pub-3155132462698504');
@@ -56,10 +59,17 @@ const STATIC_PAGE_SOURCE_FILES = {
 };
 const ROOT_STATIC_FILE_PATHS = [
   '/ads.txt',
+  '/404.html',
+  INDEXNOW_VERIFICATION_PATH,
+  '/indexnow-key.txt',
   '/manifest.json',
   '/robots.txt',
   '/sitemap.html',
   '/sitemap.xml',
+  '/sitemap-main.xml',
+  '/sitemap-tools.xml',
+  '/sitemap-categories.xml',
+  '/sitemap-software.xml',
   '/sw.js',
   `/${BUNDLE_OUTPUT_FILE}`,
   '/favicon.svg',
@@ -69,6 +79,7 @@ const ROOT_STATIC_FILE_PATHS = [
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable-512.png',
+  '/og',
   '/social-card.jpg',
   '/social-card.png',
 ];
@@ -84,8 +95,16 @@ const RESERVED_ROOT_SEGMENTS = new Set([
   'sitemap',
   'sitemap.html',
   'sitemap.xml',
+  'sitemap-main.xml',
+  'sitemap-tools.xml',
+  'sitemap-categories.xml',
+  'sitemap-software.xml',
+  `${INDEXNOW_KEY}.txt`,
+  'indexnow-key.txt',
+  'og',
   'robots.txt',
   'ads.txt',
+  '404.html',
   'manifest.json',
   'sw.js',
   BUNDLE_OUTPUT_FILE,
@@ -721,6 +740,217 @@ function getSoftwareContentLastModifiedDate() {
   return getSourceModifiedDate(['build.js']);
 }
 
+function escapeXml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function wrapOgText(text, maxChars = 28, maxLines = 3) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  const lines = [];
+  let current = '';
+
+  words.forEach((word) => {
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length <= maxChars || !current) {
+      current = candidate;
+      return;
+    }
+    lines.push(current);
+    current = word;
+  });
+
+  if (current) {
+    lines.push(current);
+  }
+
+  if (lines.length <= maxLines) {
+    return lines;
+  }
+
+  const trimmed = lines.slice(0, maxLines);
+  trimmed[maxLines - 1] = `${trimmed[maxLines - 1].replace(/[. ]+$/g, '')}...`;
+  return trimmed;
+}
+
+function renderOgCardSvg({ eyebrow, title, body, badge }) {
+  const titleLines = wrapOgText(title, 24, 3);
+  const bodyLines = wrapOgText(body, 48, 3);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">${escapeXml(title)}</title>
+  <desc id="desc">${escapeXml(body)}</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#081221" />
+      <stop offset="50%" stop-color="#101a33" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="20" stdDeviation="30" flood-color="#020617" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" rx="36" />
+  <circle cx="1030" cy="120" r="180" fill="#8b5cf6" opacity="0.12" />
+  <circle cx="220" cy="560" r="220" fill="#06b6d4" opacity="0.1" />
+  <rect x="70" y="72" width="1060" height="486" rx="34" fill="rgba(15, 23, 42, 0.78)" stroke="rgba(148, 163, 184, 0.18)" filter="url(#shadow)" />
+  <rect x="110" y="118" width="164" height="164" rx="34" fill="url(#accent)" />
+  <text x="192" y="218" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="800" fill="#ffffff">T</text>
+  <text x="320" y="150" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="1.4" fill="#93c5fd">${escapeXml(eyebrow)}</text>
+  ${titleLines.map((line, index) => `<text x="320" y="${235 + (index * 74)}" font-family="Inter, Arial, sans-serif" font-size="62" font-weight="800" fill="#f8fafc">${escapeXml(line)}</text>`).join('\n  ')}
+  ${bodyLines.map((line, index) => `<text x="120" y="${392 + (index * 38)}" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">${escapeXml(line)}</text>`).join('\n  ')}
+  <rect x="120" y="486" width="260" height="56" rx="28" fill="rgba(139, 92, 246, 0.16)" stroke="rgba(139, 92, 246, 0.32)" />
+  <text x="150" y="522" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#e9d5ff">${escapeXml(badge)}</text>
+  <text x="952" y="528" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" fill="#e2e8f0">tooliest.com</text>
+</svg>
+`;
+}
+
+function writeOgAssets(tools, categories) {
+  console.log('Generating OG image assets...');
+  const ogRoot = path.join(__dirname, 'og');
+  const toolDir = path.join(ogRoot, 'tools');
+  const categoryDir = path.join(ogRoot, 'categories');
+  const siteDir = path.join(ogRoot, 'site');
+  [ogRoot, toolDir, categoryDir, siteDir].forEach((dir) => fs.mkdirSync(dir, { recursive: true }));
+
+  const siteCards = [
+    {
+      file: 'home.svg',
+      eyebrow: `${tools.length}+ free online tools`,
+      title: 'Tooliest',
+      body: 'Browser-based tools for text, SEO, JSON, CSS, color, image, AI, and finance workflows. No signup required.',
+      badge: 'Zero installs',
+    },
+    {
+      file: 'about.svg',
+      eyebrow: 'About Tooliest',
+      title: 'Why Tooliest exists',
+      body: 'Fast, private browser-based utilities built to remove signups, uploads, and unnecessary friction.',
+      badge: 'Private by design',
+    },
+    {
+      file: 'contact.svg',
+      eyebrow: 'Contact Tooliest',
+      title: 'Send feedback or request a tool',
+      body: 'Reach the Tooliest team with bug reports, feature ideas, partnerships, and support questions.',
+      badge: 'Reply within 24-48h',
+    },
+    {
+      file: 'privacy.svg',
+      eyebrow: 'Privacy policy',
+      title: 'How Tooliest handles data',
+      body: 'Learn how browser-side processing, local storage, optional cookies, and ads work across the site.',
+      badge: 'Browser-first privacy',
+    },
+    {
+      file: 'terms.svg',
+      eyebrow: 'Terms of service',
+      title: 'How Tooliest can be used',
+      body: 'Review the service terms for using Tooliest tools lawfully for personal and professional work.',
+      badge: 'Clear usage terms',
+    },
+    {
+      file: 'software.svg',
+      eyebrow: 'SEO software guides',
+      title: 'Reviews, comparisons, and buying guides',
+      body: 'Research-oriented content clusters that help marketers compare SEO platforms without guesswork.',
+      badge: 'Decision support',
+    },
+  ];
+
+  siteCards.forEach((card) => {
+    fs.writeFileSync(path.join(siteDir, card.file), renderOgCardSvg(card));
+  });
+
+  getRenderableCategories(categories).forEach((category) => {
+    const categoryTools = getCategoryTools(tools, category.id);
+    const body = category.description || `${categoryTools.length} browser-based ${category.name.toLowerCase()} tools you can use instantly without installs.`;
+    fs.writeFileSync(
+      path.join(categoryDir, `${category.id}.svg`),
+      renderOgCardSvg({
+        eyebrow: `${categoryTools.length} tools in ${category.name}`,
+        title: `${category.name} tools`,
+        body,
+        badge: 'Free online',
+      })
+    );
+  });
+
+  tools.forEach((tool) => {
+    const categoryName = categories.find((category) => category.id === tool.category)?.name || 'Online tools';
+    fs.writeFileSync(
+      path.join(toolDir, `${tool.id}.svg`),
+      renderOgCardSvg({
+        eyebrow: `${categoryName} on Tooliest`,
+        title: tool.name,
+        body: stripHtml(tool.meta?.desc || tool.description || `${tool.name} is a free browser-based tool on Tooliest.`),
+        badge: 'Free and private',
+      })
+    );
+  });
+}
+
+function renderSitemapUrlSet(entries) {
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.map((entry) => `  <url>\n    <loc>${escapeXml(entry.loc)}</loc>\n    <lastmod>${escapeXml(entry.lastmod || BUILD_DATE)}</lastmod>\n    <changefreq>${escapeXml(entry.changefreq || 'monthly')}</changefreq>\n    <priority>${escapeXml(entry.priority || '0.5')}</priority>\n  </url>`).join('\n')}\n</urlset>\n`;
+}
+
+function getLatestLastmod(entries) {
+  const timestamps = entries
+    .map((entry) => Date.parse(entry.lastmod || BUILD_DATE))
+    .filter((timestamp) => Number.isFinite(timestamp));
+  return timestamps.length ? new Date(Math.max(...timestamps)).toISOString().split('T')[0] : BUILD_DATE;
+}
+
+function writeSitemapUrlFile(filename, entries) {
+  fs.writeFileSync(path.join(__dirname, filename), renderSitemapUrlSet(entries));
+  return {
+    loc: getAbsoluteUrl(`/${filename}`),
+    lastmod: getLatestLastmod(entries),
+  };
+}
+
+function writeIndexNowKeyFiles() {
+  fs.writeFileSync(path.join(__dirname, INDEXNOW_KEY_LOCATION_PATH.replace(/^\/+/, '')), INDEXNOW_KEY);
+  fs.writeFileSync(path.join(__dirname, INDEXNOW_VERIFICATION_PATH.replace(/^\/+/, '')), INDEXNOW_KEY);
+}
+
+function shouldSubmitIndexNow() {
+  if (process.env.ENABLE_INDEXNOW === 'false') return false;
+  return Boolean(process.env.CF_PAGES || process.env.CI || process.env.ENABLE_INDEXNOW === 'true');
+}
+
+async function submitIndexNow(urlList) {
+  if (!shouldSubmitIndexNow() || !urlList.length || typeof fetch !== 'function') {
+    return;
+  }
+
+  try {
+    const response = await fetch('https://api.indexnow.org/IndexNow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        host: 'tooliest.com',
+        key: INDEXNOW_KEY,
+        keyLocation: getAbsoluteUrl(INDEXNOW_KEY_LOCATION_PATH),
+        urlList,
+      }),
+    });
+    console.log(`IndexNow submission returned ${response.status}`);
+  } catch (error) {
+    console.warn('IndexNow submission skipped due to error:', error && error.message ? error.message : error);
+  }
+}
+
 function minifyCSS(css) {
   // [TOOLIEST AUDIT] Minify conservatively so url()/data values keep their internal punctuation untouched.
   let result = '';
@@ -888,8 +1118,8 @@ function getCategoryMeta(category, tools) {
       ? `Free ${category.name} Online - ${featuredTitleTools} | Tooliest`
       : `Free ${category.name} Online | Tooliest`,
     description: featuredTools
-      ? `Use ${count} free ${lowerName} on Tooliest, including ${featuredTools}. Browser-based, fast, private, and no signup required.`
-      : `Use ${count} free ${lowerName} on Tooliest. Browser-based, fast, private, and no signup required.`,
+      ? `Use ${count} free ${lowerName} on Tooliest, including ${featuredTools}. Browser-based, fast, private, and no signup required. Explore the category now.`
+      : `Use ${count} free ${lowerName} on Tooliest. Browser-based, fast, private, and no signup required. Explore the category now.`,
     intro: featuredTools
       ? `Browse Tooliest's ${lowerName} and launch every tool instantly in your browser without sending your data to a server. Popular picks include ${featuredTools}.`
       : `Browse Tooliest's ${lowerName} and launch every tool instantly in your browser without sending your data to a server.`,
@@ -974,11 +1204,11 @@ function renderFooter() {
   return `<footer class="site-footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <h3>⚡ <span>Tooliest</span></h3>
+        <p class="footer-brand-title">⚡ <span>Tooliest</span></p>
         <p>80+ free online tools for developers, designers, writers, and marketers. All tools run directly in your browser — no data is sent to any server. Fast, private, and always free.</p>
       </div>
       <div class="footer-col">
-        <h4>Popular Tools</h4>
+        <p class="footer-col-title">Popular Tools</p>
         <ul>
           <li><a href="${getToolPath('word-counter')}">Word Counter</a></li>
           <li><a href="${getToolPath('json-formatter')}">JSON Formatter</a></li>
@@ -989,7 +1219,7 @@ function renderFooter() {
         </ul>
       </div>
       <div class="footer-col">
-        <h4>AI Tools</h4>
+        <p class="footer-col-title">AI Tools</p>
         <ul>
           <li><a href="${getToolPath('ai-text-summarizer')}">Text Summarizer</a></li>
           <li><a href="${getToolPath('ai-paraphraser')}">AI Paraphraser</a></li>
@@ -1000,7 +1230,7 @@ function renderFooter() {
         </ul>
       </div>
       <div class="footer-col">
-        <h4>Company</h4>
+        <p class="footer-col-title">Company</p>
         <ul>
           <li><a href="${STATIC_PAGE_PATHS.about}">About Us</a></li>
           <li><a href="${STATIC_PAGE_PATHS.contact}">Contact</a></li>
@@ -1011,6 +1241,7 @@ function renderFooter() {
         </ul>
       </div>
     </div>
+    <p class="adsense-disclosure">Tooliest is supported by advertising through Google AdSense. Ad revenue helps keep every tool free. <a href="${STATIC_PAGE_PATHS.privacy}">Learn about our ad policy →</a></p>
     <div class="footer-bottom">
       <span>&copy; 2026 Tooliest.com — All tools are free and run in your browser.</span>
       <span>
@@ -1057,10 +1288,14 @@ function renderCookieBanner() {
   </div>`;
 }
 
-function renderPageShell({ title, description, canonicalPath, structuredData, mainContent, keywords }) {
+function renderPageShell({ title, description, canonicalPath, structuredData, mainContent, keywords, ogImagePath = '/social-card.jpg', ogImageAlt = 'Tooliest preview of free browser-based online tools', robots = 'index, follow' }) {
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
+  const ogImageUrl = /^https?:\/\//.test(ogImagePath) ? ogImagePath : getAbsoluteUrl(ogImagePath);
   const pageKeywords = keywords || 'free online tools, browser tools, tooliest';
   const versionedCssPath = getVersionedAssetPath(CSS_BUNDLE_PATH);
+  const googlebotRobots = robots.includes('noindex')
+    ? 'noindex, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'
+    : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1074,8 +1309,8 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="description" content="${escapeAttr(description)}">
   <meta name="keywords" content="${escapeAttr(pageKeywords)}">
   <meta name="author" content="Tooliest">
-  <meta name="robots" content="index, follow">
-  <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="robots" content="${escapeAttr(robots)}">
+  <meta name="googlebot" content="${escapeAttr(googlebotRobots)}">
   <meta name="theme-color" content="#8b5cf6">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#8b5cf6">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8f9fc">
@@ -1087,14 +1322,14 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta property="og:description" content="${escapeAttr(description)}">
   <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
   <meta property="og:site_name" content="Tooliest">
-  <meta property="og:image" content="https://tooliest.com/social-card.jpg">
-  <meta property="og:image:alt" content="Tooliest preview of free browser-based online tools">
+  <meta property="og:image" content="${escapeAttr(ogImageUrl)}">
+  <meta property="og:image:alt" content="${escapeAttr(ogImageAlt)}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@tooliest">
   <meta name="twitter:title" content="${escapeAttr(title)}">
   <meta name="twitter:description" content="${escapeAttr(description)}">
-  <meta name="twitter:image" content="https://tooliest.com/social-card.jpg">
-  <meta name="twitter:image:alt" content="Tooliest preview of free browser-based online tools">
+  <meta name="twitter:image" content="${escapeAttr(ogImageUrl)}">
+  <meta name="twitter:image:alt" content="${escapeAttr(ogImageAlt)}">
   <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
   <link rel="alternate" hreflang="en" href="${escapeAttr(canonicalUrl)}">
   <link rel="alternate" hreflang="x-default" href="https://tooliest.com/">
@@ -1102,18 +1337,8 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <link rel="icon" href="${BRAND_ICON_PATHS.png48}" sizes="48x48" type="image/png">
   <link rel="shortcut icon" href="${BRAND_ICON_PATHS.shortcut}" type="image/x-icon">
   <link rel="apple-touch-icon" href="${BRAND_ICON_PATHS.appleTouch}" sizes="180x180">
-  <link rel="dns-prefetch" href="//fonts.googleapis.com">
-  <link rel="dns-prefetch" href="//fonts.gstatic.com">
-  <link rel="dns-prefetch" href="//www.googletagmanager.com">
-  <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
-  <link rel="dns-prefetch" href="//partner.googleadservices.com">
-  <link rel="dns-prefetch" href="//tpc.googlesyndication.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
-  <link rel="preconnect" href="https://partner.googleadservices.com" crossorigin>
-  <link rel="preconnect" href="https://tpc.googlesyndication.com" crossorigin>
   <link rel="preload" href="${FONT_URL}" as="style">
   <style>${CRITICAL_CSS}</style>
   <link rel="stylesheet" href="${FONT_URL}" media="print" onload="this.media='all'">
@@ -1160,12 +1385,46 @@ function renderStaticToolCard(tool, categories) {
 function renderToolContentSections(tool, categories) {
   const categoryName = categories.find(category => category.id === tool.category)?.name || 'online tools';
   const fallbackExplain = `${tool.name} is part of Tooliest's ${categoryName.toLowerCase()} collection and runs directly in your browser, so your input stays on your device.`;
-  const steps = [
-    `Open the ${tool.name} workspace.`,
-    'Type, paste, upload, or adjust the input fields as needed.',
-    'Run the action or conversion to get instant results in your browser.',
-    'Copy, download, or reuse the output without sending your data to a server.',
-  ];
+  const steps = Array.isArray(tool.howToSteps) && tool.howToSteps.length
+    ? tool.howToSteps
+    : [
+      { name: `Open ${tool.name}`, text: `Launch ${tool.name} and add the input you want to process.` },
+      { name: 'Set the options', text: 'Adjust the key fields or controls that affect the output.' },
+      { name: 'Generate the result', text: 'Run the tool and review the result instantly in your browser.' },
+      { name: 'Copy or export the output', text: 'Reuse the final result in the next step of your workflow.' },
+    ];
+  const relatedCategories = (tool.relatedCategoryIds || [])
+    .map((categoryId) => categories.find((candidate) => candidate.id === categoryId))
+    .filter(Boolean);
+
+  const snippetHtml = tool.aeoSnippet
+    ? `<section class="tool-content-section">
+      <h2>${escapeHtml(tool.aeoSnippet.heading)}</h2>
+      <p>${escapeHtml(tool.aeoSnippet.answer)}</p>
+    </section>`
+    : '';
+
+  const highlightsHtml = Array.isArray(tool.contentHighlights) && tool.contentHighlights.length
+    ? `<section class="tool-content-section">
+      <h2>Practical Examples & Benchmarks</h2>
+      <ul>${tool.contentHighlights.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+    </section>`
+    : '';
+
+  const methodologyHtml = tool.methodology
+    ? `<section class="tool-content-section tool-methodology">
+      <h2>Methodology & Accuracy Notes</h2>
+      <div>${tool.methodology}</div>
+      ${tool.accuracyDisclaimer ? `<p class="tool-accuracy-disclaimer">${escapeHtml(tool.accuracyDisclaimer)}</p>` : ''}
+    </section>`
+    : '';
+
+  const referencesHtml = Array.isArray(tool.referenceLinks) && tool.referenceLinks.length
+    ? `<section class="tool-content-section">
+      <h2>Reference Sources</h2>
+      <ul>${tool.referenceLinks.map((item) => `<li><a href="${escapeAttr(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.label)}</a></li>`).join('')}</ul>
+    </section>`
+    : '';
 
   const faqHtml = (tool.faq && tool.faq.length)
     ? `<section class="tool-content-section">
@@ -1188,20 +1447,42 @@ function renderToolContentSections(tool, categories) {
     </section>`
     : '';
 
-  return `<div class="tool-content-sections">
+  const relatedCategoriesHtml = relatedCategories.length
+    ? `<section class="tool-content-section">
+      <h2>Explore Related Categories</h2>
+      <ul>${relatedCategories.map((category) => `<li><a href="${getCategoryPath(category.id)}">${escapeHtml(category.name)}</a> â€” ${escapeHtml(String(category.count || ''))} tools</li>`).join('')}</ul>
+    </section>`
+    : '';
+
+  const changelogHtml = Array.isArray(tool.changelog) && tool.changelog.length
+    ? `<section class="tool-content-section">
+      <h2>Changelog</h2>
+      <ul class="changelog-list">${tool.changelog.map((entry) => `<li><time datetime="${escapeAttr(entry.date)}">${escapeHtml(entry.date)}</time> â€” ${escapeHtml(entry.text)}</li>`).join('')}</ul>
+    </section>`
+    : '';
+
+  return `<article class="tool-article">
+    <div class="tool-content-sections">
     <section class="tool-content-section">
-      <h2>What Is ${escapeHtml(tool.name)}?</h2>
+      <h2>${escapeHtml(tool.summaryHeading || `What Is ${tool.name}?`)}</h2>
       <p>${escapeHtml(tool.description)}</p>
       ${tool.education ? `<div class="tool-education-copy">${tool.education}</div>` : `<p>${escapeHtml(fallbackExplain)}</p>`}
     </section>
+    ${snippetHtml}
+    ${methodologyHtml}
+    ${highlightsHtml}
     <section class="tool-content-section">
-      <h2>How To Use ${escapeHtml(tool.name)}</h2>
-      <ol>${steps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol>
+      <h2>${escapeHtml(tool.howToHeading || `How To Use ${tool.name}`)}</h2>
+      <ol>${steps.map((step) => `<li><strong>${escapeHtml(step.name)}</strong> â€” ${escapeHtml(step.text)}</li>`).join('')}</ol>
     </section>
     ${whyUseHtml}
     ${whoUsesHtml}
     ${faqHtml}
-  </div>`;
+    ${relatedCategoriesHtml}
+    ${changelogHtml}
+    ${referencesHtml}
+    </div>
+  </article>`;
 }
 
 function renderRelatedTools(tool, tools, categories) {
@@ -1375,6 +1656,8 @@ function renderCategoryPage(category, tools, categories) {
     structuredData,
     mainContent,
     keywords: categoryKeywords,
+    ogImagePath: `/og/categories/${category.id}.svg`,
+    ogImageAlt: `${category.name} category preview on Tooliest`,
   });
 }
 
@@ -1420,27 +1703,6 @@ function renderToolPage(tool, tools, categories) {
         priceCurrency: 'USD',
       },
     },
-    // [TOOLIEST AUDIT] Add SoftwareApplication schema so each tool qualifies for richer software-specific signals.
-    {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: tool.name,
-      url: canonicalUrl,
-      description,
-      applicationCategory: 'UtilityApplication',
-      applicationSubCategory: categoryName,
-      operatingSystem: 'Any',
-      browserRequirements: 'Requires a JavaScript-enabled modern web browser',
-      featureList: tool.tags.join(', '),
-      softwareVersion: ASSET_VERSION,
-      isAccessibleForFree: true,
-      dateModified: toolLastModified,
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD',
-      },
-    },
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
@@ -1455,13 +1717,13 @@ function renderToolPage(tool, tools, categories) {
       '@type': 'HowTo',
       name: `How to use ${tool.name} online`,
       description,
-      step: [
-        { '@type': 'HowToStep', position: 1, name: 'Open the tool', text: `Open ${canonicalUrl} in your browser.` },
-        { '@type': 'HowToStep', position: 2, name: 'Enter your input', text: 'Type, paste, or upload your content into the tool workspace.' },
-        { '@type': 'HowToStep', position: 3, name: 'Get results', text: 'Run the tool to process your input instantly.' },
-        { '@type': 'HowToStep', position: 4, name: 'Copy or download', text: 'Copy the result to the clipboard or download the output file.' },
-      ],
-      tool: { '@type': 'HowToTool', name: 'Web Browser' },
+      step: (tool.howToSteps || []).map((step, index) => ({
+        '@type': 'HowToStep',
+        position: index + 1,
+        name: step.name,
+        text: step.text,
+      })),
+      tool: { '@type': 'HowToTool', name: `Tooliest ${tool.name}` },
     },
     {
       '@context': 'https://schema.org',
@@ -1472,6 +1734,7 @@ function renderToolPage(tool, tools, categories) {
         cssSelector: ['.tool-page-header p', '.tool-content-section'],
       },
       url: canonicalUrl,
+      dateModified: tool.lastReviewed || toolLastModified,
     },
   ];
 
@@ -1503,11 +1766,12 @@ function renderToolPage(tool, tools, categories) {
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <h1 style="margin:0"><span role="img" aria-label="${escapeAttr(tool.name)} icon">${tool.icon}</span> ${escapeHtml(tool.name)} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">✨ AI-Powered</span>' : ''}</h1>
-          <a class="btn btn-secondary btn-sm" href="${canonicalPath}" aria-label="Open the interactive ${escapeAttr(tool.name)} tool">Open Interactive Tool</a>
+          <a class="btn btn-secondary btn-sm" href="#tool-workspace" aria-label="Jump to the live ${escapeAttr(tool.name)} workspace">Jump to Live Tool</a>
         </div>
         <p>${escapeHtml(tool.description)}</p>
+        <p class="tool-last-updated"><time datetime="${escapeAttr(tool.lastReviewed || toolLastModified)}">Last reviewed: ${escapeHtml(tool.lastReviewedLabel || tool.lastReviewed || toolLastModified)}</time> · ${escapeHtml(tool.reviewedBy || 'Reviewed by Tooliest')}</p>
       </div>
-      <div class="tool-workspace">
+      <div class="tool-workspace" id="tool-workspace">
         <div class="tool-workspace-body">
           <p style="color:var(--text-secondary);margin-bottom:8px">Loading the interactive ${escapeHtml(tool.name)} tool…</p>
           <p style="color:var(--text-tertiary);font-size:0.9rem">If JavaScript is enabled, Tooliest will load the live browser-based tool automatically.</p>
@@ -1525,6 +1789,8 @@ function renderToolPage(tool, tools, categories) {
     structuredData,
     mainContent,
     keywords: toolKeywords,
+    ogImagePath: tool.ogImage || '/social-card.jpg',
+    ogImageAlt: tool.ogImageAlt || `${tool.name} preview card on Tooliest`,
   });
 }
 
@@ -1643,6 +1909,8 @@ function renderSoftwareHubPage() {
     structuredData,
     mainContent,
     keywords: 'seo software guides, semrush review, ahrefs review, screaming frog guide, seo tool comparisons, content clusters',
+    ogImagePath: '/og/site/software.svg',
+    ogImageAlt: 'Tooliest SEO software guides preview card',
   });
 }
 
@@ -1769,6 +2037,8 @@ function renderSoftwarePillarPage(cluster) {
     structuredData,
     mainContent,
     keywords: cluster.keywords.join(', '),
+    ogImagePath: '/og/site/software.svg',
+    ogImageAlt: `${cluster.name} guide preview card`,
   });
 }
 
@@ -1852,6 +2122,8 @@ function renderSoftwareComparisonPage(cluster, comparison) {
     structuredData,
     mainContent,
     keywords: `${comparison.targetQuery}, ${cluster.name.toLowerCase()}, ${comparison.competitor.toLowerCase()}, seo tool comparison`,
+    ogImagePath: '/og/site/software.svg',
+    ogImageAlt: `${comparison.title} preview card`,
   });
 }
 
@@ -1930,6 +2202,8 @@ function renderSoftwareUseCasePage(cluster, useCase) {
     structuredData,
     mainContent,
     keywords: `${useCase.targetQuery}, ${cluster.name.toLowerCase()}, seo software, use case guide`,
+    ogImagePath: '/og/site/software.svg',
+    ogImageAlt: `${useCase.title} preview card`,
   });
 }
 
@@ -2042,9 +2316,13 @@ function renderRedirectsFile(tools, categories) {
     '# Legacy tool URLs',
     '/tool/*    /:splat    301!',
     '',
-    '# Static files and directories are served directly by the host.',
-    '# Everything else falls back to the SPA shell.',
-    '/*    /index.html    200',
+    '# Search routes stay on the SPA shell.',
+    '/search    /index.html    200',
+    '/search/*    /index.html    200',
+    '',
+    '# Static files and generated routes are served directly by the host.',
+    '# Unknown URLs should resolve to a real 404 page instead of the homepage shell.',
+    '/*    /404.html    404',
     '',
   ].join('\n');
 }
@@ -2106,8 +2384,19 @@ function renderHeadersFile(tools, categories) {
     '/social-card*',
     '  Cache-Control: public, max-age=2592000',
     '',
+    '/og/*',
+    '  Cache-Control: public, max-age=31536000, immutable',
+    '',
     '/manifest.json',
     '  Cache-Control: public, max-age=86400',
+    '',
+    INDEXNOW_KEY_LOCATION_PATH,
+    '  Cache-Control: public, max-age=86400',
+    '  Content-Type: text/plain; charset=utf-8',
+    '',
+    INDEXNOW_VERIFICATION_PATH,
+    '  Cache-Control: public, max-age=86400',
+    '  Content-Type: text/plain; charset=utf-8',
     '',
     '/sw.js',
     '  Cache-Control: no-cache, no-store',
@@ -2124,6 +2413,10 @@ function renderHeadersFile(tools, categories) {
     '/index.html',
     '  Cache-Control: public, max-age=0, must-revalidate',
     '',
+    '/404.html',
+    '  Cache-Control: public, max-age=0, must-revalidate',
+    '  X-Robots-Tag: noindex, follow',
+    '',
     ...cleanStaticPageHeaders,
     ...categoryHeaders,
     ...toolHeaders,
@@ -2135,6 +2428,22 @@ function renderHeadersFile(tools, categories) {
     htmlPageCacheRule,
     '',
     '/sitemap.xml',
+    '  Cache-Control: public, max-age=86400',
+    '  Content-Type: application/xml',
+    '',
+    '/sitemap-main.xml',
+    '  Cache-Control: public, max-age=86400',
+    '  Content-Type: application/xml',
+    '',
+    '/sitemap-tools.xml',
+    '  Cache-Control: public, max-age=86400',
+    '  Content-Type: application/xml',
+    '',
+    '/sitemap-categories.xml',
+    '  Cache-Control: public, max-age=86400',
+    '  Content-Type: application/xml',
+    '',
+    '/sitemap-software.xml',
     '  Cache-Control: public, max-age=86400',
     '  Content-Type: application/xml',
     '',
@@ -2161,53 +2470,123 @@ function writeCleanStaticPages() {
   });
 }
 
+function write404Page() {
+  console.log('Generating 404 page...');
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Tooliest page not found',
+      url: getAbsoluteUrl('/404.html'),
+      description: 'This Tooliest page could not be found. Browse the homepage, categories, or tool directory instead.',
+    },
+  ];
+
+  const mainContent = `<main class="main-content" id="main-content">
+    <section class="tool-page">
+      <div class="tool-page-header">
+        <div class="tool-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">></span>
+          <span>404</span>
+        </div>
+        <h1 style="margin:0">That page could not be found</h1>
+        <p>The URL may be outdated, mistyped, or removed. You can still jump back into Tooliest from the links below.</p>
+      </div>
+      <div class="tool-content-sections">
+        <section class="tool-content-section">
+          <h2>Try one of these next steps</h2>
+          <ul>
+            <li><a href="/">Browse the homepage</a> to search across every free online tool.</li>
+            <li><a href="/sitemap.html">Open the HTML sitemap</a> for a crawlable directory of all categories and tools.</li>
+            <li><a href="${getCategoryPath('seo')}">Visit SEO tools</a> if you were looking for metadata, robots, schema, or sitemap helpers.</li>
+            <li><a href="${STATIC_PAGE_PATHS.contact}">Contact Tooliest</a> if you found a broken link we should fix.</li>
+          </ul>
+        </section>
+      </div>
+    </section>
+  </main>`;
+
+  const html = renderPageShell({
+    title: 'Page Not Found | Tooliest',
+    description: 'The page you requested could not be found on Tooliest. Browse the homepage, sitemap, or categories to keep exploring.',
+    canonicalPath: '/404.html',
+    structuredData,
+    mainContent,
+    keywords: '404, page not found, tooliest',
+    ogImagePath: '/og/site/home.svg',
+    ogImageAlt: 'Tooliest page not found preview card',
+    robots: 'noindex, follow',
+  });
+
+  fs.writeFileSync(path.join(__dirname, '404.html'), html);
+}
+
 function writeSitemap(tools, categories) {
-  console.log('Generating sitemap.xml...');
+  console.log('Generating sitemap index and child sitemaps...');
   const staticPages = [
-    { loc: 'https://tooliest.com/', priority: '1.0', changefreq: 'weekly', lastmod: getSiteLastModifiedDate() },
-    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.about), priority: '0.8', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('about.html') },
-    { loc: getAbsoluteUrl(SOFTWARE_HUB_PATH), priority: '0.85', changefreq: 'weekly', lastmod: getSoftwareContentLastModifiedDate() },
+    { loc: getAbsoluteUrl('/'), priority: '1.0', changefreq: 'weekly', lastmod: getSiteLastModifiedDate() },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.about), priority: '0.7', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('about.html') },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.contact), priority: '0.5', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('contact.html') },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.privacy), priority: '0.3', changefreq: 'yearly', lastmod: getStaticPageLastModifiedDate('privacy.html') },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.3', changefreq: 'yearly', lastmod: getStaticPageLastModifiedDate('terms.html') },
+    { loc: getAbsoluteUrl('/sitemap.html'), priority: '0.4', changefreq: 'monthly', lastmod: getSourceModifiedDate(['build.js', 'js/tools.js']) },
   ];
 
   const categoryPages = getRenderableCategories(categories).map((category) => ({
     loc: getAbsoluteUrl(getCategoryPath(category.id)),
-    priority: '0.8',
+    priority: '0.65',
     changefreq: 'monthly',
     lastmod: getCategoryLastModifiedDate(category.id, tools),
   }));
 
   const toolPages = tools.map((tool) => ({
     loc: getAbsoluteUrl(getToolPath(tool.id)),
-    priority: '0.9',
-    changefreq: 'monthly',
+    priority: '0.75',
+    changefreq: 'weekly',
     lastmod: getToolLastModifiedDate(tool),
   }));
 
-  const softwarePages = SOFTWARE_CLUSTERS.flatMap((cluster) => ([
+  const softwarePages = [
     {
-      loc: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)),
-      priority: '0.78',
-      changefreq: 'monthly',
+      loc: getAbsoluteUrl(SOFTWARE_HUB_PATH),
+      priority: '0.75',
+      changefreq: 'weekly',
       lastmod: getSoftwareContentLastModifiedDate(),
     },
-    ...cluster.comparisons.map((comparison) => ({
-      loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, comparison.slug)),
-      priority: '0.72',
-      changefreq: 'monthly',
-      lastmod: getSoftwareContentLastModifiedDate(),
-    })),
-    ...cluster.useCases.map((useCase) => ({
-      loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)),
-      priority: '0.71',
-      changefreq: 'monthly',
-      lastmod: getSoftwareContentLastModifiedDate(),
-    })),
-  ]));
+    ...SOFTWARE_CLUSTERS.flatMap((cluster) => ([
+      {
+        loc: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)),
+        priority: '0.7',
+        changefreq: 'monthly',
+        lastmod: getSoftwareContentLastModifiedDate(),
+      },
+      ...cluster.comparisons.map((comparison) => ({
+        loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, comparison.slug)),
+        priority: '0.62',
+        changefreq: 'monthly',
+        lastmod: getSoftwareContentLastModifiedDate(),
+      })),
+      ...cluster.useCases.map((useCase) => ({
+        loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)),
+        priority: '0.6',
+        changefreq: 'monthly',
+        lastmod: getSoftwareContentLastModifiedDate(),
+      })),
+    ])),
+  ];
 
-  const entries = [...staticPages, ...categoryPages, ...toolPages, ...softwarePages];
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.map((entry) => `  <url>\n    <loc>${entry.loc}</loc>\n    <lastmod>${entry.lastmod || BUILD_DATE}</lastmod>\n    <changefreq>${entry.changefreq}</changefreq>\n    <priority>${entry.priority}</priority>\n  </url>`).join('\n')}\n</urlset>\n`;
+  const sitemapFiles = [
+    writeSitemapUrlFile('sitemap-main.xml', staticPages),
+    writeSitemapUrlFile('sitemap-tools.xml', toolPages),
+    writeSitemapUrlFile('sitemap-categories.xml', categoryPages),
+    writeSitemapUrlFile('sitemap-software.xml', softwarePages),
+  ];
 
-  fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), sitemap);
+  const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapFiles.map((entry) => `  <sitemap>\n    <loc>${escapeXml(entry.loc)}</loc>\n    <lastmod>${escapeXml(entry.lastmod)}</lastmod>\n  </sitemap>`).join('\n')}\n</sitemapindex>\n`;
+  fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), sitemapIndex);
+
+  return [...staticPages, ...categoryPages, ...toolPages, ...softwarePages].map((entry) => entry.loc);
 }
 
 function writeHtmlSitemap(tools, categories) {
@@ -2219,6 +2598,17 @@ function writeHtmlSitemap(tools, categories) {
     const shouldShowIcon = icon && /[^\u0000-\u007F]/.test(icon);
     return `${shouldShowIcon ? `${escapeHtml(icon)} ` : ''}${escapeHtml(tool.name)}`;
   };
+  const staticBlock = `<div class="sitemap-category">
+      <h2><a href="/">Site Pages</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(6 pages)</span></h2>
+      <ul>
+        <li><a href="/">Homepage</a> - Browse every free online tool from the main Tooliest directory.</li>
+        <li><a href="${STATIC_PAGE_PATHS.about}">About</a> - Learn how Tooliest works, how the site stays free, and why privacy matters here.</li>
+        <li><a href="${STATIC_PAGE_PATHS.contact}">Contact</a> - Reach the Tooliest team with support questions, bug reports, or tool ideas.</li>
+        <li><a href="${STATIC_PAGE_PATHS.privacy}">Privacy Policy</a> - Review browser storage, optional cookies, ads, and data-handling details.</li>
+        <li><a href="${STATIC_PAGE_PATHS.terms}">Terms of Service</a> - Read the usage terms for Tooliest tools and site content.</li>
+        <li><a href="/sitemap.html">HTML Sitemap</a> - Browse all tools, categories, and guide hubs from one crawlable page.</li>
+      </ul>
+    </div>`;
   const softwareBlock = `<div class="sitemap-category">
       <h2><a href="${SOFTWARE_HUB_PATH}">🧭 SEO Software Guides</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${SOFTWARE_CLUSTERS.length} published clusters)</span></h2>
       <ul>${SOFTWARE_CLUSTERS.map((cluster) => `<li><a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a> - ${escapeHtml(cluster.summary)}</li>`).join('')}</ul>
@@ -2240,9 +2630,10 @@ function writeHtmlSitemap(tools, categories) {
           <span>All Tools</span>
         </div>
         <h1 style="margin:0">🗺️ All Tooliest Tools</h1>
-        <p>Browse every free online tool on Tooliest, organized by category. ${tools.length} tools across ${renderableCategories.length} categories — all free, all browser-based.</p>
+        <p>Browse every free online tool on Tooliest, organized by category. ${tools.length} tools across ${renderableCategories.length} categories, plus software guides and company pages.</p>
       </div>
       <div class="tool-content-sections">
+        ${staticBlock}
         ${softwareBlock}
         ${categoryBlocks}
       </div>
@@ -2254,9 +2645,9 @@ function writeHtmlSitemap(tools, categories) {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
       name: 'All Tooliest Tools — HTML Sitemap',
-        url: getAbsoluteUrl('/sitemap.html'),
-        description: `Browse all ${tools.length} free online tools on Tooliest organized by category.`,
-        dateModified: sitemapLastModified,
+      url: getAbsoluteUrl('/sitemap.html'),
+      description: `Browse all ${tools.length} free online tools on Tooliest organized by category.`,
+      dateModified: sitemapLastModified,
     },
     {
       '@context': 'https://schema.org',
@@ -2270,11 +2661,13 @@ function writeHtmlSitemap(tools, categories) {
 
   const html = renderPageShell({
     title: `All ${tools.length}+ Free Online Tools — Tooliest Sitemap`,
-    description: `Browse every free online tool on Tooliest. ${tools.length} browser-based tools across ${renderableCategories.length} categories.`,
+    description: `Browse every free online tool on Tooliest. ${tools.length} browser-based tools across ${renderableCategories.length} categories, plus company pages and SEO software guides.`,
     canonicalPath: '/sitemap.html',
     structuredData,
     mainContent,
     keywords: 'all tools, free online tools, tooliest sitemap, tool directory, browser tools',
+    ogImagePath: '/og/site/home.svg',
+    ogImageAlt: 'Tooliest sitemap preview showing the full tool directory',
   });
 
   fs.writeFileSync(path.join(__dirname, 'sitemap.html'), html);
@@ -2291,12 +2684,37 @@ function writeHomePage(tools, categories) {
   ).join('');
 
   const toolCardsHtml = featuredTools.map(tool => renderStaticToolCard(tool, categories)).join('');
+  const crawlableDirectoryHtml = `<section class="tools-section" aria-labelledby="browse-all-tools-heading">
+      <div class="tool-content-sections">
+        <section class="tool-content-section">
+          <h2 id="browse-all-tools-heading">Browse All ${tools.length}+ Tools by Category</h2>
+          <p>Every category below links to crawlable tool pages, so you can jump straight to the exact browser-based workflow you need without waiting for client-side search.</p>
+        </section>
+        ${renderableCategories.map((category) => {
+          const categoryTools = getCategoryTools(tools, category.id);
+          return `<section class="tool-content-section">
+            <h2><a href="${getCategoryPath(category.id)}">${escapeHtml(category.name)}</a></h2>
+            <p>${categoryTools.length} tools in this category, including ${escapeHtml(categoryTools.slice(0, 3).map((tool) => tool.name).join(', '))}.</p>
+            <ul>${categoryTools.map((tool) => `<li><a href="${getToolPath(tool.id)}">${escapeHtml(tool.name)}</a> â€” ${escapeHtml(tool.meta?.desc || tool.description)}</li>`).join('')}</ul>
+          </section>`;
+        }).join('')}
+      </div>
+    </section>`;
   const structuredData = [
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: 'Tooliest',
       url: 'https://tooliest.com',
+      description: `${tools.length}+ free online tools for developers, designers, writers, and marketers.`,
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://tooliest.com/?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
     },
     {
       '@context': 'https://schema.org',
@@ -2350,8 +2768,8 @@ function writeHomePage(tools, categories) {
   const mainContent = `<main class="main-content" id="main-content">
     <section class="hero">
       <div class="hero-badge"><span class="pulse-dot"></span> Free &amp; No Signup Required</div>
-      <h1>Every Tool You Need.<br><span class="gradient-text">Zero Installs.</span></h1>
-      <p>${tools.length}+ powerful online tools for developers, designers, writers, and marketers. All free, all instant, all AI-enhanced.</p>
+      <h1>Every Tool You Need.<br><span class="gradient-text">${tools.length}+ Free Online Tools — Zero Installs.</span></h1>
+      <p>${tools.length}+ powerful online tools for developers, designers, writers, and marketers. Free, private, and ready in one tab. Search, launch, and finish faster with Tooliest.</p>
       <div class="hero-stats">
         <div class="hero-stat"><div class="stat-value">${tools.length}+</div><div class="stat-label">Free Tools</div></div>
         <div class="hero-stat"><div class="stat-value">${renderableCategories.length}</div><div class="stat-label">Categories</div></div>
@@ -2369,15 +2787,18 @@ function writeHomePage(tools, categories) {
       <p class="category-scroll-indicator" id="category-scroll-indicator" aria-hidden="true">Swipe to see more categories →</p>
     </section>
     <section class="tools-section"><div class="tools-grid" id="tools-grid">${toolCardsHtml}</div></section>
+    ${crawlableDirectoryHtml}
   </main>`;
 
   const html = renderPageShell({
-    title: `Tooliest — ${tools.length}+ Free Online Tools Powered by AI | tooliest.com`,
-    description: `Access ${tools.length}+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. AI-powered features included.`,
+    title: `Tooliest — ${tools.length}+ Free Online Tools Powered by AI`,
+    description: `Access ${tools.length}+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. Start free with Tooliest today.`,
     canonicalPath: '/',
     structuredData,
     mainContent,
     keywords: 'free online tools, text tools, SEO tools, CSS generator, color picker, JSON formatter, image compressor, AI tools, developer tools, converter tools, tooliest',
+    ogImagePath: '/og/site/home.svg',
+    ogImageAlt: 'Tooliest homepage social preview with free online tools',
   });
 
   fs.writeFileSync(path.join(__dirname, 'index.html'), html);
@@ -2400,14 +2821,18 @@ async function build() {
   minifyCSSFile();
   removeDirectoryIfExists('tool');
   syncStaticPageAssetVersions();
+  writeOgAssets(tools, categories);
+  writeIndexNowKeyFiles();
   writeRoutingFiles(tools, categories);
+  write404Page();
   writeCleanStaticPages();
   writeHomePage(tools, categories);
   writeToolPages(tools, categories);
   writeCategoryPages(tools, categories);
   writeSoftwareContentPages();
   writeHtmlSitemap(tools, categories);
-  writeSitemap(tools, categories);
+  const sitemapUrls = writeSitemap(tools, categories);
+  await submitIndexNow(sitemapUrls);
   console.log('Build complete.');
 }
 

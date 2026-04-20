@@ -4,16 +4,9 @@
   <script>(function(){var match=window.location.pathname.match(/^\/tool\/([^/]+)\/?$/);if(!match)return;var target='/' + match[1] + (window.location.search||'') + (window.location.hash||'');window.location.replace(target);})();</script>
   <script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>
   <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18068794869"></script>
-  <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'AW-18068794869');
-  </script>
+  <script>(function(){var loaded=false;function boot(){if(loaded)return;loaded=true;var s=document.createElement('script');s.src='https://www.googletagmanager.com/gtag/js?id=AW-18068794869';s.async=true;document.head.appendChild(s);window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('js',new Date());window.gtag('config','AW-18068794869');}window.addEventListener('load',function(){if('requestIdleCallback' in window){requestIdleCallback(boot,{timeout:4000});return;}setTimeout(boot,2500);});})();</script>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Privacy Policy — Tooliest</title>
   <meta name="description" content="Read Tooliest's privacy policy. Learn how we handle your data, use browser storage and cookies, and work with Google AdSense on our platform.">
   <meta name="author" content="Tooliest">
@@ -26,13 +19,13 @@
   <meta property="og:description" content="Read how Tooliest handles browser storage, cookies, ads, and privacy across its free browser-based tools.">
   <meta property="og:url" content="https://tooliest.com/privacy">
   <meta property="og:site_name" content="Tooliest">
-  <meta property="og:image" content="https://tooliest.com/social-card.jpg">
-  <meta property="og:image:alt" content="Tooliest preview of free browser-based online tools">
+  <meta property="og:image" content="https://tooliest.com/og/site/privacy.svg">
+  <meta property="og:image:alt" content="Tooliest privacy policy social preview card">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Privacy Policy | Tooliest">
   <meta name="twitter:description" content="Read how Tooliest handles browser storage, cookies, ads, and privacy across its free browser-based tools.">
-  <meta name="twitter:image" content="https://tooliest.com/social-card.jpg">
-  <meta name="twitter:image:alt" content="Tooliest preview of free browser-based online tools">
+  <meta name="twitter:image" content="https://tooliest.com/og/site/privacy.svg">
+  <meta name="twitter:image:alt" content="Tooliest privacy policy social preview card">
   <link rel="canonical" href="https://tooliest.com/privacy">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png">
@@ -166,7 +159,7 @@
       </div>
 
       <h2>1. Who We Are</h2>
-      <p>Tooliest ("we," "our," or "us") operates the website <a href="https://tooliest.com">tooliest.com</a> — a free, browser-based platform offering 80+ online utility tools for developers, designers, writers, and everyday users. You can reach us at <span class="obf-email" data-p1="tooliestinternet" data-p2="gmail.com">[Email Protected]</span>.</p>
+      <p>Tooliest ("we," "our," or "us") operates the website <a href="https://tooliest.com">tooliest.com</a> — a free, browser-based platform offering 83+ online utility tools for developers, designers, writers, and everyday users. You can reach us at <span class="obf-email" data-p1="tooliestinternet" data-p2="gmail.com">[Email Protected]</span>.</p>
 
       <h2>2. Information We Do NOT Collect</h2>
       <p>Because all of our tools run directly inside your browser (client-side), the following data is <strong>never sent to our servers</strong>:</p>
@@ -258,11 +251,11 @@
   <footer class="site-footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <h3>⚡ <span>Tooliest</span></h3>
-        <p>80+ free online tools for developers, designers, writers, and marketers. All tools run directly in your browser — no data is sent to any server. Fast, private, and always free.</p>
+        <p class="footer-brand-title">⚡ <span>Tooliest</span></p>
+        <p>83+ free online tools for developers, designers, writers, and marketers. All tools run directly in your browser, so your data stays on your device. Fast, private, and always free.</p>
       </div>
       <div class="footer-col">
-        <h4>Company</h4>
+        <p class="footer-col-title">Company</p>
         <ul>
           <li><a href="/about">About Us</a></li>
           <li><a href="/contact">Contact</a></li>
@@ -272,7 +265,7 @@
         </ul>
       </div>
       <div class="footer-col">
-        <h4>Popular Tools</h4>
+        <p class="footer-col-title">Popular Tools</p>
         <ul>
           <li><a href="/word-counter">Word Counter</a></li>
           <li><a href="/json-formatter">JSON Formatter</a></li>
@@ -281,6 +274,7 @@
         </ul>
       </div>
     </div>
+    <p class="adsense-disclosure">Tooliest is supported by advertising through Google AdSense. Ad revenue helps keep every tool free. <a href="/privacy">Learn about our ad policy →</a></p>
     <div class="footer-bottom">
       <span>&copy; 2026 Tooliest.com — All tools are free and run in your browser.</span>
       <span>
