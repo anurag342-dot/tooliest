@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🛠️ Tooliest — 80+ Free Online Tools</h1>
+  <h1>🛠️ Tooliest — 83+ Free Online Tools</h1>
   <p><strong>Privacy-first, zero-server suite of developer, financial, and AI productivity tools.</strong></p>
   <p><a href="https://tooliest.com">🌐 tooliest.com</a></p>
   
