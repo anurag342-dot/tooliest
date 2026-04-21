@@ -1,6 +1,6 @@
 // ============================================
 // TOOLIEST.COM — Tool Registry & Implementations
-// 80+ tools across 16 categories
+// Browser-based tools across multiple categories
 // ============================================
 
 const TOOL_CATEGORIES = [
@@ -11,6 +11,7 @@ const TOOL_CATEGORIES = [
   { id: 'css', name: 'CSS Tools', icon: '🎨', count: 0 },
   { id: 'color', name: 'Color Tools', icon: '🌈', count: 0 },
   { id: 'image', name: 'Image Tools', icon: '🖼️', count: 0 },
+  { id: 'pdf', name: 'PDF Tools', icon: '📄', count: 0, description: 'Merge, split, convert, secure, and enhance PDF files entirely in your browser.' },
   { id: 'json', name: 'JSON Tools', icon: '📋', count: 0 },
   { id: 'html', name: 'HTML Tools', icon: '🌐', count: 0 },
   { id: 'javascript', name: 'JavaScript Tools', icon: '⚡', count: 0 },
@@ -530,6 +531,274 @@ const TOOLS = [
       { q: 'Is this QR code generator private?', a: 'Yes. Tooliest generates the QR image locally in your browser, so the content you encode is not sent to any external server.' }
     ],
     meta: { title: 'QR Code Generator - Create QR Codes Online Free | Tooliest', desc: 'Generate QR codes for URLs, text, email, phone numbers, and Wi-Fi. Free browser-based QR code generator with instant PNG download.' }
+  },
+
+  // ===== PDF TOOLS =====
+  {
+    id: 'pdf-merger',
+    name: 'PDF Merger',
+    description: 'Merge multiple PDF files into one document with drag-and-drop page ordering and thumbnail previews.',
+    category: 'pdf',
+    icon: '📄',
+    tags: ['merge pdf', 'combine pdf', 'reorder pdf pages', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-merger/index.html',
+    education: '<strong>How PDF merging works</strong><br>PDF merging copies pages from several source files into a brand-new PDF container so you can combine contracts, reports, invoices, and scanned packets without installing desktop software.',
+    whyUse: ['Combine multiple PDF files in one browser-based flow without uploads', 'Reorder pages visually before saving the final document', 'Keep sensitive PDFs private because the merge happens on your device'],
+    whoUses: 'Operations teams, students, recruiters, accountants, and anyone who needs to assemble several PDFs into one clean document.',
+    faq: [
+      { q: 'How do I combine PDFs without uploading them?', a: 'Open Tooliest PDF Merger, add your files, drag pages into the order you want, and export the merged PDF. The workflow runs locally in your browser instead of on a remote server.' },
+      { q: 'Can I rearrange pages before I merge my PDFs?', a: 'Yes. Tooliest PDF Merger includes page thumbnails so you can reorder or remove pages before you create the final merged file.' }
+    ],
+    meta: { title: 'PDF Merger - Merge PDF Files Online Free | Tooliest', desc: 'Merge multiple PDF files into one browser-based document with page reordering and thumbnails. Free, private, and no signup required. Combine PDFs now.' }
+  },
+  {
+    id: 'pdf-splitter',
+    name: 'PDF Splitter',
+    description: 'Split PDF files by page range, extract selected pages, or create a file every N pages.',
+    category: 'pdf',
+    icon: '✂️',
+    tags: ['split pdf', 'extract pages', 'page range', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-splitter/index.html',
+    education: '<strong>What PDF splitting is used for</strong><br>Splitting lets you turn one long PDF into smaller deliverables, such as a single invoice, a chapter, a signature page, or one file per section.',
+    whyUse: ['Extract only the pages you need from a longer document', 'Split large PDFs into smaller files for email or review workflows', 'Use range, specific-page, or every-N-pages modes in one place'],
+    whoUses: 'Legal teams, finance teams, teachers, and document-heavy operations teams who need tighter control over page ranges.',
+    faq: [
+      { q: 'Can I split a PDF into individual pages?', a: 'Yes. Tooliest PDF Splitter can export every page as its own PDF or create smaller groups based on your range settings.' },
+      { q: 'How do I extract only certain pages from a PDF?', a: 'Upload the file, choose the extract or custom range option, enter the page numbers you want, and download the new smaller PDF.' }
+    ],
+    meta: { title: 'PDF Splitter - Split PDF Pages Online Free | Tooliest', desc: 'Split PDFs by page range, specific pages, or every N pages. Free browser-based PDF splitter with private local processing. Try Tooliest now.' }
+  },
+  {
+    id: 'pdf-compressor',
+    name: 'PDF Compressor',
+    description: 'Reduce PDF file size with browser-based compression controls and before-versus-after size checks.',
+    category: 'pdf',
+    icon: '🗜️',
+    tags: ['compress pdf', 'reduce pdf size', 'smaller pdf', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-compressor/index.html',
+    education: '<strong>Why PDF files get large</strong><br>Most oversized PDFs are caused by high-resolution images, scanned pages, and redundant embedded assets. Compression lowers the payload so documents are easier to share and store.',
+    whyUse: ['Shrink large PDFs before sending them by email or chat', 'Compare source size and compressed size in the same workflow', 'Keep documents on your device while compressing them in the browser'],
+    whoUses: 'Account managers, admissions teams, freelancers, and office staff who regularly email large PDF attachments.',
+    faq: [
+      { q: 'Will compressing a PDF reduce quality?', a: 'Sometimes, especially when the file contains scanned images. Tooliest PDF Compressor gives you browser-based control so you can choose the balance between quality and file size.' },
+      { q: 'Why do I need a smaller PDF file?', a: 'Smaller PDFs upload faster, send more reliably by email, and are easier for clients or teammates to download on mobile connections.' }
+    ],
+    meta: { title: 'PDF Compressor - Reduce PDF File Size Online | Tooliest', desc: 'Compress PDF files online and reduce document size for email, upload, and storage. Free, private browser-based PDF compressor from Tooliest.' }
+  },
+  {
+    id: 'pdf-rotate',
+    name: 'PDF Page Rotator',
+    description: 'Rotate PDF pages by 90, 180, or 270 degrees and fix sideways scans or upside-down pages.',
+    category: 'pdf',
+    icon: '🔄',
+    tags: ['rotate pdf', 'fix scan orientation', 'turn pdf pages', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-rotate/index.html',
+    education: '<strong>Lossless PDF rotation</strong><br>Rotation updates the page orientation metadata instead of re-rendering every page image, which keeps text sharp and avoids unnecessary quality loss.',
+    whyUse: ['Correct sideways or upside-down PDF pages in seconds', 'Rotate specific pages or entire documents without re-scanning', 'Preserve crisp text because the tool changes orientation metadata locally'],
+    whoUses: 'Students, office teams, field staff, and anyone working with scanner output or photographed documents.',
+    faq: [
+      { q: 'Can I rotate only one page in a PDF?', a: 'Yes. Tooliest PDF Page Rotator supports page-level adjustments so you can fix one bad page without changing the entire file.' },
+      { q: 'Does rotating a PDF blur the document?', a: 'No. Rotation is typically lossless because the PDF page orientation is updated instead of converting each page into a new image.' }
+    ],
+    meta: { title: 'PDF Page Rotator - Rotate PDF Pages Online | Tooliest', desc: 'Rotate PDF pages online by 90, 180, or 270 degrees. Fix scanned PDFs fast with browser-based private processing on Tooliest.' }
+  },
+  {
+    id: 'pdf-reorder',
+    name: 'PDF Page Reorder',
+    description: 'Rearrange PDF pages visually with drag-and-drop thumbnails before downloading the reordered file.',
+    category: 'pdf',
+    icon: '🧩',
+    tags: ['reorder pdf pages', 'drag drop pdf', 'arrange pages', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-reorder/index.html',
+    education: '<strong>Reordering without re-creating a file manually</strong><br>Visual page sorting lets you rebuild a PDF packet quickly when pages arrive in the wrong order or need a cleaner reading sequence.',
+    whyUse: ['Drag pages into the exact order you need', 'Rebuild mixed PDF packets without printing or rescanning', 'Preview page thumbnails before exporting the updated file'],
+    whoUses: 'Admin teams, project managers, teachers, and anyone assembling reports, handouts, or submission packets.',
+    faq: [
+      { q: 'How do I change the order of pages in a PDF?', a: 'Upload the document, drag the page thumbnails into a new order, and export the reordered PDF. Tooliest handles the restructuring in your browser.' },
+      { q: 'Can I remove pages while reordering a PDF?', a: 'Yes. Tooliest PDF Page Reorder also lets you remove pages you no longer want in the final document.' }
+    ],
+    meta: { title: 'PDF Page Reorder - Rearrange PDF Pages Online | Tooliest', desc: 'Reorder PDF pages with drag-and-drop thumbnails. Rearrange document flow privately in your browser and download the updated PDF with Tooliest.' }
+  },
+  {
+    id: 'pdf-extract',
+    name: 'PDF Page Extractor',
+    description: 'Extract selected PDF pages into a new file without sending the source document to a server.',
+    category: 'pdf',
+    icon: '📤',
+    tags: ['extract pdf pages', 'save selected pages', 'page extractor', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-extract/index.html',
+    education: '<strong>When page extraction helps</strong><br>Page extraction is useful when you only need a subset of a contract, report, workbook, or scan instead of the full original PDF.',
+    whyUse: ['Save only the important pages from long PDFs', 'Create smaller handoff files for reviews, signatures, or uploads', 'Keep confidential source pages on-device while exporting a subset'],
+    whoUses: 'Recruiters, procurement teams, teachers, students, and legal professionals working with long source documents.',
+    faq: [
+      { q: 'What is the difference between splitting and extracting a PDF?', a: 'Splitting usually creates multiple output files based on ranges, while extracting focuses on saving only the specific pages you select into one new PDF.' },
+      { q: 'Can I extract non-consecutive pages from a PDF?', a: 'Yes. Tooliest PDF Page Extractor supports selecting separate page numbers and packaging them into one new PDF.' }
+    ],
+    meta: { title: 'PDF Page Extractor - Extract PDF Pages Online | Tooliest', desc: 'Extract selected pages from a PDF into a new file. Free browser-based page extraction with private local processing at Tooliest.' }
+  },
+  {
+    id: 'pdf-delete-pages',
+    name: 'PDF Page Deleter',
+    description: 'Remove unwanted pages from a PDF visually and download a cleaner file instantly.',
+    category: 'pdf',
+    icon: '🗑️',
+    tags: ['delete pdf pages', 'remove pages from pdf', 'clean pdf', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-delete-pages/index.html',
+    education: '<strong>Why deleting pages matters</strong><br>Removing extra sheets, blank scans, or duplicate inserts is often the fastest way to clean a PDF before you share it with clients or teammates.',
+    whyUse: ['Delete blank, duplicate, or outdated pages from a PDF quickly', 'Review page thumbnails before you export the cleaned file', 'Keep private documents local while editing page selection'],
+    whoUses: 'Project coordinators, office teams, students, and anyone preparing polished PDFs for distribution.',
+    faq: [
+      { q: 'How do I remove a page from a PDF for free?', a: 'Upload your PDF, mark the pages you want to remove, and export the cleaned version. Tooliest handles the page deletion locally in the browser.' },
+      { q: 'Can I delete multiple PDF pages at once?', a: 'Yes. Tooliest PDF Page Deleter supports selecting multiple pages in one pass before you save the updated file.' }
+    ],
+    meta: { title: 'PDF Page Deleter - Remove PDF Pages Online | Tooliest', desc: 'Delete unwanted pages from a PDF online with visual page selection. Free, private browser-based PDF page remover from Tooliest.' }
+  },
+  {
+    id: 'pdf-watermark',
+    name: 'PDF Watermark',
+    description: 'Add text watermarks to every page of a PDF with adjustable angle, opacity, color, and size.',
+    category: 'pdf',
+    icon: '💧',
+    tags: ['watermark pdf', 'stamp pdf', 'confidential pdf', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-watermark/index.html',
+    education: '<strong>Why watermarks are used</strong><br>Watermarks help label drafts, confidential files, approvals, and internal copies so recipients can identify document status at a glance.',
+    whyUse: ['Stamp every PDF page with draft, confidential, approved, or custom text', 'Control watermark angle, color, opacity, and size before export', 'Protect privacy because the source file never leaves your browser'],
+    whoUses: 'Sales teams, legal teams, HR, agencies, and operations teams who circulate internal or pre-release documents.',
+    faq: [
+      { q: 'Can I watermark every page in a PDF at once?', a: 'Yes. Tooliest PDF Watermark applies the same text watermark across the full document in one browser-based pass.' },
+      { q: 'Will a watermark become part of the PDF permanently?', a: 'Yes. The exported file includes the watermark directly on the pages, so it travels with the PDF you download.' }
+    ],
+    meta: { title: 'PDF Watermark - Add Watermarks to PDF Online | Tooliest', desc: 'Add text watermarks to PDFs online. Control opacity, angle, size, and color with a private browser-based PDF watermark tool from Tooliest.' }
+  },
+  {
+    id: 'pdf-page-numbers',
+    name: 'PDF Page Numbers',
+    description: 'Add page numbers to PDF files with custom position, format, font size, and starting number.',
+    category: 'pdf',
+    icon: '🔢',
+    tags: ['page numbers pdf', 'number pdf pages', 'paginate pdf', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-page-numbers/index.html',
+    education: '<strong>When pagination helps</strong><br>Page numbers make long PDFs easier to review, reference, print, and discuss during approvals, edits, or classroom handouts.',
+    whyUse: ['Add page numbering to reports, ebooks, packets, and handouts', 'Choose the numbering format, starting number, and page position', 'Generate numbered PDFs without desktop software or uploads'],
+    whoUses: 'Teachers, agencies, proposal writers, and office teams who need cleaner reference-ready documents.',
+    faq: [
+      { q: 'Can I start page numbering from a custom number?', a: 'Yes. Tooliest PDF Page Numbers lets you set a starting number instead of always beginning with page 1.' },
+      { q: 'Can I place page numbers at the top or bottom?', a: 'Yes. You can choose several common top and bottom placement options before exporting the numbered PDF.' }
+    ],
+    meta: { title: 'PDF Page Numbers - Add Numbers to PDF Online | Tooliest', desc: 'Add page numbers to PDFs online with custom position, format, and starting number. Free browser-based pagination from Tooliest.' }
+  },
+  {
+    id: 'pdf-protect',
+    name: 'PDF Password Protect',
+    description: 'Encrypt PDF files with a password in your browser so only approved recipients can open them.',
+    category: 'pdf',
+    icon: '🔒',
+    tags: ['protect pdf', 'encrypt pdf', 'password pdf', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-protect/index.html',
+    education: '<strong>What PDF protection does</strong><br>Password protection adds encryption to the exported file so viewers need the correct password before the PDF can be opened.',
+    whyUse: ['Protect sensitive PDFs before sending them externally', 'Add password-based access without desktop PDF software', 'Keep confidential source documents and passwords on your own device'],
+    whoUses: 'HR, finance, legal, founders, and anyone sharing sensitive reports, statements, or personal documents.',
+    faq: [
+      { q: 'Is it safe to password-protect a PDF in the browser?', a: 'Yes. Tooliest PDF Password Protect processes the file locally in your browser, so the document and password do not get uploaded to a server.' },
+      { q: 'What kinds of files should I password-protect?', a: 'Use password protection for financial records, HR paperwork, contracts, internal decks, identity documents, and any PDF that contains sensitive information.' }
+    ],
+    meta: { title: 'PDF Password Protect - Encrypt PDF Online | Tooliest', desc: 'Password-protect and encrypt PDFs online in your browser. Free, private PDF security tool for sensitive documents from Tooliest.' }
+  },
+  {
+    id: 'pdf-to-images',
+    name: 'PDF to Images',
+    description: 'Convert each PDF page into downloadable PNG or JPG images with browser-based rendering.',
+    category: 'pdf',
+    icon: '🖼️',
+    tags: ['pdf to image', 'pdf to png', 'pdf to jpg', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-to-images/index.html',
+    education: '<strong>Why convert PDF pages into images</strong><br>Image exports are useful for slide decks, chat attachments, design reviews, previews, and any workflow where a flat PNG or JPG is easier to share than a multi-page PDF.',
+    whyUse: ['Export every page of a PDF as PNG or JPG images', 'Share single PDF pages in chat, docs, slides, and design tools', 'Render pages locally in the browser without server uploads'],
+    whoUses: 'Designers, marketers, support teams, teachers, and content teams who repurpose PDF pages as visual assets.',
+    faq: [
+      { q: 'Can I turn each page of a PDF into a separate image?', a: 'Yes. Tooliest PDF to Images converts each page into its own image file so you can save or reuse specific pages.' },
+      { q: 'Should I choose PNG or JPG for exported PDF pages?', a: 'PNG is better for sharper text and graphics, while JPG is usually smaller and useful when file size matters more than perfect crispness.' }
+    ],
+    meta: { title: 'PDF to Images - Convert PDF Pages to PNG or JPG | Tooliest', desc: 'Convert PDF pages to PNG or JPG images online. Free browser-based PDF to image tool with private local rendering from Tooliest.' }
+  },
+  {
+    id: 'images-to-pdf',
+    name: 'Images to PDF',
+    description: 'Turn JPG, PNG, and WebP images into a single PDF with page size and fit controls.',
+    category: 'pdf',
+    icon: '🖼️',
+    tags: ['images to pdf', 'jpg to pdf', 'png to pdf', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'images-to-pdf/index.html',
+    education: '<strong>How image-to-PDF conversion helps</strong><br>Converting photos or screenshots into a PDF is useful for packing receipts, scanned notes, visual references, and image-based proofs into one file.',
+    whyUse: ['Combine multiple images into one downloadable PDF', 'Choose page sizing and fit rules before export', 'Create private PDF packets from photos and screenshots without uploads'],
+    whoUses: 'Students, finance teams, field staff, ecommerce sellers, and anyone packaging visual evidence or receipts into a PDF.',
+    faq: [
+      { q: 'Can I combine several JPG files into one PDF?', a: 'Yes. Upload multiple JPG, PNG, or WebP images, arrange them in order, and export one PDF from the browser.' },
+      { q: 'Will my images be uploaded during conversion?', a: 'No. Tooliest Images to PDF creates the final PDF locally in your browser so the source images stay on your device.' }
+    ],
+    meta: { title: 'Images to PDF - Convert JPG, PNG, and WebP to PDF | Tooliest', desc: 'Convert images to PDF online and combine JPG, PNG, or WebP files into one document. Free browser-based image-to-PDF tool on Tooliest.' }
+  },
+  {
+    id: 'text-to-pdf',
+    name: 'Text to PDF',
+    description: 'Convert plain text into a formatted PDF with control over font size, margins, and page size.',
+    category: 'pdf',
+    icon: '📝',
+    tags: ['text to pdf', 'txt to pdf', 'plain text pdf', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'text-to-pdf/index.html',
+    education: '<strong>When text-to-PDF is useful</strong><br>Saving plain text as PDF helps when you need a printable, shareable, fixed-layout version of notes, drafts, logs, scripts, or exported text.',
+    whyUse: ['Turn plain text into a polished printable PDF quickly', 'Control margins, font size, line spacing, and page size', 'Generate a PDF locally without installing word processing software'],
+    whoUses: 'Writers, students, developers, analysts, and support teams who need text in a fixed downloadable format.',
+    faq: [
+      { q: 'Can I convert notes or logs into a PDF?', a: 'Yes. Paste your text, adjust the formatting options, and export a clean PDF directly from the browser.' },
+      { q: 'Is Text to PDF useful for printing?', a: 'Yes. Converting text into a fixed PDF layout is a simple way to make notes, drafts, and logs easier to print or archive.' }
+    ],
+    meta: { title: 'Text to PDF - Convert Plain Text to PDF Online | Tooliest', desc: 'Convert plain text into a PDF online with font and margin controls. Free browser-based text-to-PDF generator from Tooliest.' }
+  },
+  {
+    id: 'pdf-to-text',
+    name: 'PDF to Text',
+    description: 'Extract text from PDF files in your browser and copy or download the plain-text result.',
+    category: 'pdf',
+    icon: '📃',
+    tags: ['pdf to text', 'extract text from pdf', 'copy pdf text', 'pdf toolkit'],
+    isAI: false,
+    standalonePage: true,
+    standaloneSourceFile: 'pdf-to-text/index.html',
+    education: '<strong>What PDF text extraction does</strong><br>PDF text extraction reads the text layer embedded in a document so you can copy, search, repurpose, or archive the content outside the original layout.',
+    whyUse: ['Pull copy from PDF files without manual retyping', 'Copy or download extracted text from multi-page documents', 'Keep documents private because extraction happens in your browser'],
+    whoUses: 'Researchers, students, content teams, support agents, and analysts who need editable text from PDFs.',
+    faq: [
+      { q: 'Can I copy text out of a PDF for free?', a: 'Yes. Upload the PDF to Tooliest PDF to Text, let the browser extract the text layer, and then copy or download the result.' },
+      { q: 'Will PDF to Text work on scanned PDFs?', a: 'It works best when the PDF already contains selectable text. Scanned image-only PDFs usually need OCR before the text can be extracted accurately.' }
+    ],
+    meta: { title: 'PDF to Text - Extract Text from PDFs Online | Tooliest', desc: 'Extract text from PDF files online and copy or download the result. Free browser-based PDF to text tool with private local processing.' }
   },
 
   // ===== JSON TOOLS =====
@@ -1342,6 +1611,7 @@ const TOOLIEST_HOME_CATEGORY_RELATIONS = {
   css: ['color', 'html', 'image'],
   color: ['css', 'image', 'seo'],
   image: ['color', 'css', 'converter'],
+  pdf: ['image', 'privacy', 'converter'],
   json: ['developer', 'javascript', 'html'],
   html: ['css', 'json', 'javascript'],
   javascript: ['developer', 'json', 'html'],

@@ -565,7 +565,7 @@ const ToolRenderers = {
     'og-preview'(c) {
       c.innerHTML = `<div class="tool-workspace-body">
         <div class="input-group"><label>OG Title</label><input type="text" id="og-title" placeholder="My Page Title" value="Welcome to Tooliest"></div>
-        <div class="input-group"><label>OG Description</label><textarea id="og-desc" rows="2" placeholder="Page description...">80+ free online tools for developers and designers.</textarea></div>
+        <div class="input-group"><label>OG Description</label><textarea id="og-desc" rows="2" placeholder="Page description...">Free browser-based tools for developers, designers, writers, and marketers.</textarea></div>
         <div class="input-group"><label>OG Image URL</label><input type="url" id="og-image" placeholder="https://example.com/image.jpg"></div>
         <div class="input-group"><label>Site URL</label><input type="url" id="og-url" placeholder="https://example.com" value="https://tooliest.com"></div>
         <button class="btn btn-primary mb-4">Preview</button>

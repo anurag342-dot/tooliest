@@ -1,7 +1,7 @@
 {
   "name": "Tooliest - Free Online Tools",
   "short_name": "Tooliest",
-  "description": "80+ free browser-based online tools for developers, designers, writers, and marketers. No signup, no uploads, all private.",
+  "description": "Free browser-based online tools for developers, designers, writers, and marketers. No signup, no uploads, all private.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",

@@ -97,6 +97,9 @@
 /category/image
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
+/category/pdf
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
 /category/json
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
@@ -224,6 +227,48 @@
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
 /qr-code-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-merger
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-splitter
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-compressor
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-rotate
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-reorder
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-extract
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-delete-pages
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-watermark
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-page-numbers
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-protect
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-to-images
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/images-to-pdf
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/text-to-pdf
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/pdf-to-text
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
 /json-formatter

@@ -439,15 +439,30 @@ const App = {
 
     const tools = TOOLS.filter(tool => tool.category === categoryId);
     const count = tools.length;
-    const lowerName = category.name.toLowerCase();
+    const narrativeName = this.getCategoryNarrativeName(category);
+    const featuredNames = this.getFeaturedToolNames(tools, 3);
+    const defaultDescription = `Explore ${count} free ${narrativeName} on Tooliest. Browser-based utilities with no signup, no uploads, and no server processing. Explore the category now.`;
+    const defaultIntro = `Browse Tooliest's ${narrativeName} and launch every tool instantly in your browser without sending your data to a server.`;
+    const pdfDescription = featuredNames
+      ? `Use ${count} free PDF tools on Tooliest to merge, split, compress, convert, protect, and export documents in your browser. Popular picks include ${featuredNames}. No signup required.`
+      : `Use ${count} free PDF tools on Tooliest to merge, split, compress, convert, protect, and export documents in your browser. No signup required.`;
+    const pdfIntro = featuredNames
+      ? `Browse Tooliest's PDF tools for document merging, splitting, conversion, protection, and text extraction. Popular picks include ${featuredNames}, and every workflow stays in your browser for better privacy.`
+      : `Browse Tooliest's PDF tools for document merging, splitting, conversion, protection, and text extraction. Every workflow stays in your browser for better privacy.`;
 
     return {
       category,
       tools,
       count,
       title: `Free ${category.name} Online | Tooliest`,
-      description: `Explore ${count} free ${lowerName} on Tooliest. Browser-based utilities with no signup, no uploads, and no server processing. Explore the category now.`,
-      intro: `Browse Tooliest's ${lowerName} and launch every tool instantly in your browser without sending your data to a server.`,
+      description: categoryId === 'pdf' ? pdfDescription : defaultDescription,
+      intro: categoryId === 'pdf' ? pdfIntro : defaultIntro,
+      topToolsIntro: categoryId === 'pdf'
+        ? 'These PDF tools handle the document tasks people usually need first: merging files, splitting pages, compressing exports, securing documents, and converting between PDFs, images, and text.'
+        : `These are some of the most useful ${narrativeName} on Tooliest when you want fast results without extra tabs, accounts, or uploads:`,
+      benefitsIntro: categoryId === 'pdf'
+        ? 'Browser-based PDF tools are useful when you need to fix or export a document quickly without installing desktop software, creating an account, or sending files to a server.'
+        : `Tooliest's ${narrativeName} are designed for quick, practical work. You can launch a tool instantly, finish the task in one browser tab, and move on without handing your content to a server.`,
       faq: this.getCategoryFaqItems(category, tools),
     };
   },
@@ -456,24 +471,48 @@ const App = {
     return tools.slice(0, limit).map((tool) => tool.name).join(', ');
   },
 
+  getCategoryNarrativeName(category) {
+    const words = String(category?.name || '').split(/\s+/).filter(Boolean);
+    if (!words.length) return '';
+    return words
+      .map((word) => (/^[A-Z0-9&+-]{2,}$/.test(word) ? word : word.toLowerCase()))
+      .join(' ');
+  },
+
   getCategoryFaqItems(category, categoryTools) {
-    const lowerName = category.name.toLowerCase();
+    const narrativeName = this.getCategoryNarrativeName(category);
     const featuredNames = this.getFeaturedToolNames(categoryTools, 3);
+    if (category.id === 'pdf') {
+      return [
+        {
+          q: "What can I do with Tooliest's PDF tools?",
+          a: 'You can merge, split, compress, reorder, protect, watermark, convert, and extract PDFs directly in your browser. Tooliest also includes PDF to Images, Images to PDF, Text to PDF, and PDF to Text workflows for everyday document work.',
+        },
+        {
+          q: 'Are Tooliest PDF tools private to use?',
+          a: 'Yes. Tooliest processes PDF files locally in the browser whenever possible, so your documents stay on your device instead of being uploaded to a remote server.',
+        },
+        {
+          q: 'Which PDF tools are the best starting point for everyday document work?',
+          a: 'PDF Merger, PDF Splitter, PDF Compressor, PDF Password Protect, and Images to PDF cover the jobs people usually need first: combining files, splitting page ranges, shrinking exports, securing documents, and packaging images into share-ready PDFs.',
+        },
+      ];
+    }
     const examples = featuredNames
-      ? `You can use ${featuredNames} and other ${lowerName} directly in your browser without signups or uploads.`
-      : `You can use Tooliest's ${lowerName} directly in your browser without signups or uploads.`;
+      ? `You can use ${featuredNames} and other ${narrativeName} directly in your browser without signups or uploads.`
+      : `You can use Tooliest's ${narrativeName} directly in your browser without signups or uploads.`;
 
     return [
       {
-        q: `What can I do with Tooliest's ${lowerName}?`,
+        q: `What can I do with Tooliest's ${narrativeName}?`,
         a: `${examples} These tools are built for quick, practical tasks so you can finish work faster while keeping your input on your own device.`,
       },
       {
-        q: `Are Tooliest's ${lowerName} free to use?`,
-        a: `Yes. All Tooliest ${lowerName} are free to use, require no signup, and work in modern desktop and mobile browsers.`,
+        q: `Are Tooliest's ${narrativeName} free to use?`,
+        a: `Yes. All Tooliest ${narrativeName} are free to use, require no signup, and work in modern desktop and mobile browsers.`,
       },
       {
-        q: `Do Tooliest's ${lowerName} upload my data?`,
+        q: `Do Tooliest's ${narrativeName} upload my data?`,
         a: 'No. Tooliest processes your input locally in the browser whenever possible, so text, files, and settings stay on your device instead of being sent to a server.',
       },
     ];
@@ -486,6 +525,7 @@ const App = {
       css: ['color', 'html', 'image'],
       color: ['css', 'image', 'ai'],
       image: ['color', 'css', 'converter'],
+      pdf: ['image', 'privacy', 'converter'],
       json: ['html', 'javascript', 'developer'],
       html: ['css', 'json', 'javascript'],
       javascript: ['html', 'json', 'developer'],
@@ -532,8 +572,17 @@ const App = {
       normalized.startsWith('/search/');
   },
 
+  isStandaloneToolPath(pathname = window.location.pathname) {
+    const normalized = pathname.replace(/\/index\.html$/, '/');
+    const route = this.parsePath(normalized);
+    if (route.view !== 'tool' || !route.toolId) return false;
+    return Boolean(TOOLS.find((tool) => tool.id === route.toolId && tool.standalonePage));
+  },
+
   shouldUseSpaNavigation(targetPathname = window.location.pathname) {
-    return this.isAppPath(window.location.pathname) && this.isAppPath(targetPathname);
+    return this.isAppPath(window.location.pathname) &&
+      this.isAppPath(targetPathname) &&
+      !this.isStandaloneToolPath(targetPathname);
   },
 
   goToPath(path, options = {}) {
@@ -549,6 +598,10 @@ const App = {
   navigate(path, options = {}) {
     const target = new URL(path, window.location.origin);
     const nextPath = target.pathname + target.search + target.hash;
+    if (this.isStandaloneToolPath(target.pathname)) {
+      window.location.assign(nextPath);
+      return;
+    }
     const method = options.replace ? 'replaceState' : 'pushState';
 
     history[method]({}, '', nextPath);
@@ -1534,12 +1587,12 @@ const App = {
     const relatedCategories = this.getRelatedCategories(meta.category.id);
     const topToolsHtml = `<section class="tool-content-section">
       <h2>Best ${this.escapeHTML(meta.category.name)} to Start With</h2>
-      <p>These are some of the most useful ${this.escapeHTML(meta.category.name.toLowerCase())} on Tooliest when you want fast results without extra tabs, accounts, or uploads:</p>
+      <p>${this.escapeHTML(meta.topToolsIntro || `These are some of the most useful ${this.getCategoryNarrativeName(meta.category)} on Tooliest when you want fast results without extra tabs, accounts, or uploads:`)}</p>
       <ul>${meta.tools.slice(0, 6).map((tool) => `<li><a href="${this.getToolPath(tool.id)}"><strong>${this.escapeHTML(tool.name)}</strong></a> - ${this.escapeHTML(tool.description)}</li>`).join('')}</ul>
     </section>`;
     const benefitsHtml = `<section class="tool-content-section">
       <h2>Why Use Browser-Based ${this.escapeHTML(meta.category.name)}?</h2>
-      <p>Tooliest's ${this.escapeHTML(meta.category.name.toLowerCase())} are designed for quick, practical work. You can launch a tool instantly, finish the task in one browser tab, and move on without handing your content to a server.</p>
+      <p>${this.escapeHTML(meta.benefitsIntro || `Tooliest's ${this.getCategoryNarrativeName(meta.category)} are designed for quick, practical work. You can launch a tool instantly, finish the task in one browser tab, and move on without handing your content to a server.`)}</p>
       <ul>
         <li>Launch any tool instantly with no signup or account setup</li>
         <li>Keep your input on your own device for better privacy</li>
@@ -1692,6 +1745,13 @@ const App = {
   showTool(toolId) {
     const tool = TOOLS.find(t => t.id === toolId);
     if (!tool) { this.navigate(this.getHomePath(), { replace: true }); return; }
+    if (tool.standalonePage) {
+      const standalonePath = this.getToolPath(tool.id);
+      if (window.location.pathname !== standalonePath) {
+        window.location.assign(standalonePath);
+      }
+      return;
+    }
     this.closeToolComparison();
     const isEmbed = this.isEmbedMode();
     this.currentView = 'tool';
