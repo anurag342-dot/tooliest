@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.9', date: '2026-04-21', items: ['Allowed the shared PDF CDN dependencies inside the site security policy', 'Preserved direct external PDF helper scripts when mounting PDF tools into the Tooliest shell', 'Refreshed asset versions so browsers stop serving the broken PDF library path'] },
   { version: '3.8', date: '2026-04-21', items: ['Moved PDF tools onto the normal Tooliest tool-page shell without forced full-page jumps', 'Restored compare, performance, trust, and quick-action sections on PDF tool pages', 'Swapped the changelog pill to a simple new emoji and refreshed cached shell assets'] },
   { version: '3.7', date: '2026-04-21', items: ['Repaired broken shell icons and text that were showing as corrupted symbols', 'Restored the PDF category, updated tool totals, and refreshed the homepage shell', 'Made the install entry consistently visible with browser-menu fallback guidance'] },
   { version: '3.6', date: '2026-04-20', items: ['Reduced repeated tool-count messaging across the homepage hero', 'Bumped the asset version to flush stale cached homepage shells after the SEO refresh'] },
@@ -23,7 +24,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260421v29';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260421v30';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -86,6 +87,7 @@ const App = {
   pendingGridRenderToken: 0,
   homeEnhancementTask: null,
   standaloneToolSourceCache: new Map(),
+  standaloneExternalScriptPromises: new Map(),
   standaloneToolMountToken: 0,
   standaloneToolStyleElement: null,
 
@@ -661,6 +663,19 @@ const App = {
       });
   },
 
+  extractStandaloneToolExternalScripts(doc) {
+    return Array.from(doc.querySelectorAll('script[src]'))
+      .map((script) => script.getAttribute('src') || '')
+      .filter(Boolean)
+      .filter((src) => {
+        if (src.startsWith('/bundle.min.js')) return false;
+        if (src.startsWith('/js/consent.js')) return false;
+        if (src.includes('googletagmanager.com/gtag/js')) return false;
+        if (src.includes('pagead2.googlesyndication.com/pagead/js/adsbygoogle.js')) return false;
+        return true;
+      });
+  },
+
   extractStandaloneToolStyles(doc) {
     return Array.from(doc.querySelectorAll('style'))
       .map((style) => style.textContent || '')
@@ -677,6 +692,47 @@ const App = {
     if (this.standaloneToolStyleElement) {
       this.standaloneToolStyleElement.textContent = '';
     }
+  },
+
+  loadStandaloneExternalScript(src) {
+    const absoluteSrc = new URL(src, window.location.origin).toString();
+    if (this.standaloneExternalScriptPromises.has(absoluteSrc)) {
+      return this.standaloneExternalScriptPromises.get(absoluteSrc);
+    }
+
+    const existing = Array.from(document.querySelectorAll('script[src]'))
+      .find((script) => {
+        try {
+          return new URL(script.src, window.location.origin).toString() === absoluteSrc;
+        } catch (_) {
+          return false;
+        }
+      });
+    if (existing && (existing.dataset.loaded === 'true' || existing.readyState === 'complete')) {
+      return Promise.resolve();
+    }
+
+    const pending = new Promise((resolve, reject) => {
+      if (existing) {
+        existing.addEventListener('load', () => resolve(), { once: true });
+        existing.addEventListener('error', () => reject(new Error(`Failed to load ${absoluteSrc}`)), { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = absoluteSrc;
+      script.async = true;
+      script.dataset.standaloneExternal = 'true';
+      script.onload = () => {
+        script.dataset.loaded = 'true';
+        resolve();
+      };
+      script.onerror = () => reject(new Error(`Failed to load ${absoluteSrc}`));
+      document.head.appendChild(script);
+    });
+
+    this.standaloneExternalScriptPromises.set(absoluteSrc, pending);
+    return pending;
   },
 
   applyStandaloneToolStyles(cssText) {
@@ -713,6 +769,7 @@ const App = {
     const source = {
       styleText: this.extractStandaloneToolStyles(doc),
       workspaceInnerHTML: workspace.innerHTML,
+      externalScripts: this.extractStandaloneToolExternalScripts(doc),
       inlineScripts: this.extractStandaloneToolInlineScripts(doc),
     };
     this.standaloneToolSourceCache.set(cacheKey, source);
@@ -734,6 +791,11 @@ const App = {
 
       this.applyStandaloneToolStyles(source.styleText);
       workspace.innerHTML = source.workspaceInnerHTML;
+      if (Array.isArray(source.externalScripts) && source.externalScripts.length) {
+        for (const src of source.externalScripts) {
+          await this.loadStandaloneExternalScript(src);
+        }
+      }
 
       source.inlineScripts.forEach((code, index) => {
         const script = document.createElement('script');
