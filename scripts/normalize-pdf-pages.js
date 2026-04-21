@@ -381,11 +381,12 @@ function renderNavbar() {
         <a href="/category/text">Text</a>
         <a href="/category/seo">SEO</a>
         <a href="/category/ai">AI Tools</a>
+        <a href="/category/pdf">PDF</a>
         <a href="/category/developer">Dev</a>
         <a href="/about">About</a>
-        <a href="#" id="nav-install-btn" style="display:none;color:var(--accent-primary);font-weight:600;">Install App</a>
+        <a href="#" id="nav-install-btn" style="color:var(--accent-primary);font-weight:600;">Install App</a>
         <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="window.App&&App.toggleTheme&&App.toggleTheme()" aria-label="Toggle theme">&#9728;</button>
-        <button class="theme-toggle-btn" id="changelog-btn" onclick="window.App&&App.showChangelog&&App.showChangelog()" aria-label="What's new" title="What's New">NEW</button>
+        <button class="theme-toggle-btn" id="changelog-btn" onclick="window.App&&App.showChangelog&&App.showChangelog()" aria-label="What's new" title="What's New">🆕</button>
       </div>
       <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Open search">&#128269;</button>
       <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open navigation menu">&#9776;</button>

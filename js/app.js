@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.8', date: '2026-04-21', items: ['Moved PDF tools onto the normal Tooliest tool-page shell without forced full-page jumps', 'Restored compare, performance, trust, and quick-action sections on PDF tool pages', 'Swapped the changelog pill to a simple new emoji and refreshed cached shell assets'] },
   { version: '3.7', date: '2026-04-21', items: ['Repaired broken shell icons and text that were showing as corrupted symbols', 'Restored the PDF category, updated tool totals, and refreshed the homepage shell', 'Made the install entry consistently visible with browser-menu fallback guidance'] },
   { version: '3.6', date: '2026-04-20', items: ['Reduced repeated tool-count messaging across the homepage hero', 'Bumped the asset version to flush stale cached homepage shells after the SEO refresh'] },
   { version: '3.5', date: '2026-04-18', items: ['Removed duplicate tool-introduction blocks from tool pages', 'Kept the structured What Is section as the single explanation area for each tool'] },
@@ -22,7 +23,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260421v28';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260421v29';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -84,6 +85,9 @@ const App = {
   initialRouteHandled: false,
   pendingGridRenderToken: 0,
   homeEnhancementTask: null,
+  standaloneToolSourceCache: new Map(),
+  standaloneToolMountToken: 0,
+  standaloneToolStyleElement: null,
 
   init() {
     this.normalizeLegacyHashRoute();
@@ -637,6 +641,121 @@ const App = {
     return this.getRelatedTools(tool, limit);
   },
 
+  getStandaloneToolCacheKey(tool) {
+    return `${tool.id}:${TOOLIEST_ASSET_VERSION}`;
+  },
+
+  extractStandaloneToolInlineScripts(doc) {
+    return Array.from(doc.querySelectorAll('script:not([src])'))
+      .map((script) => script.textContent || '')
+      .filter((code) => {
+        const trimmed = code.trim();
+        if (!trimmed) return false;
+        if (trimmed.includes("window.location.pathname.match(/^\\/tool\\/")) return false;
+        if (trimmed.includes("window.gtag('consent','default'")) return false;
+        if (trimmed.includes('googletagmanager.com/gtag/js')) return false;
+        if (trimmed.includes('pagead2.googlesyndication.com/pagead/js/adsbygoogle.js')) return false;
+        if (trimmed.includes('window.__TOOLIEST_ASSET_VERSION')) return false;
+        if (trimmed.includes("localStorage.getItem('tooliest_theme')")) return false;
+        return true;
+      });
+  },
+
+  extractStandaloneToolStyles(doc) {
+    return Array.from(doc.querySelectorAll('style'))
+      .map((style) => style.textContent || '')
+      .filter((cssText) => {
+        const trimmed = cssText.trim();
+        if (!trimmed) return false;
+        const isSharedShellBlock = trimmed.includes(':root{--bg-primary') && trimmed.includes('.navbar{position:fixed');
+        return !isSharedShellBlock;
+      })
+      .join('\n\n');
+  },
+
+  clearStandaloneToolStyles() {
+    if (this.standaloneToolStyleElement) {
+      this.standaloneToolStyleElement.textContent = '';
+    }
+  },
+
+  applyStandaloneToolStyles(cssText) {
+    if (!this.standaloneToolStyleElement) {
+      const style = document.createElement('style');
+      style.id = 'standalone-tool-style';
+      document.head.appendChild(style);
+      this.standaloneToolStyleElement = style;
+    }
+    this.standaloneToolStyleElement.textContent = cssText || '';
+  },
+
+  async getStandaloneToolSource(tool) {
+    const cacheKey = this.getStandaloneToolCacheKey(tool);
+    if (this.standaloneToolSourceCache.has(cacheKey)) {
+      return this.standaloneToolSourceCache.get(cacheKey);
+    }
+
+    const response = await fetch(`${this.getToolPath(tool.id)}?view=standalone-source&v=${encodeURIComponent(TOOLIEST_ASSET_VERSION)}`, {
+      credentials: 'same-origin',
+      cache: 'force-cache',
+    });
+    if (!response.ok) {
+      throw new Error(`Unable to load ${tool.name}.`);
+    }
+
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const workspace = doc.querySelector('#tool-workspace');
+    if (!workspace) {
+      throw new Error(`Missing workspace for ${tool.name}.`);
+    }
+
+    const source = {
+      styleText: this.extractStandaloneToolStyles(doc),
+      workspaceInnerHTML: workspace.innerHTML,
+      inlineScripts: this.extractStandaloneToolInlineScripts(doc),
+    };
+    this.standaloneToolSourceCache.set(cacheKey, source);
+    return source;
+  },
+
+  async mountStandaloneToolWorkspace(tool, workspace) {
+    const mountToken = ++this.standaloneToolMountToken;
+    workspace.innerHTML = `<div class="tool-workspace-body">
+      <p style="color:var(--text-secondary);margin-bottom:8px">Loading the interactive ${this.escapeHTML(tool.name)} tool...</p>
+      <p style="color:var(--text-tertiary);font-size:0.9rem">Tooliest is preparing the full browser-based workspace without reloading the rest of the page.</p>
+    </div>`;
+
+    try {
+      const source = await this.getStandaloneToolSource(tool);
+      if (mountToken !== this.standaloneToolMountToken || !document.body.contains(workspace)) {
+        return;
+      }
+
+      this.applyStandaloneToolStyles(source.styleText);
+      workspace.innerHTML = source.workspaceInnerHTML;
+
+      source.inlineScripts.forEach((code, index) => {
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.dataset.standaloneTool = tool.id;
+        script.dataset.standaloneScript = String(index + 1);
+        script.text = code;
+        workspace.appendChild(script);
+      });
+
+      this.enhanceRuntimeMedia(workspace, tool);
+    } catch (error) {
+      console.error(`[Tooliest] Failed to mount standalone tool "${tool.id}":`, error);
+      workspace.innerHTML = `<div class="tool-workspace-body">
+        <p style="color:var(--text-primary);font-weight:700;margin-bottom:8px">This PDF workspace could not load.</p>
+        <p style="color:var(--text-secondary);margin-bottom:16px">Refresh the page once or try opening the tool again. The rest of Tooliest will keep working normally.</p>
+        <button class="btn btn-secondary btn-sm" type="button" onclick="window.location.reload()">Reload This Tool</button>
+      </div>`;
+      this.toast(`Could not load ${tool.name}.`, 'error');
+    }
+  },
+
   isAppPath(pathname) {
     const normalized = pathname.replace(/\/index\.html$/, '/');
     return normalized === '/' ||
@@ -655,8 +774,7 @@ const App = {
 
   shouldUseSpaNavigation(targetPathname = window.location.pathname) {
     return this.isAppPath(window.location.pathname) &&
-      this.isAppPath(targetPathname) &&
-      !this.isStandaloneToolPath(targetPathname);
+      this.isAppPath(targetPathname);
   },
 
   goToPath(path, options = {}) {
@@ -672,10 +790,6 @@ const App = {
   navigate(path, options = {}) {
     const target = new URL(path, window.location.origin);
     const nextPath = target.pathname + target.search + target.hash;
-    if (this.isStandaloneToolPath(target.pathname)) {
-      window.location.assign(nextPath);
-      return;
-    }
     const method = options.replace ? 'replaceState' : 'pushState';
 
     history[method]({}, '', nextPath);
@@ -933,6 +1047,12 @@ const App = {
     }
 
     const route = this.getRoute();
+    const routeTool = route.view === 'tool' && route.toolId
+      ? TOOLS.find((candidate) => candidate.id === route.toolId) || null
+      : null;
+    if (!routeTool?.standalonePage) {
+      this.clearStandaloneToolStyles();
+    }
     if (route.view === 'tool' && route.legacyPath) {
       this.navigate(this.getToolPath(route.toolId), { replace: true });
       return;
@@ -1760,7 +1880,7 @@ const App = {
           <span>${tool.name}</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <h1 style="margin:0">${tool.icon} ${tool.name} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">✨ AI-Powered</span>' : ''}</h1>
+          <h1 style="margin:0">${tool.icon} ${tool.name} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">AI-Powered</span>' : ''}</h1>
           <div class="tool-header-actions">
             <button class="btn btn-secondary btn-sm" id="compare-tool-btn" aria-label="Compare this tool with another tool"${compareCandidates.length ? '' : ' disabled'}>Compare</button>
             <button class="btn btn-secondary btn-sm" id="print-tool-btn" aria-label="Print this tool output">Print</button>
@@ -1819,13 +1939,6 @@ const App = {
   showTool(toolId) {
     const tool = TOOLS.find(t => t.id === toolId);
     if (!tool) { this.navigate(this.getHomePath(), { replace: true }); return; }
-    if (tool.standalonePage) {
-      const standalonePath = this.getToolPath(tool.id);
-      if (window.location.pathname !== standalonePath) {
-        window.location.assign(standalonePath);
-      }
-      return;
-    }
     this.closeToolComparison();
     const isEmbed = this.isEmbedMode();
     this.currentView = 'tool';
@@ -1842,9 +1955,13 @@ const App = {
     main.innerHTML = this.getToolPageHTML(tool, catName, related, compareCandidates, isEmbed);
     // Render tool UI
     const workspace = document.getElementById('tool-workspace');
-    window.requestAnimationFrame(() => {
-      void ToolRenderers.render(toolId, workspace);
-    });
+    if (tool.standalonePage) {
+      void this.mountStandaloneToolWorkspace(tool, workspace);
+    } else {
+      window.requestAnimationFrame(() => {
+        void ToolRenderers.render(toolId, workspace);
+      });
+    }
     this.enhanceRuntimeMedia(main, tool);
 
     if (!isEmbed) {
