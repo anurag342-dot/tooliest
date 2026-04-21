@@ -3,6 +3,62 @@
 // Browser-based tools across multiple categories
 // ============================================
 
+const TOOLIEST_MOJIBAKE_PATTERN = /(?:Ã.|Â.|â.|ðŸ|ï¸|Å|œ)/;
+
+function countTooliestMojibake(value = '') {
+  return (String(value).match(/[ÃÂâðïÅœ]/g) || []).length;
+}
+
+function repairTooliestMojibakeString(value = '') {
+  let current = String(value ?? '');
+  if (!TOOLIEST_MOJIBAKE_PATTERN.test(current)) return current;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    let candidate = current;
+    try {
+      candidate = decodeURIComponent(escape(current));
+    } catch (_) {
+      break;
+    }
+
+    if (!candidate || candidate === current) break;
+    const currentScore = countTooliestMojibake(current);
+    const candidateScore = countTooliestMojibake(candidate);
+    if (candidateScore < currentScore || !TOOLIEST_MOJIBAKE_PATTERN.test(candidate)) {
+      current = candidate;
+      continue;
+    }
+    break;
+  }
+
+  return current;
+}
+
+function normalizeTooliestText(value, seen = new WeakSet()) {
+  if (typeof value === 'string') {
+    return repairTooliestMojibakeString(value);
+  }
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+  if (seen.has(value)) {
+    return value;
+  }
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index += 1) {
+      value[index] = normalizeTooliestText(value[index], seen);
+    }
+    return value;
+  }
+
+  Object.keys(value).forEach((key) => {
+    value[key] = normalizeTooliestText(value[key], seen);
+  });
+  return value;
+}
+
 const TOOL_CATEGORIES = [
   { id: 'all', name: 'All Tools', icon: '🔥', count: 0 },
   { id: 'favorites', name: 'Favorites', icon: '⭐', count: 0 },
@@ -2895,6 +2951,9 @@ function mergeTooliestFaq(existingFaq, generatedFaq, limit = generatedFaq.length
   });
   return merged;
 }
+
+normalizeTooliestText(TOOL_CATEGORIES);
+normalizeTooliestText(TOOLS);
 
 // [TOOLIEST AUDIT] Fill missing AEO copy so every tool ships with crawlable explanations, benefits, and FAQs.
 TOOLS.forEach((tool) => {

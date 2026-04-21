@@ -12,7 +12,7 @@ function getBuildEnv(name, fallback) {
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260420v27';
+const ASSET_VERSION = '20260421v28';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const INDEXNOW_KEY = getBuildEnv('INDEXNOW_KEY', 'tooliest-indexnow-20260420');
@@ -202,7 +202,7 @@ const SOFTWARE_CLUSTER_OUTLINES = [
     name: 'Ubersuggest',
     category: 'all-in-one',
     bestFor: 'beginners who want keyword ideas, light audits, and an easy onboarding curve',
-    summary: 'Ubersuggest is often the â€œjust get me startedâ€ SEO tool because the workflow is straightforward and the price feels less intimidating.',
+    summary: 'Ubersuggest is often the "just get me started" SEO tool because the workflow is straightforward and the price feels less intimidating.',
     pillarTitle: 'Ubersuggest review: a good starter SEO tool or too limited long term?',
     comparisons: ['Ubersuggest vs Mangools for beginners', 'Ubersuggest vs Semrush on a budget', 'Ubersuggest vs LowFruits for new sites'],
     useCases: ['Ubersuggest for small business SEO', 'Ubersuggest for content ideas', 'Ubersuggest alternatives for scaling teams'],
@@ -352,7 +352,7 @@ SOFTWARE_CLUSTERS.push({
     'Budget-sensitive creators still proving content-market fit',
   ],
   decisionSteps: [
-    'Start with the question â€œDo we need breadth or depth?â€ If breadth matters most, Semrush moves up fast.',
+    'Start with the question "Do we need breadth or depth?" If breadth matters most, Semrush moves up fast.',
     'Check whether multiple teammates need the same source of truth for audits, rankings, and planning.',
     'Estimate whether saved research and reporting time can justify the higher monthly cost.',
   ],
@@ -393,7 +393,7 @@ SOFTWARE_CLUSTERS.push({
       toolWins: ['Semrush is better for day-to-day SEO execution and organic workflow decisions.', 'It connects keyword, audit, content, and rank workflows more directly.', 'Teams doing hands-on optimization usually get faster practical value from Semrush.'],
       competitorWins: ['Similarweb is stronger when executive teams need market share and traffic-estimation context.', 'Broader digital market intelligence is where Similarweb shines.', 'Cross-channel competitive narratives feel more natural in Similarweb.'],
       decisionFramework: ['If your team needs to ship SEO work, choose Semrush.', 'If leadership wants market understanding and category sizing, choose Similarweb.', 'Some organizations eventually use both for different layers of decision-making.'],
-      takeaway: 'Semrush is the operatorâ€™s tool. Similarweb is the market-intelligence tool.',
+      takeaway: "Semrush is the operator's tool. Similarweb is the market-intelligence tool.",
     },
   ],
   useCases: [
@@ -426,7 +426,7 @@ SOFTWARE_CLUSTERS.push({
       hook: 'Local teams sometimes assume they need a huge suite, but the real question is whether the suite saves enough time across location-level research and reporting to justify the cost.',
       audience: 'local businesses and multi-location teams',
       whyItFits: ['It works well when local SEO sits inside a broader content and technical strategy.', 'It helps teams coordinate local landing pages with wider keyword research.', 'Agencies handling many local clients can benefit from consistency.'],
-      quickStart: ['Map priority markets before expanding into low-value local keywords.', 'Separate â€œmust-winâ€ local pages from lower-priority experiments.', 'Tie local reporting to actual business outcomes, not just rank movement.'],
+      quickStart: ['Map priority markets before expanding into low-value local keywords.', 'Separate "must-win" local pages from lower-priority experiments.', 'Tie local reporting to actual business outcomes, not just rank movement.'],
       watchouts: ['Small local businesses may not need suite-level complexity.', 'A lighter toolset can be enough if local SEO is your only workflow.', 'The cost only makes sense when local work is part of a broader search program.'],
       takeaway: 'Semrush is useful for local SEO when local work connects to a bigger SEO program. If not, a leaner setup can be smarter.',
     },
@@ -437,7 +437,7 @@ SOFTWARE_CLUSTERS.push({
   slug: 'screaming-frog',
   name: 'Screaming Frog',
   category: 'technical-seo',
-  hook: 'When SEO problems live inside templates, canonicals, broken links, migrations, and metadata debt, Screaming Frog is often the tool that finally turns â€œsomething feels offâ€ into a list you can act on.',
+  hook: 'When SEO problems live inside templates, canonicals, broken links, migrations, and metadata debt, Screaming Frog is often the tool that finally turns "something feels off" into a list you can act on.',
   summary: 'Screaming Frog is a desktop crawler built for technical SEO audits, migrations, metadata analysis, canonical checks, and site-wide issue discovery. It is not flashy, but it is one of the most practical technical SEO tools for teams that need clarity fast.',
   bestFor: 'technical SEOs, growth teams, and agencies handling audits, migrations, and site-wide cleanup work',
   notIdealFor: 'non-technical teams that want a fully guided SEO suite with minimal setup',
@@ -461,7 +461,7 @@ SOFTWARE_CLUSTERS.push({
       toolWins: ['Screaming Frog feels faster and more direct for experienced practitioners.', 'Many technical SEOs prefer the control and familiarity it offers.', 'It is excellent when you already know what you are looking for.'],
       competitorWins: ['Sitebulb often feels friendlier and more guided for analysis.', 'Teams that want more interpretation may prefer its presentation style.', 'Some organizations adopt it faster because the learning curve feels softer.'],
       decisionFramework: ['Choose Screaming Frog for practitioner speed and flexibility.', 'Choose Sitebulb for guidance and presentation comfort.', 'The right answer depends on technical maturity more than feature lists.'],
-      takeaway: 'Screaming Frog is usually the technicianâ€™s choice. Sitebulb is often the guided-analysis choice.',
+      takeaway: "Screaming Frog is usually the technician's choice. Sitebulb is often the guided-analysis choice.",
     },
     {
       slug: 'vs-semrush-site-audit',
@@ -588,7 +588,7 @@ SOFTWARE_CLUSTERS.push({
       hook: 'Beginners do not struggle with Ahrefs because it is bad. They struggle because it can show far more data than they know how to prioritize.',
       audience: 'new SEO practitioners and in-house marketers',
       whyItFits: ['It teaches competitive thinking quickly when used with restraint.', 'You can get meaningful wins from a few workflows instead of trying everything.', 'It helps beginners see why pages rank, not just what keyword volume looks like.'],
-      quickStart: ['Focus on one workflow first: competitor pages, content gaps, or backlinks.', 'Create a tiny weekly routine instead of opening every report.', 'Document what â€œgood opportunityâ€ means before you start exploring.'],
+      quickStart: ['Focus on one workflow first: competitor pages, content gaps, or backlinks.', 'Create a tiny weekly routine instead of opening every report.', 'Document what "good opportunity" means before you start exploring.'],
       watchouts: ['Do not confuse more data with a better strategy.', 'Avoid exporting huge lists before you know what you want.', 'A narrow workflow creates better learning than random clicking.'],
       takeaway: 'Ahrefs becomes beginner-friendly once you treat it like a focused research partner, not a data buffet.',
     },
@@ -618,7 +618,7 @@ SOFTWARE_CLUSTERS.push({
 });
 
 function escapeHtml(value = '') {
-  return String(value)
+  return repairMojibakeSegments(String(value))
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -630,7 +630,7 @@ function escapeAttr(value = '') {
 }
 
 function stripHtml(value = '') {
-  return String(value)
+  return repairMojibakeSegments(String(value))
     .replace(/<br\s*\/?>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
@@ -664,6 +664,7 @@ function syncStaticPageAssetVersions() {
       /window\.__TOOLIEST_ASSET_VERSION='[^']+'/g,
       `window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}'`
     );
+    nextHtml = repairMojibakeSegments(nextHtml);
 
     if (nextHtml !== originalHtml) {
       fs.writeFileSync(sourcePath, nextHtml);
@@ -675,6 +676,69 @@ const rendererSourceCache = new Map();
 
 function normalizeSourcePath(relativePath) {
   return String(relativePath || '').replace(/^\/+/, '').replace(/\//g, path.sep);
+}
+
+const MOJIBAKE_PATTERN = /(?:Ã.|Â.|â.|ðŸ|ï¸|Å|œ)/;
+const MOJIBAKE_SEGMENT_PATTERN = /[ÃÂâðïÅœ][^<>\s"'`)]*/g;
+
+function countMojibakeCharacters(value = '') {
+  return (String(value).match(/[ÃÂâðïÅœ]/g) || []).length;
+}
+
+function repairMojibakeText(value = '') {
+  let current = String(value ?? '');
+  if (!MOJIBAKE_PATTERN.test(current)) return current;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    let candidate = current;
+    try {
+      candidate = Buffer.from(current, 'latin1').toString('utf8');
+    } catch (_) {
+      break;
+    }
+
+    if (!candidate || candidate === current) break;
+    const currentScore = countMojibakeCharacters(current);
+    const candidateScore = countMojibakeCharacters(candidate);
+    if (candidateScore < currentScore || !MOJIBAKE_PATTERN.test(candidate)) {
+      current = candidate;
+      continue;
+    }
+    break;
+  }
+
+  return current;
+}
+
+function repairMojibakeSegments(value = '') {
+  const text = String(value ?? '');
+  if (!MOJIBAKE_PATTERN.test(text)) return text;
+  return text.replace(MOJIBAKE_SEGMENT_PATTERN, (segment) => repairMojibakeText(segment));
+}
+
+function repairTextDeep(value, seen = new WeakSet()) {
+  if (typeof value === 'string') {
+    return repairMojibakeSegments(value);
+  }
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+  if (seen.has(value)) {
+    return value;
+  }
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index += 1) {
+      value[index] = repairTextDeep(value[index], seen);
+    }
+    return value;
+  }
+
+  Object.keys(value).forEach((key) => {
+    value[key] = repairTextDeep(value[key], seen);
+  });
+  return value;
 }
 
 function getSourceModifiedDate(relativePaths) {
@@ -1200,9 +1264,11 @@ function readTools() {
 
   vm.createContext(sandbox);
   vm.runInContext(`${source}\nthis.__TOOLS = TOOLS; this.__TOOL_CATEGORIES = TOOL_CATEGORIES;`, sandbox);
+  const tools = repairTextDeep(sandbox.__TOOLS || []);
+  const categories = repairTextDeep(sandbox.__TOOL_CATEGORIES || []);
   return {
-    tools: sandbox.__TOOLS,
-    categories: sandbox.__TOOL_CATEGORIES,
+    tools,
+    categories,
   };
 }
 
@@ -1228,12 +1294,12 @@ function renderNavbar() {
   return `<nav class="navbar" id="navbar">
     <div class="nav-inner">
       <a class="nav-logo" href="/" id="nav-logo">
-        <div class="logo-icon">âš¡</div>
+        <div class="logo-icon">&#9889;</div>
         <div class="logo-text"><span>Tooliest</span></div>
       </a>
 
       <div class="nav-search">
-        <span class="search-icon">ðŸ”</span>
+        <span class="search-icon">&#128269;</span>
         <input type="text" id="search-input" placeholder="Search tools..." autocomplete="off">
         <span class="search-shortcut">Ctrl+K</span>
       </div>
@@ -1243,15 +1309,16 @@ function renderNavbar() {
         <a href="/category/text">Text</a>
         <a href="/category/seo">SEO</a>
         <a href="/category/ai">AI Tools</a>
+        <a href="/category/pdf">PDF</a>
         <a href="/category/developer">Dev</a>
         <a href="${STATIC_PAGE_PATHS.about}">About</a>
-        <a href="#" id="nav-install-btn" style="display:none;color:var(--accent-primary);font-weight:600;">ðŸ“² Install App</a>
-        <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="App.toggleTheme()" aria-label="Toggle theme">â˜€ï¸</button>
-        <button class="theme-toggle-btn" id="changelog-btn" onclick="App.showChangelog()" aria-label="What's new" title="What's New">ðŸ†•</button>
+        <a href="#" id="nav-install-btn" style="color:var(--accent-primary);font-weight:600;">Install App</a>
+        <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="App.toggleTheme()" aria-label="Toggle theme">&#9728;</button>
+        <button class="theme-toggle-btn" id="changelog-btn" onclick="App.showChangelog()" aria-label="What's new" title="What's New">NEW</button>
       </div>
 
-      <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Open search">ðŸ”</button>
-      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open navigation menu">â˜°</button>
+      <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Open search">&#128269;</button>
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open navigation menu">&#9776;</button>
     </div>
   </nav>`;
 }
@@ -1260,7 +1327,7 @@ function renderFooter() {
   return `<footer class="site-footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <p class="footer-brand-title">âš¡ <span>Tooliest</span></p>
+        <p class="footer-brand-title">&#9889; <span>Tooliest</span></p>
         <p>Free browser-based tools for developers, designers, writers, marketers, and document workflows. All tools run directly in your browser, so your input stays on your device.</p>
       </div>
       <div class="footer-col">
@@ -1297,13 +1364,13 @@ function renderFooter() {
         </ul>
       </div>
     </div>
-    <p class="adsense-disclosure">Tooliest is supported by advertising through Google AdSense. Ad revenue helps keep every tool free. <a href="${STATIC_PAGE_PATHS.privacy}">Learn about our ad policy â†’</a></p>
+    <p class="adsense-disclosure">Tooliest is supported by advertising through Google AdSense. Ad revenue helps keep every tool free. <a href="${STATIC_PAGE_PATHS.privacy}">Learn about our ad policy &rarr;</a></p>
     <div class="footer-bottom">
-      <span>&copy; 2026 Tooliest.com â€” All tools are free and run in your browser.</span>
+      <span>&copy; 2026 Tooliest.com &mdash; All tools are free and run in your browser.</span>
       <span>
-        <a href="${STATIC_PAGE_PATHS.privacy}" style="color:inherit;opacity:0.7;">Privacy</a> &nbsp;Â·&nbsp;
-        <a href="${STATIC_PAGE_PATHS.terms}" style="color:inherit;opacity:0.7;">Terms</a> &nbsp;Â·&nbsp;
-        <a href="${STATIC_PAGE_PATHS.contact}" style="color:inherit;opacity:0.7;">Contact</a> &nbsp;Â·&nbsp;
+        <a href="${STATIC_PAGE_PATHS.privacy}" style="color:inherit;opacity:0.7;">Privacy</a> &nbsp;&middot;&nbsp;
+        <a href="${STATIC_PAGE_PATHS.terms}" style="color:inherit;opacity:0.7;">Terms</a> &nbsp;&middot;&nbsp;
+        <a href="${STATIC_PAGE_PATHS.contact}" style="color:inherit;opacity:0.7;">Contact</a> &nbsp;&middot;&nbsp;
         <button onclick="TooliestConsent && TooliestConsent.reset()" style="background:none;border:none;color:inherit;opacity:0.7;cursor:pointer;font-size:inherit;padding:0;font-family:inherit;">Manage Cookies</button>
       </span>
     </div>
@@ -1315,10 +1382,10 @@ function renderMobileSearchOverlay() {
     <div class="mobile-search-inner">
       <div class="mobile-search-header">
         <span style="font-size:1.1rem;font-weight:700;color:var(--text-primary)">Search Tools</span>
-        <button id="mobile-search-close" aria-label="Close search" style="background:none;border:none;color:var(--text-secondary);font-size:1.5rem;cursor:pointer;padding:4px 8px;line-height:1;">âœ•</button>
+        <button id="mobile-search-close" aria-label="Close search" style="background:none;border:none;color:var(--text-secondary);font-size:1.5rem;cursor:pointer;padding:4px 8px;line-height:1;">&times;</button>
       </div>
       <div style="position:relative;">
-        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-tertiary);pointer-events:none;">ðŸ”</span>
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-tertiary);pointer-events:none;">&#128269;</span>
         <input type="text" id="mobile-search-input" placeholder="Search tools..." autocomplete="off"
           style="width:100%;padding:14px 16px 14px 44px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);font-size:1rem;outline:none;font-family:var(--font-primary);"
           aria-label="Search tools">
@@ -1331,14 +1398,14 @@ function renderMobileSearchOverlay() {
 function renderCookieBanner() {
   return `<div id="cookie-banner" role="dialog" aria-label="Cookie consent" aria-live="polite">
     <div class="cookie-inner">
-      <div class="cookie-icon">ðŸª</div>
+      <div class="cookie-icon">&#127850;</div>
       <div class="cookie-text">
         <strong>We use browser storage and optional cookies to keep Tooliest free</strong>
         <p>Tooliest uses browser storage to remember your privacy choices on this device. If you accept non-essential tracking, Google may also use cookies for analytics and ads. <a href="${STATIC_PAGE_PATHS.privacy}">Learn more in our Privacy Policy.</a></p>
       </div>
       <div class="cookie-actions">
         <button id="cookie-reject-btn">Reject Non-Essential</button>
-        <button id="cookie-accept-btn">Accept All Cookies âœ“</button>
+        <button id="cookie-accept-btn">Accept All Cookies</button>
       </div>
     </div>
   </div>`;
@@ -1349,11 +1416,14 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   const ogImageUrl = /^https?:\/\//.test(ogImagePath) ? ogImagePath : getAbsoluteUrl(ogImagePath);
   const pageKeywords = keywords || 'free online tools, browser tools, tooliest';
   const versionedCssPath = getVersionedAssetPath(CSS_BUNDLE_PATH);
+  const normalizedStructuredData = Array.isArray(structuredData)
+    ? structuredData.map((schema) => repairTextDeep(schema))
+    : [];
   const googlebotRobots = robots.includes('noindex')
     ? 'noindex, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'
     : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1';
 
-  return `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   ${LEGACY_TOOL_PATH_REDIRECT_INLINE}
@@ -1404,7 +1474,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <script>window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}';</script>
   <script src="${getVersionedAssetPath('/js/consent.js')}" defer></script>
   ${ADSENSE_SCRIPT_TAG}
-  ${structuredData.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('\n  ')}
+  ${normalizedStructuredData.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('\n  ')}
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -1418,6 +1488,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <script src="${getVersionedAssetPath(`/${BUNDLE_OUTPUT_FILE}`)}" defer></script>
 </body>
 </html>`;
+  return repairMojibakeSegments(html);
 }
 
 function renderStaticToolCard(tool, categories) {
@@ -1429,7 +1500,7 @@ function renderStaticToolCard(tool, categories) {
         <h3>${escapeHtml(tool.name)}</h3>
         <div style="display:flex; align-items:center; gap:8px;">
           <span class="tool-category-label">${escapeHtml(categoryName)}</span>
-          ${tool.isAI ? '<div class="ai-badge">âœ¨ AI</div>' : ''}
+          ${tool.isAI ? '<div class="ai-badge">AI</div>' : ''}
         </div>
       </div>
     </div>
@@ -1506,14 +1577,14 @@ function renderToolContentSections(tool, categories) {
   const relatedCategoriesHtml = relatedCategories.length
     ? `<section class="tool-content-section">
       <h2>Explore Related Categories</h2>
-      <ul>${relatedCategories.map((category) => `<li><a href="${getCategoryPath(category.id)}">${escapeHtml(category.name)}</a> Ã¢â‚¬â€ ${escapeHtml(String(category.count || ''))} tools</li>`).join('')}</ul>
+      <ul>${relatedCategories.map((category) => `<li><a href="${getCategoryPath(category.id)}">${escapeHtml(category.name)}</a> - ${escapeHtml(String(category.count || ''))} tools</li>`).join('')}</ul>
     </section>`
     : '';
 
   const changelogHtml = Array.isArray(tool.changelog) && tool.changelog.length
     ? `<section class="tool-content-section">
       <h2>Changelog</h2>
-      <ul class="changelog-list">${tool.changelog.map((entry) => `<li><time datetime="${escapeAttr(entry.date)}">${escapeHtml(entry.date)}</time> Ã¢â‚¬â€ ${escapeHtml(entry.text)}</li>`).join('')}</ul>
+      <ul class="changelog-list">${tool.changelog.map((entry) => `<li><time datetime="${escapeAttr(entry.date)}">${escapeHtml(entry.date)}</time> - ${escapeHtml(entry.text)}</li>`).join('')}</ul>
     </section>`
     : '';
 
@@ -1529,7 +1600,7 @@ function renderToolContentSections(tool, categories) {
     ${highlightsHtml}
     <section class="tool-content-section">
       <h2>${escapeHtml(tool.howToHeading || `How To Use ${tool.name}`)}</h2>
-      <ol>${steps.map((step) => `<li><strong>${escapeHtml(step.name)}</strong> Ã¢â‚¬â€ ${escapeHtml(step.text)}</li>`).join('')}</ol>
+      <ol>${steps.map((step) => `<li><strong>${escapeHtml(step.name)}</strong> - ${escapeHtml(step.text)}</li>`).join('')}</ol>
     </section>
     ${whyUseHtml}
     ${whoUsesHtml}
@@ -1688,7 +1759,7 @@ function renderCategoryPage(category, tools, categories) {
       <div class="tool-page-header">
         <div class="tool-breadcrumb">
           <a href="/">Home</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <span>${escapeHtml(category.name)}</span>
         </div>
         <h1 style="margin:0">${category.icon} ${escapeHtml(category.name)}</h1>
@@ -1817,21 +1888,21 @@ function renderToolPage(tool, tools, categories) {
       <div class="tool-page-header">
         <div class="tool-breadcrumb">
           <a href="/">Home</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <a href="${getCategoryPath(tool.category)}">${escapeHtml(categoryName)}</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <span>${escapeHtml(tool.name)}</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <h1 style="margin:0"><span role="img" aria-label="${escapeAttr(tool.name)} icon">${tool.icon}</span> ${escapeHtml(tool.name)} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">âœ¨ AI-Powered</span>' : ''}</h1>
+          <h1 style="margin:0"><span role="img" aria-label="${escapeAttr(tool.name)} icon">${tool.icon}</span> ${escapeHtml(tool.name)} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">AI-Powered</span>' : ''}</h1>
           <a class="btn btn-secondary btn-sm" href="#tool-workspace" aria-label="Jump to the live ${escapeAttr(tool.name)} workspace">Jump to Live Tool</a>
         </div>
         <p>${escapeHtml(tool.description)}</p>
-        <p class="tool-last-updated"><time datetime="${escapeAttr(tool.lastReviewed || toolLastModified)}">Last reviewed: ${escapeHtml(tool.lastReviewedLabel || tool.lastReviewed || toolLastModified)}</time> Â· ${escapeHtml(tool.reviewedBy || 'Reviewed by Tooliest')}</p>
+        <p class="tool-last-updated"><time datetime="${escapeAttr(tool.lastReviewed || toolLastModified)}">Last reviewed: ${escapeHtml(tool.lastReviewedLabel || tool.lastReviewed || toolLastModified)}</time> &middot; ${escapeHtml(tool.reviewedBy || 'Reviewed by Tooliest')}</p>
       </div>
       <div class="tool-workspace" id="tool-workspace">
         <div class="tool-workspace-body">
-          <p style="color:var(--text-secondary);margin-bottom:8px">Loading the interactive ${escapeHtml(tool.name)} toolâ€¦</p>
+          <p style="color:var(--text-secondary);margin-bottom:8px">Loading the interactive ${escapeHtml(tool.name)} tool...</p>
           <p style="color:var(--text-tertiary);font-size:0.9rem">If JavaScript is enabled, Tooliest will load the live browser-based tool automatically.</p>
         </div>
       </div>
@@ -1927,12 +1998,12 @@ function renderSoftwareHubPage() {
       <div class="tool-page-header">
         <div class="tool-breadcrumb">
           <a href="/">Home</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <span>SEO Software Guides</span>
         </div>
         <h1 style="margin:0">SEO Software Guides and Content Clusters</h1>
         <p>Tooliest now includes a dedicated content hub for SEO software buyers. We started with full clusters for Semrush, Ahrefs, and Screaming Frog, then mapped the next wave of guides across all-in-one suites, content optimization platforms, technical SEO tools, and keyword research products.</p>
-        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">These pages are designed to answer real decision questions like â€œWhich tool is worth the money?â€, â€œWhat is best for small teams?â€, and â€œWhat should I buy for a specific workflow?â€ in a more useful, less robotic way.</p>
+        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">These pages are designed to answer real decision questions like "Which tool is worth the money?", "What is best for small teams?", and "What should I buy for a specific workflow?" in a more useful, less robotic way.</p>
       </div>
       <div class="tool-content-sections">
         <section class="tool-content-section">
@@ -1952,9 +2023,9 @@ function renderSoftwareHubPage() {
             <li>Pillar pages link to every comparison and use-case page in their cluster.</li>
             <li>Comparison pages link back to both tools, plus one recommended follow-up use case.</li>
             <li>Use-case pages link back to the pillar and one comparison page that helps the reader validate the choice.</li>
-            <li>Cross-cluster pages like â€œbest SEO tools for agenciesâ€ should later link into Semrush, SE Ranking, AccuRanker, and Nightwatch.</li>
+            <li>Cross-cluster pages like "best SEO tools for agencies" should later link into Semrush, SE Ranking, AccuRanker, and Nightwatch.</li>
           </ul>
-          <p>You can also pair these guides with Tooliestâ€™s own <a href="${getCategoryPath('seo')}">SEO tools</a> when users want to act on what they just learned instead of leaving the site to do the work elsewhere.</p>
+          <p>You can also pair these guides with Tooliest's own <a href="${getCategoryPath('seo')}">SEO tools</a> when users want to act on what they just learned instead of leaving the site to do the work elsewhere.</p>
         </section>
       </div>
     </section>
@@ -2021,14 +2092,14 @@ function renderSoftwarePillarPage(cluster) {
       <div class="tool-page-header">
         <div class="tool-breadcrumb">
           <a href="/">Home</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <span>${escapeHtml(cluster.name)}</span>
         </div>
         <h1 style="margin:0">${escapeHtml(cluster.name)} review: who it is really for, where it wins, and what to read next</h1>
         <p>${escapeHtml(cluster.hook)}</p>
-        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Category: ${escapeHtml(category.name)} Â· Best for: ${escapeHtml(cluster.bestFor)}</p>
+        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Category: ${escapeHtml(category.name)} &middot; Best for: ${escapeHtml(cluster.bestFor)}</p>
       </div>
       <div class="tool-content-sections">
         <section class="tool-content-section">
@@ -2131,11 +2202,11 @@ function renderSoftwareComparisonPage(cluster, comparison) {
       <div class="tool-page-header">
         <div class="tool-breadcrumb">
           <a href="/">Home</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <span>${escapeHtml(comparison.title)}</span>
         </div>
         <h1 style="margin:0">${escapeHtml(comparison.title)}</h1>
@@ -2216,16 +2287,16 @@ function renderSoftwareUseCasePage(cluster, useCase) {
       <div class="tool-page-header">
         <div class="tool-breadcrumb">
           <a href="/">Home</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <span>${escapeHtml(useCase.title)}</span>
         </div>
         <h1 style="margin:0">${escapeHtml(useCase.title)}</h1>
         <p>${escapeHtml(useCase.hook)}</p>
-        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Audience focus: ${escapeHtml(useCase.audience)} Â· Search intent: ${escapeHtml(useCase.targetQuery)}</p>
+        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Audience focus: ${escapeHtml(useCase.audience)} &middot; Search intent: ${escapeHtml(useCase.targetQuery)}</p>
       </div>
       <div class="tool-content-sections">
         <section class="tool-content-section">
@@ -2671,14 +2742,14 @@ function writeHtmlSitemap(tools, categories) {
       </ul>
     </div>`;
   const softwareBlock = `<div class="sitemap-category">
-      <h2><a href="${SOFTWARE_HUB_PATH}">ðŸ§­ SEO Software Guides</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${SOFTWARE_CLUSTERS.length} published clusters)</span></h2>
+      <h2><a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${SOFTWARE_CLUSTERS.length} published clusters)</span></h2>
       <ul>${SOFTWARE_CLUSTERS.map((cluster) => `<li><a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a> - ${escapeHtml(cluster.summary)}</li>`).join('')}</ul>
     </div>`;
   const categoryBlocks = renderableCategories.map(cat => {
     const catTools = getCategoryTools(tools, cat.id);
     return `<div class="sitemap-category">
       <h2><a href="${getCategoryPath(cat.id)}">${cat.icon} ${escapeHtml(cat.name)}</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${catTools.length} tools)</span></h2>
-      <ul>${catTools.map(t => `<li><a href="${getToolPath(t.id)}">${renderSitemapToolLabel(t)}</a> â€” ${escapeHtml(t.description.slice(0, 80))}</li>`).join('')}</ul>
+      <ul>${catTools.map(t => `<li><a href="${getToolPath(t.id)}">${renderSitemapToolLabel(t)}</a> &mdash; ${escapeHtml(t.description.slice(0, 80))}</li>`).join('')}</ul>
     </div>`;
   }).join('');
 
@@ -2687,10 +2758,10 @@ function writeHtmlSitemap(tools, categories) {
       <div class="tool-page-header">
         <div class="tool-breadcrumb">
           <a href="/">Home</a>
-          <span class="separator">â€º</span>
+          <span class="separator">&rsaquo;</span>
           <span>All Tools</span>
         </div>
-        <h1 style="margin:0">ðŸ—ºï¸ All Tooliest Tools</h1>
+        <h1 style="margin:0">All Tooliest Tools</h1>
         <p>Browse every free online tool on Tooliest, organized by category. ${tools.length} tools across ${renderableCategories.length} categories, plus software guides and company pages.</p>
       </div>
       <div class="tool-content-sections">
@@ -2705,7 +2776,7 @@ function writeHtmlSitemap(tools, categories) {
     {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
-      name: 'All Tooliest Tools â€” HTML Sitemap',
+      name: 'All Tooliest Tools - HTML Sitemap',
       url: getAbsoluteUrl('/sitemap.html'),
       description: `Browse all ${tools.length} free online tools on Tooliest organized by category.`,
       dateModified: sitemapLastModified,
@@ -2721,7 +2792,7 @@ function writeHtmlSitemap(tools, categories) {
   ];
 
   const html = renderPageShell({
-    title: `All ${tools.length}+ Free Online Tools â€” Tooliest Sitemap`,
+    title: `All ${tools.length}+ Free Online Tools - Tooliest Sitemap`,
     description: `Browse every free online tool on Tooliest. ${tools.length} browser-based tools across ${renderableCategories.length} categories, plus company pages and SEO software guides.`,
     canonicalPath: '/sitemap.html',
     structuredData,
@@ -2756,7 +2827,7 @@ function writeHomePage(tools, categories) {
           return `<section class="tool-content-section">
             <h2><a href="${getCategoryPath(category.id)}">${escapeHtml(category.name)}</a></h2>
             <p>${categoryTools.length} tools in this category, including ${escapeHtml(categoryTools.slice(0, 3).map((tool) => tool.name).join(', '))}.</p>
-            <ul>${categoryTools.map((tool) => `<li><a href="${getToolPath(tool.id)}">${escapeHtml(tool.name)}</a> Ã¢â‚¬â€ ${escapeHtml(tool.meta?.desc || tool.description)}</li>`).join('')}</ul>
+            <ul>${categoryTools.map((tool) => `<li><a href="${getToolPath(tool.id)}">${escapeHtml(tool.name)}</a> - ${escapeHtml(tool.meta?.desc || tool.description)}</li>`).join('')}</ul>
           </section>`;
         }).join('')}
       </div>
@@ -2806,7 +2877,7 @@ function writeHomePage(tools, categories) {
     {
       '@context': 'https://schema.org',
       '@type': 'WebPage',
-      name: 'Tooliest â€” Free Online Tools',
+      name: 'Tooliest - Free Online Tools',
       speakable: {
         '@type': 'SpeakableSpecification',
         cssSelector: ['.hero h1', '.hero p', '.footer-brand p'],
@@ -2829,7 +2900,7 @@ function writeHomePage(tools, categories) {
   const mainContent = `<main class="main-content" id="main-content">
       <section class="hero">
         <div class="hero-badge"><span class="pulse-dot"></span> Free &amp; No Signup Required</div>
-        <h1>Every Tool You Need.<br><span class="gradient-text">${tools.length}+ Free Online Tools â€” Zero Installs.</span></h1>
+        <h1>Every Tool You Need.<br><span class="gradient-text">${tools.length}+ Free Online Tools &mdash; Zero Installs.</span></h1>
         <p>Free online tools for developers, designers, writers, and marketers. Private, fast, and ready in one tab so you can search, launch, and finish faster with Tooliest.</p>
         <div class="hero-stats">
           <div class="hero-stat"><div class="stat-value">1</div><div class="stat-label">Tab Needed</div></div>
@@ -2837,22 +2908,22 @@ function writeHomePage(tools, categories) {
           <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
         </div>
         <div class="hero-trust-strip" aria-label="Tooliest trust highlights">
-          <span class="trust-badge">ðŸ”’ 100% Private â€” No Uploads</span>
-          <span class="trust-badge">âš¡ Instant Browser Results</span>
-          <span class="trust-badge">ðŸ“² PWA Ready + Offline Support</span>
-          <span class="trust-badge">ðŸ§­ No Account Friction</span>
+          <span class="trust-badge">100% Private - No Uploads</span>
+          <span class="trust-badge">Instant Browser Results</span>
+          <span class="trust-badge">PWA Ready + Offline Support</span>
+          <span class="trust-badge">No Account Friction</span>
         </div>
       </section>
     <section class="categories-section">
       <div class="category-tabs" id="category-tabs">${categoryTabsHtml}</div>
-      <p class="category-scroll-indicator" id="category-scroll-indicator" aria-hidden="true">Swipe to see more categories â†’</p>
+      <p class="category-scroll-indicator" id="category-scroll-indicator" aria-hidden="true">Swipe to see more categories &rarr;</p>
     </section>
     <section class="tools-section"><div class="tools-grid" id="tools-grid">${toolCardsHtml}</div></section>
     ${crawlableDirectoryHtml}
   </main>`;
 
   const html = renderPageShell({
-    title: `Tooliest â€” ${tools.length}+ Free Online Tools Powered by AI`,
+    title: `Tooliest - ${tools.length}+ Free Online Tools Powered by AI`,
     description: `Access ${tools.length}+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. Start free with Tooliest today.`,
     canonicalPath: '/',
     structuredData,
@@ -2872,7 +2943,7 @@ function minifyCSSFile() {
   const minPath = path.join(__dirname, 'css', 'styles3.min.css');
   fs.writeFileSync(minPath, minified);
   const savings = ((1 - minified.length / raw.length) * 100).toFixed(1);
-  console.log(`Minified CSS: ${(raw.length / 1024).toFixed(1)} KB â†’ ${(minified.length / 1024).toFixed(1)} KB (${savings}% smaller)`);
+  console.log(`Minified CSS: ${(raw.length / 1024).toFixed(1)} KB -> ${(minified.length / 1024).toFixed(1)} KB (${savings}% smaller)`);
 }
 
 async function build() {

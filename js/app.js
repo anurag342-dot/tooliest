@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.7', date: '2026-04-21', items: ['Repaired broken shell icons and text that were showing as corrupted symbols', 'Restored the PDF category, updated tool totals, and refreshed the homepage shell', 'Made the install entry consistently visible with browser-menu fallback guidance'] },
   { version: '3.6', date: '2026-04-20', items: ['Reduced repeated tool-count messaging across the homepage hero', 'Bumped the asset version to flush stale cached homepage shells after the SEO refresh'] },
   { version: '3.5', date: '2026-04-18', items: ['Removed duplicate tool-introduction blocks from tool pages', 'Kept the structured What Is section as the single explanation area for each tool'] },
   { version: '3.4', date: '2026-04-18', items: ['Made FAQ, why-use, and who-uses sections visible in the live SPA tool pages', 'Restored category FAQ/supporting sections during normal client-side navigation'] },
@@ -21,7 +22,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260420v27';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260421v28';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -109,26 +110,11 @@ const App = {
     this.handleRoute();
     window.addEventListener('popstate', () => this.handleRoute());
     if (!this.isEmbedMode()) {
+      this.syncInstallEntryPoints();
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         this.deferredPrompt = e;
-        
-        // Show nav button
-        const navBtn = document.getElementById('nav-install-btn');
-        if (navBtn) {
-          navBtn.style.display = '';
-          navBtn.onclick = async (ev) => {
-            ev.preventDefault();
-            this.deferredPrompt.prompt();
-            const { outcome } = await this.deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-              navBtn.style.display = 'none';
-              document.getElementById('pwa-install-banner')?.remove();
-            }
-            this.deferredPrompt = null;
-          };
-        }
-        
+        this.syncInstallEntryPoints();
         // Show floating banner specifically if not dismissed
         setTimeout(() => this.showInstallPrompt(), 3000);
       });
@@ -136,8 +122,7 @@ const App = {
         this.deferredPrompt = null;
         document.getElementById('pwa-install-banner')?.remove();
         document.body.classList.remove('pwa-install-open');
-        const navBtn = document.getElementById('nav-install-btn');
-        if (navBtn) navBtn.style.display = 'none';
+        this.syncInstallEntryPoints();
       });
     }
     let ticking = false;
@@ -153,6 +138,95 @@ const App = {
     if (!this.isEmbedMode()) {
       this.scheduleIdleTask(() => this.maybeShowWelcomeTour(), 1800);
     }
+  },
+
+  isStandaloneInstall() {
+    return Boolean(window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true);
+  },
+
+  syncInstallEntryPoints() {
+    const navBtn = document.getElementById('nav-install-btn');
+    if (!navBtn) return;
+
+    if (this.isEmbedMode() || this.isStandaloneInstall()) {
+      navBtn.style.display = 'none';
+      return;
+    }
+
+    navBtn.style.display = '';
+    navBtn.setAttribute('aria-label', this.deferredPrompt ? 'Install Tooliest app' : 'Learn how to install Tooliest');
+    navBtn.onclick = (event) => {
+      event.preventDefault();
+      this.handleInstallAction();
+    };
+  },
+
+  async handleInstallAction() {
+    if (this.deferredPrompt) {
+      this.deferredPrompt.prompt();
+      const { outcome } = await this.deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        document.getElementById('pwa-install-banner')?.remove();
+        document.body.classList.remove('pwa-install-open');
+      }
+      this.deferredPrompt = null;
+      this.syncInstallEntryPoints();
+      return;
+    }
+
+    this.showInstallPrompt({ force: true, manualOnly: true });
+    this.toast('Use your browser menu and choose Install App or Add to Home Screen.');
+  },
+
+  showInstallPrompt(options = {}) {
+    if (this.isEmbedMode() || this.isStandaloneInstall()) return;
+    const force = Boolean(options.force);
+    const manualOnly = Boolean(options.manualOnly || !this.deferredPrompt);
+    const existingBanner = document.getElementById('pwa-install-banner');
+    if (existingBanner) {
+      if (!force) return;
+      existingBanner.remove();
+      document.body.classList.remove('pwa-install-open');
+    }
+    if (!force && safeLocalRead('tooliest_pwa_dismissed')) return;
+    if (!force && manualOnly) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'pwa-install-banner';
+    banner.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:var(--gradient-primary);font-weight:700;color:#fff;">APP</div>
+        <div>
+          <div style="font-weight:600;color:var(--text-primary)">Install Tooliest</div>
+          <div style="font-size:0.85rem;color:var(--text-secondary)">${manualOnly ? 'Use your browser menu to install or add Tooliest to your home screen.' : 'Open Tooliest as an app with offline support and faster relaunches.'}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <button id="pwa-install-btn" class="btn btn-primary" style="padding:6px 12px;font-size:0.9rem">${manualOnly ? 'Install Help' : 'Install App'}</button>
+        <button id="pwa-close-btn" aria-label="Close install banner" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:1rem;padding:4px">&times;</button>
+      </div>`;
+    document.body.appendChild(banner);
+    document.body.classList.add('pwa-install-open');
+    document.getElementById('pwa-install-btn')?.addEventListener('click', async () => {
+      if (manualOnly) {
+        this.toast('Open the browser menu and choose Install App or Add to Home Screen.');
+        return;
+      }
+      await this.handleInstallAction();
+      if (!this.deferredPrompt) {
+        banner.remove();
+        document.body.classList.remove('pwa-install-open');
+      }
+    });
+    document.getElementById('pwa-close-btn')?.addEventListener('click', () => {
+      safeLocalSet('tooliest_pwa_dismissed', '1');
+      banner.classList.remove('show');
+      setTimeout(() => {
+        banner.remove();
+        document.body.classList.remove('pwa-install-open');
+      }, 300);
+    });
+    requestAnimationFrame(() => banner.classList.add('show'));
   },
 
   scheduleIdleTask(callback, timeout = 1200) {
@@ -1251,7 +1325,7 @@ const App = {
       button.classList.toggle('active', isFav);
       button.setAttribute('aria-label', isFav ? 'Remove from favorites' : 'Add to favorites');
       button.setAttribute('aria-pressed', String(isFav));
-      button.textContent = isFav ? 'â­' : 'â˜†';
+      button.textContent = isFav ? '\u2B50' : '\u2606';
     });
 
     const toolFavoriteButton = document.getElementById('mobile-tool-favorite-btn');
@@ -1825,7 +1899,7 @@ const App = {
     });
   },
 
-  showInstallPrompt() {
+  _legacyShowInstallPrompt() {
     if (this.isEmbedMode()) return;
     if (document.getElementById('pwa-install-banner') || safeLocalRead('tooliest_pwa_dismissed')) return;
     const banner = document.createElement('div');
