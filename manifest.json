@@ -22,6 +22,19 @@
   "dir": "ltr",
   "shortcuts": [
     {
+      "name": "Invoice Generator",
+      "short_name": "Invoice",
+      "description": "Create and download invoices instantly in your browser",
+      "url": "/invoice-generator?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/favicon-48.png",
+          "sizes": "48x48",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
       "name": "Word Counter",
       "short_name": "Word Count",
       "description": "Count words and characters instantly",

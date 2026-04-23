@@ -1618,6 +1618,99 @@ const TOOLS = [
     ],
     meta: { title: 'Debt Payoff Calculator - Get Debt Free | Tooliest', desc: 'Plan your debt payoff with snowball & avalanche methods. See your debt-free date and total interest saved.' }
   },
+  {
+    id: 'invoice-generator',
+    name: 'Free Invoice Generator',
+    description: 'Create professional invoices with your logo, line items, tax, discounts, drafts, and instant PDF download entirely in your browser.',
+    category: 'finance',
+    icon: '🧾',
+    tags: ['invoice', 'billing', 'pdf invoice', 'freelance invoice', 'business invoice'],
+    isAI: false,
+    relatedCategoryIds: ['pdf', 'converter', 'privacy'],
+    education: '<strong>Why use a browser-based invoice generator?</strong><br>Most invoicing tools make you create an account before you can send or export anything. Tooliest starts with a ready-to-edit invoice immediately, keeps your data on this device, and remembers your business details locally so repeat invoices take much less time.<br><br><strong>What can you include?</strong><br>Add your logo, invoice number, client details, unlimited line items, discount, tax lines, shipping, payment terms, and download a polished PDF without sending any business or client data to a server.',
+    whyUse: [
+      'Start editing the invoice the moment the page loads without creating an account or handing your data to a vendor.',
+      'Remember your business identity, last-used currency, taxes, drafts, and invoice history locally so repeat invoicing is faster.',
+      'Export a print-ready invoice PDF in the browser, then jump straight into the next PDF workflow when you need compression, protection, or merging.'
+    ],
+    whoUses: 'Freelancers, agencies, consultants, contractors, side-business owners, and small teams who need a fast invoicing workflow without paying for full billing software.',
+    faqLimit: 6,
+    faq: [
+      { q: 'Is this invoice generator really free?', a: 'Yes, completely free forever. No plans, no trials, and no payment required.' },
+      { q: 'Do I need to create an account?', a: 'No. Open the tool and start creating. Your business details are remembered automatically on your device.' },
+      { q: 'Is my invoice data private?', a: 'Entirely. All invoice generation happens in your browser. Your data, client names, amounts, and business details never leaves your device and is never sent to any server.' },
+      { q: 'Can I add my logo to the invoice?', a: 'Yes. Upload a PNG, JPG, or SVG logo and it appears on your invoice and is saved for future invoices on this device.' },
+      { q: 'What currencies are supported?', a: '30+ currencies are supported, including USD, EUR, GBP, JPY, INR, CAD, AUD, CHF, SGD, AED, NPR, and more.' },
+      { q: 'Can I download the invoice as PDF?', a: 'Yes. Click Download PDF and Tooliest instantly generates a professional PDF in your browser with no waiting room and no uploads.' }
+    ],
+    customSections: [
+      {
+        heading: 'How to Create a Free Invoice Online',
+        body: [
+          'Fill in your business and client details, add line items, then review the live preview as you go. When everything looks right, download the invoice as a PDF, print it, or copy the HTML for email without leaving the page.'
+        ],
+      },
+      {
+        heading: 'What Makes a Professional Invoice?',
+        body: [
+          'A professional invoice clearly shows who sent it, who it is billed to, what was delivered, when payment is due, and how the total was calculated. Consistent numbering, clean line items, accurate taxes, and straightforward payment terms make the document easier for clients to trust and process.'
+        ],
+      },
+      {
+        heading: 'Invoice Generator vs. Invoicing Software — What\'s the Difference?',
+        body: [
+          'An invoice generator is best when you want a fast one-off or lightweight recurring workflow without account setup, staff permissions, or subscription costs. Full invoicing software adds client portals, recurring billing, reminders, and accounting integrations, but that extra power usually comes with a signup wall and more overhead.'
+        ],
+      },
+    ],
+    relatedLinks: [
+      {
+        toolId: 'pdf-compressor',
+        title: 'Compress your invoice PDF',
+        description: 'Reduce file size before emailing',
+      },
+      {
+        toolId: 'pdf-protect',
+        title: 'Add a password to your invoice',
+        description: 'Protect sensitive client data',
+      },
+      {
+        href: '#signature-maker-coming-soon',
+        title: 'Sign your invoice',
+        description: 'Add a signature workflow once Signature Maker ships',
+        icon: '✍️',
+        badge: 'Coming Soon',
+        comingSoon: true,
+      },
+      {
+        toolId: 'pdf-merger',
+        title: 'Merge with a contract PDF',
+        description: 'Combine the invoice with supporting documents',
+      },
+    ],
+    relatedLinksNote: {
+      id: 'signature-maker-coming-soon',
+      text: 'Signature Maker is planned for Tooliest. For now, download the invoice PDF and sign it in your preferred PDF app.',
+    },
+    contentHighlights: [
+      'The fastest invoicing workflow is usually the one that removes account creation, email verification, and upload steps before you can even draft the document.',
+      'Saving sender details locally can turn repeat invoices into a minute-long task instead of a full setup flow every time a new client payment is due.',
+      'Browser-generated PDFs are especially useful for freelancers and small teams that want a share-ready invoice without subscribing to a larger accounting suite.'
+    ],
+    extraStructuredData: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Tooliest Invoice Generator',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Any (web browser)',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        description: 'Free browser-based invoice generator. Create professional PDF invoices with logo, line items, tax, and discount. No signup required.',
+        url: 'https://tooliest.com/invoice-generator'
+      }
+    ],
+    meta: { title: 'Free Invoice Generator — Create & Download Invoices Instantly | Tooliest', desc: 'Generate professional invoices in seconds. Add your logo, line items, tax rates, and custom notes. Download as PDF instantly. 100% free, no signup, works offline.' }
+  },
   // ===== AUDIO TOOLS =====
   {
     id: 'audio-converter',
@@ -2263,6 +2356,27 @@ const TOOLIEST_SEO_OVERRIDES = {
       { date: '2026-04-20', text: 'Expanded the explanatory copy with more concrete QR-code use cases and scan-readiness guidance.' },
       { date: '2026-04-18', text: 'Aligned the static content with the bundled same-origin QR renderer.' },
       { date: '2026-04-17', text: 'Launched the browser-based QR code generator with PNG download support.' },
+    ],
+  },
+  'invoice-generator': {
+    metaDesc: 'Generate professional invoices in seconds. Add your logo, line items, tax rates, and custom notes. Download as PDF instantly. 100% free, no signup, works offline.',
+    summaryHeading: 'How Do I Generate an Invoice Online Without Signing Up?',
+    howToHeading: 'How Can I Create an Invoice Step by Step?',
+    howToSteps: [
+      { name: 'Add your business details', text: 'Enter the sender information once, upload your logo if you want it on the invoice, and let Tooliest remember those details locally for next time.' },
+      { name: 'Fill in the client and line items', text: 'Choose a recent client or enter a new one, then add the work, quantity, unit price, and any units that should appear on the invoice.' },
+      { name: 'Set totals, dates, and notes', text: 'Pick the invoice number, due date, currency, discount, tax lines, shipping charges, and any payment terms that should appear at the bottom.' },
+      { name: 'Download or print the PDF', text: 'Review the live preview, then download the invoice PDF, print it, or copy the HTML version for an email workflow.' },
+    ],
+    aeoSnippet: {
+      heading: 'Can I Make an Invoice Online Without Creating an Account?',
+      answer: 'Yes. A browser-based invoice generator lets you add business details, client details, line items, and totals immediately without account setup. That is especially useful when you need a polished invoice quickly and do not want your billing data stored on someone else\'s platform.',
+    },
+    ogImageAlt: 'Invoice Generator preview on Tooliest',
+    changelog: [
+      { date: '2026-04-23', text: 'Launched the browser-based invoice generator with local drafts, invoice history, live preview templates, and instant PDF export.' },
+      { date: '2026-04-23', text: 'Added invoice-specific cross-links into the PDF workflow so invoices can be compressed, protected, and merged after export.' },
+      { date: '2026-04-23', text: 'Shipped crawlable FAQ content, business-app schema, and a custom invoice social preview card.' },
     ],
   },
 };
@@ -2966,7 +3080,9 @@ TOOLS.forEach((tool) => {
   tool.summaryHeading = getTooliestSummaryHeading(tool);
   tool.howToHeading = getTooliestHowToHeading(tool);
   tool.howToSteps = buildTooliestHowToSteps(tool);
-  tool.relatedCategoryIds = TOOLIEST_HOME_CATEGORY_RELATIONS[tool.category] || [];
+  tool.relatedCategoryIds = Array.isArray(tool.relatedCategoryIds) && tool.relatedCategoryIds.length
+    ? tool.relatedCategoryIds
+    : (TOOLIEST_HOME_CATEGORY_RELATIONS[tool.category] || []);
   tool.aeoSnippet = override.aeoSnippet || tool.aeoSnippet || null;
   tool.contentHighlights = mergeTooliestList(tool.contentHighlights, override.contentHighlights || [], 3);
   tool.changelog = override.changelog || tool.changelog || buildTooliestChangelog(tool);
@@ -2983,8 +3099,14 @@ TOOLS.forEach((tool) => {
   if (!tool.whoUses) {
     tool.whoUses = buildTooliestWhoUses(tool);
   }
-  tool.faq = mergeTooliestFaq(tool.faq, [...(override.faqExtras || []), ...buildTooliestFaq(tool)], 4);
+  tool.faq = mergeTooliestFaq(tool.faq, [...(override.faqExtras || []), ...buildTooliestFaq(tool)], tool.faqLimit || 4);
 });
+
+const invoiceGeneratorTool = TOOLS.find((tool) => tool.id === 'invoice-generator');
+if (invoiceGeneratorTool) {
+  invoiceGeneratorTool.lastReviewed = '2026-04-23';
+  invoiceGeneratorTool.lastReviewedLabel = 'April 23, 2026';
+}
 
 // Count tools per category
 let favCache = [];

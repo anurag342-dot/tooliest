@@ -29,7 +29,7 @@ const TOOL_RENDERER_CHUNKS = {
     'roi-calculator', 'debt-payoff', 'inflation-calculator', 'percentage-calculator',
     'age-calculator', 'tip-calculator', 'bmi-calculator',
   ],
-  'renderers6.min.js': ['audio-converter'],
+  'renderers6.min.js': ['audio-converter', 'invoice-generator'],
 };
 
 const TOOL_RENDERER_CHUNK_MAP = Object.entries(TOOL_RENDERER_CHUNKS).reduce((map, [chunkFile, toolIds]) => {

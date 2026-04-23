@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.13', date: '2026-04-23', items: ['Added a full browser-based invoice generator with reusable business profiles, live previews, drafts, and PDF export', 'Created a dedicated invoice social preview card and related-tool workflow links for post-download steps', 'Refreshed cached assets and offline routes so the new invoicing experience loads cleanly'] },
   { version: '3.12', date: '2026-04-23', items: ['Added clearer before-and-after upload previews across image editing tools', 'Made source and output files easier to verify before downloading changes', 'Refreshed cached assets so the upgraded preview UI appears immediately'] },
   { version: '3.11', date: '2026-04-23', items: ['Trimmed the oversized empty space under embedded PDF workspaces', 'Changed the embedded PDF height measurement to follow the real workspace content instead of the full viewport', 'Reduced the fallback PDF frame height for cleaner first paint on document tools'] },
   { version: '3.10', date: '2026-04-23', items: ['Moved PDF tools into isolated embedded workspaces so uploads, drag-and-drop, and downloads keep their original behavior', 'Stopped SPA re-hydration from overwriting embedded standalone PDF documents', 'Refreshed asset versions to flush the broken cached PDF tool shell'] },
@@ -27,7 +28,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v42';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v43';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -764,6 +765,62 @@ const App = {
     return candidates.filter((candidate, index) =>
       candidates.findIndex(item => item.id === candidate.id) === index
     ).slice(0, limit);
+  },
+
+  resolveRelatedLinkCard(link) {
+    const linkedTool = link && link.toolId ? TOOLS.find((candidate) => candidate.id === link.toolId) : null;
+    const categoryName = linkedTool
+      ? (TOOL_CATEGORIES.find((category) => category.id === linkedTool.category)?.name || 'Related Tool')
+      : (link.badge || (link.comingSoon ? 'Coming Soon' : 'Related Tool'));
+    return {
+      href: link.href || (linkedTool ? this.getToolPath(linkedTool.id) : ''),
+      title: link.title || linkedTool?.name || 'Related Tool',
+      description: link.description || linkedTool?.description || '',
+      icon: link.icon || linkedTool?.icon || '↗',
+      categoryName,
+      badge: link.badge || '',
+      comingSoon: Boolean(link.comingSoon),
+    };
+  },
+
+  getRelatedLinkCardHTML(link) {
+    const normalized = this.resolveRelatedLinkCard(link);
+    const badgeHtml = normalized.badge ? `<div class="ai-badge">${this.escapeHTML(normalized.badge)}</div>` : '';
+    const cardInner = `<div class="tool-card-header">
+        <div class="tool-card-icon">${normalized.icon}</div>
+        <div class="tool-card-info">
+          <h3>${this.escapeHTML(normalized.title)}</h3>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span class="tool-category-label">${this.escapeHTML(normalized.categoryName)}</span>
+            ${badgeHtml}
+          </div>
+        </div>
+      </div>
+      <p>${this.escapeHTML(normalized.description)}</p>
+      <div class="tool-card-tags"><span class="tool-tag">${this.escapeHTML(normalized.comingSoon ? 'coming soon' : 'browser-based')}</span></div>`;
+
+    if (normalized.href) {
+      return `<a class="tool-card tool-card-link" href="${normalized.href}" aria-label="Open ${this.escapeHTML(normalized.title)}">${cardInner}</a>`;
+    }
+
+    return `<div class="tool-card">${cardInner}</div>`;
+  },
+
+  getRelatedToolsSectionHTML(tool, related) {
+    if (Array.isArray(tool.relatedLinks) && tool.relatedLinks.length) {
+      const noteHtml = tool.relatedLinksNote
+        ? `<p id="${this.escapeHTML(tool.relatedLinksNote.id || '')}" style="margin-top:16px;color:var(--text-secondary);font-size:0.92rem">${this.escapeHTML(tool.relatedLinksNote.text || '')}</p>`
+        : '';
+      return `<div class="related-tools">
+        <h3>${this.escapeHTML(tool.relatedLinksHeading || 'Related Tools')}</h3>
+        <div class="related-tools-grid">${tool.relatedLinks.map((link) => this.getRelatedLinkCardHTML(link)).join('')}</div>
+        ${noteHtml}
+      </div>`;
+    }
+
+    return related.length
+      ? `<div class="related-tools"><h3>You May Also Like</h3><div class="related-tools-grid">${related.map(r => this.getToolCardHTML(r)).join('')}</div></div>`
+      : '';
   },
 
   getCompareCandidates(tool, limit = 10) {
@@ -1983,6 +2040,15 @@ const App = {
         <ul>${tool.referenceLinks.map((item) => `<li><a href="${item.url}" target="_blank" rel="noopener noreferrer">${this.escapeHTML(item.label)}</a></li>`).join('')}</ul>
       </section>`
       : '';
+    const customSectionsHtml = Array.isArray(tool.customSections) && tool.customSections.length
+      ? tool.customSections.map((section) => {
+        const paragraphs = Array.isArray(section.body) ? section.body : [section.body];
+        return `<section class="tool-content-section">
+          <h2>${this.escapeHTML(section.heading || '')}</h2>
+          ${paragraphs.filter(Boolean).map((paragraph) => `<p>${this.escapeHTML(paragraph)}</p>`).join('')}
+        </section>`;
+      }).join('')
+      : '';
 
     return `<article class="tool-article">
       <div class="tool-content-sections">
@@ -1991,6 +2057,7 @@ const App = {
         <p>${this.escapeHTML(tool.description)}</p>
         ${tool.education ? `<div class="tool-education-copy">${tool.education}</div>` : `<p>${fallbackExplain}</p>`}
       </section>
+      ${customSectionsHtml}
       ${snippetHtml}
       ${methodologyHtml}
       ${highlightsHtml}
@@ -2144,7 +2211,7 @@ const App = {
       </div>` : ''}
       ${this.getToolContentSectionsHTML(tool)}
       ${this.getAdHTML('tool-bottom')}
-      ${related.length ? `<div class="related-tools"><h3>You May Also Like</h3><div class="related-tools-grid">${related.map(r => this.getToolCardHTML(r)).join('')}</div></div>` : ''}
+      ${this.getRelatedToolsSectionHTML(tool, related)}
       <nav class="mobile-tool-nav" aria-label="Quick actions for ${tool.name}">
         <button type="button" class="mobile-tool-nav-btn" id="mobile-tool-home-btn" aria-label="Go to the Tooliest home page">
           <span class="mobile-tool-nav-icon" aria-hidden="true">⌂</span>
@@ -2388,8 +2455,9 @@ const App = {
           }
         }))
       } : null;
+      const extraSchemas = Array.isArray(tool.extraStructuredData) ? tool.extraStructuredData : [];
       // [TOOLIEST AUDIT] Keep runtime tool schema aligned with pre-rendered pages for richer search coverage.
-      [toolSchema, breadcrumb, howTo, faqSchema].filter(Boolean).forEach(schema => {
+      [toolSchema, breadcrumb, howTo, faqSchema, ...extraSchemas].filter(Boolean).forEach(schema => {
         const script = document.createElement('script');
         script.type = 'application/ld+json';
         script.setAttribute('data-dynamic-schema', 'true');

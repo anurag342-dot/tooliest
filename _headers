@@ -418,6 +418,9 @@
 /debt-payoff
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
+/invoice-generator
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
 /audio-converter
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 

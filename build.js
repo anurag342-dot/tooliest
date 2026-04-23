@@ -12,7 +12,7 @@ function getBuildEnv(name, fallback) {
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260423v42';
+const ASSET_VERSION = '20260423v43';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const INDEXNOW_KEY = getBuildEnv('INDEXNOW_KEY', 'tooliest-indexnow-20260420');
@@ -133,6 +133,7 @@ const LAZY_RENDERER_SOURCE_FILES = [
   'js/renderers4.js',
   'js/renderers5.js',
   'js/renderers6.js',
+  'js/renderers-invoice.js',
 ];
 const LAZY_RENDERER_CHUNKS = [
   { sourceFiles: ['js/renderers2.js'], outputFile: 'js/renderers2.min.js' },
@@ -140,7 +141,7 @@ const LAZY_RENDERER_CHUNKS = [
   // [TOOLIEST QR FIX] Bundle the QR engine into the same-origin renderer chunk so the tool never depends on a third-party runtime fetch.
   { sourceFiles: ['node_modules/qrcode-generator/qrcode.js', 'js/renderers4.js'], outputFile: 'js/renderers4.min.js' },
   { sourceFiles: ['js/renderers5.js'], outputFile: 'js/renderers5.min.js' },
-  { sourceFiles: ['js/renderers6.js'], outputFile: 'js/renderers6.min.js' },
+  { sourceFiles: ['js/renderers6.js', 'js/renderers-invoice.js'], outputFile: 'js/renderers6.min.js' },
 ];
 const TOOL_RENDERER_SOURCE_FILES = ['js/renderers.js', ...LAZY_RENDERER_SOURCE_FILES];
 
@@ -887,6 +888,55 @@ function renderOgCardSvg({ eyebrow, title, body, badge }) {
 `;
 }
 
+function renderInvoiceOgCardSvg(tool) {
+  const title = tool.name || 'Invoice Generator';
+  const description = stripHtml(tool.meta?.desc || tool.description || 'Create professional invoices in your browser.');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">${escapeXml(title)}</title>
+  <desc id="desc">${escapeXml(description)}</desc>
+  <defs>
+    <linearGradient id="bgInvoice" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="accentInvoice" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <filter id="invoiceShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#020617" flood-opacity="0.34" />
+    </filter>
+  </defs>
+  <rect width="1200" height="630" rx="36" fill="url(#bgInvoice)" />
+  <circle cx="1060" cy="118" r="170" fill="#8b5cf6" opacity="0.12" />
+  <circle cx="160" cy="560" r="200" fill="#06b6d4" opacity="0.1" />
+  <rect x="86" y="74" width="1028" height="482" rx="34" fill="rgba(15, 23, 42, 0.78)" stroke="rgba(148, 163, 184, 0.16)" filter="url(#invoiceShadow)" />
+  <rect x="120" y="110" width="470" height="410" rx="26" fill="#ffffff" />
+  <rect x="120" y="110" width="470" height="12" rx="26" fill="url(#accentInvoice)" />
+  <rect x="152" y="154" width="96" height="96" rx="24" fill="#eef2ff" />
+  <text x="200" y="214" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="800" fill="#8b5cf6">LOGO</text>
+  <text x="428" y="182" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" fill="#64748b">INVOICE</text>
+  <text x="428" y="222" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="36" font-weight="800" fill="#0f172a">INV-0042</text>
+  <text x="152" y="290" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="800" fill="#111827">Tooliest Studio</text>
+  <text x="152" y="325" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500" fill="#64748b">hello@tooliest.com</text>
+  <text x="152" y="350" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500" fill="#64748b">Kathmandu, Nepal</text>
+  <text x="152" y="398" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="800" letter-spacing="1.8" fill="#64748b">BILL TO</text>
+  <text x="152" y="430" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" fill="#111827">Acme Client Co.</text>
+  <text x="152" y="460" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="500" fill="#64748b">ap@acme.example</text>
+  <line x1="150" y1="492" x2="560" y2="492" stroke="#e2e8f0" />
+  <text x="640" y="154" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#93c5fd">Finance Tools on Tooliest</text>
+  <text x="640" y="230" font-family="Inter, Arial, sans-serif" font-size="62" font-weight="800" fill="#f8fafc">Free Invoice</text>
+  <text x="640" y="302" font-family="Inter, Arial, sans-serif" font-size="62" font-weight="800" fill="#f8fafc">Generator</text>
+  <text x="640" y="380" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">Create branded invoices, save drafts locally,</text>
+  <text x="640" y="418" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">and export polished PDFs without signup walls.</text>
+  <rect x="640" y="468" width="256" height="56" rx="28" fill="rgba(139, 92, 246, 0.16)" stroke="rgba(139, 92, 246, 0.3)" />
+  <text x="672" y="504" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#e9d5ff">Free and private</text>
+  <text x="968" y="504" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#e2e8f0">tooliest.com</text>
+</svg>
+`;
+}
+
 function writeOgAssets(tools, categories) {
   console.log('Generating OG image assets...');
   const ogRoot = path.join(__dirname, 'og');
@@ -962,12 +1012,14 @@ function writeOgAssets(tools, categories) {
     const categoryName = categories.find((category) => category.id === tool.category)?.name || 'Online tools';
     fs.writeFileSync(
       path.join(toolDir, `${tool.id}.svg`),
-      renderOgCardSvg({
-        eyebrow: `${categoryName} on Tooliest`,
-        title: tool.name,
-        body: stripHtml(tool.meta?.desc || tool.description || `${tool.name} is a free browser-based tool on Tooliest.`),
-        badge: 'Free and private',
-      })
+      tool.id === 'invoice-generator'
+        ? renderInvoiceOgCardSvg(tool)
+        : renderOgCardSvg({
+          eyebrow: `${categoryName} on Tooliest`,
+          title: tool.name,
+          body: stripHtml(tool.meta?.desc || tool.description || `${tool.name} is a free browser-based tool on Tooliest.`),
+          badge: 'Free and private',
+        })
     );
   });
 }
@@ -1553,6 +1605,15 @@ function renderToolContentSections(tool, categories) {
       <ul>${tool.referenceLinks.map((item) => `<li><a href="${escapeAttr(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.label)}</a></li>`).join('')}</ul>
     </section>`
     : '';
+  const customSectionsHtml = Array.isArray(tool.customSections) && tool.customSections.length
+    ? tool.customSections.map((section) => {
+      const paragraphs = Array.isArray(section.body) ? section.body : [section.body];
+      return `<section class="tool-content-section">
+        <h2>${escapeHtml(section.heading || '')}</h2>
+        ${paragraphs.filter(Boolean).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+      </section>`;
+    }).join('')
+    : '';
 
   const faqHtml = (tool.faq && tool.faq.length)
     ? `<section class="tool-content-section">
@@ -1596,6 +1657,7 @@ function renderToolContentSections(tool, categories) {
       <p>${escapeHtml(tool.description)}</p>
       ${tool.education ? `<div class="tool-education-copy">${tool.education}</div>` : `<p>${escapeHtml(fallbackExplain)}</p>`}
     </section>
+    ${customSectionsHtml}
     ${snippetHtml}
     ${methodologyHtml}
     ${highlightsHtml}
@@ -1613,7 +1675,64 @@ function renderToolContentSections(tool, categories) {
   </article>`;
 }
 
+function resolveRelatedLinkCard(link, tools, categories) {
+  const linkedTool = link && link.toolId ? tools.find((candidate) => candidate.id === link.toolId) : null;
+  const categoryName = linkedTool
+    ? (categories.find((category) => category.id === linkedTool.category)?.name || 'Related Tool')
+    : (link.badge || (link.comingSoon ? 'Coming Soon' : 'Related Tool'));
+
+  return {
+    href: link.href || (linkedTool ? getToolPath(linkedTool.id) : ''),
+    title: link.title || linkedTool?.name || 'Related Tool',
+    description: link.description || linkedTool?.description || '',
+    icon: link.icon || linkedTool?.icon || '↗',
+    categoryName,
+    badge: link.badge || '',
+    comingSoon: Boolean(link.comingSoon),
+  };
+}
+
+function renderRelatedLinkCard(link, tools, categories) {
+  const normalized = resolveRelatedLinkCard(link, tools, categories);
+  const badgeHtml = normalized.badge
+    ? `<div class="ai-badge">${escapeHtml(normalized.badge)}</div>`
+    : '';
+  const cardInner = `<div class="tool-card-header">
+      <div class="tool-card-icon">${normalized.icon}</div>
+      <div class="tool-card-info">
+        <h3>${escapeHtml(normalized.title)}</h3>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span class="tool-category-label">${escapeHtml(normalized.categoryName)}</span>
+          ${badgeHtml}
+        </div>
+      </div>
+    </div>
+    <p>${escapeHtml(normalized.description)}</p>
+    <div class="tool-card-tags"><span class="tool-tag">${escapeHtml(normalized.comingSoon ? 'coming soon' : 'browser-based')}</span></div>`;
+
+  if (normalized.href) {
+    return `<a class="tool-card tool-card-link" href="${escapeAttr(normalized.href)}" aria-label="Open ${escapeAttr(normalized.title)}">${cardInner}</a>`;
+  }
+
+  return `<div class="tool-card">${cardInner}</div>`;
+}
+
+function renderStaticAdSpace(id) {
+  return `<div class="container"><div class="ad-space" id="ad-${escapeAttr(id)}"><span>Advertisement</span></div></div>`;
+}
+
 function renderRelatedTools(tool, tools, categories) {
+  if (Array.isArray(tool.relatedLinks) && tool.relatedLinks.length) {
+    const noteHtml = tool.relatedLinksNote
+      ? `<p id="${escapeAttr(tool.relatedLinksNote.id || '')}" style="margin-top:16px;color:var(--text-secondary);font-size:0.92rem">${escapeHtml(tool.relatedLinksNote.text || '')}</p>`
+      : '';
+    return `<div class="related-tools">
+      <h3>${escapeHtml(tool.relatedLinksHeading || 'Related Tools')}</h3>
+      <div class="related-tools-grid">${tool.relatedLinks.map((link) => renderRelatedLinkCard(link, tools, categories)).join('')}</div>
+      ${noteHtml}
+    </div>`;
+  }
+
   const sameCategory = tools.filter(candidate => candidate.category === tool.category && candidate.id !== tool.id);
   const relatedByTag = tools.filter(candidate =>
     candidate.category !== tool.category &&
@@ -1633,6 +1752,7 @@ function renderRelatedTools(tool, tools, categories) {
 function getStaticHomeFeaturedTools(tools) {
   const preferredIds = [
     'word-counter',
+    'invoice-generator',
     'qr-code-generator',
     'json-formatter',
     'meta-tag-generator',
@@ -1883,6 +2003,9 @@ function renderToolPage(tool, tools, categories) {
       })),
     });
   }
+  if (Array.isArray(tool.extraStructuredData) && tool.extraStructuredData.length) {
+    structuredData.push(...tool.extraStructuredData);
+  }
 
   const mainContent = `<main class="main-content" id="main-content">
     <div class="tool-page">
@@ -1901,6 +2024,7 @@ function renderToolPage(tool, tools, categories) {
         <p>${escapeHtml(tool.description)}</p>
         <p class="tool-last-updated"><time datetime="${escapeAttr(tool.lastReviewed || toolLastModified)}">Last reviewed: ${escapeHtml(tool.lastReviewedLabel || tool.lastReviewed || toolLastModified)}</time> &middot; ${escapeHtml(tool.reviewedBy || 'Reviewed by Tooliest')}</p>
       </div>
+      ${renderStaticAdSpace('tool-top')}
       <div class="tool-workspace" id="tool-workspace">
         <div class="tool-workspace-body">
           <p style="color:var(--text-secondary);margin-bottom:8px">Loading the interactive ${escapeHtml(tool.name)} tool...</p>
@@ -1908,6 +2032,7 @@ function renderToolPage(tool, tools, categories) {
         </div>
       </div>
       ${renderToolContentSections(tool, categories)}
+      ${renderStaticAdSpace('tool-bottom')}
       ${renderRelatedTools(tool, tools, categories)}
     </div>
   </main>`;

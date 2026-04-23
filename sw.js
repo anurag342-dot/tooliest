@@ -1,7 +1,11 @@
-const ASSET_VERSION = '20260423v42';
+const ASSET_VERSION = '20260423v43';
 // [TOOLIEST AUDIT] Tie the offline cache name to the asset version so old release caches are purged automatically.
 const CACHE_NAME = `tooliest-${ASSET_VERSION}-offline`;
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
+const EXTERNAL_TOOL_MODULES = [
+  'https://cdn.jsdelivr.net/npm/jspdf@3.0.2/+esm',
+  'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm',
+];
 const TOOL_ROUTES = [
   '/word-counter',
   '/character-counter',
@@ -98,6 +102,7 @@ const TOOL_ROUTES = [
   '/retirement-calculator',
   '/roi-calculator',
   '/debt-payoff',
+  '/invoice-generator',
   '/audio-converter',
   '/inflation-calculator',
 ];
@@ -105,6 +110,7 @@ const URLS_TO_CACHE = [
   '/',
   '/?source=pwa',
   '/index.html',
+  '/invoice-generator?source=pwa-shortcut',
   '/about',
   '/contact',
   '/privacy',
@@ -170,6 +176,19 @@ async function warmGoogleFontsCache(cache) {
   }
 }
 
+async function warmExternalToolModules(cache) {
+  await Promise.all(EXTERNAL_TOOL_MODULES.map(async (moduleUrl) => {
+    try {
+      const response = await fetch(moduleUrl, { mode: 'cors' });
+      if (response.ok || response.type === 'opaque') {
+        await cache.put(moduleUrl, response.clone());
+      }
+    } catch (error) {
+      console.warn('[Service Worker] Failed to warm external tool module:', moduleUrl, error);
+    }
+  }));
+}
+
 // Install Event: Cache all critical files
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -177,6 +196,7 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE_NAME);
     await cache.addAll(URLS_TO_CACHE);
     await warmGoogleFontsCache(cache);
+    await warmExternalToolModules(cache);
   })());
 });
 
