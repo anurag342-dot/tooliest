@@ -346,6 +346,12 @@ function repairTextArtifacts(text) {
   return output;
 }
 
+function repairPdfWorkspaceBehaviors(text) {
+  return text
+    .replace(/dropzone\.addEventListener\('click',\s*\(\)\s*=>\s*fileInput\.click\(\)\);?/g, '')
+    .replace(/dropzone\.addEventListener\("click",\s*\(\)\s*=>\s*fileInput\.click\(\)\);?/g, '');
+}
+
 function getAbsoluteUrl(pathname) {
   return `${SITE_URL}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
 }
@@ -784,7 +790,7 @@ function extractTrailingScripts(html) {
 }
 
 function renderPage(tool, categories, tools, originalHtml) {
-  const repairedOriginalHtml = repairTextArtifacts(originalHtml);
+  const repairedOriginalHtml = repairPdfWorkspaceBehaviors(repairTextArtifacts(originalHtml));
   const categoryName = categories.find((category) => category.id === tool.category)?.name || 'PDF Tools';
   const styleBlocks = extractStyleBlocks(repairedOriginalHtml);
   const workspaceHtml = extractWorkspace(repairedOriginalHtml, tool.standaloneSourceFile);
