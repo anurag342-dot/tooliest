@@ -26,7 +26,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v34';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v35';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -544,6 +544,36 @@ const App = {
     };
 
     const queueHeightReport = () => window.requestAnimationFrame(reportHeight);
+    const canElementConsumeWheel = (element, deltaY) => {
+      if (!(element instanceof Element)) return false;
+      const style = window.getComputedStyle(element);
+      const overflowY = `${style.overflowY || ''}${style.overflow || ''}`;
+      if (!/(auto|scroll|overlay)/i.test(overflowY)) return false;
+      const maxScrollTop = element.scrollHeight - element.clientHeight;
+      if (maxScrollTop <= 1) return false;
+      if (deltaY < 0) return element.scrollTop > 0;
+      if (deltaY > 0) return element.scrollTop < maxScrollTop - 1;
+      return false;
+    };
+    const shouldForwardWheelToParent = (target, deltaY) => {
+      let node = target instanceof Element ? target : null;
+      while (node && node !== document.body) {
+        if (canElementConsumeWheel(node, deltaY)) return false;
+        node = node.parentElement;
+      }
+      return true;
+    };
+    const forwardWheelToParent = (event) => {
+      if (window.parent === window) return;
+      if (!shouldForwardWheelToParent(event.target, event.deltaY)) return;
+      event.preventDefault();
+      window.parent.postMessage({
+        type: 'TOOLIEST_STANDALONE_WHEEL',
+        toolId,
+        deltaX: Number(event.deltaX) || 0,
+        deltaY: Number(event.deltaY) || 0,
+      }, window.location.origin);
+    };
     let resizeObserver = null;
     if ('ResizeObserver' in window) {
       resizeObserver = new ResizeObserver(() => queueHeightReport());
@@ -555,6 +585,7 @@ const App = {
 
     window.addEventListener('load', queueHeightReport, { once: true });
     window.addEventListener('resize', queueHeightReport);
+    window.addEventListener('wheel', forwardWheelToParent, { passive: false });
     window.setTimeout(queueHeightReport, 0);
     window.setTimeout(queueHeightReport, 250);
     window.setTimeout(queueHeightReport, 900);
@@ -562,6 +593,7 @@ const App = {
 
     window.addEventListener('beforeunload', () => {
       resizeObserver?.disconnect();
+      window.removeEventListener('wheel', forwardWheelToParent);
     }, { once: true });
 
     return true;
@@ -912,10 +944,20 @@ const App = {
     const handleMessage = (event) => {
       if (event.origin !== window.location.origin) return;
       const data = event.data || {};
-      if (data.type !== 'TOOLIEST_STANDALONE_HEIGHT' || data.toolId !== tool.id) return;
-      applyHeight(data.height);
-      loadingState?.classList.add('is-hidden');
-      frame.classList.add('is-ready');
+      if (data.toolId !== tool.id) return;
+      if (data.type === 'TOOLIEST_STANDALONE_HEIGHT') {
+        applyHeight(data.height);
+        loadingState?.classList.add('is-hidden');
+        frame.classList.add('is-ready');
+        return;
+      }
+      if (data.type === 'TOOLIEST_STANDALONE_WHEEL') {
+        window.scrollBy({
+          top: Number(data.deltaY) || 0,
+          left: Number(data.deltaX) || 0,
+          behavior: 'auto',
+        });
+      }
     };
 
     applyHeight(minHeight);
