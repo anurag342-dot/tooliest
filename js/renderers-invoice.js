@@ -507,6 +507,29 @@
     };
   }
 
+  function createInvoicePdfRenderSurface(state, totals) {
+    const host = document.createElement('div');
+    host.setAttribute('aria-hidden', 'true');
+    host.style.position = 'fixed';
+    host.style.left = '-10000px';
+    host.style.top = '0';
+    host.style.width = '820px';
+    host.style.padding = '0';
+    host.style.margin = '0';
+    host.style.opacity = '0';
+    host.style.pointerEvents = 'none';
+    host.style.zIndex = '-1';
+    host.innerHTML = buildPreviewMarkup(state, totals);
+    document.body.appendChild(host);
+    return {
+      host,
+      preview: host.querySelector('#invoice-preview'),
+      cleanup() {
+        host.remove();
+      },
+    };
+  }
+
   async function downloadInvoicePreviewPdf(previewElement, fileName) {
     const { jsPDF, html2canvas } = await loadInvoicePdfLibraries();
     const canvas = await html2canvas(previewElement, {
@@ -526,6 +549,13 @@
     });
     const pageWidth = 210;
     const pageHeight = 297;
+    const renderedHeight = canvas.height * pageWidth / canvas.width;
+    if (renderedHeight <= pageHeight * 1.12) {
+      const imageData = canvas.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imageData, 'JPEG', 0, 0, pageWidth, Math.min(pageHeight, renderedHeight), undefined, 'FAST');
+      pdf.save(fileName);
+      return;
+    }
     const pageHeightPx = Math.floor(canvas.width * (pageHeight / pageWidth));
     let pageIndex = 0;
     for (let offsetY = 0; offsetY < canvas.height; offsetY += pageHeightPx) {
@@ -634,7 +664,7 @@
   }
   .inv-saved-chip { opacity:0; transform:translateY(-4px); transition:opacity .18s ease, transform .18s ease; }
   .inv-saved-chip.is-visible { opacity:1; transform:translateY(0); }
-  .inv-layout { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(380px,.96fr); gap:24px; align-items:start; }
+  .inv-layout { display:grid; grid-template-columns:minmax(0, 1fr); gap:20px; align-items:start; }
   .inv-editor, .inv-sidebar { min-width:0; }
   .inv-panel, .inv-actions, .inv-draft-panel, .inv-next-steps { border:1px solid var(--border-color); background:var(--bg-card); border-radius:14px; padding:18px; min-width:0; }
   .inv-panel + .inv-panel, .inv-editor details { margin-top:18px; }
@@ -694,12 +724,13 @@
   .inv-preview-controls { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
   .inv-color-wrap { display:flex; align-items:center; gap:10px; color:var(--text-secondary); font-size:0.85rem; }
   .inv-color-wrap input { width:44px; height:44px; padding:0; border:none; background:none; cursor:pointer; }
-  .inv-preview-card { position:sticky; top:170px; }
+  .inv-sidebar { display:grid; gap:16px; }
+  .inv-preview-card { position:static; }
   .inv-preview-frame {
-    overflow:auto hidden; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border:1px solid var(--border-color);
-    padding:18px; min-height:420px; max-height:calc(100vh - 250px); scrollbar-gutter:stable both-edges;
+    overflow:hidden; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border:1px solid var(--border-color);
+    padding:24px; min-height:0; max-height:none;
   }
-  .inv-preview-shell { position:relative; width:100%; display:flex; justify-content:center; align-items:flex-start; overflow:hidden; }
+  .inv-preview-shell { position:relative; width:100%; display:flex; justify-content:center; align-items:flex-start; overflow:visible; }
   .inv-preview-stage { width:820px; transform-origin:top center; will-change:transform; }
   .inv-preview-sheet {
     width:820px; min-height:1120px; margin:0; background:#fff; color:#111827;
@@ -813,12 +844,6 @@
     animation:invSpin .8s linear infinite;
   }
   @keyframes invSpin { to { transform:rotate(360deg); } }
-  @media (max-width: 1140px) {
-    .inv-layout { grid-template-columns:1fr; }
-    .inv-preview-card { position:static; }
-    .inv-actions { top:74px; }
-    .inv-preview-frame { max-height:none; }
-  }
   @media (max-width: 768px) {
     .inv-grid-2, .inv-summary-grid { grid-template-columns:1fr; }
     .inv-actions { top:64px; }
@@ -1083,14 +1108,6 @@
         </div>
       </div>
 
-      <details class="inv-history" id="inv-history">
-        <summary>
-          <span>Invoice History</span>
-          <span class="inv-badge" id="inv-history-count">0</span>
-        </summary>
-        <div class="inv-history-list" id="inv-history-list"></div>
-      </details>
-
       <button class="btn btn-primary inv-mobile-preview" id="inv-mobile-preview-btn" type="button">Preview Invoice</button>
     </section>
 
@@ -1121,6 +1138,14 @@
         <div class="inv-next-steps-list" id="inv-next-steps-list"></div>
       </div>
     </aside>
+
+    <details class="inv-history" id="inv-history">
+      <summary>
+        <span>Invoice History</span>
+        <span class="inv-badge" id="inv-history-count">0</span>
+      </summary>
+      <div class="inv-history-list" id="inv-history-list"></div>
+    </details>
   </div>
 </div>`;
 
@@ -1789,8 +1814,12 @@
         nodes.downloadButton.disabled = true;
         nodes.downloadButton.innerHTML = '<span class="inv-spinner" aria-hidden="true"></span> Generating your invoice...';
         try {
-          const preview = container.querySelector('#invoice-preview');
-          await downloadInvoicePreviewPdf(preview, invoiceFileName(state));
+          const exportSurface = createInvoicePdfRenderSurface(state, totals);
+          try {
+            await downloadInvoicePreviewPdf(exportSurface.preview, invoiceFileName(state));
+          } finally {
+            exportSurface.cleanup();
+          }
           history = recordInvoiceHistory(history, state, totals);
           renderHistory();
           renderDrafts();
