@@ -787,4 +787,178 @@ Object.assign(ToolRenderers.renderers, {
 
     renderFields();
   },
+  'image-exif-stripper'(c) {
+    c.innerHTML = `<div class="tool-workspace-body">
+      <div class="file-upload-zone" id="ex-drop">
+        <div class="upload-icon">🧼</div>
+        <p>Drop image or click to upload</p>
+        <p class="upload-hint">Lossless cleanup for JPEG, PNG, and WebP. Everything stays in your browser.</p>
+        <input type="file" id="ex-file" accept="image/jpeg,image/png,image/webp" style="display:none">
+      </div>
+      <div class="media-preview-grid">
+        ${ToolRenderers.buildUploadPreviewCard('ex-original', 'Original image')}
+        ${ToolRenderers.buildUploadPreviewCard('ex-clean-preview', 'Clean output')}
+      </div>
+      <div class="result-stats mt-4 hidden" id="ex-stats"></div>
+      <div id="ex-metadata" class="mt-4 hidden" style="background:rgba(244,63,94,0.1);border:1px solid #f43f5e;border-radius:var(--radius-md);padding:16px;">
+        <h3 style="color:#f43f5e;font-size:1rem;display:flex;align-items:center;gap:8px">Metadata Found</h3>
+        <p style="font-size:0.85rem;margin-top:8px;color:var(--text-secondary)" id="ex-meta-desc">Tracking metadata was detected and will be removed from the clean download below.</p>
+      </div>
+      <div id="ex-clean" class="mt-4 hidden" style="background:rgba(16,185,129,0.1);border:1px solid #10b981;border-radius:var(--radius-md);padding:16px;">
+        <h3 id="ex-clean-title" style="color:#10b981;font-size:1rem;display:flex;align-items:center;gap:8px">Clean image ready</h3>
+        <p id="ex-clean-desc" style="font-size:0.85rem;margin-top:8px;color:var(--text-secondary)">Your privacy-safe image is ready to download.</p>
+        <div id="ex-action" class="mt-3"></div>
+      </div>
+    </div>`;
+
+    const zone = document.getElementById('ex-drop');
+    const fileInput = document.getElementById('ex-file');
+    const statsDiv = document.getElementById('ex-stats');
+    const metaWarn = document.getElementById('ex-metadata');
+    const metaDesc = document.getElementById('ex-meta-desc');
+    const cleanDiv = document.getElementById('ex-clean');
+    const cleanTitle = document.getElementById('ex-clean-title');
+    const cleanDesc = document.getElementById('ex-clean-desc');
+    const actionDiv = document.getElementById('ex-action');
+
+    let activeSourceUrl = '';
+    let activeCleanUrl = '';
+
+    const renderStats = (items) => {
+      statsDiv.classList.remove('hidden');
+      statsDiv.innerHTML = items.map(([label, value]) => `
+        <div class="stat-card">
+          <div class="stat-num" style="font-size:1rem;word-break:break-word">${ToolRenderers.escapeHtml(value)}</div>
+          <div class="stat-lbl">${ToolRenderers.escapeHtml(label)}</div>
+        </div>
+      `).join('');
+    };
+
+    const resetPreviews = () => {
+      if (activeSourceUrl) {
+        URL.revokeObjectURL(activeSourceUrl);
+        activeSourceUrl = '';
+      }
+      if (activeCleanUrl) {
+        URL.revokeObjectURL(activeCleanUrl);
+        activeCleanUrl = '';
+      }
+      ToolRenderers.hideUploadPreviewCard('ex-original');
+      ToolRenderers.hideUploadPreviewCard('ex-clean-preview');
+    };
+
+    async function handleFile(file) {
+      fileInput.value = '';
+      if (!file || !file.type.startsWith('image/')) {
+        App.toast('Please upload an image file', 'error');
+        return;
+      }
+
+      metaWarn.classList.add('hidden');
+      cleanDiv.classList.add('hidden');
+      actionDiv.innerHTML = '';
+      resetPreviews();
+
+      activeSourceUrl = URL.createObjectURL(file);
+      const sourcePreview = new Image();
+      sourcePreview.alt = 'Original image preview';
+      sourcePreview.onload = () => {
+        ToolRenderers.setUploadPreviewCard('ex-original', {
+          url: activeSourceUrl,
+          title: file.name,
+          meta: `${_formatBytes(file.size)} • ${sourcePreview.width} × ${sourcePreview.height}`,
+          note: `Source format: ${(file.type.split('/')[1] || 'image').toUpperCase()}`,
+          alt: 'Original image preview',
+        });
+      };
+      sourcePreview.src = activeSourceUrl;
+
+      renderStats([
+        ['File Name', file.name],
+        ['Format', (file.type.split('/')[1] || 'image').toUpperCase()],
+        ['Original Size', _formatBytes(file.size)],
+        ['Status', 'Scanning and preparing clean download'],
+      ]);
+
+      try {
+        const startedAt = performance.now();
+        const cleaned = await _buildLosslessCleanImage(file);
+        const cleanBlob = cleaned.blob;
+        const removedLabels = cleaned.removedLabels;
+        const removedText = removedLabels.length ? removedLabels.join(', ') : 'No removable privacy metadata detected';
+        const savedBytes = Math.max(0, file.size - cleanBlob.size);
+        const downloadName = _createCleanImageName(file.name, cleaned.extension);
+
+        renderStats([
+          ['File Name', file.name],
+          ['Format', cleaned.formatLabel],
+          ['Original Size', _formatBytes(file.size)],
+          ['Clean Size', _formatBytes(cleanBlob.size)],
+          ['Method', cleaned.lossless ? 'Lossless metadata stripping' : 'Re-encoded export'],
+        ]);
+
+        if (removedLabels.length) {
+          metaWarn.classList.remove('hidden');
+          metaDesc.textContent = `Removed ${removedText}. Download the clean image below.`;
+          cleanTitle.textContent = 'Metadata removed successfully';
+          cleanDesc.textContent = 'Your clean image is ready. This version was rewritten without re-encoding, so the picture quality stays the same.';
+        } else {
+          metaWarn.classList.add('hidden');
+          cleanTitle.textContent = 'No removable metadata detected';
+          cleanDesc.textContent = 'This file did not contain removable EXIF, XMP, or text metadata. You can still download the verified copy below.';
+        }
+
+        cleanDiv.classList.remove('hidden');
+        activeCleanUrl = URL.createObjectURL(cleanBlob);
+        ToolRenderers.setUploadPreviewCard('ex-clean-preview', {
+          url: activeCleanUrl,
+          title: downloadName,
+          meta: `${_formatBytes(cleanBlob.size)}${savedBytes ? ` • ${_formatBytes(savedBytes)} smaller` : ''}`,
+          note: removedText,
+          alt: 'Cleaned image preview',
+        });
+
+        actionDiv.innerHTML = `
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button type="button" class="btn btn-success" id="ex-download">Download Clean Image</button>
+            <button type="button" class="btn btn-secondary" id="ex-reset">Choose Another Image</button>
+          </div>
+        `;
+
+        document.getElementById('ex-download')?.addEventListener('click', () => {
+          _downloadBlob(cleanBlob, downloadName);
+        });
+        document.getElementById('ex-reset')?.addEventListener('click', () => {
+          fileInput.click();
+        });
+
+        if (typeof App !== 'undefined' && typeof App.recordToolPerformance === 'function') {
+          App.recordToolPerformance('image-exif-stripper', 'Strip metadata', performance.now() - startedAt);
+        }
+      } catch (error) {
+        console.error('[Tooliest] EXIF stripping failed:', error);
+        metaWarn.classList.add('hidden');
+        cleanDiv.classList.remove('hidden');
+        cleanTitle.textContent = 'Could not create a clean download';
+        cleanDesc.textContent = error.message || 'This image format could not be processed safely in your browser.';
+        actionDiv.innerHTML = `
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button type="button" class="btn btn-secondary" id="ex-try-again">Choose Another Image</button>
+          </div>
+        `;
+        document.getElementById('ex-try-again')?.addEventListener('click', () => fileInput.click());
+        App.toast(error.message || 'Could not remove the image metadata.', 'error');
+      }
+    }
+
+    zone.addEventListener('click', () => fileInput.click());
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+  },
 });

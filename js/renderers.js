@@ -246,6 +246,62 @@ const ToolRenderers = {
     return this.escapeHtml(value);
   },
 
+  formatBytes(bytes = 0) {
+    const value = Number(bytes) || 0;
+    if (value <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    const unitIndex = Math.min(units.length - 1, Math.floor(Math.log(value) / Math.log(1024)));
+    const amount = value / Math.pow(1024, unitIndex);
+    return `${amount.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+  },
+
+  buildUploadPreviewCard(prefix, label) {
+    const safePrefix = this.escapeAttr(prefix);
+    const safeLabel = this.escapeHtml(label);
+    return `<section class="media-preview-card hidden" id="${safePrefix}-card">
+      <div class="media-preview-stage">
+        <img id="${safePrefix}-img" class="media-preview-image" alt="${safeLabel} preview">
+      </div>
+      <div class="media-preview-body">
+        <span class="media-preview-label">${safeLabel}</span>
+        <strong class="media-preview-title" id="${safePrefix}-title">Preview ready</strong>
+        <span class="media-preview-meta" id="${safePrefix}-meta"></span>
+        <span class="media-preview-note hidden" id="${safePrefix}-note"></span>
+      </div>
+    </section>`;
+  },
+
+  setUploadPreviewCard(prefix, { url = '', title = '', meta = '', note = '', alt = '' } = {}) {
+    const card = document.getElementById(`${prefix}-card`);
+    const image = document.getElementById(`${prefix}-img`);
+    const titleEl = document.getElementById(`${prefix}-title`);
+    const metaEl = document.getElementById(`${prefix}-meta`);
+    const noteEl = document.getElementById(`${prefix}-note`);
+    if (!card || !image || !titleEl || !metaEl || !noteEl) return;
+    image.src = url;
+    image.alt = alt || `${title || 'Selected file'} preview`;
+    titleEl.textContent = title || 'Preview ready';
+    metaEl.textContent = meta || '';
+    noteEl.textContent = note || '';
+    noteEl.classList.toggle('hidden', !note);
+    card.classList.remove('hidden');
+  },
+
+  hideUploadPreviewCard(prefix) {
+    const card = document.getElementById(`${prefix}-card`);
+    const image = document.getElementById(`${prefix}-img`);
+    const titleEl = document.getElementById(`${prefix}-title`);
+    const metaEl = document.getElementById(`${prefix}-meta`);
+    const noteEl = document.getElementById(`${prefix}-note`);
+    if (!card || !image || !titleEl || !metaEl || !noteEl) return;
+    image.removeAttribute('src');
+    titleEl.textContent = '';
+    metaEl.textContent = '';
+    noteEl.textContent = '';
+    noteEl.classList.add('hidden');
+    card.classList.add('hidden');
+  },
+
   // [TOOLIEST AUDIT] Only reuse safe http(s) URLs when previewing user-provided links or images.
   sanitizeHttpUrl(value = '', allowRelative = true) {
     const input = String(value || '').trim();

@@ -639,4 +639,626 @@ Object.assign(ToolRenderers.renderers, {
       }, format, quality);
     });
   },
+  'image-compressor'(c) {
+    c.innerHTML = `<div class="tool-workspace-body">
+      <div class="file-upload-zone" id="img-drop"><div class="upload-icon">📸</div><p>Drop image here or click to upload</p><p class="upload-hint">Supports JPEG, PNG, WebP</p><input type="file" id="img-file" accept="image/*" style="display:none"></div>
+      <div class="input-group mt-4"><label>Quality: <span id="img-q-val">80</span>%</label><input type="range" id="img-quality" min="10" max="100" value="80"></div>
+      <div class="media-preview-grid">
+        ${ToolRenderers.buildUploadPreviewCard('img-original', 'Original image')}
+        ${ToolRenderers.buildUploadPreviewCard('img-result', 'Compressed output')}
+      </div>
+      <div class="result-stats mt-4" id="img-stats"></div>
+      <div class="mt-4 hidden" id="img-download"><button class="btn btn-success" id="img-dl-btn">Download Compressed Image</button></div>
+    </div>`;
+
+    const zone = document.getElementById('img-drop');
+    const fileInput = document.getElementById('img-file');
+    const qualityInput = document.getElementById('img-quality');
+    const qualityValue = document.getElementById('img-q-val');
+    const stats = document.getElementById('img-stats');
+    const downloadWrap = document.getElementById('img-download');
+    const downloadBtn = document.getElementById('img-dl-btn');
+
+    let currentFile = null;
+    let currentImg = null;
+    let currentOriginalUrl = '';
+    let currentResultUrl = '';
+    let currentResultBlob = null;
+
+    const clearResult = () => {
+      if (currentResultUrl) {
+        URL.revokeObjectURL(currentResultUrl);
+        currentResultUrl = '';
+      }
+      currentResultBlob = null;
+      ToolRenderers.hideUploadPreviewCard('img-result');
+      downloadWrap.classList.add('hidden');
+    };
+
+    const renderStats = (blob) => {
+      if (!currentFile || !currentImg || !blob) return;
+      const saved = ((1 - blob.size / currentFile.size) * 100).toFixed(1);
+      stats.innerHTML = [
+        ['Original', ToolRenderers.formatBytes(currentFile.size)],
+        ['Compressed', ToolRenderers.formatBytes(blob.size)],
+        ['Saved', saved < 0 ? '0%' : `${saved}%`],
+        ['Dimensions', `${currentImg.width} × ${currentImg.height}`],
+      ].map(([label, value]) => `<div class="stat-card"><div class="stat-num" style="font-size:1rem">${value}</div><div class="stat-lbl">${label}</div></div>`).join('');
+    };
+
+    const compressImage = () => {
+      if (!currentFile || !currentImg) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = currentImg.width;
+      canvas.height = currentImg.height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(currentImg, 0, 0);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          App.toast('Could not compress this image in your browser.', 'error');
+          return;
+        }
+        clearResult();
+        currentResultBlob = blob;
+        currentResultUrl = URL.createObjectURL(blob);
+        ToolRenderers.setUploadPreviewCard('img-result', {
+          url: currentResultUrl,
+          title: `compressed_${currentFile.name.replace(/\.[^/.]+$/, '')}.jpg`,
+          meta: `${ToolRenderers.formatBytes(blob.size)} • ${currentImg.width} × ${currentImg.height}`,
+          note: 'Review the compressed export before downloading it.',
+          alt: 'Compressed image preview',
+        });
+        renderStats(blob);
+        downloadWrap.classList.remove('hidden');
+        downloadBtn.onclick = () => {
+          const link = document.createElement('a');
+          link.href = currentResultUrl;
+          link.download = `compressed_${currentFile.name.replace(/\.[^/.]+$/, '')}.jpg`;
+          link.click();
+        };
+      }, 'image/jpeg', Number(qualityInput.value) / 100);
+    };
+
+    const processFile = (file) => {
+      fileInput.value = '';
+      if (!file || !file.type.startsWith('image/')) return;
+      if (currentOriginalUrl) URL.revokeObjectURL(currentOriginalUrl);
+      clearResult();
+      currentFile = file;
+      currentOriginalUrl = URL.createObjectURL(file);
+      currentImg = new Image();
+      currentImg.alt = 'Uploaded image for compression';
+      currentImg.onload = () => {
+        ToolRenderers.setUploadPreviewCard('img-original', {
+          url: currentOriginalUrl,
+          title: file.name,
+          meta: `${ToolRenderers.formatBytes(file.size)} • ${currentImg.width} × ${currentImg.height}`,
+          note: `Source format: ${(file.type.split('/')[1] || 'image').toUpperCase()}`,
+          alt: 'Original image preview',
+        });
+        compressImage();
+      };
+      currentImg.src = currentOriginalUrl;
+    };
+
+    zone.addEventListener('click', () => fileInput.click());
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      processFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => processFile(e.target.files[0]));
+    qualityInput.addEventListener('input', (e) => {
+      qualityValue.textContent = e.target.value;
+      if (currentImg) compressImage();
+    });
+  },
+
+  'image-resizer'(c) {
+    c.innerHTML = `<div class="tool-workspace-body">
+      <div class="file-upload-zone" id="ir-drop"><div class="upload-icon">📐</div><p>Drop image or click to upload</p><input type="file" id="ir-file" accept="image/*" style="display:none"></div>
+      <div class="flex gap-4 flex-wrap mt-4">
+        <div class="input-group" style="flex:1"><label>Width (px)</label><input type="number" id="ir-w" placeholder="800"></div>
+        <div class="input-group" style="flex:1"><label>Height (px)</label><input type="number" id="ir-h" placeholder="600"></div>
+      </div>
+      <div class="checkbox-group mb-4"><label class="checkbox-label"><input type="checkbox" id="ir-ratio" checked><span class="checkmark">✓</span> Maintain Aspect Ratio</label></div>
+      <div class="flex gap-3 flex-wrap mb-4">
+        <button class="btn btn-primary hidden" id="ir-resize">Resize Image</button>
+        <button class="btn btn-success hidden" id="ir-download">Download Resized Image</button>
+      </div>
+      <div class="media-preview-grid">
+        ${ToolRenderers.buildUploadPreviewCard('ir-original', 'Original image')}
+        ${ToolRenderers.buildUploadPreviewCard('ir-result', 'Resized output')}
+      </div>
+      <div class="result-stats mt-4 hidden" id="ir-stats"></div>
+    </div>`;
+
+    const zone = document.getElementById('ir-drop');
+    const fileInput = document.getElementById('ir-file');
+    const widthInput = document.getElementById('ir-w');
+    const heightInput = document.getElementById('ir-h');
+    const ratioInput = document.getElementById('ir-ratio');
+    const resizeBtn = document.getElementById('ir-resize');
+    const downloadBtn = document.getElementById('ir-download');
+    const stats = document.getElementById('ir-stats');
+
+    let currentFile = null;
+    let origImg = null;
+    let currentOriginalUrl = '';
+    let currentResultUrl = '';
+
+    const clearResult = () => {
+      if (currentResultUrl) {
+        URL.revokeObjectURL(currentResultUrl);
+        currentResultUrl = '';
+      }
+      ToolRenderers.hideUploadPreviewCard('ir-result');
+      downloadBtn.classList.add('hidden');
+    };
+
+    const updateStats = (items) => {
+      stats.classList.remove('hidden');
+      stats.innerHTML = items.map(([label, value]) => `<div class="stat-card"><div class="stat-num" style="font-size:1rem">${value}</div><div class="stat-lbl">${label}</div></div>`).join('');
+    };
+
+    const loadFile = (file) => {
+      fileInput.value = '';
+      if (!file || !file.type.startsWith('image/')) return;
+      if (currentOriginalUrl) URL.revokeObjectURL(currentOriginalUrl);
+      clearResult();
+      currentFile = file;
+      currentOriginalUrl = URL.createObjectURL(file);
+      origImg = new Image();
+      origImg.alt = 'Uploaded image for resizing';
+      origImg.onload = () => {
+        widthInput.value = origImg.width;
+        heightInput.value = origImg.height;
+        resizeBtn.classList.remove('hidden');
+        ToolRenderers.setUploadPreviewCard('ir-original', {
+          url: currentOriginalUrl,
+          title: file.name,
+          meta: `${ToolRenderers.formatBytes(file.size)} • ${origImg.width} × ${origImg.height}`,
+          note: 'Choose the new dimensions, then generate the resized copy.',
+          alt: 'Original image preview',
+        });
+        updateStats([
+          ['Original', `${origImg.width} × ${origImg.height}`],
+          ['File Size', ToolRenderers.formatBytes(file.size)],
+          ['Status', 'Ready to resize'],
+        ]);
+      };
+      origImg.src = currentOriginalUrl;
+    };
+
+    zone.addEventListener('click', () => fileInput.click());
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      loadFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => loadFile(e.target.files[0]));
+
+    widthInput.addEventListener('input', () => {
+      if (ratioInput.checked && origImg && widthInput.value) {
+        const ratio = origImg.height / origImg.width;
+        heightInput.value = Math.max(1, Math.round(Number(widthInput.value) * ratio));
+      }
+    });
+
+    heightInput.addEventListener('input', () => {
+      if (ratioInput.checked && origImg && heightInput.value) {
+        const ratio = origImg.width / origImg.height;
+        widthInput.value = Math.max(1, Math.round(Number(heightInput.value) * ratio));
+      }
+    });
+
+    resizeBtn.addEventListener('click', () => {
+      if (!origImg || !currentFile) return;
+      const width = Math.max(1, parseInt(widthInput.value, 10) || origImg.width);
+      const height = Math.max(1, parseInt(heightInput.value, 10) || origImg.height);
+      const canvas = document.createElement('canvas');
+      const outputMime = ['image/jpeg', 'image/png', 'image/webp'].includes(currentFile.type) ? currentFile.type : 'image/png';
+      const outputExt = outputMime === 'image/jpeg' ? 'jpg' : outputMime.split('/')[1];
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (outputMime === 'image/jpeg') {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+      }
+      ctx.drawImage(origImg, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          App.toast('Could not resize this image in your browser.', 'error');
+          return;
+        }
+        clearResult();
+        currentResultUrl = URL.createObjectURL(blob);
+        ToolRenderers.setUploadPreviewCard('ir-result', {
+          url: currentResultUrl,
+          title: `resized_${width}x${height}.${outputExt}`,
+          meta: `${ToolRenderers.formatBytes(blob.size)} • ${width} × ${height}`,
+          note: 'Preview the resized output before downloading it.',
+          alt: 'Resized image preview',
+        });
+        updateStats([
+          ['Original', `${origImg.width} × ${origImg.height}`],
+          ['Resized', `${width} × ${height}`],
+          ['Output Size', ToolRenderers.formatBytes(blob.size)],
+        ]);
+        downloadBtn.classList.remove('hidden');
+        downloadBtn.onclick = () => {
+          const link = document.createElement('a');
+          link.href = currentResultUrl;
+          link.download = `resized_${width}x${height}.${outputExt}`;
+          link.click();
+        };
+      }, outputMime, outputMime === 'image/png' ? undefined : 0.92);
+    });
+  },
+
+  'image-cropper'(c) {
+    c.innerHTML = `<div class="tool-workspace-body">
+      <div class="file-upload-zone" id="icr-drop"><div class="upload-icon">✂️</div><p>Drop image or click to upload</p><input type="file" id="icr-file" accept="image/*" style="display:none"></div>
+      <div class="flex gap-4 flex-wrap mt-4">
+        <div class="input-group" style="flex:1"><label>X</label><input type="number" id="icr-x" value="0"></div>
+        <div class="input-group" style="flex:1"><label>Y</label><input type="number" id="icr-y" value="0"></div>
+        <div class="input-group" style="flex:1"><label>Width</label><input type="number" id="icr-w" value="200"></div>
+        <div class="input-group" style="flex:1"><label>Height</label><input type="number" id="icr-h" value="200"></div>
+      </div>
+      <div class="flex gap-3 flex-wrap mt-4">
+        <button class="btn btn-primary hidden" id="icr-crop">Crop Image</button>
+        <button class="btn btn-success hidden" id="icr-download">Download Cropped Image</button>
+      </div>
+      <div class="media-preview-grid">
+        ${ToolRenderers.buildUploadPreviewCard('icr-original', 'Original image')}
+        ${ToolRenderers.buildUploadPreviewCard('icr-result', 'Cropped output')}
+      </div>
+      <div class="result-stats mt-4 hidden" id="icr-stats"></div>
+    </div>`;
+
+    const zone = document.getElementById('icr-drop');
+    const fileInput = document.getElementById('icr-file');
+    const cropBtn = document.getElementById('icr-crop');
+    const downloadBtn = document.getElementById('icr-download');
+    const stats = document.getElementById('icr-stats');
+
+    let currentFile = null;
+    let currentImg = null;
+    let currentOriginalUrl = '';
+    let currentResultUrl = '';
+
+    const clearResult = () => {
+      if (currentResultUrl) {
+        URL.revokeObjectURL(currentResultUrl);
+        currentResultUrl = '';
+      }
+      ToolRenderers.hideUploadPreviewCard('icr-result');
+      downloadBtn.classList.add('hidden');
+    };
+
+    const updateStats = (items) => {
+      stats.classList.remove('hidden');
+      stats.innerHTML = items.map(([label, value]) => `<div class="stat-card"><div class="stat-num" style="font-size:1rem">${value}</div><div class="stat-lbl">${label}</div></div>`).join('');
+    };
+
+    const loadFile = (file) => {
+      fileInput.value = '';
+      if (!file || !file.type.startsWith('image/')) return;
+      if (currentOriginalUrl) URL.revokeObjectURL(currentOriginalUrl);
+      clearResult();
+      currentFile = file;
+      currentOriginalUrl = URL.createObjectURL(file);
+      currentImg = new Image();
+      currentImg.alt = 'Uploaded image for cropping';
+      currentImg.onload = () => {
+        document.getElementById('icr-x').value = 0;
+        document.getElementById('icr-y').value = 0;
+        document.getElementById('icr-w').value = currentImg.width;
+        document.getElementById('icr-h').value = currentImg.height;
+        cropBtn.classList.remove('hidden');
+        ToolRenderers.setUploadPreviewCard('icr-original', {
+          url: currentOriginalUrl,
+          title: file.name,
+          meta: `${ToolRenderers.formatBytes(file.size)} • ${currentImg.width} × ${currentImg.height}`,
+          note: 'Adjust the crop values, then generate the cropped output.',
+          alt: 'Original image preview',
+        });
+        updateStats([
+          ['Original', `${currentImg.width} × ${currentImg.height}`],
+          ['File Size', ToolRenderers.formatBytes(file.size)],
+          ['Status', 'Ready to crop'],
+        ]);
+      };
+      currentImg.src = currentOriginalUrl;
+    };
+
+    zone.addEventListener('click', () => fileInput.click());
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      loadFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => loadFile(e.target.files[0]));
+
+    cropBtn.addEventListener('click', () => {
+      if (!currentImg || !currentFile) return;
+      const x = Math.max(0, Number(document.getElementById('icr-x').value) || 0);
+      const y = Math.max(0, Number(document.getElementById('icr-y').value) || 0);
+      const width = Math.max(1, Number(document.getElementById('icr-w').value) || currentImg.width);
+      const height = Math.max(1, Number(document.getElementById('icr-h').value) || currentImg.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(currentImg, x, y, width, height, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          App.toast('Could not crop this image in your browser.', 'error');
+          return;
+        }
+        clearResult();
+        currentResultUrl = URL.createObjectURL(blob);
+        ToolRenderers.setUploadPreviewCard('icr-result', {
+          url: currentResultUrl,
+          title: `cropped_${currentFile.name.replace(/\.[^/.]+$/, '')}.png`,
+          meta: `${ToolRenderers.formatBytes(blob.size)} • ${width} × ${height}`,
+          note: `Crop area: ${x}, ${y} to ${x + width}, ${y + height}`,
+          alt: 'Cropped image preview',
+        });
+        updateStats([
+          ['Original', `${currentImg.width} × ${currentImg.height}`],
+          ['Crop Size', `${width} × ${height}`],
+          ['Output Size', ToolRenderers.formatBytes(blob.size)],
+        ]);
+        downloadBtn.classList.remove('hidden');
+        downloadBtn.onclick = () => {
+          const link = document.createElement('a');
+          link.href = currentResultUrl;
+          link.download = `cropped_${currentFile.name.replace(/\.[^/.]+$/, '')}.png`;
+          link.click();
+        };
+      }, 'image/png');
+    });
+  },
+
+  'image-to-base64'(c) {
+    c.innerHTML = `<div class="tool-workspace-body">
+      <div class="file-upload-zone" id="ib-drop"><div class="upload-icon">🔣</div><p>Drop image or click to upload</p><input type="file" id="ib-file" accept="image/*" style="display:none"></div>
+      <div class="media-preview-grid">
+        ${ToolRenderers.buildUploadPreviewCard('ib-original', 'Source image')}
+      </div>
+      <div class="result-stats mt-4 hidden" id="ib-stats"></div>
+      <div class="input-group mt-4"><label>Base64 String</label><div class="output-area empty" id="tool-output" style="max-height:300px;overflow:auto"><button class="copy-btn hidden" id="copy-btn">Copy</button>Upload an image to convert</div></div>
+    </div>`;
+
+    const zone = document.getElementById('ib-drop');
+    const fileInput = document.getElementById('ib-file');
+    const stats = document.getElementById('ib-stats');
+    const output = document.getElementById('tool-output');
+    const copyBtn = document.getElementById('copy-btn');
+    let currentOriginalUrl = '';
+
+    const loadFile = (file) => {
+      fileInput.value = '';
+      if (!file || !file.type.startsWith('image/')) return;
+      if (currentOriginalUrl) URL.revokeObjectURL(currentOriginalUrl);
+      currentOriginalUrl = URL.createObjectURL(file);
+      const preview = new Image();
+      preview.alt = 'Uploaded image for Base64 conversion';
+      preview.onload = () => {
+        ToolRenderers.setUploadPreviewCard('ib-original', {
+          url: currentOriginalUrl,
+          title: file.name,
+          meta: `${ToolRenderers.formatBytes(file.size)} • ${preview.width} × ${preview.height}`,
+          note: 'You can confirm the exact source image before copying the Base64 output.',
+          alt: 'Image to Base64 source preview',
+        });
+      };
+      preview.src = currentOriginalUrl;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        output.classList.remove('empty');
+        output.textContent = event.target.result;
+        copyBtn.classList.remove('hidden');
+        output.appendChild(copyBtn);
+        stats.classList.remove('hidden');
+        stats.innerHTML = [
+          ['Original Size', ToolRenderers.formatBytes(file.size)],
+          ['Base64 Length', `${event.target.result.length.toLocaleString()} chars`],
+          ['Encoding', 'Data URL'],
+        ].map(([label, value]) => `<div class="stat-card"><div class="stat-num" style="font-size:1rem">${value}</div><div class="stat-lbl">${label}</div></div>`).join('');
+      };
+      reader.readAsDataURL(file);
+    };
+
+    zone.addEventListener('click', () => fileInput.click());
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      loadFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => loadFile(e.target.files[0]));
+    copyBtn.addEventListener('click', function() {
+      copyToClipboard(document.getElementById('tool-output').textContent, this);
+    });
+  },
+
+  'image-converter'(c) {
+    c.innerHTML = `<div class="tool-workspace-body">
+      <div class="file-upload-zone" id="ic-drop">
+        <div class="upload-icon">🔮</div>
+        <p>Drop image or click to upload</p>
+        <p class="upload-hint">Supports JPEG, PNG, WebP, GIF, SVG</p>
+        <input type="file" id="ic-file" accept="image/*" style="display:none">
+      </div>
+      <div class="flex gap-4 flex-wrap mt-4 hidden" id="ic-controls">
+        <div class="input-group" style="flex:1;min-width:150px">
+          <label>Target Format</label>
+          <select id="ic-format"></select>
+        </div>
+        <div class="input-group" style="flex:1;min-width:200px">
+          <label>Quality: <span id="ic-q-val">75</span>% <span style="font-size:0.75rem;color:var(--text-tertiary)">(JPEG/WebP only)</span></label>
+          <input type="range" id="ic-quality" min="10" max="100" value="75">
+        </div>
+      </div>
+      <div id="ic-png-warn" class="mt-2 hidden" style="font-size:0.8rem;color:#f59e0b;">Converting to PNG is lossless and may result in a larger file size.</div>
+      <div class="media-preview-grid">
+        ${ToolRenderers.buildUploadPreviewCard('ic-original', 'Original image')}
+        ${ToolRenderers.buildUploadPreviewCard('ic-result', 'Converted output')}
+      </div>
+      <div class="result-stats mt-4 hidden" id="ic-stats"></div>
+      <button class="btn btn-primary mt-4 hidden" id="ic-convert">Convert & Optimize Image</button>
+      <div class="mt-4 hidden" id="ic-result-actions" style="text-align:center"></div>
+    </div>`;
+
+    const zone = document.getElementById('ic-drop');
+    const fileInput = document.getElementById('ic-file');
+    const controls = document.getElementById('ic-controls');
+    const stats = document.getElementById('ic-stats');
+    const convertBtn = document.getElementById('ic-convert');
+    const resultDiv = document.getElementById('ic-result-actions');
+    const formatSelect = document.getElementById('ic-format');
+    const pngWarn = document.getElementById('ic-png-warn');
+    const qualityInput = document.getElementById('ic-quality');
+    const qualityValue = document.getElementById('ic-q-val');
+
+    let currentFile = null;
+    let currentImg = null;
+    let currentOriginalUrl = '';
+    let currentConvertedUrl = '';
+
+    const availableFormats = [
+      { name: 'PNG', mime: 'image/png', ext: 'png' },
+      { name: 'JPEG', mime: 'image/jpeg', ext: 'jpg' },
+      { name: 'WebP', mime: 'image/webp', ext: 'webp' },
+    ];
+
+    const clearConvertedResult = () => {
+      if (currentConvertedUrl) {
+        URL.revokeObjectURL(currentConvertedUrl);
+        currentConvertedUrl = '';
+      }
+      ToolRenderers.hideUploadPreviewCard('ic-result');
+      resultDiv.classList.add('hidden');
+      resultDiv.innerHTML = '';
+    };
+
+    const processFile = (file) => {
+      fileInput.value = '';
+      if (!file || !file.type.startsWith('image/')) {
+        App.toast('Please select a valid image file', 'error');
+        return;
+      }
+      if (currentOriginalUrl) URL.revokeObjectURL(currentOriginalUrl);
+      clearConvertedResult();
+      currentFile = file;
+      currentOriginalUrl = URL.createObjectURL(file);
+      currentImg = new Image();
+      currentImg.alt = 'Uploaded image for conversion';
+      currentImg.onload = () => {
+        controls.classList.remove('hidden');
+        stats.classList.remove('hidden');
+        convertBtn.classList.remove('hidden');
+
+        let fileMime = file.type;
+        if (fileMime === 'image/jpg') fileMime = 'image/jpeg';
+
+        formatSelect.innerHTML = '';
+        availableFormats.forEach((format) => {
+          if (format.mime !== fileMime) {
+            const option = document.createElement('option');
+            option.value = format.mime;
+            option.textContent = format.name;
+            option.dataset.ext = format.ext;
+            formatSelect.appendChild(option);
+          }
+        });
+
+        pngWarn.classList.toggle('hidden', formatSelect.value !== 'image/png');
+        ToolRenderers.setUploadPreviewCard('ic-original', {
+          url: currentOriginalUrl,
+          title: file.name,
+          meta: `${ToolRenderers.formatBytes(file.size)} • ${currentImg.width} × ${currentImg.height}`,
+          note: `Source format: ${(fileMime.split('/')[1] || 'image').toUpperCase()}`,
+          alt: 'Original image preview',
+        });
+        stats.innerHTML = [
+          ['Input Format', fileMime.split('/')[1].toUpperCase()],
+          ['Dimensions', `${currentImg.width} × ${currentImg.height}`],
+          ['Original Size', ToolRenderers.formatBytes(file.size)],
+        ].map(([label, value]) => `<div class="stat-card"><div class="stat-num" style="font-size:1rem">${value}</div><div class="stat-lbl">${label}</div></div>`).join('');
+      };
+      currentImg.src = currentOriginalUrl;
+    };
+
+    zone.addEventListener('click', () => fileInput.click());
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      processFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => processFile(e.target.files[0]));
+    qualityInput.addEventListener('input', (e) => { qualityValue.textContent = e.target.value; });
+    formatSelect.addEventListener('change', (e) => {
+      pngWarn.classList.toggle('hidden', e.target.value !== 'image/png');
+    });
+
+    convertBtn.addEventListener('click', () => {
+      if (!currentImg || !currentFile) return;
+      const format = formatSelect.value;
+      const quality = Number(qualityInput.value) / 100;
+      const canvas = document.createElement('canvas');
+      canvas.width = currentImg.width;
+      canvas.height = currentImg.height;
+      const ctx = canvas.getContext('2d');
+      if (format === 'image/jpeg') {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      ctx.drawImage(currentImg, 0, 0);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          App.toast('Conversion failed. Image might be too large.', 'error');
+          return;
+        }
+        clearConvertedResult();
+        currentConvertedUrl = URL.createObjectURL(blob);
+        const selectedExt = formatSelect.options[formatSelect.selectedIndex].dataset.ext;
+        const newName = `${currentFile.name.replace(/\.[^/.]+$/, '')}.${selectedExt}`;
+        ToolRenderers.setUploadPreviewCard('ic-result', {
+          url: currentConvertedUrl,
+          title: newName,
+          meta: `${ToolRenderers.formatBytes(blob.size)} • ${currentImg.width} × ${currentImg.height}`,
+          note: `Converted to ${(format.split('/')[1] || 'image').toUpperCase()}`,
+          alt: 'Converted image preview',
+        });
+        resultDiv.classList.remove('hidden');
+        resultDiv.innerHTML = `<p class="mt-3" style="color:var(--text-secondary)">New Size: ${ToolRenderers.formatBytes(blob.size)}</p>`;
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'btn btn-success mt-3';
+        downloadBtn.textContent = 'Download Converted Image';
+        downloadBtn.onclick = () => {
+          const link = document.createElement('a');
+          link.href = currentConvertedUrl;
+          link.download = newName;
+          link.click();
+        };
+        resultDiv.appendChild(downloadBtn);
+        App.toast('Generated and optimized successfully!');
+      }, format, quality);
+    });
+  },
 });
