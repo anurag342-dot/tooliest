@@ -2355,6 +2355,40 @@ input[type="range"]::-webkit-slider-thumb:hover {
   line-height: 1.7;
 }
 
+.footer-verification-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 18px;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.footer-verification-label {
+  color: var(--text-tertiary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.footer-verification-link img {
+  display: block;
+  height: 54px;
+  width: auto;
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.footer-verification-link:hover img,
+.footer-verification-link:focus-visible img {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.26);
+}
+
 .footer-col-title {
   font-size: 0.85rem;
   font-weight: 600;

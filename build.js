@@ -1382,6 +1382,10 @@ function renderFooter() {
       <div class="footer-brand">
         <p class="footer-brand-title">&#9889; <span>Tooliest</span></p>
         <p>Free browser-based tools for developers, designers, writers, marketers, and document workflows. All tools run directly in your browser, so your input stays on your device.</p>
+        <a class="footer-verification-link" href="https://codetrendy.com" target="_blank" rel="noopener noreferrer" aria-label="Tooliest is listed on CodeTrendy">
+          <span class="footer-verification-label">Listed on CodeTrendy</span>
+          <img src="https://codetrendy.com/api/badge?style=dark" alt="Listed on codetrendy.com" height="54" loading="lazy" decoding="async">
+        </a>
       </div>
       <div class="footer-col">
         <p class="footer-col-title">Popular Tools</p>
@@ -3098,6 +3102,5 @@ build().catch((error) => {
   console.error('Build failed:', error);
   process.exitCode = 1;
 });
-
 
 
