@@ -248,6 +248,85 @@
     };
   }
 
+  function colorDistanceRgb(left, right) {
+    return Math.sqrt(
+      ((left.r || 0) - (right.r || 0)) ** 2 +
+      ((left.g || 0) - (right.g || 0)) ** 2 +
+      ((left.b || 0) - (right.b || 0)) ** 2
+    );
+  }
+
+  function sampleImagePatch(data, width, height, startX, startY, size) {
+    const endX = Math.min(width, startX + size);
+    const endY = Math.min(height, startY + size);
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    let alpha = 0;
+    let count = 0;
+    for (let y = startY; y < endY; y += 1) {
+      for (let x = startX; x < endX; x += 1) {
+        const offset = (y * width + x) * 4;
+        red += data[offset];
+        green += data[offset + 1];
+        blue += data[offset + 2];
+        alpha += data[offset + 3];
+        count += 1;
+      }
+    }
+    if (!count) return { r: 255, g: 255, b: 255, a: 255 };
+    return {
+      r: red / count,
+      g: green / count,
+      b: blue / count,
+      a: alpha / count,
+    };
+  }
+
+  function tryRemoveLogoBackground(context, width, height) {
+    const imageData = context.getImageData(0, 0, width, height);
+    const { data } = imageData;
+    for (let index = 3; index < data.length; index += 4) {
+      if (data[index] < 250) return false;
+    }
+    const inset = Math.max(1, Math.round(Math.min(width, height) * 0.03));
+    const patchSize = Math.max(3, Math.round(Math.min(width, height) * 0.05));
+    const samples = [
+      sampleImagePatch(data, width, height, inset, inset, patchSize),
+      sampleImagePatch(data, width, height, Math.max(0, width - inset - patchSize), inset, patchSize),
+      sampleImagePatch(data, width, height, inset, Math.max(0, height - inset - patchSize), patchSize),
+      sampleImagePatch(data, width, height, Math.max(0, width - inset - patchSize), Math.max(0, height - inset - patchSize), patchSize),
+    ];
+    const background = samples.reduce((accumulator, sample) => ({
+      r: accumulator.r + sample.r,
+      g: accumulator.g + sample.g,
+      b: accumulator.b + sample.b,
+    }), { r: 0, g: 0, b: 0 });
+    background.r /= samples.length;
+    background.g /= samples.length;
+    background.b /= samples.length;
+    const brightness = (background.r * 0.299) + (background.g * 0.587) + (background.b * 0.114);
+    if (brightness < 214) return false;
+    if (samples.some((sample) => colorDistanceRgb(sample, background) > 18)) return false;
+    let changed = false;
+    for (let index = 0; index < data.length; index += 4) {
+      const pixel = { r: data[index], g: data[index + 1], b: data[index + 2] };
+      const pixelBrightness = (pixel.r * 0.299) + (pixel.g * 0.587) + (pixel.b * 0.114);
+      if (pixelBrightness < 180) continue;
+      const distance = colorDistanceRgb(pixel, background);
+      if (distance <= 24) {
+        data[index + 3] = 0;
+        changed = true;
+      } else if (distance <= 58) {
+        const alphaRatio = (distance - 24) / (58 - 24);
+        data[index + 3] = Math.max(0, Math.min(255, Math.round(255 * alphaRatio)));
+        changed = true;
+      }
+    }
+    if (changed) context.putImageData(imageData, 0, 0);
+    return changed;
+  }
+
   function invoiceFileName(state) {
     const client = String(state.client.name || state.client.company || 'Client')
       .replace(/[^a-z0-9\-]+/gi, '-')
@@ -307,7 +386,7 @@
 <div style="font-family:Inter,Arial,sans-serif;background:#ffffff;color:#111827;max-width:820px;margin:0 auto;padding:40px">
   <div style="display:flex;justify-content:space-between;gap:24px;align-items:flex-start;padding-bottom:28px;border-bottom:4px solid ${escapeHtml(state.invoice.accentColor || '#7c3aed')}">
     <div style="max-width:60%">
-      ${state.sender.logoData ? `<img src="${escapeHtml(state.sender.logoData)}" alt="Business logo" style="max-width:180px;max-height:88px;object-fit:contain;margin-bottom:16px">` : ''}
+      ${state.sender.logoData ? `<div style="width:180px;height:88px;display:flex;align-items:center;justify-content:flex-start;margin-bottom:16px"><img src="${escapeHtml(state.sender.logoData)}" alt="Business logo" style="width:100%;height:100%;object-fit:contain;object-position:left center;display:block"></div>` : ''}
       <div style="font-size:28px;font-weight:800;margin-bottom:10px">${escapeHtml(state.sender.name || 'Your business')}</div>
       <div style="font-size:14px;color:#4b5563;line-height:1.7">
         ${state.sender.email ? `${escapeHtml(state.sender.email)}<br>` : ''}
@@ -400,7 +479,7 @@
             <div class="inv-preview-accent"></div>
             <div class="inv-preview-header-row">
               <div class="inv-preview-brand">
-                ${state.sender.logoData ? `<img class="inv-preview-logo" src="${escapeHtml(state.sender.logoData)}" alt="Business logo">` : `<div class="inv-preview-logo-placeholder">${escapeHtml((state.sender.name || 'T').trim().charAt(0).toUpperCase() || 'T')}</div>`}
+                ${state.sender.logoData ? `<div class="inv-preview-logo-frame"><img class="inv-preview-logo" src="${escapeHtml(state.sender.logoData)}" alt="Business logo"></div>` : `<div class="inv-preview-logo-frame inv-preview-logo-frame-fallback"><div class="inv-preview-logo-placeholder">${escapeHtml((state.sender.name || 'T').trim().charAt(0).toUpperCase() || 'T')}</div></div>`}
                 <div class="inv-preview-company">
                   <div class="inv-preview-company-name">${escapeHtml(state.sender.name || 'Your business name')}</div>
                   <div class="inv-preview-copy">${senderLines.length ? senderLines.map((line) => escapeHtml(line).replace(/\n/g, '<br>')).join('<br>') : 'Add your contact details and logo once - Tooliest remembers them locally.'}</div>
@@ -481,8 +560,10 @@
     const context = canvas.getContext('2d');
     context.clearRect(0, 0, width, height);
     context.drawImage(image, 0, 0, width, height);
+    const cleanedBackground = tryRemoveLogoBackground(context, width, height);
+    const outputType = cleanedBackground || ['image/png', 'image/svg+xml'].includes(file.type) ? 'image/png' : 'image/jpeg';
     return {
-      dataUrl: canvas.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.7),
+      dataUrl: canvas.toDataURL(outputType, outputType === 'image/png' ? undefined : 0.7),
       fileName: file.name,
       width,
       height,
@@ -747,7 +828,9 @@
   .inv-template-minimal .inv-preview-table td { border-bottom:1px solid #eceff3; }
   .inv-preview-header-row { display:flex; justify-content:space-between; gap:32px; align-items:flex-start; }
   .inv-preview-brand { display:flex; gap:16px; align-items:flex-start; flex:1 1 auto; min-width:0; }
-  .inv-preview-logo { max-width:152px; max-height:86px; object-fit:contain; }
+  .inv-preview-logo-frame { width:156px; height:82px; flex:0 0 156px; display:flex; align-items:center; justify-content:flex-start; }
+  .inv-preview-logo-frame-fallback { width:72px; height:72px; flex-basis:72px; }
+  .inv-preview-logo { width:100%; height:100%; object-fit:contain; object-position:left center; display:block; }
   .inv-preview-logo-placeholder {
     width:72px; height:72px; border-radius:20px; background:#f3f4f6; color:#111827; display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:800;
   }
@@ -901,7 +984,7 @@
             <div class="inv-logo-actions">
               <label class="inv-inline-btn" for="inv-logo-file">Upload Logo</label>
               <button class="inv-inline-btn is-danger" id="inv-clear-logo" type="button">Remove Logo</button>
-              <span class="inv-panel-subtle">PNG, JPG, or SVG up to 2 MB</span>
+              <span class="inv-panel-subtle">PNG, JPG, or SVG up to 2 MB. Light backgrounds are cleaned when possible.</span>
             </div>
             <div class="inv-field-error" id="error-logo"></div>
           </div>
