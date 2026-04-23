@@ -789,12 +789,21 @@ function extractTrailingScripts(html) {
     .trim();
 }
 
+function syncLocalAssetVersions(html) {
+  if (!html) {
+    return '';
+  }
+  return html.replace(/(src|href)="(\/[^"?]+)\?v=[^"]*"/gi, (_match, attr, assetPath) => {
+    return `${attr}="${assetPath}?v=${ASSET_VERSION}"`;
+  });
+}
+
 function renderPage(tool, categories, tools, originalHtml) {
   const repairedOriginalHtml = repairPdfWorkspaceBehaviors(repairTextArtifacts(originalHtml));
   const categoryName = categories.find((category) => category.id === tool.category)?.name || 'PDF Tools';
   const styleBlocks = extractStyleBlocks(repairedOriginalHtml);
   const workspaceHtml = extractWorkspace(repairedOriginalHtml, tool.standaloneSourceFile);
-  const trailingScripts = extractTrailingScripts(repairedOriginalHtml);
+  const trailingScripts = syncLocalAssetVersions(extractTrailingScripts(repairedOriginalHtml));
   const title = tool.meta?.title || `${tool.name} | Tooliest`;
   const description = tool.meta?.desc || tool.description;
   const keywords = [...(tool.tags || []), categoryName.toLowerCase(), 'free online tool', 'browser-based', 'tooliest'].join(', ');
