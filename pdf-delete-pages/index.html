@@ -46,8 +46,8 @@
     .pdf-dropzone{position:relative;border:2px dashed var(--accent-secondary);border-radius:var(--radius-lg);padding:48px 24px;text-align:center;cursor:pointer;transition:all .3s;background:linear-gradient(135deg,rgba(6,182,212,.03),rgba(139,92,246,.03))}.pdf-dropzone:hover,.pdf-dropzone.drag-over{border-color:var(--accent-primary);box-shadow:0 0 24px rgba(6,182,212,.15)}.pdf-dropzone input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.pdf-dropzone-icon{font-size:3rem;margin-bottom:12px;display:block}.pdf-dropzone-title{font-size:1.15rem;font-weight:700;margin-bottom:6px}.pdf-dropzone-subtitle{font-size:.88rem;color:var(--text-tertiary);font-family:var(--font-mono)}
     .pdf-file-info{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-top:16px;border:1px solid var(--border-color);border-radius:var(--radius-md);background:var(--bg-secondary)}.fi-name{font-weight:600}.fi-meta{font-size:.78rem;color:var(--text-tertiary);font-family:var(--font-mono);display:flex;gap:12px}
     .page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:16px;padding:16px;border:1px solid var(--border-color);border-radius:var(--radius-lg);background:var(--bg-secondary);display:none}.page-grid.visible{display:grid}
-    .page-card{position:relative;border:2px solid var(--border-color);border-radius:var(--radius-md);background:#fff;overflow:hidden;cursor:pointer;transition:all .25s;aspect-ratio:.707}.page-card:hover{border-color:rgba(239,68,68,.5);box-shadow:0 0 12px rgba(239,68,68,.15)}.page-card.marked{border-color:#ef4444;box-shadow:0 0 16px rgba(239,68,68,.25);opacity:.6}
-    .page-card canvas{max-width:100%;max-height:100%;display:block;margin:auto}
+    .page-card{position:relative;border:2px solid var(--border-color);border-radius:var(--radius-md);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));overflow:hidden;cursor:pointer;transition:all .25s;aspect-ratio:.707}.page-card:hover{border-color:rgba(239,68,68,.5);box-shadow:0 0 12px rgba(239,68,68,.15)}.page-card.marked{border-color:#ef4444;box-shadow:0 0 16px rgba(239,68,68,.25);opacity:.6}
+    .page-card canvas{max-width:calc(100% - 12px);max-height:calc(100% - 12px);display:block;margin:auto;background:#fff;border-radius:10px;box-shadow:0 10px 24px rgba(15,23,42,.18),0 0 0 1px rgba(15,23,42,.08)}
     .page-card .pn{position:absolute;top:4px;left:4px;padding:2px 6px;border-radius:4px;background:rgba(10,10,15,.75);color:#fff;font-size:.68rem;font-family:var(--font-mono);font-weight:600}
     .page-card .del-mark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem;color:transparent;background:transparent;transition:all .2s;pointer-events:none}.page-card.marked .del-mark{color:#ef4444;background:rgba(239,68,68,.1)}
     .controls-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;padding:12px;border:1px solid var(--border-color);border-radius:var(--radius-md);background:var(--bg-secondary);display:none}.controls-bar.visible{display:flex}
@@ -61,13 +61,13 @@
   </style>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin"></noscript>
-  <link rel="preload" href="/css/styles3.min.css?v=20260423v39" as="style" fetchpriority="high">
-  <link rel="stylesheet" href="/css/styles3.min.css?v=20260423v39">
-  <script>window.__TOOLIEST_ASSET_VERSION='20260423v39';</script>
-  <script src="/js/consent.js?v=20260423v39" defer></script>
+  <link rel="preload" href="/css/styles3.min.css?v=20260423v40" as="style" fetchpriority="high">
+  <link rel="stylesheet" href="/css/styles3.min.css?v=20260423v40">
+  <script>window.__TOOLIEST_ASSET_VERSION='20260423v40';</script>
+  <script src="/js/consent.js?v=20260423v40" defer></script>
   <script>(function(){var loaded=false;function boot(){if(loaded)return;loaded=true;var s=document.createElement('script');s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3155132462698504';s.async=true;s.crossOrigin='anonymous';document.head.appendChild(s);}window.addEventListener('load',function(){if('requestIdleCallback' in window){requestIdleCallback(boot,{timeout:4500});return;}setTimeout(boot,3200);});})();</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Tooliest","url":"https://tooliest.com","logo":"https://tooliest.com/icon-512.png","description":"A free, browser-based platform with online tools for developers, designers, writers, marketers, and document workflows.","foundingDate":"2026","sameAs":["https://twitter.com/tooliest"],"contactPoint":{"@type":"ContactPoint","contactType":"customer support","url":"https://tooliest.com/contact"}}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PDF Page Deleter","url":"https://tooliest.com/pdf-delete-pages","description":"Delete unwanted pages from a PDF online with visual page selection. Free, private browser-based PDF page remover from Tooliest.","applicationCategory":"UtilityApplication","operatingSystem":"Any","dateModified":"2026-04-20","browserRequirements":"Requires a JavaScript-enabled modern web browser","featureList":"delete pdf pages, remove pages from pdf, clean pdf, pdf toolkit","softwareVersion":"20260423v39","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PDF Page Deleter","url":"https://tooliest.com/pdf-delete-pages","description":"Delete unwanted pages from a PDF online with visual page selection. Free, private browser-based PDF page remover from Tooliest.","applicationCategory":"UtilityApplication","operatingSystem":"Any","dateModified":"2026-04-20","browserRequirements":"Requires a JavaScript-enabled modern web browser","featureList":"delete pdf pages, remove pages from pdf, clean pdf, pdf toolkit","softwareVersion":"20260423v40","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tooliest.com/"},{"@type":"ListItem","position":2,"name":"PDF Tools","item":"https://tooliest.com/category/pdf"},{"@type":"ListItem","position":3,"name":"PDF Page Deleter","item":"https://tooliest.com/pdf-delete-pages"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"How to delete pages from a PDF visually","description":"Delete unwanted pages from a PDF online with visual page selection. Free, private browser-based PDF page remover from Tooliest.","step":[{"@type":"HowToStep","position":1,"name":"Upload the PDF","text":"Open the document you want to clean up in the page thumbnail view."},{"@type":"HowToStep","position":2,"name":"Mark pages to remove","text":"Select the blank, duplicate, or outdated pages you want to delete."},{"@type":"HowToStep","position":3,"name":"Review the remaining pages","text":"Confirm the pages you are keeping before exporting the updated file."},{"@type":"HowToStep","position":4,"name":"Download the cleaned PDF","text":"Save the new version locally once the unwanted pages have been removed."}],"tool":{"@type":"HowToTool","name":"Tooliest PDF Page Deleter"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"PDF Page Deleter","speakable":{"@type":"SpeakableSpecification","cssSelector":[".tool-page-header p",".tool-content-section"]},"url":"https://tooliest.com/pdf-delete-pages","dateModified":"2026-04-20"}</script>
@@ -288,13 +288,15 @@
   </div>
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-  <script src="/bundle.min.js?v=20260423v39" defer></script>
-  <script>
+  <script src="/bundle.min.js?v=20260423v40" defer></script>
+  <script src="/js/pdf-preview.js?v=20260423v40"></script>
+<script>
   (function(){
     'use strict';
     let pdfLib=null,pdfjsLib=null;
     let srcFile=null,srcBuffer=null,pageCount=0,pdfJsDoc=null;
     let markedForDelete=new Set();let resultBlob=null,resultUrl=null;
+    const pdfPreview=window.TooliestPdfPreview;
     function loadScript(s,g){if(window[g])return Promise.resolve(window[g]);return new Promise((r,j)=>{const el=document.createElement('script');el.src=s;el.async=true;el.onload=()=>r(window[g]);el.onerror=()=>j(new Error('Load failed'));document.head.appendChild(el);})}
     async function ensureLibs(){if(pdfLib&&pdfjsLib)return;const[a,b]=await Promise.all([loadScript('https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js','PDFLib'),loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','pdfjsLib')]);pdfLib=a;pdfjsLib=b;pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}
     function fmt(b){if(!b)return'0 B';const u=['B','KB','MB','GB'];const i=Math.floor(Math.log(b)/Math.log(1024));return(b/Math.pow(1024,i)).toFixed(i>0?1:0)+' '+u[i];}
@@ -331,7 +333,7 @@
       for(let i=0;i<pageCount;i++){
         const card=document.createElement('div');card.className='page-card';card.dataset.idx=i;
         const canvas=document.createElement('canvas');
-        try{const pg=await pdfJsDoc.getPage(i+1);const vp=pg.getViewport({scale:.25});canvas.width=vp.width;canvas.height=vp.height;await pg.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;}catch(e){}
+        try{const pg=await pdfJsDoc.getPage(i+1);await pdfPreview.renderPageToCanvas(pg,canvas,{scale:.55,maxEdge:420});}catch(e){pdfPreview.drawFallback(canvas,{detail:'Page '+(i+1)});}
         card.appendChild(canvas);
         card.innerHTML+=`<span class="pn">${i+1}</span><div class="del-mark">✕</div>`;
         card.addEventListener('click',()=>{const idx=parseInt(card.dataset.idx);if(markedForDelete.has(idx)){markedForDelete.delete(idx);card.classList.remove('marked');}else{if(markedForDelete.size>=pageCount-1){showError('Cannot delete all pages.');return;}markedForDelete.add(idx);card.classList.add('marked');}updateCount();});

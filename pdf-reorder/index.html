@@ -49,8 +49,8 @@
     .pdf-dropzone-icon{font-size:3rem;margin-bottom:12px;display:block}.pdf-dropzone-title{font-size:1.15rem;font-weight:700;margin-bottom:6px}.pdf-dropzone-subtitle{font-size:.88rem;color:var(--text-tertiary);font-family:var(--font-mono)}
     .pdf-file-info{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-top:16px;border:1px solid var(--border-color);border-radius:var(--radius-md);background:var(--bg-secondary)}.fi-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fi-meta{font-size:.78rem;color:var(--text-tertiary);font-family:var(--font-mono);display:flex;gap:12px}
     .page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:16px;padding:16px;border:1px solid var(--border-color);border-radius:var(--radius-lg);background:var(--bg-secondary);display:none}.page-grid.visible{display:grid}
-    .page-card{position:relative;border:2px solid var(--border-color);border-radius:var(--radius-md);background:#fff;overflow:hidden;cursor:grab;transition:all .25s;aspect-ratio:.707}.page-card:hover{border-color:var(--accent-secondary);box-shadow:0 0 12px rgba(6,182,212,.15);transform:translateY(-2px)}.page-card.sortable-ghost{opacity:.4;border-color:var(--accent-primary)}.page-card.sortable-drag{box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:100}
-    .page-card canvas{max-width:100%;max-height:100%;display:block;margin:auto}
+    .page-card{position:relative;border:2px solid var(--border-color);border-radius:var(--radius-md);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));overflow:hidden;cursor:grab;transition:all .25s;aspect-ratio:.707}.page-card:hover{border-color:var(--accent-secondary);box-shadow:0 0 12px rgba(6,182,212,.15);transform:translateY(-2px)}.page-card.sortable-ghost{opacity:.4;border-color:var(--accent-primary)}.page-card.sortable-drag{box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:100}
+    .page-card canvas{max-width:calc(100% - 12px);max-height:calc(100% - 12px);display:block;margin:auto;background:#fff;border-radius:10px;box-shadow:0 10px 24px rgba(15,23,42,.18),0 0 0 1px rgba(15,23,42,.08)}
     .page-card .pn{position:absolute;top:4px;left:4px;padding:2px 8px;border-radius:4px;background:rgba(10,10,15,.75);color:#fff;font-size:.7rem;font-family:var(--font-mono);font-weight:600}
     .page-card .page-remove{position:absolute;top:4px;right:4px;width:22px;height:22px;border:none;border-radius:50%;background:rgba(239,68,68,.85);color:#fff;font-size:.65rem;cursor:pointer;display:none;align-items:center;justify-content:center}.page-card:hover .page-remove{display:flex}.page-card .page-remove:hover{background:#ef4444;transform:scale(1.1)}
     .controls-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;padding:14px;border:1px solid var(--border-color);border-radius:var(--radius-md);background:var(--bg-secondary);display:none}.controls-bar.visible{display:flex}
@@ -64,13 +64,13 @@
   </style>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin"></noscript>
-  <link rel="preload" href="/css/styles3.min.css?v=20260423v39" as="style" fetchpriority="high">
-  <link rel="stylesheet" href="/css/styles3.min.css?v=20260423v39">
-  <script>window.__TOOLIEST_ASSET_VERSION='20260423v39';</script>
-  <script src="/js/consent.js?v=20260423v39" defer></script>
+  <link rel="preload" href="/css/styles3.min.css?v=20260423v40" as="style" fetchpriority="high">
+  <link rel="stylesheet" href="/css/styles3.min.css?v=20260423v40">
+  <script>window.__TOOLIEST_ASSET_VERSION='20260423v40';</script>
+  <script src="/js/consent.js?v=20260423v40" defer></script>
   <script>(function(){var loaded=false;function boot(){if(loaded)return;loaded=true;var s=document.createElement('script');s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3155132462698504';s.async=true;s.crossOrigin='anonymous';document.head.appendChild(s);}window.addEventListener('load',function(){if('requestIdleCallback' in window){requestIdleCallback(boot,{timeout:4500});return;}setTimeout(boot,3200);});})();</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Tooliest","url":"https://tooliest.com","logo":"https://tooliest.com/icon-512.png","description":"A free, browser-based platform with online tools for developers, designers, writers, marketers, and document workflows.","foundingDate":"2026","sameAs":["https://twitter.com/tooliest"],"contactPoint":{"@type":"ContactPoint","contactType":"customer support","url":"https://tooliest.com/contact"}}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PDF Page Reorder","url":"https://tooliest.com/pdf-reorder","description":"Reorder PDF pages with drag-and-drop thumbnails. Rearrange document flow privately in your browser and download the updated PDF with Tooliest.","applicationCategory":"UtilityApplication","operatingSystem":"Any","dateModified":"2026-04-20","browserRequirements":"Requires a JavaScript-enabled modern web browser","featureList":"reorder pdf pages, drag drop pdf, arrange pages, pdf toolkit","softwareVersion":"20260423v39","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PDF Page Reorder","url":"https://tooliest.com/pdf-reorder","description":"Reorder PDF pages with drag-and-drop thumbnails. Rearrange document flow privately in your browser and download the updated PDF with Tooliest.","applicationCategory":"UtilityApplication","operatingSystem":"Any","dateModified":"2026-04-20","browserRequirements":"Requires a JavaScript-enabled modern web browser","featureList":"reorder pdf pages, drag drop pdf, arrange pages, pdf toolkit","softwareVersion":"20260423v40","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tooliest.com/"},{"@type":"ListItem","position":2,"name":"PDF Tools","item":"https://tooliest.com/category/pdf"},{"@type":"ListItem","position":3,"name":"PDF Page Reorder","item":"https://tooliest.com/pdf-reorder"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"How to rearrange a PDF page order","description":"Reorder PDF pages with drag-and-drop thumbnails. Rearrange document flow privately in your browser and download the updated PDF with Tooliest.","step":[{"@type":"HowToStep","position":1,"name":"Upload your PDF","text":"Load the document you want to reorganize in the visual page grid."},{"@type":"HowToStep","position":2,"name":"Drag pages into a new order","text":"Move thumbnails until the page sequence matches the final reading order you want."},{"@type":"HowToStep","position":3,"name":"Remove any pages you do not need","text":"Optionally delete extra pages while you are reordering the document."},{"@type":"HowToStep","position":4,"name":"Download the reordered PDF","text":"Export the updated PDF and keep the new page arrangement as a fresh file."}],"tool":{"@type":"HowToTool","name":"Tooliest PDF Page Reorder"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"PDF Page Reorder","speakable":{"@type":"SpeakableSpecification","cssSelector":[".tool-page-header p",".tool-content-section"]},"url":"https://tooliest.com/pdf-reorder","dateModified":"2026-04-20"}</script>
@@ -291,14 +291,16 @@
   </div>
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-  <script src="/bundle.min.js?v=20260423v39" defer></script>
-  <script>
+  <script src="/bundle.min.js?v=20260423v40" defer></script>
+  <script src="/js/pdf-preview.js?v=20260423v40"></script>
+<script>
   (function(){
     'use strict';
     let pdfLib=null,pdfjsLib=null,Sortable=null;
     let srcFile=null,srcBuffer=null,pageCount=0,pdfJsDoc=null;
     let pageOrder=[]; // array of 0-indexed page indices in display order
     let resultBlob=null,resultUrl=null,sortableInst=null;
+    const pdfPreview=window.TooliestPdfPreview;
     function loadScript(s,g){if(window[g])return Promise.resolve(window[g]);return new Promise((r,j)=>{const el=document.createElement('script');el.src=s;el.async=true;el.onload=()=>r(window[g]);el.onerror=()=>j(new Error('Load failed'));document.head.appendChild(el);})}
     async function ensureLibs(){if(pdfLib&&pdfjsLib&&Sortable)return;const[a,b,c]=await Promise.all([loadScript('https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js','PDFLib'),loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','pdfjsLib'),loadScript('https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js','Sortable')]);pdfLib=a;pdfjsLib=b;Sortable=c;pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}
     function fmt(b){if(!b)return'0 B';const u=['B','KB','MB','GB'];const i=Math.floor(Math.log(b)/Math.log(1024));return(b/Math.pow(1024,i)).toFixed(i>0?1:0)+' '+u[i];}
@@ -339,7 +341,7 @@
         const idx=pageOrder[i];
         const card=document.createElement('div');card.className='page-card';card.dataset.idx=idx;
         const canvas=document.createElement('canvas');
-        try{const pg=await pdfJsDoc.getPage(idx+1);const vp=pg.getViewport({scale:.25});canvas.width=vp.width;canvas.height=vp.height;await pg.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;}catch(e){canvas.width=80;canvas.height=113;}
+        try{const pg=await pdfJsDoc.getPage(idx+1);await pdfPreview.renderPageToCanvas(pg,canvas,{scale:.55,maxEdge:420});}catch(e){pdfPreview.drawFallback(canvas,{detail:'Page '+(idx+1)});}
         card.appendChild(canvas);
         card.innerHTML+=`<span class="pn">${i+1}</span><button class="page-remove" data-i="${i}" title="Remove page">✕</button>`;
         pageGrid.appendChild(card);
