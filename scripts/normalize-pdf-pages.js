@@ -349,7 +349,24 @@ function repairTextArtifacts(text) {
 function repairPdfWorkspaceBehaviors(text) {
   return text
     .replace(/dropzone\.addEventListener\('click',\s*\(\)\s*=>\s*fileInput\.click\(\)\);?/g, '')
-    .replace(/dropzone\.addEventListener\("click",\s*\(\)\s*=>\s*fileInput\.click\(\)\);?/g, '');
+    .replace(/dropzone\.addEventListener\("click",\s*\(\)\s*=>\s*fileInput\.click\(\)\);?/g, '')
+    .replace(
+      /card\.appendChild\(canvas\);\s*card\.innerHTML\+=`<span class="pn">\$\{i\+1\}<\/span><button class="page-remove" data-i="\$\{i\}" title="Remove page">[\s\S]*?<\/button>`;/g,
+      "card.appendChild(canvas); const pageNumber=document.createElement('span');pageNumber.className='pn';pageNumber.textContent=i+1; const removeBtn=document.createElement('button');removeBtn.className='page-remove';removeBtn.dataset.i=i;removeBtn.title='Remove page';removeBtn.type='button';removeBtn.setAttribute('aria-label','Remove page');removeBtn.textContent='X'; card.appendChild(pageNumber);card.appendChild(removeBtn);"
+    )
+    .replace(
+      /card\.appendChild\(canvas\);\s*card\.innerHTML\+=`<span class="pn">\$\{i\+1\}<\/span><div class="pc">[\s\S]*?<\/div>`;/g,
+      "card.appendChild(canvas); const pageNumber=document.createElement('span');pageNumber.className='pn';pageNumber.textContent=i+1; const pageCheck=document.createElement('div');pageCheck.className='pc';pageCheck.innerHTML='&#10003;'; card.appendChild(pageNumber);card.appendChild(pageCheck);"
+    )
+    .replace(
+      /card\.appendChild\(canvas\);\s*card\.innerHTML\+=`<span class="pn">\$\{i\+1\}<\/span><div class="del-mark">[\s\S]*?<\/div>`;/g,
+      "card.appendChild(canvas); const pageNumber=document.createElement('span');pageNumber.className='pn';pageNumber.textContent=i+1; const deleteMark=document.createElement('div');deleteMark.className='del-mark';deleteMark.textContent='X'; card.appendChild(pageNumber);card.appendChild(deleteMark);"
+    )
+    .replace(
+      /card\.appendChild\(canvas\);\s*card\.innerHTML\+=`<span class="pn">\$\{i\}<\/span><span class="rot-label" id="rot-label-\$\{i-1\}">[^<]*<\/span>\s*<div class="card-rot-btns"><button class="card-rot-btn" data-idx="\$\{i-1\}" data-dir="cw" title="[^"]*">[^<]*<\/button><button class="card-rot-btn" data-idx="\$\{i-1\}" data-dir="ccw" title="[^"]*">[^<]*<\/button><\/div>`;/g,
+      "card.appendChild(canvas); const pageNumber=document.createElement('span');pageNumber.className='pn';pageNumber.textContent=i; const rotationLabel=document.createElement('span');rotationLabel.className='rot-label';rotationLabel.id='rot-label-'+(i-1);rotationLabel.textContent='0 deg'; const rotateButtons=document.createElement('div');rotateButtons.className='card-rot-btns'; const rotateCw=document.createElement('button');rotateCw.className='card-rot-btn';rotateCw.dataset.idx=i-1;rotateCw.dataset.dir='cw';rotateCw.title='Rotate 90 CW';rotateCw.type='button';rotateCw.textContent='CW'; const rotateCcw=document.createElement('button');rotateCcw.className='card-rot-btn';rotateCcw.dataset.idx=i-1;rotateCcw.dataset.dir='ccw';rotateCcw.title='Rotate 90 CCW';rotateCcw.type='button';rotateCcw.textContent='CCW'; rotateButtons.appendChild(rotateCw);rotateButtons.appendChild(rotateCcw); card.appendChild(pageNumber);card.appendChild(rotationLabel);card.appendChild(rotateButtons);"
+    )
+    .replace(/label\.textContent=rotations\[idx\]\+'[^']*';/g, "label.textContent=rotations[idx]+' deg';");
 }
 
 function getAbsoluteUrl(pathname) {

@@ -82,13 +82,13 @@
   </style>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin"></noscript>
-  <link rel="preload" href="/css/styles3.min.css?v=20260423v41" as="style" fetchpriority="high">
-  <link rel="stylesheet" href="/css/styles3.min.css?v=20260423v41">
-  <script>window.__TOOLIEST_ASSET_VERSION='20260423v41';</script>
-  <script src="/js/consent.js?v=20260423v41" defer></script>
+  <link rel="preload" href="/css/styles3.min.css?v=20260423v42" as="style" fetchpriority="high">
+  <link rel="stylesheet" href="/css/styles3.min.css?v=20260423v42">
+  <script>window.__TOOLIEST_ASSET_VERSION='20260423v42';</script>
+  <script src="/js/consent.js?v=20260423v42" defer></script>
   <script>(function(){var loaded=false;function boot(){if(loaded)return;loaded=true;var s=document.createElement('script');s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3155132462698504';s.async=true;s.crossOrigin='anonymous';document.head.appendChild(s);}window.addEventListener('load',function(){if('requestIdleCallback' in window){requestIdleCallback(boot,{timeout:4500});return;}setTimeout(boot,3200);});})();</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Tooliest","url":"https://tooliest.com","logo":"https://tooliest.com/icon-512.png","description":"A free, browser-based platform with online tools for developers, designers, writers, marketers, and document workflows.","foundingDate":"2026","sameAs":["https://twitter.com/tooliest"],"contactPoint":{"@type":"ContactPoint","contactType":"customer support","url":"https://tooliest.com/contact"}}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PDF Page Rotator","url":"https://tooliest.com/pdf-rotate","description":"Rotate PDF pages online by 90, 180, or 270 degrees. Fix scanned PDFs fast with browser-based private processing on Tooliest.","applicationCategory":"UtilityApplication","operatingSystem":"Any","dateModified":"2026-04-20","browserRequirements":"Requires a JavaScript-enabled modern web browser","featureList":"rotate pdf, fix scan orientation, turn pdf pages, pdf toolkit","softwareVersion":"20260423v41","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PDF Page Rotator","url":"https://tooliest.com/pdf-rotate","description":"Rotate PDF pages online by 90, 180, or 270 degrees. Fix scanned PDFs fast with browser-based private processing on Tooliest.","applicationCategory":"UtilityApplication","operatingSystem":"Any","dateModified":"2026-04-20","browserRequirements":"Requires a JavaScript-enabled modern web browser","featureList":"rotate pdf, fix scan orientation, turn pdf pages, pdf toolkit","softwareVersion":"20260423v42","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tooliest.com/"},{"@type":"ListItem","position":2,"name":"PDF Tools","item":"https://tooliest.com/category/pdf"},{"@type":"ListItem","position":3,"name":"PDF Page Rotator","item":"https://tooliest.com/pdf-rotate"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"How to fix sideways PDF pages","description":"Rotate PDF pages online by 90, 180, or 270 degrees. Fix scanned PDFs fast with browser-based private processing on Tooliest.","step":[{"@type":"HowToStep","position":1,"name":"Upload the PDF","text":"Open the PDF that has sideways or upside-down pages."},{"@type":"HowToStep","position":2,"name":"Select the affected pages","text":"Choose whether to rotate all pages or only specific pages in the document."},{"@type":"HowToStep","position":3,"name":"Apply the rotation angle","text":"Use 90, 180, or 270 degrees to set the correct reading orientation."},{"@type":"HowToStep","position":4,"name":"Save the corrected file","text":"Export the rotated PDF and download the updated version instantly."}],"tool":{"@type":"HowToTool","name":"Tooliest PDF Page Rotator"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"PDF Page Rotator","speakable":{"@type":"SpeakableSpecification","cssSelector":[".tool-page-header p",".tool-content-section"]},"url":"https://tooliest.com/pdf-rotate","dateModified":"2026-04-20"}</script>
@@ -334,8 +334,8 @@
   </div>
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-  <script src="/bundle.min.js?v=20260423v41" defer></script>
-  <script src="/js/pdf-preview.js?v=20260423v41"></script>
+  <script src="/bundle.min.js?v=20260423v42" defer></script>
+  <script src="/js/pdf-preview.js?v=20260423v42"></script>
 <script>
   /**
    * @fileoverview PDF Page Rotator
@@ -403,9 +403,7 @@
         const card=document.createElement('div');card.className='page-card';card.dataset.page=i-1;
         const canvas=document.createElement('canvas');
         try{const pg=await pdfJsDoc.getPage(i);await pdfPreview.renderPageToCanvas(pg,canvas,{scale:.55,maxEdge:420});}catch(e){pdfPreview.drawFallback(canvas,{detail:'Page '+i});}
-        card.appendChild(canvas);
-        card.innerHTML+=`<span class="pn">${i}</span><span class="rot-label" id="rot-label-${i-1}">0°</span>
-          <div class="card-rot-btns"><button class="card-rot-btn" data-idx="${i-1}" data-dir="cw" title="Rotate 90° CW">↻</button><button class="card-rot-btn" data-idx="${i-1}" data-dir="ccw" title="Rotate 90° CCW">↺</button></div>`;
+        card.appendChild(canvas); const pageNumber=document.createElement('span');pageNumber.className='pn';pageNumber.textContent=i; const rotationLabel=document.createElement('span');rotationLabel.className='rot-label';rotationLabel.id='rot-label-'+(i-1);rotationLabel.textContent='0 deg'; const rotateButtons=document.createElement('div');rotateButtons.className='card-rot-btns'; const rotateCw=document.createElement('button');rotateCw.className='card-rot-btn';rotateCw.dataset.idx=i-1;rotateCw.dataset.dir='cw';rotateCw.title='Rotate 90 CW';rotateCw.type='button';rotateCw.textContent='CW'; const rotateCcw=document.createElement('button');rotateCcw.className='card-rot-btn';rotateCcw.dataset.idx=i-1;rotateCcw.dataset.dir='ccw';rotateCcw.title='Rotate 90 CCW';rotateCcw.type='button';rotateCcw.textContent='CCW'; rotateButtons.appendChild(rotateCw);rotateButtons.appendChild(rotateCcw); card.appendChild(pageNumber);card.appendChild(rotationLabel);card.appendChild(rotateButtons);
         pageGrid.appendChild(card);
         if(i%10===0)await new Promise(r=>requestAnimationFrame(r));
       }
@@ -423,7 +421,7 @@
       const canvas=card.querySelector('canvas');
       const label=card.querySelector('.rot-label');
       if(canvas)canvas.style.transform='rotate('+rotations[idx]+'deg)';
-      if(label)label.textContent=rotations[idx]+'°';
+      if(label)label.textContent=rotations[idx]+' deg';
     }
 
     // Global rotation buttons
