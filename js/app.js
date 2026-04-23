@@ -28,7 +28,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v43';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260424v44';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -113,12 +113,6 @@ const App = {
           .catch(err => console.log('[Service Worker] Failed', err));
       });
       // Auto-reload when a new service worker version activates
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'SW_UPDATED') {
-          console.log('[Tooliest] New version available, reloading...');
-          window.location.reload();
-        }
-      });
     }
     
     this.initTheme();
@@ -1505,8 +1499,8 @@ const App = {
   getHeroHTML() {
     const categoryCount = this.getVisibleCategories().length;
     return `<section class="hero">
-      <div class="hero-badge"><span class="pulse-dot"></span> Browser-Based Tools • Free &amp; No Signup</div>
-      <h1>Every Tool You Need.<br><span class="gradient-text">${TOOLS.length}+ Free Online Tools — Zero Installs.</span></h1>
+      <div class="hero-badge"><span class="pulse-dot"></span> Free &amp; No Signup Required</div>
+      <h1>Every Tool You Need.<br><span class="gradient-text">${TOOLS.length}+ Free Online Tools &mdash; Zero Installs.</span></h1>
       <p>Free online tools for developers, designers, writers, and marketers. Private, fast, and ready in one tab so you can search, launch, and finish faster with Tooliest.</p>
       <div class="hero-stats">
         <div class="hero-stat"><div class="stat-value">1</div><div class="stat-label">Tab Needed</div></div>
@@ -1514,10 +1508,10 @@ const App = {
         <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
       </div>
       <div class="hero-trust-strip" aria-label="Tooliest trust highlights">
-        <span class="trust-badge">🔒 100% Private — No Uploads</span>
-        <span class="trust-badge">⚡ Instant Browser Results</span>
-        <span class="trust-badge">📲 PWA Ready + Offline Support</span>
-        <span class="trust-badge">🧭 No Account Friction</span>
+        <span class="trust-badge">100% Private - No Uploads</span>
+        <span class="trust-badge">Instant Browser Results</span>
+        <span class="trust-badge">PWA Ready + Offline Support</span>
+        <span class="trust-badge">No Account Friction</span>
       </div>
     </section>`;
   },

@@ -1,4 +1,4 @@
-const ASSET_VERSION = '20260423v43';
+const ASSET_VERSION = '20260424v44';
 // [TOOLIEST AUDIT] Tie the offline cache name to the asset version so old release caches are purged automatically.
 const CACHE_NAME = `tooliest-${ASSET_VERSION}-offline`;
 const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
@@ -200,7 +200,7 @@ self.addEventListener('install', (event) => {
   })());
 });
 
-// Activate Event: Clean up old caches and notify clients to reload
+// Activate Event: Clean up old caches and claim the latest worker without forcing a refresh
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const cacheNames = await caches.keys();
@@ -213,10 +213,6 @@ self.addEventListener('activate', (event) => {
       })
     );
 
-    const clients = await self.clients.matchAll();
-    clients.forEach((client) => {
-      client.postMessage({ type: 'SW_UPDATED' });
-    });
   })());
 
   return self.clients.claim();

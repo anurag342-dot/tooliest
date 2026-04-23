@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="54" viewBox="0 0 320 54" role="img" aria-labelledby="title desc">
+  <title id="title">Listed on CodeTrendy</title>
+  <desc id="desc">Fallback verification badge for the Tooliest listing on CodeTrendy.</desc>
+  <defs>
+    <linearGradient id="accent" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect x="0.5" y="0.5" width="319" height="53" rx="12" fill="#171726" stroke="#2d2d45"/>
+  <rect x="14" y="11" width="32" height="32" rx="10" fill="url(#accent)"/>
+  <path d="M24 20h12v4h-8v4h7v4h-7v4h8v4H24z" fill="#f8fbff"/>
+  <text x="58" y="22" fill="#9ca3af" font-family="Inter, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="1.2">LISTED ON</text>
+  <text x="58" y="37" fill="#f8fbff" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700">CodeTrendy</text>
+</svg>
