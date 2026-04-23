@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.12', date: '2026-04-23', items: ['Added clearer before-and-after upload previews across image editing tools', 'Made source and output files easier to verify before downloading changes', 'Refreshed cached assets so the upgraded preview UI appears immediately'] },
   { version: '3.11', date: '2026-04-23', items: ['Trimmed the oversized empty space under embedded PDF workspaces', 'Changed the embedded PDF height measurement to follow the real workspace content instead of the full viewport', 'Reduced the fallback PDF frame height for cleaner first paint on document tools'] },
   { version: '3.10', date: '2026-04-23', items: ['Moved PDF tools into isolated embedded workspaces so uploads, drag-and-drop, and downloads keep their original behavior', 'Stopped SPA re-hydration from overwriting embedded standalone PDF documents', 'Refreshed asset versions to flush the broken cached PDF tool shell'] },
   { version: '3.9', date: '2026-04-21', items: ['Allowed the shared PDF CDN dependencies inside the site security policy', 'Preserved direct external PDF helper scripts when mounting PDF tools into the Tooliest shell', 'Refreshed asset versions so browsers stop serving the broken PDF library path'] },
@@ -26,7 +27,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v38';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v39';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
