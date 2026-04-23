@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.11', date: '2026-04-23', items: ['Trimmed the oversized empty space under embedded PDF workspaces', 'Changed the embedded PDF height measurement to follow the real workspace content instead of the full viewport', 'Reduced the fallback PDF frame height for cleaner first paint on document tools'] },
   { version: '3.10', date: '2026-04-23', items: ['Moved PDF tools into isolated embedded workspaces so uploads, drag-and-drop, and downloads keep their original behavior', 'Stopped SPA re-hydration from overwriting embedded standalone PDF documents', 'Refreshed asset versions to flush the broken cached PDF tool shell'] },
   { version: '3.9', date: '2026-04-21', items: ['Allowed the shared PDF CDN dependencies inside the site security policy', 'Preserved direct external PDF helper scripts when mounting PDF tools into the Tooliest shell', 'Refreshed asset versions so browsers stop serving the broken PDF library path'] },
   { version: '3.8', date: '2026-04-21', items: ['Moved PDF tools onto the normal Tooliest tool-page shell without forced full-page jumps', 'Restored compare, performance, trust, and quick-action sections on PDF tool pages', 'Swapped the changelog pill to a simple new emoji and refreshed cached shell assets'] },
@@ -25,7 +26,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v31';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v32';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -529,13 +530,11 @@ const App = {
     const reportHeight = () => {
       if (window.parent === window) return;
       const height = Math.max(
-        document.documentElement?.scrollHeight || 0,
-        document.documentElement?.offsetHeight || 0,
-        document.body?.scrollHeight || 0,
-        document.body?.offsetHeight || 0,
-        main.scrollHeight || 0,
+        240,
+        workspace.scrollHeight || 0,
+        workspace.offsetHeight || 0,
         wrapper.scrollHeight || 0,
-        workspace.scrollHeight || 0
+        wrapper.offsetHeight || 0
       );
       window.parent.postMessage({
         type: 'TOOLIEST_STANDALONE_HEIGHT',
@@ -851,7 +850,7 @@ const App = {
       this.standaloneToolFrameCleanup = null;
     }
 
-    const minHeight = 760;
+    const minHeight = 320;
     const iframeId = `standalone-tool-frame-${tool.id}`;
     const iframeSrc = `${this.getToolPath(tool.id)}?embed=1&v=${encodeURIComponent(TOOLIEST_ASSET_VERSION)}`;
 
