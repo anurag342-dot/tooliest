@@ -1733,6 +1733,43 @@ body.nav-menu-open {
   background: var(--bg-secondary);
 }
 
+.tool-workspace-standalone-frame {
+  overflow: hidden;
+}
+
+.standalone-tool-frame-shell {
+  position: relative;
+  min-height: 760px;
+  background: transparent;
+}
+
+.standalone-tool-frame-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-glass);
+}
+
+.standalone-tool-frame-loading.is-hidden {
+  display: none;
+}
+
+.standalone-tool-frame {
+  width: 100%;
+  min-height: 760px;
+  border: 0;
+  display: block;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.standalone-tool-frame.is-ready {
+  opacity: 1;
+}
+
 .compare-pane-live .tool-workspace,
 .compare-pane-live .tool-performance-panel {
   margin-top: 0;
@@ -2624,6 +2661,24 @@ body.embed-mode .main-content {
 body.embed-mode .tool-page {
   max-width: none;
   padding: 16px;
+}
+
+body.embed-mode.standalone-tool-embed .main-content {
+  padding-top: 0;
+}
+
+body.embed-mode.standalone-tool-embed .tool-page {
+  padding: 0;
+}
+
+body.embed-mode.standalone-tool-embed .tool-workspace {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+body.embed-mode.standalone-tool-embed .tool-workspace-body {
+  padding: 0;
 }
 
 @media (min-width: 768px) {

@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.10', date: '2026-04-23', items: ['Moved PDF tools into isolated embedded workspaces so uploads, drag-and-drop, and downloads keep their original behavior', 'Stopped SPA re-hydration from overwriting embedded standalone PDF documents', 'Refreshed asset versions to flush the broken cached PDF tool shell'] },
   { version: '3.9', date: '2026-04-21', items: ['Allowed the shared PDF CDN dependencies inside the site security policy', 'Preserved direct external PDF helper scripts when mounting PDF tools into the Tooliest shell', 'Refreshed asset versions so browsers stop serving the broken PDF library path'] },
   { version: '3.8', date: '2026-04-21', items: ['Moved PDF tools onto the normal Tooliest tool-page shell without forced full-page jumps', 'Restored compare, performance, trust, and quick-action sections on PDF tool pages', 'Swapped the changelog pill to a simple new emoji and refreshed cached shell assets'] },
   { version: '3.7', date: '2026-04-21', items: ['Repaired broken shell icons and text that were showing as corrupted symbols', 'Restored the PDF category, updated tool totals, and refreshed the homepage shell', 'Made the install entry consistently visible with browser-menu fallback guidance'] },
@@ -24,7 +25,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260421v30';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v31';
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -90,11 +91,15 @@ const App = {
   standaloneExternalScriptPromises: new Map(),
   standaloneToolMountToken: 0,
   standaloneToolStyleElement: null,
+  standaloneToolFrameCleanup: null,
 
   init() {
     this.normalizeLegacyHashRoute();
     document.body.classList.toggle('embed-mode', this.isEmbedMode());
     this.initInputCapabilities();
+    if (this.initializeStandaloneEmbedDocument()) {
+      return;
+    }
 
     if (!this.isEmbedMode() && 'serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -503,6 +508,66 @@ const App = {
     return new URLSearchParams(window.location.search).get('embed') === '1';
   },
 
+  initializeStandaloneEmbedDocument() {
+    if (!this.isEmbedMode() || !this.isStandaloneToolPath()) return false;
+
+    const main = document.getElementById('main-content');
+    const workspace = document.getElementById('tool-workspace');
+    if (!main || !workspace) return false;
+
+    const route = this.parsePath(window.location.pathname.replace(/\/index\.html$/, '/'));
+    const toolId = route.toolId || '';
+
+    document.body.classList.add('embed-mode', 'standalone-tool-embed');
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'tool-page tool-page-embed standalone-tool-embed-page';
+    main.innerHTML = '';
+    wrapper.appendChild(workspace);
+    main.appendChild(wrapper);
+
+    const reportHeight = () => {
+      if (window.parent === window) return;
+      const height = Math.max(
+        document.documentElement?.scrollHeight || 0,
+        document.documentElement?.offsetHeight || 0,
+        document.body?.scrollHeight || 0,
+        document.body?.offsetHeight || 0,
+        main.scrollHeight || 0,
+        wrapper.scrollHeight || 0,
+        workspace.scrollHeight || 0
+      );
+      window.parent.postMessage({
+        type: 'TOOLIEST_STANDALONE_HEIGHT',
+        toolId,
+        height,
+      }, window.location.origin);
+    };
+
+    const queueHeightReport = () => window.requestAnimationFrame(reportHeight);
+    let resizeObserver = null;
+    if ('ResizeObserver' in window) {
+      resizeObserver = new ResizeObserver(() => queueHeightReport());
+      resizeObserver.observe(document.body);
+      resizeObserver.observe(main);
+      resizeObserver.observe(wrapper);
+      resizeObserver.observe(workspace);
+    }
+
+    window.addEventListener('load', queueHeightReport, { once: true });
+    window.addEventListener('resize', queueHeightReport);
+    window.setTimeout(queueHeightReport, 0);
+    window.setTimeout(queueHeightReport, 250);
+    window.setTimeout(queueHeightReport, 900);
+    queueHeightReport();
+
+    window.addEventListener('beforeunload', () => {
+      resizeObserver?.disconnect();
+    }, { once: true });
+
+    return true;
+  },
+
   getCategoryById(categoryId) {
     return TOOL_CATEGORIES.find(category => category.id === categoryId) || null;
   },
@@ -649,6 +714,10 @@ const App = {
 
   extractStandaloneToolInlineScripts(doc) {
     return Array.from(doc.querySelectorAll('script:not([src])'))
+      .filter((script) => {
+        const type = (script.getAttribute('type') || '').trim().toLowerCase();
+        return !type || type === 'text/javascript' || type === 'application/javascript';
+      })
       .map((script) => script.textContent || '')
       .filter((code) => {
         const trimmed = code.trim();
@@ -777,45 +846,86 @@ const App = {
   },
 
   async mountStandaloneToolWorkspace(tool, workspace) {
-    const mountToken = ++this.standaloneToolMountToken;
-    workspace.innerHTML = `<div class="tool-workspace-body">
-      <p style="color:var(--text-secondary);margin-bottom:8px">Loading the interactive ${this.escapeHTML(tool.name)} tool...</p>
-      <p style="color:var(--text-tertiary);font-size:0.9rem">Tooliest is preparing the full browser-based workspace without reloading the rest of the page.</p>
+    if (this.standaloneToolFrameCleanup) {
+      this.standaloneToolFrameCleanup();
+      this.standaloneToolFrameCleanup = null;
+    }
+
+    const minHeight = 760;
+    const iframeId = `standalone-tool-frame-${tool.id}`;
+    const iframeSrc = `${this.getToolPath(tool.id)}?embed=1&v=${encodeURIComponent(TOOLIEST_ASSET_VERSION)}`;
+
+    this.clearStandaloneToolStyles();
+    workspace.classList.add('tool-workspace-standalone-frame');
+    workspace.innerHTML = `<div class="standalone-tool-frame-shell">
+      <div class="standalone-tool-frame-loading" data-standalone-tool-loading>
+        <p style="color:var(--text-secondary);margin-bottom:8px">Loading the interactive ${this.escapeHTML(tool.name)} tool...</p>
+        <p style="color:var(--text-tertiary);font-size:0.9rem;margin:0">Tooliest is opening the original PDF workspace in an isolated browser frame so uploads, downloads, and drag-and-drop stay stable.</p>
+      </div>
+      <iframe
+        id="${iframeId}"
+        class="standalone-tool-frame"
+        data-standalone-tool-id="${tool.id}"
+        src="${iframeSrc}"
+        title="${this.escapeHTML(tool.name)} workspace"
+        loading="eager"
+        referrerpolicy="no-referrer"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-downloads"
+      ></iframe>
     </div>`;
 
-    try {
-      const source = await this.getStandaloneToolSource(tool);
-      if (mountToken !== this.standaloneToolMountToken || !document.body.contains(workspace)) {
-        return;
+    const frame = document.getElementById(iframeId);
+    const loadingState = workspace.querySelector('[data-standalone-tool-loading]');
+    if (!frame) return;
+
+    const applyHeight = (height) => {
+      const safeHeight = Math.max(minHeight, Math.ceil(Number(height) || 0));
+      frame.style.height = `${safeHeight}px`;
+    };
+
+    const syncHeightFromDocument = () => {
+      try {
+        const doc = frame.contentDocument;
+        if (!doc) return;
+        applyHeight(Math.max(
+          doc.documentElement?.scrollHeight || 0,
+          doc.documentElement?.offsetHeight || 0,
+          doc.body?.scrollHeight || 0,
+          doc.body?.offsetHeight || 0
+        ));
+      } catch (_) {
+        // Ignore same-origin timing issues and wait for the next load/resize report.
       }
+    };
 
-      this.applyStandaloneToolStyles(source.styleText);
-      workspace.innerHTML = source.workspaceInnerHTML;
-      if (Array.isArray(source.externalScripts) && source.externalScripts.length) {
-        for (const src of source.externalScripts) {
-          await this.loadStandaloneExternalScript(src);
-        }
-      }
+    const markReady = () => {
+      loadingState?.classList.add('is-hidden');
+      frame.classList.add('is-ready');
+      syncHeightFromDocument();
+      window.setTimeout(syncHeightFromDocument, 150);
+      window.setTimeout(syncHeightFromDocument, 700);
+    };
 
-      source.inlineScripts.forEach((code, index) => {
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.dataset.standaloneTool = tool.id;
-        script.dataset.standaloneScript = String(index + 1);
-        script.text = code;
-        workspace.appendChild(script);
-      });
+    const handleLoad = () => {
+      markReady();
+    };
 
-      this.enhanceRuntimeMedia(workspace, tool);
-    } catch (error) {
-      console.error(`[Tooliest] Failed to mount standalone tool "${tool.id}":`, error);
-      workspace.innerHTML = `<div class="tool-workspace-body">
-        <p style="color:var(--text-primary);font-weight:700;margin-bottom:8px">This PDF workspace could not load.</p>
-        <p style="color:var(--text-secondary);margin-bottom:16px">Refresh the page once or try opening the tool again. The rest of Tooliest will keep working normally.</p>
-        <button class="btn btn-secondary btn-sm" type="button" onclick="window.location.reload()">Reload This Tool</button>
-      </div>`;
-      this.toast(`Could not load ${tool.name}.`, 'error');
-    }
+    const handleMessage = (event) => {
+      if (event.origin !== window.location.origin) return;
+      const data = event.data || {};
+      if (data.type !== 'TOOLIEST_STANDALONE_HEIGHT' || data.toolId !== tool.id) return;
+      applyHeight(data.height);
+      loadingState?.classList.add('is-hidden');
+      frame.classList.add('is-ready');
+    };
+
+    applyHeight(minHeight);
+    frame.addEventListener('load', handleLoad);
+    window.addEventListener('message', handleMessage);
+    this.standaloneToolFrameCleanup = () => {
+      frame.removeEventListener('load', handleLoad);
+      window.removeEventListener('message', handleMessage);
+    };
   },
 
   isAppPath(pathname) {
@@ -1135,6 +1245,10 @@ const App = {
     if (route.view !== 'tool' && this.performanceDashboardCleanup) {
       this.performanceDashboardCleanup();
       this.performanceDashboardCleanup = null;
+    }
+    if (route.view !== 'tool' && this.standaloneToolFrameCleanup) {
+      this.standaloneToolFrameCleanup();
+      this.standaloneToolFrameCleanup = null;
     }
 
     const usedStaticShell = !this.initialRouteHandled && this.tryHydratePreRenderedRoute(route);
@@ -2002,6 +2116,10 @@ const App = {
     const tool = TOOLS.find(t => t.id === toolId);
     if (!tool) { this.navigate(this.getHomePath(), { replace: true }); return; }
     this.closeToolComparison();
+    if (this.standaloneToolFrameCleanup) {
+      this.standaloneToolFrameCleanup();
+      this.standaloneToolFrameCleanup = null;
+    }
     const isEmbed = this.isEmbedMode();
     this.currentView = 'tool';
     this.activeToolId = toolId;
