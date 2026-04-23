@@ -12,7 +12,7 @@ function getBuildEnv(name, fallback) {
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260423v32';
+const ASSET_VERSION = '20260423v33';
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const INDEXNOW_KEY = getBuildEnv('INDEXNOW_KEY', 'tooliest-indexnow-20260420');

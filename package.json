@@ -7,6 +7,7 @@
     "build": "node scripts/normalize-pdf-pages.js && node build.js"
   },
   "dependencies": {
+    "@pdfsmaller/pdf-encrypt-lite": "^1.0.2",
     "qrcode-generator": "^1.4.4",
     "terser": "^5.30.0"
   }
