@@ -63,13 +63,13 @@
   </style>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin"></noscript>
-  <link rel="preload" href="/css/styles3.min.css?v=20260423v35" as="style" fetchpriority="high">
-  <link rel="stylesheet" href="/css/styles3.min.css?v=20260423v35">
-  <script>window.__TOOLIEST_ASSET_VERSION='20260423v35';</script>
-  <script src="/js/consent.js?v=20260423v35" defer></script>
+  <link rel="preload" href="/css/styles3.min.css?v=20260423v37" as="style" fetchpriority="high">
+  <link rel="stylesheet" href="/css/styles3.min.css?v=20260423v37">
+  <script>window.__TOOLIEST_ASSET_VERSION='20260423v37';</script>
+  <script src="/js/consent.js?v=20260423v37" defer></script>
   <script>(function(){var loaded=false;function boot(){if(loaded)return;loaded=true;var s=document.createElement('script');s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3155132462698504';s.async=true;s.crossOrigin='anonymous';document.head.appendChild(s);}window.addEventListener('load',function(){if('requestIdleCallback' in window){requestIdleCallback(boot,{timeout:4500});return;}setTimeout(boot,3200);});})();</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Tooliest","url":"https://tooliest.com","logo":"https://tooliest.com/icon-512.png","description":"A free, browser-based platform with online tools for developers, designers, writers, marketers, and document workflows.","foundingDate":"2026","sameAs":["https://twitter.com/tooliest"],"contactPoint":{"@type":"ContactPoint","contactType":"customer support","url":"https://tooliest.com/contact"}}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PDF to Images","url":"https://tooliest.com/pdf-to-images","description":"Convert PDF pages to PNG or JPG images online. Free browser-based PDF to image tool with private local rendering from Tooliest.","applicationCategory":"UtilityApplication","operatingSystem":"Any","dateModified":"2026-04-20","browserRequirements":"Requires a JavaScript-enabled modern web browser","featureList":"pdf to image, pdf to png, pdf to jpg, pdf toolkit","softwareVersion":"20260423v35","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PDF to Images","url":"https://tooliest.com/pdf-to-images","description":"Convert PDF pages to PNG or JPG images online. Free browser-based PDF to image tool with private local rendering from Tooliest.","applicationCategory":"UtilityApplication","operatingSystem":"Any","dateModified":"2026-04-20","browserRequirements":"Requires a JavaScript-enabled modern web browser","featureList":"pdf to image, pdf to png, pdf to jpg, pdf toolkit","softwareVersion":"20260423v37","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tooliest.com/"},{"@type":"ListItem","position":2,"name":"PDF Tools","item":"https://tooliest.com/category/pdf"},{"@type":"ListItem","position":3,"name":"PDF to Images","item":"https://tooliest.com/pdf-to-images"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"HowTo","name":"How to turn a PDF into PNG or JPG files","description":"Convert PDF pages to PNG or JPG images online. Free browser-based PDF to image tool with private local rendering from Tooliest.","step":[{"@type":"HowToStep","position":1,"name":"Upload the PDF","text":"Open the PDF you want to convert into individual image files."},{"@type":"HowToStep","position":2,"name":"Choose the image format and DPI","text":"Pick PNG or JPG output and set the quality level that works for your sharing or design workflow."},{"@type":"HowToStep","position":3,"name":"Render each page as an image","text":"Let Tooliest draw every page in the browser and prepare the exported files."},{"@type":"HowToStep","position":4,"name":"Download the images","text":"Save the generated images or ZIP package directly to your device."}],"tool":{"@type":"HowToTool","name":"Tooliest PDF to Images"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"PDF to Images","speakable":{"@type":"SpeakableSpecification","cssSelector":[".tool-page-header p",".tool-content-section"]},"url":"https://tooliest.com/pdf-to-images","dateModified":"2026-04-20"}</script>
@@ -293,15 +293,51 @@
   </div>
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-  <script src="/bundle.min.js?v=20260423v35" defer></script>
+  <script src="/bundle.min.js?v=20260423v37" defer></script>
   <script>
   (function(){
     'use strict';
     let pdfjsLib=null,JSZip=null;
     let srcFile=null,pageCount=0,pdfJsDoc=null;
     let format='jpeg',scale=2,generatedBlobs=[];
-    function loadScript(s,g){if(window[g])return Promise.resolve(window[g]);return new Promise((r,j)=>{const el=document.createElement('script');el.src=s;el.async=true;el.onload=()=>r(window[g]);el.onerror=()=>j(new Error('Load failed'));document.head.appendChild(el);})}
-    async function ensureLibs(){if(pdfjsLib&&JSZip)return;const[a,b]=await Promise.all([loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','pdfjsLib'),loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','JSZip')]);pdfjsLib=a;JSZip=b;pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}
+    function loadScript(sources,g){
+      if(window[g])return Promise.resolve(window[g]);
+      const list=Array.isArray(sources)?sources:[sources];
+      let attempt=0;
+      return new Promise((resolve,reject)=>{
+        const tryNext=()=>{
+          if(window[g]){resolve(window[g]);return;}
+          if(attempt>=list.length){reject(new Error('Load failed'));return;}
+          const src=list[attempt++];
+          const el=document.createElement('script');
+          el.src=src;el.async=true;
+          el.onload=()=>window[g]?resolve(window[g]):tryNext();
+          el.onerror=()=>tryNext();
+          document.head.appendChild(el);
+        };
+        tryNext();
+      });
+    }
+    async function ensureLibs(){
+      if(pdfjsLib&&JSZip)return;
+      const pdfSources=[
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+        'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js'
+      ];
+      const zipSources=[
+        'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+        'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js'
+      ];
+      const[a,b]=await Promise.all([
+        loadScript(pdfSources,'pdfjsLib'),
+        loadScript(zipSources,'JSZip')
+      ]);
+      pdfjsLib=a;JSZip=b;
+      const pdfLoader=Array.from(document.scripts).find((script)=>pdfSources.some((src)=>script.src===src||script.src.startsWith(src)));
+      pdfjsLib.GlobalWorkerOptions.workerSrc=pdfLoader?.src?.includes('jsdelivr.net')
+        ? 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'
+        : 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
     function fmt(b){if(!b)return'0 B';const u=['B','KB','MB','GB'];const i=Math.floor(Math.log(b)/Math.log(1024));return(b/Math.pow(1024,i)).toFixed(i>0?1:0)+' '+u[i];}
     function $(id){return document.getElementById(id);}
     const dropzone=$('pdf-dropzone'),fileInput=$('pdf-file-input'),convertBtn=$('convert-btn'),progressWrap=$('pdf-progress-wrap'),progressBar=$('pdf-progress-bar'),progressText=$('pdf-progress-text'),imgGrid=$('img-grid'),dlBar=$('download-all-bar'),errorEl=$('pdf-error');
@@ -328,13 +364,34 @@
       }catch(e){showError(e.name==='PasswordException'?'Password-protected.':'Failed: '+e.message);}
     }
     function clearAll(){srcFile=null;if(pdfJsDoc){pdfJsDoc.destroy();pdfJsDoc=null;}$('pdf-file-info').style.display='none';dropzone.style.display='';$('convert-opts').classList.remove('visible');clearOutput();hideProgress();}
-    function clearOutput(){imgGrid.innerHTML='';imgGrid.classList.remove('visible');dlBar.classList.remove('visible');generatedBlobs=[];}
+    function clearOutput(){
+      generatedBlobs.forEach(({url})=>{if(url)URL.revokeObjectURL(url);});
+      imgGrid.innerHTML='';imgGrid.classList.remove('visible');dlBar.classList.remove('visible');generatedBlobs=[];
+    }
     function showError(m){errorEl.textContent='❌ '+m;errorEl.classList.add('visible');}
     function setProgress(p,t){progressWrap.classList.add('visible');progressBar.style.width=p+'%';progressText.textContent=t;}
     function hideProgress(){progressWrap.classList.remove('visible');}
+    function canvasToBlob(canvas,mime,quality){
+      return new Promise((resolve,reject)=>{
+        if(canvas.toBlob){
+          canvas.toBlob((blob)=>blob?resolve(blob):reject(new Error('Could not build the image file.')),mime,quality);
+          return;
+        }
+        try{
+          const dataUrl=canvas.toDataURL(mime,quality);
+          const parts=dataUrl.split(',');
+          const byteString=atob(parts[1]||'');
+          const buffer=new Uint8Array(byteString.length);
+          for(let i=0;i<byteString.length;i++)buffer[i]=byteString.charCodeAt(i);
+          resolve(new Blob([buffer],{type:mime}));
+        }catch(error){
+          reject(error);
+        }
+      });
+    }
 
     convertBtn.addEventListener('click',async()=>{
-      if(!pdfJsDoc)return;convertBtn.disabled=true;clearOutput();generatedBlobs=[];
+      if(!pdfJsDoc)return;convertBtn.disabled=true;clearOutput();generatedBlobs=[];errorEl.classList.remove('visible');
       try{
         const ext=format==='jpeg'?'jpg':'png';const mime='image/'+format;const q=format==='jpeg'?0.92:undefined;
         imgGrid.classList.add('visible');
@@ -343,20 +400,20 @@
           const page=await pdfJsDoc.getPage(i);const vp=page.getViewport({scale});
           const canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;
           await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-          const dataUrl=canvas.toDataURL(mime,q);
           const name=srcFile.name.replace('.pdf','')+'_page'+i+'.'+ext;
-          // convert dataUrl to blob
-          const res=await fetch(dataUrl);const blob=await res.blob();
-          generatedBlobs.push({name,blob,dataUrl});
+          const blob=await canvasToBlob(canvas,mime,q);
+          const url=URL.createObjectURL(blob);
+          generatedBlobs.push({name,blob,url});
           // add to grid
           const card=document.createElement('div');card.className='img-card';
-          card.innerHTML=`<img src="${dataUrl}" alt="Page ${i}" loading="lazy"><div class="ic-footer"><span class="ic-name">${name}</span></div>`;
+          card.innerHTML=`<img src="${url}" alt="Page ${i}" loading="lazy"><div class="ic-footer"><span class="ic-name">${name}</span></div>`;
           const dlBtn=document.createElement('button');dlBtn.className='pdf-btn';dlBtn.style.cssText='padding:4px 8px;font-size:.72rem;white-space:nowrap';dlBtn.textContent='⬇';
-          dlBtn.addEventListener('click',()=>{const a=document.createElement('a');a.href=dataUrl;a.download=name;a.click();});
+          dlBtn.addEventListener('click',()=>{const a=document.createElement('a');a.href=url;a.download=name;a.click();});
           card.querySelector('.ic-footer').appendChild(dlBtn);
           imgGrid.appendChild(card);
           // reclaim canvas RAM
           canvas.width=0;canvas.height=0;
+          page.cleanup?.();
           if(i%5===0)await new Promise(r=>setTimeout(r,0));
         }
         $('img-count').textContent=pageCount;dlBar.classList.add('visible');

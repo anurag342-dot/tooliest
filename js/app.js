@@ -19,14 +19,15 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.8', date: '2026-04-17', items: ['Auto-linked visible labels to tool inputs for broader accessibility coverage'] },
   { version: '2.7', date: '2026-04-17', items: ['Cut compare view overhead by reusing the live current workspace', 'Added a weekly popularity section powered by local usage history', 'Added an opt-in email capture prompt for repeat Tooliest users'] },
   { version: '2.6', date: '2026-04-17', items: ['Added browser-based QR Code Generator with PNG download', 'Added Ctrl + / shortcut to reopen your most recently used tool', 'Refreshed featured tool discovery to surface QR workflows faster'] },
-  { version: '2.5', date: '2026-04-06', items: ['Added prerendered category pages for SEO', 'Added favorites export and import backup', 'Introduced welcome tour and performance metrics', 'Added side-by-side comparison mode for related tools'] },
+  { version: '2.5', date: '2026-04-06', items: ['Added prerendered category pages for SEO', 'Added favorites export and import backup', 'Introduced the welcome tour', 'Added side-by-side comparison mode for related tools'] },
   { version: '2.4', date: '2026-04-06', items: ['Added dark/light theme toggle', 'Keyboard shortcuts panel (press ?)', 'Tool sharing via Web Share API', 'Cross-category related tools'] },
   { version: '2.3', date: '2026-04-05', items: ['Expanded structured data across tool pages', 'Improved accessibility states for favorites and categories', 'Strengthened offline caching and font loading'] },
   { version: '2.2', date: '2026-04-04', items: ['80+ tools now available', 'Cookie consent and GDPR compliance', 'PWA offline support improved'] },
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v35';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260423v37';
+const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
 const TOOLIEST_THEME_COLORS = {
@@ -93,6 +94,7 @@ const App = {
   standaloneToolMountToken: 0,
   standaloneToolStyleElement: null,
   standaloneToolFrameCleanup: null,
+  comparisonFrameCleanup: null,
 
   init() {
     this.normalizeLegacyHashRoute();
@@ -599,6 +601,34 @@ const App = {
     return true;
   },
 
+  getEmbeddedFrameHeight(frame, minHeight = 320) {
+    try {
+      const doc = frame?.contentDocument;
+      if (!doc) return minHeight;
+      const workspace = doc.getElementById('tool-workspace');
+      const workspaceBody = workspace?.querySelector('.tool-workspace-body');
+      const embedPage = doc.querySelector('.standalone-tool-embed-page');
+      return Math.max(
+        minHeight,
+        workspaceBody?.scrollHeight || 0,
+        workspaceBody?.offsetHeight || 0,
+        workspace?.scrollHeight || 0,
+        workspace?.offsetHeight || 0,
+        embedPage?.scrollHeight || 0,
+        embedPage?.offsetHeight || 0
+      );
+    } catch (_) {
+      return minHeight;
+    }
+  },
+
+  applyEmbeddedFrameHeight(frame, height, minHeight = 320) {
+    if (!frame) return;
+    const safeHeight = Math.max(minHeight, Math.ceil(Number(height) || 0));
+    frame.style.height = `${safeHeight}px`;
+    frame.style.minHeight = `${safeHeight}px`;
+  },
+
   getCategoryById(categoryId) {
     return TOOL_CATEGORIES.find(category => category.id === categoryId) || null;
   },
@@ -909,24 +939,8 @@ const App = {
     const loadingState = workspace.querySelector('[data-standalone-tool-loading]');
     if (!frame) return;
 
-    const applyHeight = (height) => {
-      const safeHeight = Math.max(minHeight, Math.ceil(Number(height) || 0));
-      frame.style.height = `${safeHeight}px`;
-    };
-
     const syncHeightFromDocument = () => {
-      try {
-        const doc = frame.contentDocument;
-        if (!doc) return;
-        applyHeight(Math.max(
-          doc.documentElement?.scrollHeight || 0,
-          doc.documentElement?.offsetHeight || 0,
-          doc.body?.scrollHeight || 0,
-          doc.body?.offsetHeight || 0
-        ));
-      } catch (_) {
-        // Ignore same-origin timing issues and wait for the next load/resize report.
-      }
+      this.applyEmbeddedFrameHeight(frame, this.getEmbeddedFrameHeight(frame, minHeight), minHeight);
     };
 
     const markReady = () => {
@@ -946,7 +960,7 @@ const App = {
       const data = event.data || {};
       if (data.toolId !== tool.id) return;
       if (data.type === 'TOOLIEST_STANDALONE_HEIGHT') {
-        applyHeight(data.height);
+        this.applyEmbeddedFrameHeight(frame, data.height, minHeight);
         loadingState?.classList.add('is-hidden');
         frame.classList.add('is-ready');
         return;
@@ -960,7 +974,7 @@ const App = {
       }
     };
 
-    applyHeight(minHeight);
+    this.applyEmbeddedFrameHeight(frame, minHeight, minHeight);
     frame.addEventListener('load', handleLoad);
     window.addEventListener('message', handleMessage);
     this.standaloneToolFrameCleanup = () => {
@@ -1885,7 +1899,7 @@ const App = {
       <div class="tool-proof-card tool-live-status-card" id="tool-live-status-card">
         <span>Status</span>
         <strong id="tool-live-status-value">Ready when you are</strong>
-        <p id="tool-live-status-note">Tooliest will confirm when this workspace finishes processing.</p>
+        <p id="tool-live-status-note">Use the live workspace below to process everything locally on this device.</p>
       </div>
       <a class="tool-proof-card tool-proof-link" href="${TOOLIEST_REPOSITORY_URL}" target="_blank" rel="noreferrer">
         <span>Source</span>
@@ -2110,7 +2124,6 @@ const App = {
       </div>
       ${this.getAdHTML('tool-top')}
       <div class="tool-workspace" id="tool-workspace"></div>
-      <div class="tool-performance-panel" id="tool-performance-panel"></div>
       ${compareCandidates.length ? `<div class="compare-panel" id="compare-panel">
         <div class="compare-panel-header">
           <div>
@@ -2174,6 +2187,7 @@ const App = {
     const related = this.getRelatedTools(tool, 5);
     const compareCandidates = this.getCompareCandidates(tool, 10);
     main.innerHTML = this.getToolPageHTML(tool, catName, related, compareCandidates, isEmbed);
+    main.querySelector('#tool-performance-panel')?.remove();
     // Render tool UI
     const workspace = document.getElementById('tool-workspace');
     if (tool.standalonePage) {
@@ -2186,7 +2200,13 @@ const App = {
     this.enhanceRuntimeMedia(main, tool);
 
     if (!isEmbed) {
-      this.startToolPerformanceTracking(tool);
+      if (TOOLIEST_ENABLE_PERFORMANCE_PANEL) {
+        this.startToolPerformanceTracking(tool);
+      } else if (this.performanceDashboardCleanup) {
+        this.performanceDashboardCleanup();
+        this.performanceDashboardCleanup = null;
+        this.pendingPerformanceMeasurement = null;
+      }
       document.getElementById('share-tool-btn')?.addEventListener('click', () => this.shareTool(tool));
       document.getElementById('print-tool-btn')?.addEventListener('click', () => this.printToolPage());
       document.getElementById('mobile-tool-home-btn')?.addEventListener('click', () => this.navigate(this.getHomePath()));
@@ -2865,6 +2885,10 @@ const App = {
   },
 
   renderToolPerformancePanel(toolId) {
+    if (!TOOLIEST_ENABLE_PERFORMANCE_PANEL) {
+      document.getElementById('tool-performance-panel')?.remove();
+      return;
+    }
     const panel = document.getElementById('tool-performance-panel');
     if (!panel) return;
 
@@ -2902,6 +2926,7 @@ const App = {
   },
 
   recordToolPerformance(toolId, label, duration) {
+    if (!TOOLIEST_ENABLE_PERFORMANCE_PANEL) return;
     const targetToolId = toolId || this.activeToolId;
     if (!targetToolId || !Number.isFinite(duration) || duration < 0) return;
 
@@ -2946,6 +2971,10 @@ const App = {
   },
 
   startToolPerformanceTracking(tool) {
+    if (!TOOLIEST_ENABLE_PERFORMANCE_PANEL) {
+      document.getElementById('tool-performance-panel')?.remove();
+      return;
+    }
     if (this.performanceDashboardCleanup) {
       this.performanceDashboardCleanup();
       this.performanceDashboardCleanup = null;
@@ -3021,7 +3050,7 @@ const App = {
     const compareTool = TOOLS.find(tool => tool.id === compareToolId);
     const iframeSandbox = 'allow-same-origin allow-scripts allow-forms allow-downloads';
     const workspace = document.getElementById('tool-workspace');
-    const performancePanel = document.getElementById('tool-performance-panel');
+    document.getElementById('tool-performance-panel')?.remove();
 
     if (!comparisonRoot || !compareTool || !workspace) {
       this.toast('Choose a related tool to compare.', 'error');
@@ -3036,19 +3065,15 @@ const App = {
     if (this.comparisonRestoreState) {
       this.closeToolComparison();
     }
+    if (this.comparisonFrameCleanup) {
+      this.comparisonFrameCleanup();
+      this.comparisonFrameCleanup = null;
+    }
 
     const workspacePlaceholder = document.createElement('div');
     workspacePlaceholder.hidden = true;
     workspacePlaceholder.setAttribute('data-compare-placeholder', 'workspace');
     workspace.parentNode?.insertBefore(workspacePlaceholder, workspace);
-
-    let performancePlaceholder = null;
-    if (performancePanel?.parentNode) {
-      performancePlaceholder = document.createElement('div');
-      performancePlaceholder.hidden = true;
-      performancePlaceholder.setAttribute('data-compare-placeholder', 'performance');
-      performancePanel.parentNode.insertBefore(performancePlaceholder, performancePanel);
-    }
 
     comparisonRoot.innerHTML = `<div class="compare-layout">
       <div class="compare-pane compare-pane-live">
@@ -3063,21 +3088,41 @@ const App = {
           <strong>${compareTool.name}</strong>
           <span>Related tool</span>
         </div>
-        <iframe src="${this.getToolPath(compareTool.id)}?embed=1" title="${compareTool.name} comparison panel" loading="lazy" sandbox="${iframeSandbox}" referrerpolicy="no-referrer"></iframe>
+        <iframe id="compare-tool-frame" src="${this.getToolPath(compareTool.id)}?embed=1" title="${compareTool.name} comparison panel" loading="lazy" sandbox="${iframeSandbox}" referrerpolicy="no-referrer"></iframe>
       </div>
     </div>`;
 
     const livePane = document.getElementById('compare-live-pane');
+    const compareFrame = document.getElementById('compare-tool-frame');
     livePane?.appendChild(workspace);
-    if (performancePanel) {
-      livePane?.appendChild(performancePanel);
+
+    if (compareFrame) {
+      const fallbackHeight = 360;
+      const syncCompareHeight = () => {
+        this.applyEmbeddedFrameHeight(compareFrame, this.getEmbeddedFrameHeight(compareFrame, fallbackHeight), fallbackHeight);
+      };
+      const handleCompareMessage = (event) => {
+        if (event.origin !== window.location.origin) return;
+        const data = event.data || {};
+        if (data.toolId !== compareTool.id || data.type !== 'TOOLIEST_STANDALONE_HEIGHT') return;
+        this.applyEmbeddedFrameHeight(compareFrame, data.height, fallbackHeight);
+      };
+
+      compareFrame.addEventListener('load', () => {
+        syncCompareHeight();
+        window.setTimeout(syncCompareHeight, 150);
+        window.setTimeout(syncCompareHeight, 700);
+      }, { once: true });
+      window.addEventListener('message', handleCompareMessage);
+      this.applyEmbeddedFrameHeight(compareFrame, fallbackHeight, fallbackHeight);
+      this.comparisonFrameCleanup = () => {
+        window.removeEventListener('message', handleCompareMessage);
+      };
     }
 
     this.comparisonRestoreState = {
       workspace,
       workspacePlaceholder,
-      performancePanel,
-      performancePlaceholder,
     };
 
     closeButton?.classList.remove('hidden');
@@ -3085,19 +3130,18 @@ const App = {
   },
 
   closeToolComparison() {
+    if (this.comparisonFrameCleanup) {
+      this.comparisonFrameCleanup();
+      this.comparisonFrameCleanup = null;
+    }
     if (this.comparisonRestoreState) {
       const {
         workspace,
         workspacePlaceholder,
-        performancePanel,
-        performancePlaceholder,
       } = this.comparisonRestoreState;
 
       if (workspacePlaceholder?.parentNode) {
         workspacePlaceholder.replaceWith(workspace);
-      }
-      if (performancePanel && performancePlaceholder?.parentNode) {
-        performancePlaceholder.replaceWith(performancePanel);
       }
       this.comparisonRestoreState = null;
     }

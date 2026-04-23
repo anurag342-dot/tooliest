@@ -1616,7 +1616,7 @@ body.nav-menu-open {
 }
 
 .tool-performance-panel {
-  margin-top: 20px;
+  display: none !important;
 }
 
 .perf-panel,
@@ -1728,7 +1728,7 @@ body.nav-menu-open {
 
 .compare-pane iframe {
   width: 100%;
-  min-height: 720px;
+  min-height: 360px;
   border: 0;
   background: var(--bg-secondary);
 }
@@ -3123,7 +3123,7 @@ body.embed-mode.standalone-tool-embed {
   }
 
   .compare-pane iframe {
-    min-height: 560px;
+    min-height: 320px;
   }
 
   .email-capture-header,
