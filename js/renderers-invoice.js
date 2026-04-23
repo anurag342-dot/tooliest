@@ -394,55 +394,59 @@
       parsePositiveNumber(state.charges.shippingAmount) > 0 ? `<div class="inv-preview-total-row"><span>${escapeHtml(state.charges.shippingLabel || 'Shipping')}</span><strong>${invoiceFormatMoney(totals.shipping, state.invoice.currency)}</strong></div>` : '',
     ].join('');
     return `
-      <div class="inv-preview-sheet inv-template-${escapeHtml(template)}" id="invoice-preview" style="--inv-accent:${escapeHtml(state.invoice.accentColor || '#7c3aed')}">
-        <div class="inv-preview-accent"></div>
-        <div class="inv-preview-header-row">
-          <div class="inv-preview-brand">
-            ${state.sender.logoData ? `<img class="inv-preview-logo" src="${escapeHtml(state.sender.logoData)}" alt="Business logo">` : `<div class="inv-preview-logo-placeholder">${escapeHtml((state.sender.name || 'T').trim().charAt(0).toUpperCase() || 'T')}</div>`}
-            <div class="inv-preview-company">
-              <div class="inv-preview-company-name">${escapeHtml(state.sender.name || 'Your business name')}</div>
-              <div class="inv-preview-copy">${senderLines.length ? senderLines.map((line) => escapeHtml(line).replace(/\n/g, '<br>')).join('<br>') : 'Add your contact details and logo once - Tooliest remembers them locally.'}</div>
+      <div class="inv-preview-shell">
+        <div class="inv-preview-stage" id="inv-preview-stage">
+          <div class="inv-preview-sheet inv-template-${escapeHtml(template)}" id="invoice-preview" style="--inv-accent:${escapeHtml(state.invoice.accentColor || '#7c3aed')}">
+            <div class="inv-preview-accent"></div>
+            <div class="inv-preview-header-row">
+              <div class="inv-preview-brand">
+                ${state.sender.logoData ? `<img class="inv-preview-logo" src="${escapeHtml(state.sender.logoData)}" alt="Business logo">` : `<div class="inv-preview-logo-placeholder">${escapeHtml((state.sender.name || 'T').trim().charAt(0).toUpperCase() || 'T')}</div>`}
+                <div class="inv-preview-company">
+                  <div class="inv-preview-company-name">${escapeHtml(state.sender.name || 'Your business name')}</div>
+                  <div class="inv-preview-copy">${senderLines.length ? senderLines.map((line) => escapeHtml(line).replace(/\n/g, '<br>')).join('<br>') : 'Add your contact details and logo once - Tooliest remembers them locally.'}</div>
+                </div>
+              </div>
+              <div class="inv-preview-doc">
+                <div class="inv-preview-doc-label">Invoice</div>
+                <div class="inv-preview-doc-number">${escapeHtml(state.invoice.number || 'INV-0001')}</div>
+                <div class="inv-preview-meta-grid">
+                  <div><span>Invoice date</span><strong>${escapeHtml(state.invoice.date || todayIsoDate())}</strong></div>
+                  <div><span>Due date</span><strong>${escapeHtml(state.invoice.dueDate || addDaysIsoDate(todayIsoDate(), 30))}</strong></div>
+                  ${state.invoice.poNumber ? `<div><span>PO number</span><strong>${escapeHtml(state.invoice.poNumber)}</strong></div>` : ''}
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="inv-preview-doc">
-            <div class="inv-preview-doc-label">Invoice</div>
-            <div class="inv-preview-doc-number">${escapeHtml(state.invoice.number || 'INV-0001')}</div>
-            <div class="inv-preview-meta-grid">
-              <div><span>Invoice date</span><strong>${escapeHtml(state.invoice.date || todayIsoDate())}</strong></div>
-              <div><span>Due date</span><strong>${escapeHtml(state.invoice.dueDate || addDaysIsoDate(todayIsoDate(), 30))}</strong></div>
-              ${state.invoice.poNumber ? `<div><span>PO number</span><strong>${escapeHtml(state.invoice.poNumber)}</strong></div>` : ''}
+
+            <div class="inv-preview-billto">
+              <div class="inv-preview-kicker">Bill To</div>
+              <div class="inv-preview-client-name">${escapeHtml(state.client.name || 'Client name')}</div>
+              <div class="inv-preview-copy">${clientLines.length ? clientLines.map((line) => escapeHtml(line).replace(/\n/g, '<br>')).join('<br>') : 'Client company, email, and address appear here.'}</div>
             </div>
+
+            <table class="inv-preview-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th class="inv-align-right">Quantity</th>
+                  <th class="inv-align-right">Unit Price</th>
+                  <th class="inv-align-right">Unit</th>
+                  <th class="inv-align-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>${itemRows}</tbody>
+            </table>
+
+            <div class="inv-preview-summary">
+              <div class="inv-preview-summary-card">
+                ${summaryRows}
+                <div class="inv-preview-total-row inv-preview-grand-total"><span>Total</span><strong>${invoiceFormatMoney(totals.total, state.invoice.currency)}</strong></div>
+              </div>
+            </div>
+
+            ${state.invoice.notes ? `<div class="inv-preview-notes"><div class="inv-preview-kicker">Notes / Payment Terms</div><div class="inv-preview-copy">${escapeHtml(state.invoice.notes).replace(/\n/g, '<br>')}</div></div>` : ''}
+            <div class="inv-preview-footer">Generated with Tooliest.com</div>
           </div>
         </div>
-
-        <div class="inv-preview-billto">
-          <div class="inv-preview-kicker">Bill To</div>
-          <div class="inv-preview-client-name">${escapeHtml(state.client.name || 'Client name')}</div>
-          <div class="inv-preview-copy">${clientLines.length ? clientLines.map((line) => escapeHtml(line).replace(/\n/g, '<br>')).join('<br>') : 'Client company, email, and address appear here.'}</div>
-        </div>
-
-        <table class="inv-preview-table">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th class="inv-align-right">Quantity</th>
-              <th class="inv-align-right">Unit Price</th>
-              <th class="inv-align-right">Unit</th>
-              <th class="inv-align-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody>${itemRows}</tbody>
-        </table>
-
-        <div class="inv-preview-summary">
-          <div class="inv-preview-summary-card">
-            ${summaryRows}
-            <div class="inv-preview-total-row inv-preview-grand-total"><span>Total</span><strong>${invoiceFormatMoney(totals.total, state.invoice.currency)}</strong></div>
-          </div>
-        </div>
-
-        ${state.invoice.notes ? `<div class="inv-preview-notes"><div class="inv-preview-kicker">Notes / Payment Terms</div><div class="inv-preview-copy">${escapeHtml(state.invoice.notes).replace(/\n/g, '<br>')}</div></div>` : ''}
-        <div class="inv-preview-footer">Generated with Tooliest.com</div>
       </div>`;
   }
 
@@ -630,7 +634,7 @@
   }
   .inv-saved-chip { opacity:0; transform:translateY(-4px); transition:opacity .18s ease, transform .18s ease; }
   .inv-saved-chip.is-visible { opacity:1; transform:translateY(0); }
-  .inv-layout { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(320px,.92fr); gap:20px; align-items:start; }
+  .inv-layout { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(380px,.96fr); gap:24px; align-items:start; }
   .inv-editor, .inv-sidebar { min-width:0; }
   .inv-panel, .inv-actions, .inv-draft-panel, .inv-next-steps { border:1px solid var(--border-color); background:var(--bg-card); border-radius:14px; padding:18px; min-width:0; }
   .inv-panel + .inv-panel, .inv-editor details { margin-top:18px; }
@@ -640,7 +644,9 @@
   .inv-grid { display:grid; gap:14px; }
   .inv-grid-2 { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   .inv-input-wrap { position:relative; }
+  .inv-field-head { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
   .inv-input-wrap label { display:block; margin-bottom:8px; color:var(--text-secondary); font-size:0.85rem; font-weight:600; }
+  .inv-field-head label { margin-bottom:0; }
   .inv-input-wrap input, .inv-input-wrap textarea, .inv-input-wrap select {
     width:100%; min-height:44px; padding:12px 14px; background:var(--bg-secondary); color:var(--text-primary);
     border:1px solid var(--border-color); border-radius:12px; font:inherit; outline:none; transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
@@ -662,9 +668,9 @@
   .inv-inline-btn:hover { border-color:var(--accent-primary); }
   .inv-inline-btn.is-danger:hover { border-color:#ef4444; color:#fecaca; }
   .inv-coachmark {
-    position:absolute; top:-8px; right:12px; padding:6px 10px; border-radius:999px;
+    display:inline-flex; align-items:center; min-height:28px; padding:4px 10px; border-radius:999px;
     background:linear-gradient(135deg, rgba(139,92,246,.88), rgba(6,182,212,.88)); color:#fff; font-size:0.76rem; font-weight:700;
-    box-shadow:0 12px 24px rgba(15, 23, 42, 0.24);
+    box-shadow:0 10px 22px rgba(15, 23, 42, 0.24); white-space:nowrap;
   }
   .inv-actions {
     position:sticky; top:84px; z-index:20; display:flex; flex-wrap:wrap; gap:10px; align-items:center;
@@ -690,11 +696,13 @@
   .inv-color-wrap input { width:44px; height:44px; padding:0; border:none; background:none; cursor:pointer; }
   .inv-preview-card { position:sticky; top:170px; }
   .inv-preview-frame {
-    overflow:auto; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border:1px solid var(--border-color);
-    padding:18px;
+    overflow:auto hidden; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border:1px solid var(--border-color);
+    padding:18px; min-height:420px; max-height:calc(100vh - 250px); scrollbar-gutter:stable both-edges;
   }
+  .inv-preview-shell { position:relative; width:100%; display:flex; justify-content:center; align-items:flex-start; overflow:hidden; }
+  .inv-preview-stage { width:820px; transform-origin:top center; will-change:transform; }
   .inv-preview-sheet {
-    width:min(100%, 820px); min-height:1120px; margin:0 auto; background:#fff; color:#111827;
+    width:820px; min-height:1120px; margin:0; background:#fff; color:#111827;
     border-radius:8px; box-shadow:0 24px 60px rgba(15, 23, 42, 0.25); padding:42px 46px 34px; font-family:Inter, Arial, sans-serif;
   }
   .inv-preview-accent { height:8px; margin:-42px -46px 26px; border-radius:8px 8px 0 0; background:var(--inv-accent); }
@@ -706,15 +714,17 @@
   .inv-template-minimal .inv-preview-accent { display:none; }
   .inv-template-minimal .inv-preview-table th { border-bottom:1px solid #d1d5db; background:transparent; }
   .inv-template-minimal .inv-preview-table td { border-bottom:1px solid #eceff3; }
-  .inv-preview-header-row { display:flex; justify-content:space-between; gap:28px; align-items:flex-start; }
-  .inv-preview-brand { display:flex; gap:16px; align-items:flex-start; max-width:58%; }
+  .inv-preview-header-row { display:flex; justify-content:space-between; gap:32px; align-items:flex-start; }
+  .inv-preview-brand { display:flex; gap:16px; align-items:flex-start; flex:1 1 auto; min-width:0; }
   .inv-preview-logo { max-width:152px; max-height:86px; object-fit:contain; }
   .inv-preview-logo-placeholder {
     width:72px; height:72px; border-radius:20px; background:#f3f4f6; color:#111827; display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:800;
   }
+  .inv-preview-company { min-width:0; }
+  .inv-preview-company-name, .inv-preview-client-name { overflow-wrap:anywhere; }
   .inv-preview-company-name { font-size:1.7rem; font-weight:800; line-height:1.2; }
   .inv-preview-copy { color:#4b5563; font-size:0.95rem; line-height:1.7; margin-top:10px; }
-  .inv-preview-doc { min-width:220px; text-align:right; }
+  .inv-preview-doc { flex:0 0 220px; min-width:220px; text-align:right; }
   .inv-preview-doc-label, .inv-preview-kicker { color:#6b7280; font-size:0.76rem; text-transform:uppercase; letter-spacing:0.2em; font-weight:800; }
   .inv-preview-doc-number { margin:10px 0 18px; font-size:1.9rem; font-weight:800; }
   .inv-preview-meta-grid { display:grid; gap:10px; }
@@ -803,19 +813,16 @@
     animation:invSpin .8s linear infinite;
   }
   @keyframes invSpin { to { transform:rotate(360deg); } }
-  @media (max-width: 1080px) {
+  @media (max-width: 1140px) {
     .inv-layout { grid-template-columns:1fr; }
     .inv-preview-card { position:static; }
     .inv-actions { top:74px; }
+    .inv-preview-frame { max-height:none; }
   }
   @media (max-width: 768px) {
     .inv-grid-2, .inv-summary-grid { grid-template-columns:1fr; }
     .inv-actions { top:64px; }
-    .inv-preview-sheet { padding:28px 20px 22px; min-height:0; }
-    .inv-preview-accent { margin:-28px -20px 22px; }
-    .inv-preview-header-row, .inv-preview-brand { flex-direction:column; }
-    .inv-preview-brand { max-width:none; }
-    .inv-preview-doc { min-width:0; text-align:left; }
+    .inv-preview-frame { min-height:320px; padding:14px; }
     .inv-mobile-preview { display:inline-flex; }
   }
 </style>
@@ -856,8 +863,10 @@
         ${ToolRenderers.buildUploadPreviewCard('inv-logo', 'Business logo')}
         <div class="inv-grid inv-grid-2">
           <div class="inv-input-wrap" id="field-sender-name">
-            <label for="inv-sender-name">Business / Freelancer Name</label>
-            <span class="inv-coachmark" id="inv-coachmark">Start here -&gt;</span>
+            <div class="inv-field-head">
+              <label for="inv-sender-name">Business / Freelancer Name</label>
+              <span class="inv-coachmark" id="inv-coachmark">Start here -&gt;</span>
+            </div>
             <input id="inv-sender-name" type="text" autocomplete="organization" required>
             <div class="inv-field-error" id="error-sender-name"></div>
           </div>
@@ -1360,8 +1369,27 @@
         nodes.totalStack.innerHTML = lines;
       }
 
+      const schedulePreviewFit = invoiceDebounce(() => {
+        if (!container.isConnected) return;
+        const preview = container.querySelector('#invoice-preview');
+        const stage = container.querySelector('#inv-preview-stage');
+        const shell = container.querySelector('.inv-preview-shell');
+        if (!preview || !stage || !shell) return;
+        const frameStyles = window.getComputedStyle(nodes.previewFrame);
+        const availableWidth = nodes.previewFrame.clientWidth
+          - parseFloat(frameStyles.paddingLeft || '0')
+          - parseFloat(frameStyles.paddingRight || '0');
+        const naturalWidth = preview.offsetWidth || 820;
+        const naturalHeight = preview.offsetHeight || preview.scrollHeight || 1120;
+        const scale = availableWidth > 0 ? Math.min(1, availableWidth / naturalWidth) : 1;
+        stage.style.transform = `scale(${scale})`;
+        shell.style.width = `${naturalWidth * scale}px`;
+        shell.style.height = `${naturalHeight * scale}px`;
+      }, 24);
+
       function renderPreview(totals) {
         nodes.previewFrame.innerHTML = buildPreviewMarkup(state, totals);
+        requestAnimationFrame(() => schedulePreviewFit());
       }
 
       const debouncedRenderPreview = invoiceDebounce((totals) => renderPreview(totals), 100);
@@ -1782,6 +1810,13 @@
       container.querySelector('#inv-mobile-preview-btn').addEventListener('click', () => {
         container.querySelector('#inv-preview-frame').scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
+
+      if (typeof ResizeObserver !== 'undefined') {
+        const previewResizeObserver = new ResizeObserver(() => schedulePreviewFit());
+        previewResizeObserver.observe(nodes.previewFrame);
+      } else {
+        window.addEventListener('resize', schedulePreviewFit);
+      }
 
       document.addEventListener('keydown', (event) => {
         if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && container.isConnected) {
