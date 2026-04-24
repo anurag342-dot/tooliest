@@ -9,10 +9,52 @@ function getBuildEnv(name, fallback) {
   return typeof value === 'string' && value.trim() ? value.trim() : fallback;
 }
 
+function normalizeAssetVersionSource(content) {
+  return String(content || '')
+    .replace(/const ASSET_VERSION = '[^']+';/g, "const ASSET_VERSION = '__TOOLIEST_ASSET_VERSION__';")
+    .replace(/const TOOLIEST_ASSET_VERSION = window\.__TOOLIEST_ASSET_VERSION \|\| '[^']+';/g, "const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '__TOOLIEST_ASSET_VERSION__';")
+    .replace(/typeof TOOLIEST_ASSET_VERSION === 'string' \? TOOLIEST_ASSET_VERSION : '[^']+'/g, "typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '__TOOLIEST_ASSET_VERSION__'")
+    .replace(/window\.__TOOLIEST_ASSET_VERSION='[^']+'/g, "window.__TOOLIEST_ASSET_VERSION='__TOOLIEST_ASSET_VERSION__'")
+    .replace(/\?v=[^"'`\s)]+/g, '?v=__TOOLIEST_ASSET_VERSION__');
+}
+
+function computeAssetVersion() {
+  const versionSeedFiles = [
+    'build.js',
+    'sw.js',
+    'manifest.json',
+    'css/styles.css',
+    'js/app.js',
+    'js/tools.js',
+    'js/renderers.js',
+    'js/renderers2.js',
+    'js/renderers3.js',
+    'js/renderers4.js',
+    'js/renderers5.js',
+    'js/renderers6.js',
+    'js/renderers-invoice.js',
+  ];
+  const hash = crypto.createHash('sha1');
+
+  versionSeedFiles
+    .map((relativePath) => [relativePath, path.join(__dirname, relativePath)])
+    .filter(([, absolutePath]) => fs.existsSync(absolutePath))
+    .sort(([left], [right]) => left.localeCompare(right))
+    .forEach(([relativePath, absolutePath]) => {
+      hash.update(relativePath);
+      hash.update('\0');
+      hash.update(normalizeAssetVersionSource(fs.readFileSync(absolutePath, 'utf8')));
+      hash.update('\0');
+    });
+
+  const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  return `${datePart}-${hash.digest('hex').slice(0, 8)}`;
+}
+
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
-const ASSET_VERSION = '20260424v44';
+const ASSET_VERSION = computeAssetVersion();
 const CSS_BUNDLE_PATH = '/css/styles3.min.css';
 const BUNDLE_OUTPUT_FILE = 'bundle.min.js';
 const INDEXNOW_KEY = getBuildEnv('INDEXNOW_KEY', 'tooliest-indexnow-20260420');
@@ -650,6 +692,35 @@ function getVersionedAssetPath(pathname) {
 function replaceVersionedAssetReference(html, pathname) {
   const escapedPath = pathname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return html.replace(new RegExp(`${escapedPath}\\?v=[^"'\\s)]+`, 'g'), getVersionedAssetPath(pathname));
+}
+
+function syncSourceAssetVersions() {
+  const replacements = [
+    {
+      file: 'sw.js',
+      pattern: /^const ASSET_VERSION = '[^']+';$/m,
+      replacement: `const ASSET_VERSION = '${ASSET_VERSION}';`,
+    },
+    {
+      file: 'js/app.js',
+      pattern: /^const TOOLIEST_ASSET_VERSION = window\.__TOOLIEST_ASSET_VERSION \|\| '[^']+';$/m,
+      replacement: `const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '${ASSET_VERSION}';`,
+    },
+    {
+      file: 'js/renderers.js',
+      pattern: /^(    const version = typeof TOOLIEST_ASSET_VERSION === 'string' \? TOOLIEST_ASSET_VERSION : )'[^']+';$/m,
+      replacement: `$1'${ASSET_VERSION}';`,
+    },
+  ];
+
+  replacements.forEach(({ file, pattern, replacement }) => {
+    const filePath = path.join(__dirname, file);
+    const original = fs.readFileSync(filePath, 'utf8');
+    const next = original.replace(pattern, replacement);
+    if (next !== original) {
+      fs.writeFileSync(filePath, next);
+    }
+  });
 }
 
 function syncStaticPageAssetVersions() {
@@ -2590,7 +2661,7 @@ function renderRedirectsFile(tools, categories) {
 }
 
 function renderHeadersFile(tools, categories) {
-  const htmlPageCacheRule = '  Cache-Control: public, max-age=3600, stale-while-revalidate=86400';
+  const htmlPageCacheRule = '  Cache-Control: public, max-age=0, must-revalidate';
   const cleanStaticPageHeaders = Object.values(STATIC_PAGE_PATHS)
     .flatMap((cleanPath) => [cleanPath, htmlPageCacheRule, '', `${cleanPath}.html`, htmlPageCacheRule, '']);
   const categoryHeaders = getRenderableCategories(categories)
@@ -3079,6 +3150,7 @@ function minifyCSSFile() {
 async function build() {
   const { tools, categories } = readTools();
   validateToolRoutes(tools);
+  syncSourceAssetVersions();
   await bundleJavascript();
   minifyCSSFile();
   removeDirectoryIfExists('tool');
@@ -3102,4 +3174,3 @@ build().catch((error) => {
   console.error('Build failed:', error);
   process.exitCode = 1;
 });
-
