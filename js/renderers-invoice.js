@@ -752,6 +752,7 @@
   .inv-panel-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:16px; }
   .inv-panel-head h3, .inv-preview-head h3 { margin:0; font-size:1rem; }
   .inv-panel-subtle { color:var(--text-tertiary); font-size:0.84rem; }
+  .inv-panel-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   .inv-grid { display:grid; gap:14px; }
   .inv-grid-2 { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   .inv-input-wrap { position:relative; }
@@ -946,6 +947,7 @@
         <button class="btn btn-primary" id="inv-download-btn" title="Your invoice is generated in your browser. Shortcut: Ctrl+Enter or Cmd+Enter.">Download PDF</button>
         <button class="btn btn-secondary" id="inv-copy-btn">Copy as HTML</button>
         <button class="btn btn-secondary" id="inv-print-btn">Print</button>
+        <button class="btn btn-secondary" id="inv-reset-btn" type="button" title="Start a fresh invoice while keeping your saved business profile.">New Invoice</button>
         <button class="btn btn-secondary" id="inv-save-draft-btn">Save Draft</button>
         <button class="btn btn-secondary" id="inv-load-draft-btn">Load Draft <span class="inv-badge" id="inv-draft-count">0</span></button>
       </div>
@@ -955,8 +957,13 @@
 
       <div class="inv-draft-panel" id="inv-draft-panel">
         <div class="inv-panel-head">
-          <h3>Saved Drafts</h3>
-          <span class="inv-panel-subtle">Restore or clear a locally saved invoice draft.</span>
+          <div>
+            <h3>Saved Drafts</h3>
+            <span class="inv-panel-subtle">Restore or clear a locally saved invoice draft.</span>
+          </div>
+          <div class="inv-panel-actions">
+            <button class="inv-inline-btn is-danger" id="inv-clear-drafts-btn" type="button">Delete All Drafts</button>
+          </div>
         </div>
         <div id="inv-draft-list"></div>
       </div>
@@ -1058,9 +1065,13 @@
         </div>
         <div class="inv-grid inv-grid-2">
           <div class="inv-input-wrap">
-            <label for="inv-number">Invoice Number</label>
+            <div class="inv-field-head">
+              <label for="inv-number">Invoice Number</label>
+              <button class="inv-inline-btn" id="inv-number-next-btn" type="button">Use Next</button>
+            </div>
             <input id="inv-number" type="text">
             <div class="inv-field-error" id="error-inv-number"></div>
+            <div class="inv-field-help">Type any custom invoice number, or use the next suggested sequence.</div>
           </div>
           <div class="inv-input-wrap">
             <label for="inv-currency">Currency</label>
@@ -1227,6 +1238,11 @@
         <span>Invoice History</span>
         <span class="inv-badge" id="inv-history-count">0</span>
       </summary>
+      <div class="inv-history-list" style="padding:18px 18px 0">
+        <div class="inv-panel-actions">
+          <button class="inv-inline-btn is-danger" id="inv-clear-history-btn" type="button">Clear History</button>
+        </div>
+      </div>
       <div class="inv-history-list" id="inv-history-list"></div>
     </details>
   </div>
@@ -1249,8 +1265,12 @@
         downloadButton: container.querySelector('#inv-download-btn'),
         copyButton: container.querySelector('#inv-copy-btn'),
         printButton: container.querySelector('#inv-print-btn'),
+        resetButton: container.querySelector('#inv-reset-btn'),
         saveDraftButton: container.querySelector('#inv-save-draft-btn'),
         loadDraftButton: container.querySelector('#inv-load-draft-btn'),
+        clearDraftsButton: container.querySelector('#inv-clear-drafts-btn'),
+        clearHistoryButton: container.querySelector('#inv-clear-history-btn'),
+        nextInvoiceNumberButton: container.querySelector('#inv-number-next-btn'),
         nextSteps: container.querySelector('#inv-next-steps'),
         nextStepsList: container.querySelector('#inv-next-steps-list'),
         accentInput: container.querySelector('#inv-accent-color'),
@@ -1515,9 +1535,11 @@
             </div>
             <div class="inv-history-actions">
               <button class="inv-inline-btn" type="button" data-history-action="reuse" data-history-id="${escapeHtml(entry.id)}">Re-use</button>
+              <button class="inv-inline-btn is-danger" type="button" data-history-action="delete" data-history-id="${escapeHtml(entry.id)}">Delete</button>
               <label class="inv-toggle"><input type="checkbox" data-history-action="paid" data-history-id="${escapeHtml(entry.id)}"${entry.status === 'paid' ? ' checked' : ''}> Mark as Paid</label>
             </div>
           </article>`).join('') : '<div class="inv-panel-subtle">Downloaded invoices appear here for quick reuse.</div>';
+        if (nodes.clearHistoryButton) nodes.clearHistoryButton.hidden = !history.length;
       }
 
       function renderDrafts() {
@@ -1537,6 +1559,7 @@
               <button class="inv-inline-btn is-danger" type="button" data-draft-action="delete" data-draft-key="${escapeHtml(draft.key)}">Delete</button>
             </div>
           </article>`).join('') : '<div class="inv-panel-subtle">No saved drafts yet.</div>';
+        if (nodes.clearDraftsButton) nodes.clearDraftsButton.hidden = !drafts.length;
       }
 
       function renderNextSteps() {
@@ -1566,6 +1589,13 @@
         nodes.successBanner.classList.add('is-visible');
         nodes.liveRegion.textContent = 'Invoice downloaded successfully.';
         nodes.nextSteps.classList.add('is-visible');
+      }
+
+      function hideSuccessBanner() {
+        nodes.successBanner.classList.remove('is-visible');
+        nodes.successBanner.textContent = '';
+        nodes.liveRegion.textContent = '';
+        nodes.nextSteps.classList.remove('is-visible');
       }
 
       function updateLogoPreview() {
@@ -1621,6 +1651,35 @@
         updateLineItemRowErrors();
         debouncedPersistInvoiceState();
         return totals;
+      }
+
+      function replaceInvoiceState(nextState, options = {}) {
+        state = normalizeInvoiceState(nextState);
+        touched = {};
+        logoError = '';
+        hideErrorSummary();
+        hideSuccessBanner();
+        renderAll();
+        refreshInvoiceUi();
+        if (options.toast) App.toast(options.toast);
+      }
+
+      function buildFreshInvoiceState() {
+        return createDefaultInvoiceState({
+          sender: state.sender,
+          invoice: {
+            currency: state.invoice.currency || 'USD',
+            template: state.invoice.template || 'modern',
+            accentColor: state.invoice.accentColor || '#7c3aed',
+          },
+        });
+      }
+
+      function clearAllDrafts() {
+        const drafts = getDraftRecords();
+        drafts.forEach((draft) => localStorage.removeItem(draft.key));
+        renderDrafts();
+        if (!getDraftRecords().length) nodes.draftPanel.classList.remove('is-open');
       }
 
       function renderAll() {
@@ -1791,26 +1850,57 @@
         nodes.draftPanel.classList.toggle('is-open');
       });
 
+      nodes.resetButton.addEventListener('click', () => {
+        if (!window.confirm('Start a fresh invoice? Your saved business profile stays, and the current invoice fields will be cleared.')) return;
+        replaceInvoiceState(buildFreshInvoiceState(), { toast: 'Fresh invoice ready.' });
+      });
+
+      nodes.nextInvoiceNumberButton.addEventListener('click', () => {
+        state.invoice.number = getNextInvoiceNumber();
+        fieldMap['invoice.number'].value = state.invoice.number;
+        refreshInvoiceUi();
+        App.toast('Invoice number updated.');
+      });
+
+      nodes.clearDraftsButton.addEventListener('click', () => {
+        const draftCount = getDraftRecords().length;
+        if (!draftCount) return;
+        if (!window.confirm(`Delete all ${draftCount} saved draft${draftCount === 1 ? '' : 's'} from this device?`)) return;
+        clearAllDrafts();
+        App.toast('Drafts deleted.');
+      });
+
       nodes.draftList.addEventListener('click', (event) => {
         const button = event.target.closest('[data-draft-action]');
         if (!button) return;
         const key = button.dataset.draftKey;
         if (!key) return;
         if (button.dataset.draftAction === 'delete') {
+          if (!window.confirm('Delete this saved draft from this device?')) return;
           localStorage.removeItem(key);
           renderDrafts();
+          if (!getDraftRecords().length) nodes.draftPanel.classList.remove('is-open');
+          App.toast('Draft deleted.');
           return;
         }
         const draft = safeLocalGet(key, null);
         if (!draft || !draft.state) return;
-        state = normalizeInvoiceState(draft.state);
-        renderAll();
-        refreshInvoiceUi();
-        App.toast('Draft restored.');
+        replaceInvoiceState(draft.state, { toast: 'Draft restored.' });
       });
 
       nodes.historyList.addEventListener('click', (event) => {
         const button = event.target.closest('[data-history-action="reuse"]');
+        const deleteButton = event.target.closest('[data-history-action="delete"]');
+        if (deleteButton) {
+          const historyId = deleteButton.dataset.historyId;
+          if (!historyId) return;
+          if (!window.confirm('Delete this invoice from local history?')) return;
+          history = history.filter((item) => item.id !== historyId);
+          invoiceWriteJson(INVOICE_STORAGE.history, history);
+          renderHistory();
+          App.toast('History entry deleted.');
+          return;
+        }
         if (!button) return;
         const entry = history.find((item) => item.id === button.dataset.historyId);
         if (!entry || !entry.snapshot) return;
@@ -1828,10 +1918,7 @@
         });
         nextState.items = (entry.snapshot.items || []).map((item) => createBlankItem(item));
         while (nextState.items.length < 3) nextState.items.push(createBlankItem());
-        state = nextState;
-        renderAll();
-        refreshInvoiceUi();
-        App.toast('Invoice loaded as a new starting point.');
+        replaceInvoiceState(nextState, { toast: 'Invoice loaded as a new starting point.' });
       });
 
       nodes.historyList.addEventListener('change', (event) => {
@@ -1840,6 +1927,15 @@
         history = history.map((entry) => entry.id === checkbox.dataset.historyId ? { ...entry, status: checkbox.checked ? 'paid' : 'unpaid' } : entry);
         invoiceWriteJson(INVOICE_STORAGE.history, history);
         renderHistory();
+      });
+
+      nodes.clearHistoryButton.addEventListener('click', () => {
+        if (!history.length) return;
+        if (!window.confirm(`Clear all ${history.length} invoice history entr${history.length === 1 ? 'y' : 'ies'} from this device?`)) return;
+        history = [];
+        invoiceWriteJson(INVOICE_STORAGE.history, history);
+        renderHistory();
+        App.toast('Invoice history cleared.');
       });
 
       nodes.saveDraftButton.addEventListener('click', () => {
