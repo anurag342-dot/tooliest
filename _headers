@@ -259,6 +259,9 @@
 /pdf-protect
   Cache-Control: public, max-age=0, must-revalidate
 
+/signature-maker
+  Cache-Control: public, max-age=0, must-revalidate
+
 /pdf-to-images
   Cache-Control: public, max-age=0, must-revalidate
 

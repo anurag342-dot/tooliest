@@ -53,7 +53,7 @@
   const DOWNLOAD_LINKS = [
     { href: '/pdf-compressor', title: 'Compress your invoice PDF', description: 'Reduce file size before emailing' },
     { href: '/pdf-protect', title: 'Add a password to your invoice', description: 'Protect sensitive client data' },
-    { href: '#signature-maker-coming-soon', title: 'Sign your invoice', description: 'Coming soon on Tooliest' },
+    { href: '/signature-maker', title: 'Sign your invoice', description: 'Create a transparent signature PNG for invoices and PDFs' },
     { href: '/pdf-merger', title: 'Merge with a contract PDF', description: 'Combine your invoice with related paperwork' },
   ];
 

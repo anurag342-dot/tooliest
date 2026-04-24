@@ -781,6 +781,101 @@ const TOOLS = [
     meta: { title: 'PDF Password Protect - Encrypt PDF Online | Tooliest', desc: 'Password-protect and encrypt PDFs online in your browser. Free, private PDF security tool for sensitive documents from Tooliest.' }
   },
   {
+    id: 'signature-maker',
+    name: 'Online Signature Maker',
+    description: 'Draw, type, or clean up a handwritten signature in your browser, then download a transparent PNG or SVG for invoices, PDFs, and email workflows.',
+    category: 'pdf',
+    icon: '✍️',
+    tags: ['signature maker', 'digital signature', 'transparent png', 'sign pdf', 'handwritten signature'],
+    isAI: false,
+    education: '<strong>Why use a browser-based signature maker?</strong><br>Most people searching for an online signature tool do not need identity verification, envelopes, or full e-signature workflows. They need a clean signature image they can drop into an invoice, PDF, Word document, or email in the next few minutes.<br><br><strong>Why offer draw, type, and upload modes?</strong><br>Some people want to sign naturally with a finger or stylus, some prefer a polished script-font version of their name, and others already have a paper signature they just need cleaned up. Tooliest keeps all three paths in one private workflow without uploads.',
+    whyUse: [
+      'Draw a smooth handwritten signature with mouse, touch, or Apple Pencil pressure instead of settling for jagged straight-line strokes.',
+      'Generate a transparent PNG or scalable SVG you can reuse in invoices, PDFs, proposals, and email attachments.',
+      'Restore recent saved signatures locally on this device so repeat document workflows stay fast.'
+    ],
+    whoUses: 'Freelancers, founders, sales teams, consultants, accountants, operations teams, students, and anyone who needs a quick signature image without creating an e-sign account.',
+    faqLimit: 5,
+    faq: [
+      { q: 'Is this signature legally binding?', a: 'This tool creates a digital image of a signature for everyday documents and emails. For high-compliance e-signature workflows under ESIGN, UETA, or eIDAS rules, you would still use a dedicated signing platform.' },
+      { q: 'Is my signature stored anywhere?', a: 'No. Your signature is created locally in the browser. If you choose to save it, Tooliest stores it only in local storage on this device.' },
+      { q: 'Can I use this on iPhone or iPad?', a: 'Yes. The drawing canvas supports touch input, stylus input, and Apple Pencil pressure when the browser provides it.' },
+      { q: 'How do I add my signature to a PDF?', a: 'Download the signature as a transparent PNG, then place it into your PDF editor or PDF workflow as an image. Tooliest PDF tools can help with the next document steps after export.' },
+      { q: 'What is the difference between Draw, Type, and Upload modes?', a: 'Draw mode captures a natural handwritten signature, Type mode creates a script-style version of your name with curated fonts, and Upload mode cleans up an existing image of your signature by removing the background.' }
+    ],
+    customSections: [
+      {
+        heading: 'How to Create a Digital Signature for Free',
+        body: [
+          'Choose Draw if you want to sign naturally with a mouse, finger, or stylus, Type if you want a polished script-style version of your name, or Upload if you already have a signature image that needs cleanup. Once the preview looks right, export a tightly cropped transparent PNG or SVG without creating an account.'
+        ],
+      },
+      {
+        heading: 'How to Add a Signature to a PDF or Word Document',
+        body: [
+          'Download your signature as a transparent PNG, then place it into the document as an image so the background blends cleanly into the page. For PDFs, pair the exported signature with Tooliest PDF tools if you need to compress, merge, or protect the final file afterward.'
+        ],
+      },
+      {
+        heading: 'Digital Signature vs. Electronic Signature - What\'s the Difference?',
+        body: [
+          'A digital signature image is usually just a visual representation of your handwritten mark, which is perfect for everyday invoices, internal approvals, and lightweight paperwork. Formal electronic-signature platforms add identity verification, audit trails, and compliance layers that matter for higher-stakes legal workflows.'
+        ],
+      },
+      {
+        heading: 'Tips for Drawing a Great Digital Signature',
+        body: [
+          'Draw a little more slowly than you would with a pen on paper so the smoothing engine has room to produce graceful curves. On touch devices, keep your wrist steady, use the baseline guide if you want a cleaner line, and rely on the auto-crop export so you do not have to position the signature perfectly by hand.'
+        ],
+      },
+    ],
+    relatedLinks: [
+      {
+        toolId: 'invoice-generator',
+        title: 'Sign your generated invoice',
+        description: 'Create the invoice first, then add a reusable signature image',
+      },
+      {
+        toolId: 'pdf-compressor',
+        title: 'Compress the PDF you\'re signing',
+        description: 'Shrink signed documents before sending them out',
+      },
+      {
+        toolId: 'pdf-merger',
+        title: 'Merge signed documents',
+        description: 'Combine signature-ready files into a single PDF packet',
+      },
+      {
+        toolId: 'pdf-protect',
+        title: 'Add password to your signed PDF',
+        description: 'Protect sensitive signed documents before sharing',
+      },
+      {
+        toolId: 'image-resizer',
+        title: 'Resize your signature image',
+        description: 'Prepare your signature for forms, portals, or narrow layouts',
+      },
+    ],
+    contentHighlights: [
+      'The fastest signature workflow removes accounts, uploads, and unnecessary e-sign steps when all you really need is a clean image file.',
+      'Auto-cropped transparent exports help signatures look professional on invoices, proposals, and PDFs because there is no extra canvas padding or white box around the mark.',
+      'Offering draw, type, and upload modes covers the three most common real-world paths: sign naturally, generate a neat stylized signature, or digitize a paper signature you already trust.'
+    ],
+    extraStructuredData: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Tooliest Signature Maker',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Any (web browser)',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        description: 'Free browser-based signature maker for drawing, typing, or cleaning up signatures as transparent PNG or SVG files.',
+        url: 'https://tooliest.com/signature-maker'
+      }
+    ],
+    meta: { title: 'Free Online Signature Maker - Draw & Download PNG | Tooliest', desc: 'Create a handwritten digital signature for free. Draw with mouse or finger, choose a signature style, and download as transparent PNG. No signup, no upload, your signature stays on your device.' }
+  },
+  {
     id: 'pdf-to-images',
     name: 'PDF to Images',
     description: 'Convert each PDF page into downloadable PNG or JPG images with browser-based rendering.',
@@ -1675,12 +1770,10 @@ const TOOLS = [
         description: 'Protect sensitive client data',
       },
       {
-        href: '#signature-maker-coming-soon',
+        toolId: 'signature-maker',
         title: 'Sign your invoice',
-        description: 'Add a signature workflow once Signature Maker ships',
+        description: 'Create a transparent signature PNG for invoices and PDFs',
         icon: '✍️',
-        badge: 'Coming Soon',
-        comingSoon: true,
       },
       {
         toolId: 'pdf-merger',
@@ -1688,10 +1781,6 @@ const TOOLS = [
         description: 'Combine the invoice with supporting documents',
       },
     ],
-    relatedLinksNote: {
-      id: 'signature-maker-coming-soon',
-      text: 'Signature Maker is planned for Tooliest. For now, download the invoice PDF and sign it in your preferred PDF app.',
-    },
     contentHighlights: [
       'The fastest invoicing workflow is usually the one that removes account creation, email verification, and upload steps before you can even draft the document.',
       'Saving sender details locally can turn repeat invoices into a minute-long task instead of a full setup flow every time a new client payment is due.',
@@ -2480,6 +2569,27 @@ const TOOLIEST_SEO_OVERRIDES = {
       { date: '2026-04-24', text: 'Shipped FAQ schema, how-to content, and a custom social preview card for the new signature tool.' },
     ],
   },
+  'signature-maker': {
+    metaDesc: 'Create a handwritten digital signature for free. Draw with mouse or finger, choose a signature style, and download as transparent PNG. No signup, no upload, your signature stays on your device.',
+    summaryHeading: 'How Do I Make a Signature PNG Online Without Signing Up?',
+    howToHeading: 'How Can I Create a Digital Signature Step by Step?',
+    howToSteps: [
+      { name: 'Choose draw, type, or upload mode', text: 'Draw a signature naturally, type your name with script fonts, or upload an existing signature image that needs background cleanup.' },
+      { name: 'Refine the signature and preview it', text: 'Adjust line weight, color, slant, cleanup strength, and preview contexts until the signature looks right on documents, invoices, or email.' },
+      { name: 'Export the file you need', text: 'Download a tightly cropped transparent PNG, copy the signature to the clipboard, or export SVG when you need a scalable version.' },
+      { name: 'Use it in the rest of your workflow', text: 'Add the signature to an invoice, PDF, or document, then continue with the other Tooliest PDF tools if you need compression, merging, or password protection.' },
+    ],
+    aeoSnippet: {
+      heading: 'Can I Create a Transparent Signature PNG Online for Free?',
+      answer: 'Yes. A browser-based signature maker lets you draw a signature, generate a script-style version of your name, or clean up an uploaded signature image and then export it as a transparent PNG without creating an account. That is ideal when you need a reusable signature quickly for invoices, PDFs, or documents.',
+    },
+    ogImageAlt: 'Signature Maker preview on Tooliest',
+    changelog: [
+      { date: '2026-04-24', text: 'Launched the browser-based signature maker with draw, type, and upload modes plus transparent PNG export.' },
+      { date: '2026-04-24', text: 'Added preview contexts, saved signatures, SVG export, and clipboard copy for document workflows.' },
+      { date: '2026-04-24', text: 'Connected the signature tool to invoice, compression, password protection, and image resizing workflows.' },
+    ],
+  },
 };
 
 const TOOLIEST_CATEGORY_AUDIENCES = {
@@ -3213,6 +3323,12 @@ const emailSignatureGeneratorTool = TOOLS.find((tool) => tool.id === 'email-sign
 if (emailSignatureGeneratorTool) {
   emailSignatureGeneratorTool.lastReviewed = '2026-04-24';
   emailSignatureGeneratorTool.lastReviewedLabel = 'April 24, 2026';
+}
+
+const signatureMakerTool = TOOLS.find((tool) => tool.id === 'signature-maker');
+if (signatureMakerTool) {
+  signatureMakerTool.lastReviewed = '2026-04-24';
+  signatureMakerTool.lastReviewedLabel = 'April 24, 2026';
 }
 
 // Count tools per category
