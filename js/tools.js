@@ -1711,6 +1711,86 @@ const TOOLS = [
     ],
     meta: { title: 'Free Invoice Generator — Create & Download Invoices Instantly | Tooliest', desc: 'Generate professional invoices in seconds. Add your logo, line items, tax rates, and custom notes. Download as PDF instantly. 100% free, no signup, works offline.' }
   },
+  {
+    id: 'email-signature-generator',
+    name: 'Free Email Signature Generator',
+    description: 'Create a professional HTML email signature in 60 seconds, preview it live, and copy table-based HTML for Gmail, Outlook, or Apple Mail without signing up.',
+    category: 'developer',
+    icon: '✉️',
+    tags: ['email signature', 'html signature', 'gmail signature', 'outlook signature', 'email branding'],
+    isAI: false,
+    relatedCategoryIds: ['image', 'text', 'finance'],
+    education: '<strong>Why use a browser-based email signature generator?</strong><br>Most signature builders hide the export behind CRM signups, paid plans, or hosted image requirements. Tooliest keeps the whole workflow in one tab: fill in your details, preview the result instantly, and copy the HTML you can paste straight into Gmail, Outlook, or Apple Mail.<br><br><strong>Why table-based HTML?</strong><br>Email clients are far stricter than websites. Gmail strips head styles, Outlook ignores a lot of modern CSS, and Apple Mail has its own quirks. This generator uses table layouts, inline styles, and email-safe fonts so the copied output is much more reliable across clients.',
+    whyUse: [
+      'Generate paste-ready HTML in minutes instead of fighting through a signup wall or a locked export flow.',
+      'Preview the signature in a Gmail-style or Outlook-style frame so you can make quick layout decisions before pasting.',
+      'Keep your headshot, logo, brand color, and contact details saved locally on this device for the next signature update.'
+    ],
+    whoUses: 'Founders, sales teams, consultants, freelancers, agencies, support teams, recruiters, and anyone who needs a fast professional email signature without learning email HTML by hand.',
+    faqLimit: 5,
+    faq: [
+      { q: 'How do I add an HTML signature to Gmail?', a: 'In Gmail, open Settings, choose See all settings, scroll to the Signature section, create a new signature, click the source code icon in the editor, paste the generated HTML, and save your settings.' },
+      { q: 'Will this signature work in Outlook?', a: 'Yes. Tooliest creates table-based HTML with inline styles, which is the structure Outlook expects. The Copy for Outlook option adds extra Outlook-friendly wrapping for safer pasting.' },
+      { q: 'Can I add my photo to my email signature?', a: 'Yes. Upload a PNG or JPG photo and Tooliest embeds it directly into the generated HTML. If you skip the photo, the signature falls back to an initials avatar.' },
+      { q: 'Is this email signature generator really free?', a: 'Completely free, forever. There is no account, no paid unlock, and no watermark added to the signature.' },
+      { q: 'What is the best font for an email signature?', a: 'Stick to email-safe fonts such as Arial, Georgia, Verdana, Trebuchet MS, and Tahoma. Those render more consistently than web fonts inside Gmail, Outlook, and Apple Mail.' }
+    ],
+    customSections: [
+      {
+        heading: 'How to Add an HTML Email Signature in Gmail, Outlook, and Apple Mail',
+        body: [
+          'After you generate the signature, copy the HTML and paste it into your email client\'s signature editor. Gmail, Outlook, and Apple Mail all support pasted HTML signatures, but they behave more reliably when the markup is table-based and fully inline styled.'
+        ],
+      },
+      {
+        heading: 'What Should a Professional Email Signature Include?',
+        body: [
+          'A professional signature usually includes your name, role, company, direct contact details, and one or two brand cues like a profile photo, company logo, or accent color. The goal is to make it easy to contact you without turning the signature into a miniature landing page.'
+        ],
+      },
+      {
+        heading: 'Why Table-Based HTML Matters for Email Signatures',
+        body: [
+          'Website layouts can rely on flexbox and modern CSS, but email clients still behave like a much older web. Table-based HTML with inline styles gives Gmail, Outlook, Apple Mail, and mobile email apps a better chance of rendering the signature consistently.'
+        ],
+      },
+    ],
+    relatedLinks: [
+      {
+        toolId: 'qr-code-generator',
+        title: 'Generate a QR code for your website',
+        description: 'Add a QR code to your signature',
+      },
+      {
+        toolId: 'image-resizer',
+        title: 'Resize your profile photo',
+        description: 'Get your photo to the perfect dimensions',
+      },
+      {
+        toolId: 'invoice-generator',
+        title: 'Create an invoice to send with your new signature',
+        description: 'Pair the signature with a clean client-facing invoice',
+      },
+    ],
+    contentHighlights: [
+      'The fastest signature workflow is the one that shows a polished example immediately, then lets you replace the sample details with your real information field by field.',
+      'Email HTML still needs old-school table structure and inline styling because Gmail and Outlook strip or ignore a surprising amount of modern CSS.',
+      'Saving your photo, logo, colors, and contact details locally makes signature updates feel more like editing a saved business card than starting from scratch.'
+    ],
+    extraStructuredData: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Tooliest Email Signature Generator',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Any (web browser)',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        description: 'Free browser-based email signature generator. Create professional HTML signatures for Gmail, Outlook, and Apple Mail. No signup required.',
+        url: 'https://tooliest.com/email-signature-generator'
+      }
+    ],
+    meta: { title: 'Free Email Signature Generator - Copy HTML for Gmail & Outlook | Tooliest', desc: 'Create a professional HTML email signature in 60 seconds. Pick a template, fill in your details, preview live, and copy the HTML to paste directly into Gmail, Outlook, or Apple Mail. Free, no signup.' }
+  },
   // ===== AUDIO TOOLS =====
   {
     id: 'audio-converter',
@@ -2377,6 +2457,27 @@ const TOOLIEST_SEO_OVERRIDES = {
       { date: '2026-04-23', text: 'Launched the browser-based invoice generator with local drafts, invoice history, live preview templates, and instant PDF export.' },
       { date: '2026-04-23', text: 'Added invoice-specific cross-links into the PDF workflow so invoices can be compressed, protected, and merged after export.' },
       { date: '2026-04-23', text: 'Shipped crawlable FAQ content, business-app schema, and a custom invoice social preview card.' },
+    ],
+  },
+  'email-signature-generator': {
+    metaDesc: 'Create a professional HTML email signature in 60 seconds. Pick a template, fill in your details, preview live, and copy the HTML to paste directly into Gmail, Outlook, or Apple Mail. Free, no signup.',
+    summaryHeading: 'How Do I Create an HTML Email Signature Without Signing Up?',
+    howToHeading: 'How Can I Build an Email Signature Step by Step?',
+    howToSteps: [
+      { name: 'Fill in your contact details', text: 'Start with your name, role, company, email, phone, and website so the preview immediately looks like a complete signature instead of an empty shell.' },
+      { name: 'Add branding and choose a template', text: 'Upload a profile photo or logo if you want them, choose the accent color, and switch between Professional, Executive, or Creative layouts.' },
+      { name: 'Preview the signature in context', text: 'Check the Gmail-style or Outlook-style preview, then toggle the mobile view if you want to see how the signature fits inside a narrower reading pane.' },
+      { name: 'Copy the HTML into your mail client', text: 'Copy the standard HTML or the Outlook-friendly version, then paste it into Gmail, Outlook, or Apple Mail settings.' },
+    ],
+    aeoSnippet: {
+      heading: 'Can I Make a Professional Email Signature Online for Free?',
+      answer: 'Yes. A browser-based email signature generator lets you fill in your contact details, choose a template, upload a photo or logo, and copy the final HTML without creating an account. That is ideal when you need something polished quickly and just want to paste it into your email settings.',
+    },
+    ogImageAlt: 'Email Signature Generator preview on Tooliest',
+    changelog: [
+      { date: '2026-04-24', text: 'Launched the browser-based email signature generator with three table-based templates, instant copy actions, and live Gmail and Outlook preview chrome.' },
+      { date: '2026-04-24', text: 'Added image embedding, local profile and logo storage, and cross-links into QR, image resizing, and invoice workflows.' },
+      { date: '2026-04-24', text: 'Shipped FAQ schema, how-to content, and a custom social preview card for the new signature tool.' },
     ],
   },
 };
@@ -3106,6 +3207,12 @@ const invoiceGeneratorTool = TOOLS.find((tool) => tool.id === 'invoice-generator
 if (invoiceGeneratorTool) {
   invoiceGeneratorTool.lastReviewed = '2026-04-23';
   invoiceGeneratorTool.lastReviewedLabel = 'April 23, 2026';
+}
+
+const emailSignatureGeneratorTool = TOOLS.find((tool) => tool.id === 'email-signature-generator');
+if (emailSignatureGeneratorTool) {
+  emailSignatureGeneratorTool.lastReviewed = '2026-04-24';
+  emailSignatureGeneratorTool.lastReviewedLabel = 'April 24, 2026';
 }
 
 // Count tools per category

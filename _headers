@@ -421,6 +421,9 @@
 /invoice-generator
   Cache-Control: public, max-age=0, must-revalidate
 
+/email-signature-generator
+  Cache-Control: public, max-age=0, must-revalidate
+
 /audio-converter
   Cache-Control: public, max-age=0, must-revalidate
 

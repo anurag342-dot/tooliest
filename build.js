@@ -33,6 +33,7 @@ function computeAssetVersion() {
     'js/renderers5.js',
     'js/renderers6.js',
     'js/renderers-invoice.js',
+    'js/email-sig-renderer.js',
   ];
   const hash = crypto.createHash('sha1');
 
@@ -176,6 +177,7 @@ const LAZY_RENDERER_SOURCE_FILES = [
   'js/renderers5.js',
   'js/renderers6.js',
   'js/renderers-invoice.js',
+  'js/email-sig-renderer.js',
 ];
 const LAZY_RENDERER_CHUNKS = [
   { sourceFiles: ['js/renderers2.js'], outputFile: 'js/renderers2.min.js' },
@@ -183,7 +185,7 @@ const LAZY_RENDERER_CHUNKS = [
   // [TOOLIEST QR FIX] Bundle the QR engine into the same-origin renderer chunk so the tool never depends on a third-party runtime fetch.
   { sourceFiles: ['node_modules/qrcode-generator/qrcode.js', 'js/renderers4.js'], outputFile: 'js/renderers4.min.js' },
   { sourceFiles: ['js/renderers5.js'], outputFile: 'js/renderers5.min.js' },
-  { sourceFiles: ['js/renderers6.js', 'js/renderers-invoice.js'], outputFile: 'js/renderers6.min.js' },
+  { sourceFiles: ['js/renderers6.js', 'js/renderers-invoice.js', 'js/email-sig-renderer.js'], outputFile: 'js/renderers6.min.js' },
 ];
 const TOOL_RENDERER_SOURCE_FILES = ['js/renderers.js', ...LAZY_RENDERER_SOURCE_FILES];
 
@@ -1008,6 +1010,62 @@ function renderInvoiceOgCardSvg(tool) {
 `;
 }
 
+function renderEmailSignatureOgCardSvg(tool) {
+  const title = tool.name || 'Email Signature Generator';
+  const description = stripHtml(tool.meta?.desc || tool.description || 'Create polished HTML signatures for Gmail and Outlook in your browser.');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">${escapeXml(title)}</title>
+  <desc id="desc">${escapeXml(description)}</desc>
+  <defs>
+    <linearGradient id="bgSig" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="accentSig" x1="0%" x2="100%" y1="0%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <filter id="sigShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="26" stdDeviation="32" flood-color="#020617" flood-opacity="0.34" />
+    </filter>
+  </defs>
+  <rect width="1200" height="630" rx="36" fill="url(#bgSig)" />
+  <circle cx="1024" cy="120" r="170" fill="#8b5cf6" opacity="0.12" />
+  <circle cx="168" cy="548" r="208" fill="#06b6d4" opacity="0.1" />
+  <rect x="86" y="74" width="1028" height="482" rx="34" fill="rgba(15, 23, 42, 0.78)" stroke="rgba(148, 163, 184, 0.16)" filter="url(#sigShadow)" />
+  <rect x="120" y="110" width="444" height="372" rx="28" fill="#f8fafc" />
+  <rect x="120" y="110" width="444" height="62" rx="28" fill="#ffffff" />
+  <text x="154" y="148" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#64748b">From:</text>
+  <rect x="214" y="128" width="176" height="18" rx="9" fill="#cbd5e1" />
+  <text x="154" y="198" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#64748b">Subject:</text>
+  <rect x="244" y="178" width="222" height="18" rx="9" fill="#cbd5e1" />
+  <rect x="148" y="228" width="388" height="224" rx="22" fill="#ffffff" stroke="#e2e8f0" />
+  <rect x="148" y="228" width="388" height="10" rx="22" fill="url(#accentSig)" />
+  <circle cx="198" cy="290" r="26" fill="#dbeafe" />
+  <text x="198" y="300" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" fill="#1e293b">YN</text>
+  <text x="238" y="286" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="800" fill="#0f172a">Your Name</text>
+  <text x="238" y="312" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#475569">CEO • Acme Inc</text>
+  <rect x="238" y="336" width="182" height="4" rx="2" fill="url(#accentSig)" />
+  <rect x="178" y="366" width="96" height="24" rx="12" fill="#ede9fe" />
+  <rect x="286" y="366" width="104" height="24" rx="12" fill="#e0f2fe" />
+  <rect x="402" y="366" width="82" height="24" rx="12" fill="#ecfeff" />
+  <rect x="178" y="404" width="108" height="24" rx="12" fill="#f8fafc" stroke="#cbd5e1" />
+  <rect x="298" y="404" width="90" height="24" rx="12" fill="#f8fafc" stroke="#cbd5e1" />
+  <rect x="400" y="404" width="84" height="24" rx="12" fill="#f8fafc" stroke="#cbd5e1" />
+  <rect x="640" y="154" width="380" height="72" rx="18" fill="rgba(139, 92, 246, 0.12)" stroke="rgba(139, 92, 246, 0.22)" />
+  <text x="672" y="196" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#c4b5fd">Developer Tools on Tooliest</text>
+  <text x="640" y="294" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="800" fill="#f8fafc">Free Email</text>
+  <text x="640" y="362" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="800" fill="#f8fafc">Signature Generator</text>
+  <text x="640" y="430" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">Create a clean signature, preview it instantly,</text>
+  <text x="640" y="468" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">and copy table-based HTML for Gmail or Outlook.</text>
+  <rect x="640" y="504" width="240" height="56" rx="28" fill="rgba(6, 182, 212, 0.16)" stroke="rgba(6, 182, 212, 0.28)" />
+  <text x="672" y="540" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#a5f3fc">Copy HTML instantly</text>
+  <text x="950" y="540" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#e2e8f0">tooliest.com</text>
+</svg>
+`;
+}
+
 function writeOgAssets(tools, categories) {
   console.log('Generating OG image assets...');
   const ogRoot = path.join(__dirname, 'og');
@@ -1085,6 +1143,8 @@ function writeOgAssets(tools, categories) {
       path.join(toolDir, `${tool.id}.svg`),
       tool.id === 'invoice-generator'
         ? renderInvoiceOgCardSvg(tool)
+        : tool.id === 'email-signature-generator'
+          ? renderEmailSignatureOgCardSvg(tool)
         : renderOgCardSvg({
           eyebrow: `${categoryName} on Tooliest`,
           title: tool.name,
