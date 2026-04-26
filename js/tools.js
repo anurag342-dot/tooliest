@@ -1823,9 +1823,6 @@ const TOOLS = [
     meta: { title: 'Code Screenshot Generator — Beautiful Code Images, Offline-Ready | Tooliest', desc: 'Create stunning syntax-highlighted code screenshots in seconds. 20+ themes, 20+ languages, custom fonts, window chrome, gradient backgrounds. Download as PNG or SVG. Your code never leaves your browser — works offline too.' },
     ogImage: '/og/code-screenshot.png',
     ogImageAlt: 'Code Screenshot Generator social preview from Tooliest',
-    hideTrustPanel: true,
-    hideHeaderActions: true,
-    disableComparePanel: true,
   },
 
   // ===== FINANCE TOOLS =====

@@ -1890,7 +1890,17 @@ function renderToolContentSections(tool, categories) {
 }
 
 function resolveRelatedLinkCard(link, tools, categories) {
-  const linkedTool = link && link.toolId ? tools.find((candidate) => candidate.id === link.toolId) : null;
+  const hrefToolId = (() => {
+    try {
+      const pathname = new URL(link?.href || '', 'https://tooliest.com').pathname.replace(/\/+$/, '');
+      return pathname.replace(/^\//, '');
+    } catch (_) {
+      return '';
+    }
+  })();
+  const linkedTool = link && (link.toolId || hrefToolId)
+    ? tools.find((candidate) => candidate.id === (link.toolId || hrefToolId))
+    : null;
   const categoryName = linkedTool
     ? (categories.find((category) => category.id === linkedTool.category)?.name || 'Related Tool')
     : (link.badge || (link.comingSoon ? 'Coming Soon' : 'Related Tool'));

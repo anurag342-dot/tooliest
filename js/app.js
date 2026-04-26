@@ -33,7 +33,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260426-52a08ec7';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260426-13a8a738';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -766,7 +766,17 @@ const App = {
   },
 
   resolveRelatedLinkCard(link) {
-    const linkedTool = link && link.toolId ? TOOLS.find((candidate) => candidate.id === link.toolId) : null;
+    const hrefToolId = (() => {
+      try {
+        const pathname = new URL(link?.href || '', window.location.origin).pathname.replace(/\/+$/, '');
+        return pathname.replace(/^\//, '');
+      } catch (_) {
+        return '';
+      }
+    })();
+    const linkedTool = link && (link.toolId || hrefToolId)
+      ? TOOLS.find((candidate) => candidate.id === (link.toolId || hrefToolId))
+      : null;
     const categoryName = linkedTool
       ? (TOOL_CATEGORIES.find((category) => category.id === linkedTool.category)?.name || 'Related Tool')
       : (link.badge || (link.comingSoon ? 'Coming Soon' : 'Related Tool'));

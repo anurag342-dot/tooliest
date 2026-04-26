@@ -401,7 +401,7 @@ greet('World');`;
       dimUnfocused: false,
       diffMode: false,
       previewZoom: 'fit',
-      previewPanelHeight: 560,
+      previewPanelHeight: 400,
       fontLoading: false,
     };
   }
@@ -416,7 +416,7 @@ greet('World');`;
       ...raw,
       tabs,
       activeTabId,
-      previewPanelHeight: clamp(Number(raw.previewPanelHeight) || base.previewPanelHeight, 360, 1000),
+      previewPanelHeight: clamp(Number(raw.previewPanelHeight) || base.previewPanelHeight, 280, 1000),
       customPadding: clamp(Number(raw.customPadding) || base.customPadding, 0, 300),
       customCardWidth: clamp(Number(raw.customCardWidth) || base.customCardWidth, 280, 2600),
       fontSize: clamp(Number(raw.fontSize) || base.fontSize, 12, 24),
@@ -484,37 +484,43 @@ greet('World');`;
       }
       .code-shot-shell {
         display: grid;
-        gap: 20px;
+        gap: 16px;
       }
       .code-shot-main,
-      .code-shot-settings-grid,
+      .code-shot-settings-columns,
+      .code-shot-settings-stack,
       .code-shot-preview-column,
       .code-shot-controls {
         min-width: 0;
       }
       .code-shot-main {
         display: grid;
-        gap: 20px;
+        gap: 16px;
       }
       .code-shot-controls {
         display: grid;
-        gap: 18px;
+        gap: 14px;
       }
-      .code-shot-settings-grid {
+      .code-shot-settings-columns {
         display: grid;
-        gap: 18px;
+        gap: 16px;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         align-items: start;
+      }
+      .code-shot-settings-stack {
+        display: grid;
+        gap: 16px;
+        align-content: start;
       }
       .code-shot-section {
         border: 1px solid var(--border-color);
         border-radius: var(--radius-md);
         background: var(--bg-card);
-        padding: 18px;
+        padding: 14px;
         box-shadow: var(--shadow-sm);
       }
       .code-shot-section h3 {
-        margin: 0 0 12px;
+        margin: 0 0 10px;
         font-size: 0.96rem;
         color: var(--text-primary);
       }
@@ -524,7 +530,7 @@ greet('World');`;
       }
       .code-shot-grid {
         display: grid;
-        gap: 14px;
+        gap: 10px;
       }
       .code-shot-grid.two {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -584,6 +590,11 @@ greet('World');`;
       }
       .code-shot-segmented button[aria-pressed="true"],
       .code-shot-chip.is-active {
+        background: rgba(139, 92, 246, 0.14);
+        border-color: var(--border-accent);
+        color: var(--text-primary);
+      }
+      .code-shot-preview-actions .btn[aria-pressed="true"] {
         background: rgba(139, 92, 246, 0.14);
         border-color: var(--border-accent);
         color: var(--text-primary);
@@ -676,6 +687,16 @@ greet('World');`;
         padding: 8px;
         display: grid;
         gap: 8px;
+      }
+      .code-shot-shadow-option[aria-pressed="true"] {
+        background: rgba(139, 92, 246, 0.14);
+        border-color: var(--border-accent);
+        color: var(--text-primary);
+        box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.18), 0 10px 28px rgba(139, 92, 246, 0.12);
+      }
+      .code-shot-shadow-option[aria-pressed="true"] .code-shot-shadow-preview {
+        outline: 2px solid rgba(139, 92, 246, 0.55);
+        outline-offset: 2px;
       }
       .code-shot-shadow-preview {
         height: 18px;
@@ -837,13 +858,18 @@ greet('World');`;
       .code-shot-badge a {
         color: var(--text-accent);
       }
+      .code-shot-help {
+        color: var(--text-tertiary);
+        font-size: 0.78rem;
+        line-height: 1.45;
+      }
       .code-shot-tip {
         font-size: 0.82rem;
         color: var(--text-secondary);
       }
       .code-shot-preview-column {
         display: grid;
-        gap: 14px;
+        gap: 10px;
       }
       .code-shot-preview-header {
         display: flex;
@@ -869,6 +895,7 @@ greet('World');`;
         min-height: 42px;
       }
       .code-shot-preview-frame {
+        display: grid;
         border: 1px solid var(--border-color);
         border-radius: var(--radius-lg);
         background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
@@ -877,9 +904,12 @@ greet('World');`;
       }
       .code-shot-preview-viewport {
         position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
         overflow: auto;
-        padding: 18px;
-        min-height: 420px;
+        padding: 14px;
+        min-height: 140px;
       }
       .code-shot-preview-viewport.is-transparent {
         background-image:
@@ -891,8 +921,10 @@ greet('World');`;
         background-position: 0 0, 0 12px, 12px -12px, -12px 0;
       }
       .code-shot-preview-zoom {
+        display: inline-block;
         transform-origin: top left;
         width: max-content;
+        min-width: 0;
       }
       .code-shot-resize-handle {
         height: 16px;
@@ -1066,23 +1098,37 @@ greet('World');`;
         display: grid;
       }
       .code-shot-checkbox {
-        display: flex;
-        align-items: center;
+        display: grid;
+        grid-template-columns: 18px minmax(0, 1fr);
         gap: 10px;
         color: var(--text-secondary);
+        align-items: start;
+        cursor: pointer;
+        user-select: none;
       }
       .code-shot-checkbox input {
         width: 18px;
         height: 18px;
+        margin: 2px 0 0;
+        accent-color: var(--accent-primary);
+        cursor: pointer;
       }
-      .code-shot-ad-slot {
-        min-height: 280px;
-        display: grid;
-        place-items: center;
-        text-align: center;
+      .code-shot-checkbox span {
+        line-height: 1.45;
       }
-      .code-shot-settings-grid > .code-shot-ad-slot {
-        grid-column: 1 / -1;
+      .code-shot-checkbox input:checked + span {
+        color: var(--text-primary);
+      }
+      .code-shot-checkbox input:disabled + span {
+        color: var(--text-tertiary);
+      }
+      .code-shot-field.is-disabled .code-shot-group-label,
+      .code-shot-field.is-disabled .code-shot-help {
+        color: var(--text-tertiary);
+      }
+      .code-shot-field.is-disabled .code-shot-checkbox {
+        opacity: 0.72;
+        cursor: not-allowed;
       }
       .code-shot-mobile-jump {
         display: none;
@@ -1099,7 +1145,7 @@ greet('World');`;
         border: 0;
       }
       @media (max-width: 1080px) {
-        .code-shot-settings-grid {
+        .code-shot-settings-columns {
           grid-template-columns: 1fr;
         }
       }
@@ -1114,7 +1160,7 @@ greet('World');`;
           grid-template-columns: 44px minmax(0, 1fr);
         }
         .code-shot-preview-viewport {
-          min-height: 280px;
+          min-height: 128px;
           padding: 12px;
         }
         .code-shot-shortcut-row {
@@ -1238,246 +1284,249 @@ greet('World');`;
               <div class="sr-only" aria-live="polite" id="cs-live-region"></div>
             </section>
 
-            <div class="code-shot-settings-grid">
-              <section class="code-shot-section">
-                <h3>Quick presets</h3>
-                <div class="code-shot-grid">
-                  <div class="code-shot-field">
-                    <label for="cs-size-preset">Size preset</label>
-                    <select id="cs-size-preset">${buildSizePresetOptions()}</select>
-                  </div>
-                  <div class="code-shot-inline-row">
-                    <button type="button" class="btn btn-secondary" id="cs-save-preset-btn">Save preset</button>
-                    <details class="code-shot-details" style="flex:1 1 auto;">
-                      <summary>Saved presets</summary>
-                      <div class="code-shot-details-body">
-                        <div id="cs-preset-list"></div>
-                      </div>
-                    </details>
-                  </div>
-                  <div class="code-shot-save-popover" id="cs-save-preset-popover">
-                    <input type="text" id="cs-save-preset-name" maxlength="40" placeholder="Name this preset">
+            <div class="code-shot-settings-columns">
+              <div class="code-shot-settings-stack">
+                <section class="code-shot-section">
+                  <h3>Quick presets</h3>
+                  <div class="code-shot-grid">
+                    <div class="code-shot-field">
+                      <label for="cs-size-preset">Size preset</label>
+                      <select id="cs-size-preset">${buildSizePresetOptions()}</select>
+                    </div>
                     <div class="code-shot-inline-row">
-                      <button type="button" class="btn btn-primary" id="cs-save-preset-confirm">Save</button>
-                      <button type="button" class="btn btn-secondary" id="cs-save-preset-cancel">Cancel</button>
+                      <button type="button" class="btn btn-secondary" id="cs-save-preset-btn">Save preset</button>
+                      <details class="code-shot-details" style="flex:1 1 auto;">
+                        <summary>Saved presets</summary>
+                        <div class="code-shot-details-body">
+                          <div id="cs-preset-list"></div>
+                        </div>
+                      </details>
                     </div>
-                  </div>
-                </div>
-              </section>
-
-              <section class="code-shot-section">
-                <h3>Syntax and theme</h3>
-                <div class="code-shot-grid">
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <label for="cs-language-select">Language</label>
-                      <select id="cs-language-select">${languageSelectOptions()}</select>
-                    </div>
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label" id="cs-theme-filter-label">Theme filter</span>
-                      <div class="code-shot-segmented" role="group" aria-labelledby="cs-theme-filter-label">
-                        <button type="button" data-theme-filter="all">All</button>
-                        <button type="button" data-theme-filter="dark">Dark</button>
-                        <button type="button" data-theme-filter="light">Light</button>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="code-shot-theme-grid" id="cs-theme-grid" tabindex="0" aria-label="Theme selector"></div>
-                </div>
-              </section>
-
-              <section class="code-shot-section">
-                <h3>Window and background</h3>
-                <div class="code-shot-grid">
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label" id="cs-chrome-label">Window chrome</span>
-                      <div class="code-shot-segmented" role="group" aria-labelledby="cs-chrome-label">
-                        <button type="button" data-chrome="macos">macOS</button>
-                        <button type="button" data-chrome="glass">Glass</button>
-                        <button type="button" data-chrome="windows">Windows</button>
-                        <button type="button" data-chrome="browser">Browser</button>
-                        <button type="button" data-chrome="none">None</button>
-                      </div>
-                    </div>
-                    <div class="code-shot-field">
-                      <label for="cs-file-name">File name</label>
-                      <input type="text" id="cs-file-name" maxlength="40">
-                    </div>
-                  </div>
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <label for="cs-chrome-color">Chrome color override</label>
-                      <div class="code-shot-color-row">
-                        <input type="color" id="cs-chrome-color">
-                        <button type="button" class="btn btn-secondary" id="cs-reset-chrome-color">Reset</button>
-                      </div>
-                    </div>
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label" id="cs-bg-mode-label">Background mode</span>
-                      <div class="code-shot-segmented" role="group" aria-labelledby="cs-bg-mode-label">
-                        <button type="button" data-bg-mode="gradient">Gradients</button>
-                        <button type="button" data-bg-mode="solid">Solid</button>
-                        <button type="button" data-bg-mode="transparent">Transparent</button>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="code-shot-gradient-row" id="cs-gradient-row"></div>
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <label for="cs-solid-color">Solid background</label>
-                      <div class="code-shot-color-row">
-                        <input type="color" id="cs-solid-color">
-                        <input type="text" id="cs-solid-color-text" value="#0f0e17">
-                      </div>
-                    </div>
-                    <div class="code-shot-field">
-                      <label for="cs-padding-select">Background padding</label>
+                    <div class="code-shot-save-popover" id="cs-save-preset-popover">
+                      <input type="text" id="cs-save-preset-name" maxlength="40" placeholder="Name this preset">
                       <div class="code-shot-inline-row">
-                        <select id="cs-padding-select">
-                          <option value="16">16px</option>
-                          <option value="32">32px</option>
-                          <option value="48">48px</option>
-                          <option value="64">64px</option>
-                          <option value="custom">Custom</option>
-                        </select>
-                        <input type="number" id="cs-padding-custom" min="0" max="300" step="1" value="32">
+                        <button type="button" class="btn btn-primary" id="cs-save-preset-confirm">Save</button>
+                        <button type="button" class="btn btn-secondary" id="cs-save-preset-cancel">Cancel</button>
                       </div>
                     </div>
                   </div>
-                </div>
-              </section>
+                </section>
 
-              <section class="code-shot-section">
-                <h3>Typography and card</h3>
-                <div class="code-shot-grid">
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <label for="cs-font-family">Font family</label>
-                      <select id="cs-font-family">${fontSelectOptions()}</select>
-                    </div>
-                    <div class="code-shot-field" id="cs-ligature-field">
-                      <span class="code-shot-group-label">Ligatures</span>
-                      <label class="code-shot-checkbox"><input type="checkbox" id="cs-ligatures"> Enable ligatures</label>
-                    </div>
-                  </div>
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label" id="cs-font-size-label">Font size</span>
-                      <div class="code-shot-segmented" role="group" aria-labelledby="cs-font-size-label">
-                        <button type="button" data-font-size="12">12</button>
-                        <button type="button" data-font-size="13">13</button>
-                        <button type="button" data-font-size="14">14</button>
-                        <button type="button" data-font-size="15">15</button>
-                        <button type="button" data-font-size="16">16</button>
-                        <button type="button" data-font-size="18">18</button>
-                        <button type="button" data-font-size="20">20</button>
+                <section class="code-shot-section">
+                  <h3>Window and background</h3>
+                  <div class="code-shot-grid">
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label" id="cs-chrome-label">Window chrome</span>
+                        <div class="code-shot-segmented" role="group" aria-labelledby="cs-chrome-label">
+                          <button type="button" data-chrome="macos">macOS</button>
+                          <button type="button" data-chrome="glass">Glass</button>
+                          <button type="button" data-chrome="windows">Windows</button>
+                          <button type="button" data-chrome="browser">Browser</button>
+                          <button type="button" data-chrome="none">None</button>
+                        </div>
+                      </div>
+                      <div class="code-shot-field">
+                        <label for="cs-file-name">File name</label>
+                        <input type="text" id="cs-file-name" maxlength="40">
                       </div>
                     </div>
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label" id="cs-line-height-label">Line height</span>
-                      <div class="code-shot-segmented" role="group" aria-labelledby="cs-line-height-label">
-                        <button type="button" data-line-height="1.4">1.4</button>
-                        <button type="button" data-line-height="1.5">1.5</button>
-                        <button type="button" data-line-height="1.6">1.6</button>
-                        <button type="button" data-line-height="1.8">1.8</button>
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field">
+                        <label for="cs-chrome-color">Chrome color override</label>
+                        <div class="code-shot-color-row">
+                          <input type="color" id="cs-chrome-color">
+                          <button type="button" class="btn btn-secondary" id="cs-reset-chrome-color">Reset</button>
+                        </div>
+                      </div>
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label" id="cs-bg-mode-label">Background mode</span>
+                        <div class="code-shot-segmented" role="group" aria-labelledby="cs-bg-mode-label">
+                          <button type="button" data-bg-mode="gradient">Gradients</button>
+                          <button type="button" data-bg-mode="solid">Solid</button>
+                          <button type="button" data-bg-mode="transparent">Transparent</button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label" id="cs-letter-spacing-label">Letter spacing</span>
-                      <div class="code-shot-segmented" role="group" aria-labelledby="cs-letter-spacing-label">
-                        <button type="button" data-letter-spacing="0">0</button>
-                        <button type="button" data-letter-spacing="0.5">0.5px</button>
-                        <button type="button" data-letter-spacing="1">1px</button>
+                    <div class="code-shot-gradient-row" id="cs-gradient-row"></div>
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field">
+                        <label for="cs-solid-color">Solid background</label>
+                        <div class="code-shot-color-row">
+                          <input type="color" id="cs-solid-color">
+                          <input type="text" id="cs-solid-color-text" value="#0f0e17">
+                        </div>
                       </div>
-                    </div>
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label" id="cs-tab-size-label">Tab size</span>
-                      <div class="code-shot-segmented" role="group" aria-labelledby="cs-tab-size-label">
-                        <button type="button" data-tab-size="2">2</button>
-                        <button type="button" data-tab-size="4">4</button>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label" id="cs-radius-label">Border radius</span>
-                      <div class="code-shot-segmented" role="group" aria-labelledby="cs-radius-label">
-                        <button type="button" data-radius="0">0</button>
-                        <button type="button" data-radius="4">4</button>
-                        <button type="button" data-radius="8">8</button>
-                        <button type="button" data-radius="12">12</button>
-                        <button type="button" data-radius="16">16</button>
-                        <button type="button" data-radius="24">24</button>
-                      </div>
-                    </div>
-                    <div class="code-shot-field">
-                      <label for="cs-card-width">Card width</label>
-                      <div class="code-shot-inline-row">
-                        <select id="cs-card-width">
-                          <option value="480">480px</option>
-                          <option value="560">560px</option>
-                          <option value="680">680px</option>
-                          <option value="800">800px</option>
-                          <option value="960">960px</option>
-                          <option value="auto">Auto-fit</option>
-                          <option value="custom">Custom</option>
-                        </select>
-                        <input type="number" id="cs-card-width-custom" min="280" max="2600" step="10" value="680">
+                      <div class="code-shot-field">
+                        <label for="cs-padding-select">Background padding</label>
+                        <div class="code-shot-inline-row">
+                          <select id="cs-padding-select">
+                            <option value="16">16px</option>
+                            <option value="32">32px</option>
+                            <option value="48">48px</option>
+                            <option value="64">64px</option>
+                            <option value="custom">Custom</option>
+                          </select>
+                          <input type="number" id="cs-padding-custom" min="0" max="300" step="1" value="32">
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div class="code-shot-shadow-grid" id="cs-shadow-grid"></div>
-                  <div class="code-shot-badge" id="cs-font-loading-badge" aria-live="polite">Font ready</div>
-                </div>
-              </section>
+                </section>
 
-              <section class="code-shot-section">
-                <h3>Focus and privacy</h3>
-                <div class="code-shot-grid">
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <label for="cs-highlight-lines">Highlight lines</label>
-                      <input type="text" id="cs-highlight-lines" placeholder="e.g. 2, 4-7, +10">
+                <section class="code-shot-section">
+                  <h3>Focus and privacy</h3>
+                  <div class="code-shot-grid">
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field">
+                        <label for="cs-highlight-lines">Highlight lines</label>
+                        <input type="text" id="cs-highlight-lines" placeholder="e.g. 2, 4-7, +10">
+                        <div class="code-shot-help">Use single lines, ranges, or diff-style entries like <code>+10</code> and <code>-12</code>.</div>
+                      </div>
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label">Diff mode</span>
+                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-diff-mode"><span>Use + / - line coloring</span></label>
+                      </div>
+                    </div>
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field" id="cs-dim-lines-field">
+                        <span class="code-shot-group-label">Dim unfocused lines</span>
+                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-dim-lines"><span>Focus on highlighted lines</span></label>
+                        <div class="code-shot-help" id="cs-dim-lines-help">Add highlighted lines first to enable this focus mode.</div>
+                      </div>
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label">Blur sensitive strings</span>
+                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-blur-sensitive"><span>Redact secrets in the preview</span></label>
+                        <div class="code-shot-help">Looks for API keys, JWTs, long tokens, and password strings. Click a string in the preview to force redact or reveal it.</div>
+                      </div>
+                    </div>
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label">Auto-pair editor</span>
+                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-auto-pair"><span>Insert matching brackets and quotes</span></label>
+                      </div>
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label">Watermark</span>
+                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-watermark"><span>Show tooliest.com watermark</span></label>
+                      </div>
                     </div>
                     <div class="code-shot-field">
-                      <span class="code-shot-group-label">Diff mode</span>
-                      <label class="code-shot-checkbox"><input type="checkbox" id="cs-diff-mode"> Use + / - line coloring</label>
+                      <label for="cs-watermark-text">Custom watermark text</label>
+                      <input type="text" id="cs-watermark-text" maxlength="40" placeholder="Optional handle or credit">
                     </div>
+                    <div class="code-shot-tip" id="cs-watermark-note">Share without a watermark - we appreciate it! Consider mentioning @tooliest when you share.</div>
                   </div>
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label">Dim unfocused lines</span>
-                      <label class="code-shot-checkbox"><input type="checkbox" id="cs-dim-lines"> Focus on highlighted lines</label>
-                    </div>
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label">Blur sensitive strings</span>
-                      <label class="code-shot-checkbox"><input type="checkbox" id="cs-blur-sensitive"> Redact secrets in the preview</label>
-                    </div>
-                  </div>
-                  <div class="code-shot-grid two">
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label">Auto-pair editor</span>
-                      <label class="code-shot-checkbox"><input type="checkbox" id="cs-auto-pair"> Insert matching brackets and quotes</label>
-                    </div>
-                    <div class="code-shot-field">
-                      <span class="code-shot-group-label">Watermark</span>
-                      <label class="code-shot-checkbox"><input type="checkbox" id="cs-watermark"> Show tooliest.com watermark</label>
-                    </div>
-                  </div>
-                  <div class="code-shot-field">
-                    <label for="cs-watermark-text">Custom watermark text</label>
-                    <input type="text" id="cs-watermark-text" maxlength="40" placeholder="Optional handle or credit">
-                  </div>
-                  <div class="code-shot-tip" id="cs-watermark-note">Share without a watermark - we appreciate it! Consider mentioning @tooliest when you share.</div>
-                </div>
-              </section>
+                </section>
+              </div>
 
-              <section class="code-shot-section code-shot-ad-slot">
-                <div class="ad-space" id="ad-code-screenshot-sidebar"><span>Advertisement</span></div>
-              </section>
+              <div class="code-shot-settings-stack">
+                <section class="code-shot-section">
+                  <h3>Syntax and theme</h3>
+                  <div class="code-shot-grid">
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field">
+                        <label for="cs-language-select">Language</label>
+                        <select id="cs-language-select">${languageSelectOptions()}</select>
+                      </div>
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label" id="cs-theme-filter-label">Theme filter</span>
+                        <div class="code-shot-segmented" role="group" aria-labelledby="cs-theme-filter-label">
+                          <button type="button" data-theme-filter="all">All</button>
+                          <button type="button" data-theme-filter="dark">Dark</button>
+                          <button type="button" data-theme-filter="light">Light</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="code-shot-theme-grid" id="cs-theme-grid" tabindex="0" aria-label="Theme selector"></div>
+                  </div>
+                </section>
+
+                <section class="code-shot-section">
+                  <h3>Typography and card</h3>
+                  <div class="code-shot-grid">
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field">
+                        <label for="cs-font-family">Font family</label>
+                        <select id="cs-font-family">${fontSelectOptions()}</select>
+                      </div>
+                      <div class="code-shot-field" id="cs-ligature-field">
+                        <span class="code-shot-group-label">Ligatures</span>
+                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-ligatures"><span>Enable ligatures</span></label>
+                      </div>
+                    </div>
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label" id="cs-font-size-label">Font size</span>
+                        <div class="code-shot-segmented" role="group" aria-labelledby="cs-font-size-label">
+                          <button type="button" data-font-size="12">12</button>
+                          <button type="button" data-font-size="13">13</button>
+                          <button type="button" data-font-size="14">14</button>
+                          <button type="button" data-font-size="15">15</button>
+                          <button type="button" data-font-size="16">16</button>
+                          <button type="button" data-font-size="18">18</button>
+                          <button type="button" data-font-size="20">20</button>
+                        </div>
+                      </div>
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label" id="cs-line-height-label">Line height</span>
+                        <div class="code-shot-segmented" role="group" aria-labelledby="cs-line-height-label">
+                          <button type="button" data-line-height="1.4">1.4</button>
+                          <button type="button" data-line-height="1.5">1.5</button>
+                          <button type="button" data-line-height="1.6">1.6</button>
+                          <button type="button" data-line-height="1.8">1.8</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label" id="cs-letter-spacing-label">Letter spacing</span>
+                        <div class="code-shot-segmented" role="group" aria-labelledby="cs-letter-spacing-label">
+                          <button type="button" data-letter-spacing="0">0</button>
+                          <button type="button" data-letter-spacing="0.5">0.5px</button>
+                          <button type="button" data-letter-spacing="1">1px</button>
+                        </div>
+                      </div>
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label" id="cs-tab-size-label">Tab size</span>
+                        <div class="code-shot-segmented" role="group" aria-labelledby="cs-tab-size-label">
+                          <button type="button" data-tab-size="2">2</button>
+                          <button type="button" data-tab-size="4">4</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="code-shot-grid two">
+                      <div class="code-shot-field">
+                        <span class="code-shot-group-label" id="cs-radius-label">Border radius</span>
+                        <div class="code-shot-segmented" role="group" aria-labelledby="cs-radius-label">
+                          <button type="button" data-radius="0">0</button>
+                          <button type="button" data-radius="4">4</button>
+                          <button type="button" data-radius="8">8</button>
+                          <button type="button" data-radius="12">12</button>
+                          <button type="button" data-radius="16">16</button>
+                          <button type="button" data-radius="24">24</button>
+                        </div>
+                      </div>
+                      <div class="code-shot-field">
+                        <label for="cs-card-width">Card width</label>
+                        <div class="code-shot-inline-row">
+                          <select id="cs-card-width">
+                            <option value="480">480px</option>
+                            <option value="560">560px</option>
+                            <option value="680">680px</option>
+                            <option value="800">800px</option>
+                            <option value="960">960px</option>
+                            <option value="auto">Auto-fit</option>
+                            <option value="custom">Custom</option>
+                          </select>
+                          <input type="number" id="cs-card-width-custom" min="280" max="2600" step="10" value="680">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="code-shot-shadow-grid" id="cs-shadow-grid"></div>
+                    <div class="code-shot-badge" id="cs-font-loading-badge" aria-live="polite">Font ready</div>
+                  </div>
+                </section>
+              </div>
             </div>
           </div>
         </div>
@@ -1946,7 +1995,7 @@ greet('World');`;
         left.appendChild(dot);
       });
       const center = document.createElement('div');
-      center.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0.84;';
+      center.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0.84;line-height:1;';
       center.textContent = activeTab.name || defaultFileName(metrics.language.id, 1);
       topRow.style.position = 'relative';
       topRow.appendChild(left);
@@ -2423,17 +2472,31 @@ greet('World');`;
     if (!runtime.lastPreviewMetrics) return;
     const viewport = runtime.elements.previewViewport;
     const wrapper = runtime.elements.previewZoomWrap;
-    const viewportWidth = Math.max(220, viewport.clientWidth - 12);
-    const viewportHeight = Math.max(220, viewport.clientHeight - 12);
+    const stage = runtime.elements.previewCard;
+    const minimumHeight = window.innerWidth <= 768 ? 128 : 140;
+    const viewportWidth = Math.max(220, viewport.clientWidth - 32);
+    const maxViewportHeight = Math.max(minimumHeight, runtime.state.previewPanelHeight - 12);
     let zoom = 1;
     if (runtime.state.previewZoom === 'fit') {
-      zoom = Math.min(1, viewportWidth / runtime.lastPreviewMetrics.stageWidth, viewportHeight / runtime.lastPreviewMetrics.stageHeight);
+      zoom = Math.min(1, viewportWidth / runtime.lastPreviewMetrics.stageWidth, maxViewportHeight / runtime.lastPreviewMetrics.stageHeight);
     } else {
       zoom = Number(runtime.state.previewZoom) || 1;
     }
-    wrapper.style.transform = `scale(${zoom})`;
-    wrapper.style.width = `${runtime.lastPreviewMetrics.stageWidth}px`;
-    wrapper.style.height = `${runtime.lastPreviewMetrics.stageHeight}px`;
+    const scaledWidth = Math.ceil(runtime.lastPreviewMetrics.stageWidth * zoom);
+    const scaledHeight = Math.ceil(runtime.lastPreviewMetrics.stageHeight * zoom);
+    wrapper.style.transform = 'none';
+    wrapper.style.width = `${scaledWidth}px`;
+    wrapper.style.height = `${scaledHeight}px`;
+    if (stage) {
+      stage.style.transformOrigin = 'top left';
+      stage.style.transform = `scale(${zoom})`;
+    }
+    const naturalHeight = scaledHeight + 24;
+    const boundedHeight = Math.min(maxViewportHeight, Math.max(minimumHeight, naturalHeight));
+    viewport.style.height = 'auto';
+    viewport.style.maxHeight = `${boundedHeight}px`;
+    viewport.style.overflowX = scaledWidth > viewportWidth ? 'auto' : 'hidden';
+    viewport.style.overflowY = naturalHeight > maxViewportHeight ? 'auto' : 'hidden';
   }
 
   function renderPreview(runtime) {
@@ -2508,9 +2571,20 @@ greet('World');`;
     runtime.elements.autoPair.checked = !!state.autoPair;
     runtime.elements.watermark.checked = !!state.watermark;
     runtime.elements.watermarkText.value = state.watermarkText;
-    runtime.elements.watermarkNote.style.visibility = state.watermark || state.watermarkText.trim() ? 'hidden' : 'visible';
-    runtime.elements.previewViewport.style.height = `${state.previewPanelHeight}px`;
+    runtime.elements.watermarkNote.hidden = Boolean(state.watermark || state.watermarkText.trim());
     runtime.elements.ligatureField.style.display = getFontMeta(state.fontFamily).ligatures ? 'grid' : 'none';
+    const hasHighlights = parseHighlightSpec(getActiveTab(state).highlightSpec, state.diffMode).size > 0;
+    if (!hasHighlights) {
+      state.dimUnfocused = false;
+    }
+    runtime.elements.dimLines.checked = !!state.dimUnfocused;
+    runtime.elements.dimLines.disabled = !hasHighlights;
+    runtime.elements.dimLinesField?.classList.toggle('is-disabled', !hasHighlights);
+    if (runtime.elements.dimLinesHelp) {
+      runtime.elements.dimLinesHelp.textContent = hasHighlights
+        ? 'Only the highlighted lines stay at full emphasis.'
+        : 'Add highlighted lines first to enable this focus mode.';
+    }
 
     runtime.container.querySelectorAll('[data-theme-filter]').forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.themeFilter === state.themeFilter));
@@ -2538,6 +2612,13 @@ greet('World');`;
     });
     runtime.container.querySelectorAll('[data-shadow]').forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.shadow === state.shadow));
+    });
+    runtime.container.querySelectorAll('[data-zoom]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(
+        state.previewZoom === 'fit'
+          ? button.dataset.zoom === 'fit'
+          : Number(button.dataset.zoom) === Number(state.previewZoom)
+      ));
     });
   }
 
@@ -2765,7 +2846,7 @@ greet('World');`;
       buildMacDots(state.chrome === 'glass' ? 14 : 12).forEach(([dotColor, size], index) => {
         lines.push(`<circle cx="${22 + (index * (size + 6))}" cy="${topHeight / 2}" r="${size / 2}" fill="${dotColor}" />`);
       });
-      lines.push(`<text x="${metrics.cardWidth / 2}" y="${Math.max(10, topHeight / 2 - 6)}" dominant-baseline="hanging" font-size="13" text-anchor="middle" fill="${titleColor}">${title}</text>`);
+      lines.push(`<text x="${metrics.cardWidth / 2}" y="${Math.round(topHeight / 2) + 1}" dominant-baseline="middle" font-size="13" text-anchor="middle" fill="${titleColor}">${title}</text>`);
     } else {
       lines.push(`<text x="14" y="10" dominant-baseline="hanging" font-size="13" fill="${titleColor}">${title}</text>`);
       const baseX = metrics.cardWidth - 138;
@@ -3329,11 +3410,13 @@ greet('World');`;
     elements.sizePreset.addEventListener('change', () => applySizePreset(runtime, elements.sizePreset.value));
     elements.highlightInput.addEventListener('input', () => {
       getActiveTab(runtime.state).highlightSpec = elements.highlightInput.value;
+      syncControlState(runtime);
       renderPreview(runtime);
       saveState(runtime);
     });
     elements.diffMode.addEventListener('change', () => {
       runtime.state.diffMode = elements.diffMode.checked;
+      syncControlState(runtime);
       renderPreview(runtime);
       saveState(runtime);
     });
@@ -3394,8 +3477,7 @@ greet('World');`;
       const startY = event.clientY;
       const startHeight = runtime.state.previewPanelHeight;
       const onMove = (moveEvent) => {
-        runtime.state.previewPanelHeight = clamp(startHeight + (moveEvent.clientY - startY), 420, 1200);
-        runtime.elements.previewViewport.style.height = `${runtime.state.previewPanelHeight}px`;
+        runtime.state.previewPanelHeight = clamp(startHeight + (moveEvent.clientY - startY), 280, 1200);
         refreshPreviewZoom(runtime);
       };
       const onUp = () => {
@@ -3512,6 +3594,8 @@ greet('World');`;
       sizePreset: container.querySelector('#cs-size-preset'),
       highlightInput: container.querySelector('#cs-highlight-lines'),
       diffMode: container.querySelector('#cs-diff-mode'),
+      dimLinesField: container.querySelector('#cs-dim-lines-field'),
+      dimLinesHelp: container.querySelector('#cs-dim-lines-help'),
       dimLines: container.querySelector('#cs-dim-lines'),
       blurSensitive: container.querySelector('#cs-blur-sensitive'),
       autoPair: container.querySelector('#cs-auto-pair'),
