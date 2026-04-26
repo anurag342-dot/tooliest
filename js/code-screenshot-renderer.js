@@ -2050,12 +2050,15 @@ greet('World');`;
         dot.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;background:${color};box-shadow:inset 0 -1px 2px rgba(0,0,0,0.28);display:inline-block;`;
         left.appendChild(dot);
       });
-      const center = document.createElement('div');
-      center.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0.84;line-height:1;';
+      const centerWrap = document.createElement('div');
+      centerWrap.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 88px;pointer-events:none;';
+      const center = document.createElement('span');
+      center.style.cssText = 'display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0.84;line-height:1.2;';
       center.textContent = activeTab.name || defaultFileName(metrics.language.id, 1);
+      centerWrap.appendChild(center);
       topRow.style.position = 'relative';
       topRow.appendChild(left);
-      topRow.appendChild(center);
+      topRow.appendChild(centerWrap);
     } else {
       const title = document.createElement('div');
       title.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%;opacity:0.88;';
@@ -2112,12 +2115,15 @@ greet('World');`;
     };
   }
 
-  function buildPreview(runtime) {
+  function buildPreview(runtime, options = {}) {
+    const interactive = options.interactive !== false;
     const activeTab = getActiveTab(runtime.state);
     const model = runtime.semanticModels.get(activeTab.id) || createPlainModel(getEffectiveCode(activeTab));
     const metrics = buildPreviewMetrics(runtime, model);
     const theme = metrics.theme;
     const highlightMap = parseHighlightSpec(activeTab.highlightSpec, runtime.state.diffMode);
+    const scaledCardWidth = Math.max(1, Math.round(metrics.cardWidth * metrics.contentScale));
+    const scaledCardHeight = Math.max(1, Math.round(metrics.cardHeight * metrics.contentScale));
     const stage = document.createElement('div');
     stage.id = 'code-preview-card';
     stage.setAttribute('role', 'img');
@@ -2139,8 +2145,19 @@ greet('World');`;
 
     const cardWrap = document.createElement('div');
     cardWrap.style.cssText = [
+      `width:${scaledCardWidth}px`,
+      `height:${scaledCardHeight}px`,
+      'position:relative',
+      'overflow:visible',
+    ].join(';');
+
+    const cardFrame = document.createElement('div');
+    cardFrame.style.cssText = [
+      'position:absolute',
+      'left:0',
+      'top:0',
       `width:${metrics.cardWidth}px`,
-      'transform-origin:center center',
+      'transform-origin:top left',
       `transform:scale(${metrics.contentScale})`,
       `box-shadow:${SHADOWS[runtime.state.shadow] || SHADOWS.medium}`,
     ].join(';');
@@ -2175,13 +2192,27 @@ greet('World');`;
       const lineRow = document.createElement('div');
       lineRow.dataset.line = String(lineNumber);
       lineRow.style.cssText = [
+        'position:relative',
         'display:flex',
         'align-items:stretch',
         'min-height:1em',
         highlightKind ? `background:${highlightStyle.background}` : '',
-        highlightKind ? `box-shadow:inset 3px 0 0 ${highlightStyle.accent}` : '',
         dim ? 'opacity:0.35' : 'opacity:1',
       ].filter(Boolean).join(';');
+
+      if (highlightKind) {
+        const accentBar = document.createElement('span');
+        accentBar.style.cssText = [
+          'position:absolute',
+          'left:0',
+          'top:0',
+          'bottom:0',
+          'width:3px',
+          `background:${highlightStyle.accent}`,
+          'pointer-events:none',
+        ].join(';');
+        lineRow.appendChild(accentBar);
+      }
 
       const numberCell = document.createElement('div');
       numberCell.style.cssText = [
@@ -2211,7 +2242,7 @@ greet('World');`;
             isBlurred ? `background:${tokenStyle.color};color:transparent;border-radius:2px;padding:0 2px;display:inline-block;` : '',
           ].filter(Boolean).join(';');
           span.textContent = isBlurred ? '████████' : token.text;
-          if (runtime.state.blurSensitive && isStringLikeToken(token)) {
+          if (interactive && runtime.state.blurSensitive && isStringLikeToken(token)) {
             span.style.cursor = 'pointer';
             span.title = isBlurred ? 'Click to reveal this token in the preview' : 'Click to redact this token in the preview';
             span.addEventListener('click', () => toggleBlurOverride(runtime, token, lineNumber, tokenIndex));
@@ -2226,7 +2257,8 @@ greet('World');`;
     });
 
     card.appendChild(body);
-    cardWrap.appendChild(card);
+    cardFrame.appendChild(card);
+    cardWrap.appendChild(cardFrame);
     stage.appendChild(cardWrap);
 
     if (runtime.state.watermark || runtime.state.watermarkText.trim()) {
@@ -2796,23 +2828,43 @@ greet('World');`;
       await ensureFont(runtime.state.fontFamily);
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
 
-      const source = runtime.elements.previewCard;
-      const clone = source.cloneNode(true);
-      clone.style.transform = 'none';
-      clone.style.position = 'fixed';
-      clone.style.left = '-20000px';
-      clone.style.top = '0';
-      clone.style.margin = '0';
-      document.body.appendChild(clone);
+      const source = buildPreview(runtime, { interactive: false }).stage;
+      source.style.transform = 'none';
+      source.style.transformOrigin = 'top left';
 
-      const canvas = await window.html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: null,
-        logging: false,
-      });
-      document.body.removeChild(clone);
+      const captureHost = document.createElement('div');
+      captureHost.style.cssText = [
+        'position:fixed',
+        'left:0',
+        'top:0',
+        'width:0',
+        'height:0',
+        'opacity:0',
+        'pointer-events:none',
+        'overflow:visible',
+        'z-index:-1',
+      ].join(';');
+      captureHost.appendChild(source);
+      document.body.appendChild(captureHost);
+
+      let canvas;
+      try {
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        });
+
+        canvas = await window.html2canvas(source, {
+          scale: Math.max(2, Math.min(4, window.devicePixelRatio || 1)),
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: null,
+          logging: false,
+        });
+      } finally {
+        if (captureHost.parentNode) {
+          captureHost.parentNode.removeChild(captureHost);
+        }
+      }
 
       const activeTab = getActiveTab(runtime.state);
       const model = runtime.semanticModels.get(activeTab.id) || createPlainModel(getEffectiveCode(activeTab));
