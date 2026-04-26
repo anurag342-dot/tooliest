@@ -2818,52 +2818,106 @@ greet('World');`;
     ].join('');
   }
 
+  function serializePreviewStage(stage) {
+    const clone = stage.cloneNode(true);
+    clone.style.transform = 'none';
+    clone.style.transformOrigin = 'top left';
+    clone.removeAttribute('id');
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    return new XMLSerializer().serializeToString(clone);
+  }
+
+  async function loadSvgImage(svgMarkup) {
+    const blob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    try {
+      const image = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.decoding = 'sync';
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Unable to render the preview as an image.'));
+        img.src = url;
+      });
+      return image;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  async function rasterizeStageWithSvg(stage, width, height, scale) {
+    const markup = serializePreviewStage(stage);
+    const svgMarkup = [
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
+      `<foreignObject x="0" y="0" width="${width}" height="${height}">${markup}</foreignObject>`,
+      '</svg>',
+    ].join('');
+
+    const image = await loadSvgImage(svgMarkup);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Unable to prepare the PNG canvas.');
+    context.scale(scale, scale);
+    context.drawImage(image, 0, 0, width, height);
+    return canvas;
+  }
+
+  async function rasterizeStageWithHtml2Canvas(stage, scale) {
+    await ensureHtml2Canvas();
+    const captureHost = document.createElement('div');
+    captureHost.style.cssText = [
+      'position:fixed',
+      'left:0',
+      'top:0',
+      'width:0',
+      'height:0',
+      'opacity:0',
+      'pointer-events:none',
+      'overflow:visible',
+      'z-index:-1',
+    ].join(';');
+    captureHost.appendChild(stage);
+    document.body.appendChild(captureHost);
+
+    try {
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+
+      return await window.html2canvas(stage, {
+        scale,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: null,
+        logging: false,
+        foreignObjectRendering: true,
+      });
+    } finally {
+      if (captureHost.parentNode) {
+        captureHost.parentNode.removeChild(captureHost);
+      }
+    }
+  }
+
   async function exportPng(runtime, mode) {
     const button = mode === 'copy' ? runtime.elements.copyBtn : runtime.elements.pngBtn;
     const originalLabel = button.textContent;
     button.textContent = mode === 'copy' ? 'Copying...' : 'Generating...';
     button.disabled = true;
     try {
-      await ensureHtml2Canvas();
       await ensureFont(runtime.state.fontFamily);
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
 
-      const source = buildPreview(runtime, { interactive: false }).stage;
-      source.style.transform = 'none';
-      source.style.transformOrigin = 'top left';
-
-      const captureHost = document.createElement('div');
-      captureHost.style.cssText = [
-        'position:fixed',
-        'left:0',
-        'top:0',
-        'width:0',
-        'height:0',
-        'opacity:0',
-        'pointer-events:none',
-        'overflow:visible',
-        'z-index:-1',
-      ].join(';');
-      captureHost.appendChild(source);
-      document.body.appendChild(captureHost);
-
+      const preview = buildPreview(runtime, { interactive: false });
+      const source = preview.stage;
+      const exportScale = Math.max(2, Math.min(4, window.devicePixelRatio || 1));
       let canvas;
-      try {
-        await new Promise((resolve) => {
-          requestAnimationFrame(() => requestAnimationFrame(resolve));
-        });
 
-        canvas = await window.html2canvas(source, {
-          scale: Math.max(2, Math.min(4, window.devicePixelRatio || 1)),
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: null,
-          logging: false,
-        });
-      } finally {
-        if (captureHost.parentNode) {
-          captureHost.parentNode.removeChild(captureHost);
-        }
+      try {
+        canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+      } catch (_) {
+        canvas = await rasterizeStageWithHtml2Canvas(source, exportScale);
       }
 
       const activeTab = getActiveTab(runtime.state);
