@@ -315,6 +315,9 @@
   }
 
   function buildCodeText(seed) {
+    if (typeof DATA.getCodeSequence === 'function') {
+      return DATA.getCodeSequence(seed, 1300);
+    }
     const groups = DATA.codeExamples || {};
     const languages = shuffle(Object.keys(groups), seed).filter((key) => Array.isArray(groups[key]) && groups[key].length);
     if (!languages.length) {
@@ -332,6 +335,9 @@
   }
 
   function buildNumbersText(seed) {
+    if (typeof DATA.getNumberSequence === 'function') {
+      return DATA.getNumberSequence(seed, 24);
+    }
     const scenarios = shuffle(DATA.numberScenarios || [], seed);
     if (scenarios.length) {
       return scenarios.slice(0, 12).join(' ');

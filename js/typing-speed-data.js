@@ -49,39 +49,39 @@
 
   const SENTENCE_PARTS = {
     english: {
-      subjects: ['The writer', 'A fast typist', 'This private tool', 'The product team', 'A careful student'],
-      verbs: ['checks every sentence', 'practices for fifteen minutes', 'stores progress locally', 'improves accuracy first', 'starts with slower bursts'],
-      endings: ['before chasing speed.', 'without sending data anywhere.', 'to build daily confidence.', 'when the timer feels comfortable.', 'so each session stays useful.'],
+      subjects: ['The writer', 'A fast typist', 'This private tool', 'The product team', 'A careful student', 'The remote freelancer', 'A patient learner', 'The early editor', 'Every daily practice session'],
+      verbs: ['checks every sentence', 'practices for fifteen minutes', 'stores progress locally', 'improves accuracy first', 'starts with slower bursts', 'reads the prompt aloud', 'builds steady rhythm', 'returns after lunch', 'tracks small gains'],
+      endings: ['before chasing speed.', 'without sending data anywhere.', 'to build daily confidence.', 'when the timer feels comfortable.', 'so each session stays useful.', 'while the prompt stays easy to follow.', 'because clean technique lasts longer.', 'and notices fewer mistakes each round.', 'while the local history keeps the streak visible.'],
     },
     spanish: {
-      subjects: ['El usuario', 'Una persona rapida', 'Esta prueba privada', 'El equipo pequeno', 'La estudiante'],
-      verbs: ['practica cada manana', 'mide la precision primero', 'guarda el progreso localmente', 'revisa cada palabra', 'mejora con calma'],
-      endings: ['antes de buscar velocidad.', 'sin enviar datos a ningun servidor.', 'para volver manana con confianza.', 'cuando el ritmo se siente natural.', 'y mantiene un habito diario.'],
+      subjects: ['El usuario', 'Una persona rapida', 'Esta prueba privada', 'El equipo pequeno', 'La estudiante', 'El redactor remoto', 'Cada sesion diaria', 'La persona paciente', 'El editor de la manana'],
+      verbs: ['practica cada manana', 'mide la precision primero', 'guarda el progreso localmente', 'revisa cada palabra', 'mejora con calma', 'vuelve despues del almuerzo', 'mantiene un ritmo estable', 'lee cada linea despacio', 'anota pequenas mejoras'],
+      endings: ['antes de buscar velocidad.', 'sin enviar datos a ningun servidor.', 'para volver manana con confianza.', 'cuando el ritmo se siente natural.', 'y mantiene un habito diario.', 'mientras el texto sigue claro.', 'porque la tecnica limpia dura mas.', 'y nota menos errores en cada ronda.', 'mientras el historial local muestra el avance.'],
     },
     french: {
-      subjects: ['L utilisateur', 'Un typiste rapide', 'Cet outil prive', 'La petite equipe', 'La personne calme'],
-      verbs: ['verifie chaque mot', 'pratique quinze minutes', 'garde les scores localement', 'ameliore la precision', 'reprend le test demain'],
-      endings: ['avant de viser plus vite.', 'sans envoyer de donnees au serveur.', 'pour construire une habitude simple.', 'quand le rythme devient naturel.', 'et garde une progression claire.'],
+      subjects: ['L utilisateur', 'Un typiste rapide', 'Cet outil prive', 'La petite equipe', 'La personne calme', 'Le redacteur a distance', 'Chaque session du matin', 'L etudiant patient', 'Le chef de projet'],
+      verbs: ['verifie chaque mot', 'pratique quinze minutes', 'garde les scores localement', 'ameliore la precision', 'reprend le test demain', 'revient apres le dejeuner', 'garde un rythme stable', 'lit chaque ligne doucement', 'suit les petits progres'],
+      endings: ['avant de viser plus vite.', 'sans envoyer de donnees au serveur.', 'pour construire une habitude simple.', 'quand le rythme devient naturel.', 'et garde une progression claire.', 'pendant que le texte reste lisible.', 'parce que la bonne technique dure plus longtemps.', 'et remarque moins d erreurs a chaque tour.', 'tandis que l historique local montre les efforts.'],
     },
     german: {
-      subjects: ['Der Nutzer', 'Eine schnelle Person', 'Dieses private Werkzeug', 'Das kleine Team', 'Der ruhige Lerner'],
-      verbs: ['pruft jedes Wort', 'ubt funfzehn Minuten', 'speichert Werte lokal', 'steigert zuerst die Genauigkeit', 'kehrt morgen zuruck'],
-      endings: ['bevor mehr Tempo wichtig wird.', 'ohne Daten an einen Server zu senden.', 'damit die Routine einfach bleibt.', 'wenn sich der Rhythmus gut anfuhlt.', 'und baut jeden Tag Vertrauen auf.'],
+      subjects: ['Der Nutzer', 'Eine schnelle Person', 'Dieses private Werkzeug', 'Das kleine Team', 'Der ruhige Lerner', 'Der freie Autor', 'Jede Morgensitzung', 'Der geduldige Student', 'Die konzentrierte Redakteurin'],
+      verbs: ['pruft jedes Wort', 'ubt funfzehn Minuten', 'speichert Werte lokal', 'steigert zuerst die Genauigkeit', 'kehrt morgen zuruck', 'liest jede Zeile langsam', 'halt den Rhythmus stabil', 'macht nach dem Mittag weiter', 'verfolgt kleine Fortschritte'],
+      endings: ['bevor mehr Tempo wichtig wird.', 'ohne Daten an einen Server zu senden.', 'damit die Routine einfach bleibt.', 'wenn sich der Rhythmus gut anfuhlt.', 'und baut jeden Tag Vertrauen auf.', 'wahrend der Text gut lesbar bleibt.', 'weil saubere Technik langer tragt.', 'und sieht in jeder Runde weniger Fehler.', 'wahrend die lokale Historie Fortschritt zeigt.'],
     },
     portuguese: {
-      subjects: ['O usuario', 'Uma pessoa rapida', 'Esta ferramenta privada', 'A equipe pequena', 'Quem pratica sempre'],
-      verbs: ['confere cada palavra', 'pratica por quinze minutos', 'guarda o progresso localmente', 'melhora a precisao primeiro', 'volta amanha para treinar'],
-      endings: ['antes de buscar mais velocidade.', 'sem enviar dados para servidor nenhum.', 'para criar um habito leve.', 'quando o ritmo parece natural.', 'e acompanha a evolucao com clareza.'],
+      subjects: ['O usuario', 'Uma pessoa rapida', 'Esta ferramenta privada', 'A equipe pequena', 'Quem pratica sempre', 'O redator remoto', 'Cada sessao diaria', 'O estudante paciente', 'A editora da manha'],
+      verbs: ['confere cada palavra', 'pratica por quinze minutos', 'guarda o progresso localmente', 'melhora a precisao primeiro', 'volta amanha para treinar', 'le cada linha com calma', 'mantem um ritmo estavel', 'retorna depois do almoco', 'acompanha pequenos ganhos'],
+      endings: ['antes de buscar mais velocidade.', 'sem enviar dados para servidor nenhum.', 'para criar um habito leve.', 'quando o ritmo parece natural.', 'e acompanha a evolucao com clareza.', 'enquanto o texto continua legivel.', 'porque a tecnica limpa dura mais.', 'e percebe menos erros em cada rodada.', 'enquanto o historico local mostra o progresso.'],
     },
     hindi: {
-      subjects: ['Yeh upyogakarta', 'Ek tez typist', 'Yeh private test', 'Chhoti team', 'Har din seekhne wala vyakti'],
-      verbs: ['har shabd dekhkar likhta hai', 'pandrah minute abhyas karta hai', 'progress ko local rakhta hai', 'pehle sahi likhne par dhyan deta hai', 'kal fir se lautkar practice karta hai'],
-      endings: ['phir speed badhata hai.', 'aur data kahin bhejta nahin hai.', 'taaki roz ka routine ban sake.', 'jab rhythm natural lagne lage.', 'aur dheere dheere confidence badhe.'],
+      subjects: ['Yeh upyogakarta', 'Ek tez typist', 'Yeh private test', 'Chhoti team', 'Har din seekhne wala vyakti', 'Door se kaam karne wala lekhak', 'Subah ki har practice', 'Dhyan se seekhne wala student', 'Shaant editor'],
+      verbs: ['har shabd dekhkar likhta hai', 'pandrah minute abhyas karta hai', 'progress ko local rakhta hai', 'pehle sahi likhne par dhyan deta hai', 'kal fir se lautkar practice karta hai', 'har line ko araam se padhta hai', 'ek saman rhythm banaye rakhta hai', 'dopahar ke baad wapas aata hai', 'chhote sudhar note karta hai'],
+      endings: ['phir speed badhata hai.', 'aur data kahin bhejta nahin hai.', 'taaki roz ka routine ban sake.', 'jab rhythm natural lagne lage.', 'aur dheere dheere confidence badhe.', 'jab text aasan dikhai deta rahe.', 'kyonki saaf technique zyada tikti hai.', 'aur har round me kam galti dekhta hai.', 'jab local history me pragati dikhai deti hai.'],
     },
     japanese: {
-      subjects: ['Kono yuuzaa', 'Hayai taipisuto', 'Kono puraibeto tesuto', 'Chiisana chiimu', 'Mainichi renshuu suru hito'],
-      verbs: ['subete no tango o kakunin shimasu', 'juugo fun renshuu shimasu', 'kiroku o rokaru ni hozon shimasu', 'seikakusa kara nobashimasu', 'ashita mo modotte kimasu'],
-      endings: ['sorekara supiido o agemasu.', 'saabaa ni deeta o okurimasen.', 'kantan na shuukan o tsukurimasu.', 'rizumu ga shizen ni naru made tsuzukemasu.', 'soshite jishin o sukoshi zutsu tsukemasu.'],
+      subjects: ['Kono yuuzaa', 'Hayai taipisuto', 'Kono puraibeto tesuto', 'Chiisana chiimu', 'Mainichi renshuu suru hito', 'Rimooto no raitaa', 'Asa no renshuu jikan', 'Shizuka ni manabu gakusei', 'Shuchuu shite iru editaa'],
+      verbs: ['subete no tango o kakunin shimasu', 'juugo fun renshuu shimasu', 'kiroku o rokaru ni hozon shimasu', 'seikakusa kara nobashimasu', 'ashita mo modotte kimasu', 'mae no gyou o yukkuri yomimasu', 'antei shita rizumu o tsukurimasu', 'hiru no ato ni mou ichido hajimemasu', 'chiisai seichou o kiroku shimasu'],
+      endings: ['sorekara supiido o agemasu.', 'saabaa ni deeta o okurimasen.', 'kantan na shuukan o tsukurimasu.', 'rizumu ga shizen ni naru made tsuzukemasu.', 'soshite jishin o sukoshi zutsu tsukemasu.', 'tekisuto ga yomiyasui mama tsuzukimasu.', 'kirei na kihon ga nagaku yaku ni tachimasu.', 'maikai no ronda de machigai ga herimasu.', 'rokaru no rireki ga seika o misete kuremasu.'],
     },
   };
 
@@ -114,66 +114,34 @@
 
   const CODE_EXAMPLES = {
     javascript: [
-      [
-        'const attempts = JSON.parse(localStorage.getItem("typingAttempts") || "[]");',
-        'const recent = attempts.slice(-10);',
-        'const average = recent.reduce((sum, run) => sum + run.wpm, 0) / Math.max(recent.length, 1);',
-        'console.log(`Average WPM: ${average.toFixed(1)}`);',
-      ].join('\n'),
-      [
-        'function formatResult(result) {',
-        '  const accuracy = `${result.accuracy.toFixed(1)}%`;',
-        '  return `${result.wpm} WPM at ${accuracy} accuracy`;',
-        '}',
-        '',
-        'statusLabel.textContent = formatResult(latestResult);',
-      ].join('\n'),
-      [
-        'const config = { mode: "words", duration: 60, language: "english" };',
-        'const prompt = buildPrompt(config);',
-        'hiddenInput.focus();',
-        'renderPrompt(prompt);',
-      ].join('\n'),
+      ['const attempts = JSON.parse(localStorage.getItem("typingAttempts") || "[]");', 'const recent = attempts.slice(-10);', 'const average = recent.reduce((sum, run) => sum + run.wpm, 0) / Math.max(recent.length, 1);', 'console.log(`Average WPM: ${average.toFixed(1)}`);'].join('\n'),
+      ['function formatResult(result) {', '  const accuracy = `${result.accuracy.toFixed(1)}%`;', '  return `${result.wpm} WPM at ${accuracy} accuracy`;', '}', '', 'statusLabel.textContent = formatResult(latestResult);'].join('\n'),
+      ['const config = { mode: "words", duration: 60, language: "english" };', 'const prompt = buildPrompt(config);', 'hiddenInput.focus();', 'renderPrompt(prompt);'].join('\n'),
+      ['const mistakes = new Map();', 'errors.forEach((item) => {', '  mistakes.set(item.expected, (mistakes.get(item.expected) || 0) + 1);', '});', 'const summary = [...mistakes.entries()].sort((a, b) => b[1] - a[1]);'].join('\n'),
+      ['async function cachePrompt(text) {', '  const data = new TextEncoder().encode(text);', '  const digest = await crypto.subtle.digest("SHA-256", data);', '  return Array.from(new Uint8Array(digest)).slice(0, 8);', '}'].join('\n'),
+      ['const progress = Math.min(currentWordIndex / words.length, 1);', 'progressBar.style.width = `${(progress * 100).toFixed(1)}%`;', 'timerLabel.textContent = formatTime(remainingSeconds);'].join('\n'),
+      ['window.addEventListener("keydown", (event) => {', '  if (event.key === "Tab") return;', '  if (!testState.isRunning) startTest();', '});'].join('\n'),
+      ['const samples = source.split(/\\s+/).filter(Boolean);', 'const unique = [...new Set(samples)];', 'const nextPrompt = unique.slice(0, 80).join(" ");', 'preview.textContent = nextPrompt;'].join('\n'),
     ],
     python: [
-      [
-        'history = load_history()',
-        'recent = history[-10:]',
-        'average = sum(item["wpm"] for item in recent) / max(len(recent), 1)',
-        'print(f"Average WPM: {average:.1f}")',
-      ].join('\n'),
-      [
-        'def summarize_run(result):',
-        '    accuracy = f"{result[\'accuracy\']:.1f}%"',
-        '    return f"{result[\'wpm\']} WPM at {accuracy} accuracy"',
-        '',
-        'status_label = summarize_run(latest_result)',
-      ].join('\n'),
-      [
-        'config = {"mode": "code", "duration": 60, "language": "english"}',
-        'prompt = build_prompt(config)',
-        'render_prompt(prompt)',
-        'save_state(config)',
-      ].join('\n'),
+      ['history = load_history()', 'recent = history[-10:]', 'average = sum(item["wpm"] for item in recent) / max(len(recent), 1)', 'print(f"Average WPM: {average:.1f}")'].join('\n'),
+      ['def summarize_run(result):', '    accuracy = f"{result[\'accuracy\']:.1f}%"', '    return f"{result[\'wpm\']} WPM at {accuracy} accuracy"', '', 'status_label = summarize_run(latest_result)'].join('\n'),
+      ['config = {"mode": "code", "duration": 60, "language": "english"}', 'prompt = build_prompt(config)', 'render_prompt(prompt)', 'save_state(config)'].join('\n'),
+      ['from collections import Counter', '', 'missed = Counter(error["expected"] for error in errors)', 'common = missed.most_common(5)', 'print(common)'].join('\n'),
+      ['def normalize_text(value):', '    lines = [line.strip() for line in value.splitlines() if line.strip()]', '    return " ".join(lines)', '', 'cleaned = normalize_text(raw_text)'].join('\n'),
+      ['scores = sorted(history, key=lambda item: item["wpm"], reverse=True)', 'personal_best = scores[0] if scores else None', 'if personal_best:', '    print(personal_best["wpm"])'].join('\n'),
+      ['remaining = max(limit - elapsed, 0)', 'minutes = int(remaining // 60)', 'seconds = int(remaining % 60)', 'print(f"{minutes}:{seconds:02d}")'].join('\n'),
+      ['def build_share_line(wpm, accuracy):', '    return f"I typed {wpm} WPM with {accuracy:.1f}% accuracy."', '', 'message = build_share_line(84, 97.4)'].join('\n'),
     ],
     html: [
-      [
-        '<section class="typing-results">',
-        '  <h2>Latest Run</h2>',
-        '  <p>84 WPM with 97.4% accuracy</p>',
-        '</section>',
-      ].join('\n'),
-      [
-        '<div class="typing-dashboard">',
-        '  <button type="button">Reset Stats</button>',
-        '  <canvas id="typing-sparkline" width="320" height="80"></canvas>',
-        '</div>',
-      ].join('\n'),
-      [
-        '<label for="typing-input">Type here</label>',
-        '<input id="typing-input" type="text" autocomplete="off" spellcheck="false">',
-        '<p aria-live="polite">Your result updates as you type.</p>',
-      ].join('\n'),
+      ['<section class="typing-results">', '  <h2>Latest Run</h2>', '  <p>84 WPM with 97.4% accuracy</p>', '</section>'].join('\n'),
+      ['<div class="typing-dashboard">', '  <button type="button">Reset Stats</button>', '  <canvas id="typing-sparkline" width="320" height="80"></canvas>', '</div>'].join('\n'),
+      ['<label for="typing-input">Type here</label>', '<input id="typing-input" type="text" autocomplete="off" spellcheck="false">', '<p aria-live="polite">Your result updates as you type.</p>'].join('\n'),
+      ['<article class="typing-card">', '  <h3>Personal Best</h3>', '  <strong>92 WPM</strong>', '  <p>Stored only in this browser.</p>', '</article>'].join('\n'),
+      ['<div class="typing-progress">', '  <span class="typing-progress-bar" style="width: 63%"></span>', '</div>', '<small>Session progress</small>'].join('\n'),
+      ['<section class="typing-config">', '  <button type="button" aria-pressed="true">Words</button>', '  <button type="button" aria-pressed="false">Sentences</button>', '</section>'].join('\n'),
+      ['<table width="100%" cellpadding="0" cellspacing="0">', '  <tr><td><strong>Accuracy</strong></td><td>97.4%</td></tr>', '  <tr><td><strong>Errors</strong></td><td>4</td></tr>', '</table>'].join('\n'),
+      ['<div class="typing-note">', '  <p>Your keystrokes stay in this browser only.</p>', '  <p>No network request is required to run this test.</p>', '</div>'].join('\n'),
     ],
   };
 
@@ -183,12 +151,18 @@
     'REF-2917 09:30 67.40 18/24 503-17-88 440022 7815',
     'ID-4408 12/11/2026 998.04 441-882-190 71% 4506 8820',
     'TKT-7314 08:55 245.75 5520-7719-4402 13/18 9071',
+    'REC-8104 07:20 58.95 TAX-14.00% 99017 4410 3312',
+    'ORD-2219 2026-08-03 74.80 006741 19:05 12/42',
+    'BIL-9027 05/17/2026 650.10 880-41-770 5539',
+    'LOT-1834 16:42 310.25 22.5% 7714 4408 9931',
+    'ACC-7301 2026-09-21 84.64 778812 14:10 +1-415-555-0182',
+    'TRK-6508 11:28 407.90 31/90 12004 8843',
+    'QTE-4401 06/30/2026 118.35 47.00 903-772 1550',
   ];
 
   function buildWeightedPool(seed, targetLength) {
     const targetEasy = Math.floor(targetLength * 0.6);
     const targetMedium = Math.floor(targetLength * 0.3);
-    const targetHard = targetLength - targetEasy - targetMedium;
     const pool = [];
 
     while (pool.length < targetEasy) {
@@ -210,9 +184,7 @@
     parts.subjects.forEach((subject) => {
       parts.verbs.forEach((verb) => {
         parts.endings.forEach((ending) => {
-          if (bank.length < 140) {
-            bank.push(`${subject} ${verb} ${ending}`);
-          }
+          bank.push(`${subject} ${verb} ${ending}`);
         });
       });
     });
@@ -222,7 +194,7 @@
   function mulberry32(seed) {
     let value = seed >>> 0;
     return function random() {
-      value += 0x6D2B79F5;
+      value += 0x6d2b79f5;
       let t = Math.imul(value ^ (value >>> 15), 1 | value);
       t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -246,27 +218,113 @@
       .trim();
   }
 
-  function buildSentenceSequence(language, seed, minCharacters = 900) {
-    const bank = shuffleWithSeed(SENTENCE_BANKS[language] || SENTENCE_BANKS.english, seed);
+  function randomDigits(random, length) {
+    const digits = '0123456789';
+    let output = '';
+    for (let index = 0; index < length; index += 1) {
+      output += digits[Math.floor(random() * digits.length)];
+    }
+    return output;
+  }
+
+  function randomDate(random) {
+    const month = String(Math.floor(random() * 12) + 1).padStart(2, '0');
+    const day = String(Math.floor(random() * 28) + 1).padStart(2, '0');
+    const year = 2026 + Math.floor(random() * 3);
+    return random() > 0.5 ? `${month}/${day}/${year}` : `${year}-${month}-${day}`;
+  }
+
+  function randomTime(random) {
+    const hour = String(Math.floor(random() * 24)).padStart(2, '0');
+    const minute = String(Math.floor(random() * 60)).padStart(2, '0');
+    return `${hour}:${minute}`;
+  }
+
+  function randomAmount(random) {
+    const whole = Math.floor(random() * 1800) + 10;
+    const cents = String(Math.floor(random() * 100)).padStart(2, '0');
+    return `${whole}.${cents}`;
+  }
+
+  function buildSentenceSequence(language, seed, minCharacters) {
+    const bank = SENTENCE_BANKS[language] || SENTENCE_BANKS.english;
     const selected = [];
     let total = 0;
-    for (let index = 0; index < bank.length && total < minCharacters; index += 1) {
-      selected.push(bank[index]);
-      total += bank[index].length + 1;
+    let round = 0;
+
+    while (total < minCharacters && round < 4) {
+      const shuffled = shuffleWithSeed(bank, seed + round * 97);
+      for (let index = 0; index < shuffled.length && total < minCharacters; index += 1) {
+        const sentence = shuffled[index];
+        selected.push(sentence);
+        total += sentence.length + 1;
+      }
+      round += 1;
     }
+
     return selected.join(' ');
   }
 
-  function buildWordSequence(language, seed, minWords = 300) {
-    const bank = shuffleWithSeed(SENTENCE_BANKS[language] || SENTENCE_BANKS.english, seed);
+  function buildWordSequence(language, seed, minWords) {
+    const bank = SENTENCE_BANKS[language] || SENTENCE_BANKS.english;
     const selected = [];
     let totalWords = 0;
-    for (let index = 0; index < bank.length && totalWords < minWords; index += 1) {
-      const normalized = stripSentencePunctuation(bank[index]);
-      selected.push(normalized);
-      totalWords += normalized.split(/\s+/).filter(Boolean).length;
+    let round = 0;
+
+    while (totalWords < minWords && round < 4) {
+      const shuffled = shuffleWithSeed(bank, seed + round * 131);
+      for (let index = 0; index < shuffled.length && totalWords < minWords; index += 1) {
+        const normalized = stripSentencePunctuation(shuffled[index]);
+        selected.push(normalized);
+        totalWords += normalized.split(/\s+/).filter(Boolean).length;
+      }
+      round += 1;
     }
+
     return selected.join(' ');
+  }
+
+  function buildCodeSequence(seed, minCharacters) {
+    const languages = shuffleWithSeed(Object.keys(CODE_EXAMPLES), seed).filter((key) => Array.isArray(CODE_EXAMPLES[key]) && CODE_EXAMPLES[key].length);
+    const blocks = [];
+    let total = 0;
+    let round = 0;
+
+    while (languages.length && total < minCharacters && round < 3) {
+      languages.forEach((language, languageIndex) => {
+        if (total >= minCharacters) return;
+        const examples = shuffleWithSeed(CODE_EXAMPLES[language], seed + round * 71 + languageIndex * 13);
+        examples.slice(0, 2).forEach((example) => {
+          if (total >= minCharacters) return;
+          const block = `${language.toUpperCase()}\n${example}`;
+          blocks.push(block);
+          total += block.length + 2;
+        });
+      });
+      round += 1;
+    }
+
+    return blocks.join('\n\n');
+  }
+
+  function buildNumberSequence(seed, count) {
+    const random = mulberry32(seed);
+    const scenarios = shuffleWithSeed(NUMBER_SCENARIOS, seed).slice();
+    const builders = [
+      () => `INV-${randomDigits(random, 4)} ${randomDate(random)} ${randomAmount(random)} ${randomDigits(random, 5)} #${randomDigits(random, 4)} ${randomTime(random)} +977-${randomDigits(random, 10)}`,
+      () => `PO-${randomDigits(random, 4)} ${randomDate(random)} ${randomAmount(random)} ${Number(random() * 24).toFixed(2)}% ${randomDigits(random, 4)} ${randomDigits(random, 4)} ${randomDigits(random, 4)} ${randomDigits(random, 4)}`,
+      () => `REF-${randomDigits(random, 4)} ${randomTime(random)} ${randomAmount(random)} ${randomDigits(random, 2)}/${randomDigits(random, 2)} ${randomDigits(random, 3)}-${randomDigits(random, 2)}-${randomDigits(random, 2)} ${randomDigits(random, 6)} ${randomDigits(random, 4)}`,
+      () => `TKT-${randomDigits(random, 4)} ${randomDate(random)} ${randomAmount(random)} ${randomDigits(random, 4)}-${randomDigits(random, 4)}-${randomDigits(random, 4)} ${randomDigits(random, 2)}/${randomDigits(random, 2)} ${randomDigits(random, 4)}`,
+      () => `ACC-${randomDigits(random, 4)} ${randomTime(random)} ${randomAmount(random)} ${randomDigits(random, 3)}-${randomDigits(random, 3)}-${randomDigits(random, 4)} TAX-${Number(random() * 18).toFixed(2)}%`,
+      () => `LOT-${randomDigits(random, 4)} ${randomDate(random)} ${randomAmount(random)} BIN-${randomDigits(random, 5)} ${randomDigits(random, 4)} ${randomDigits(random, 4)} ${randomDigits(random, 4)}`,
+    ];
+
+    while (scenarios.length < count) {
+      const template = builders[Math.floor(random() * builders.length)];
+      scenarios.push(template());
+    }
+
+    return scenarios.slice(0, count).join(' ');
   }
 
   const WORD_POOLS = Object.fromEntries(
@@ -300,10 +358,16 @@
       return SENTENCE_BANKS[language] || SENTENCE_BANKS.english;
     },
     getSentenceSequence(language, seed, minCharacters) {
-      return buildSentenceSequence(language, seed, minCharacters);
+      return buildSentenceSequence(language, seed, minCharacters || 1100);
     },
     getWordSequence(language, seed, minWords) {
-      return buildWordSequence(language, seed, minWords);
+      return buildWordSequence(language, seed, minWords || 300);
+    },
+    getCodeSequence(seed, minCharacters) {
+      return buildCodeSequence(seed, minCharacters || 1300);
+    },
+    getNumberSequence(seed, count) {
+      return buildNumberSequence(seed, count || 24);
     },
   };
 })(window);
