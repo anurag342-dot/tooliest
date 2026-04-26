@@ -2865,19 +2865,19 @@ greet('World');`;
     return canvas;
   }
 
-  async function rasterizeStageWithHtml2Canvas(stage, scale) {
+  async function rasterizeStageWithHtml2Canvas(stage, width, height, scale) {
     await ensureHtml2Canvas();
     const captureHost = document.createElement('div');
     captureHost.style.cssText = [
       'position:fixed',
-      'left:0',
+      'left:-20000px',
       'top:0',
-      'width:0',
-      'height:0',
-      'opacity:0',
+      `width:${width}px`,
+      `height:${height}px`,
       'pointer-events:none',
       'overflow:visible',
       'z-index:-1',
+      'background:transparent',
     ].join(';');
     captureHost.appendChild(stage);
     document.body.appendChild(captureHost);
@@ -2926,12 +2926,12 @@ greet('World');`;
       let canvas;
 
       try {
-        canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+        canvas = await rasterizeStageWithHtml2Canvas(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
       } catch (_) {
-        canvas = await rasterizeStageWithHtml2Canvas(source, exportScale);
+        canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
       }
       if (!isCanvasExportable(canvas)) {
-        canvas = await rasterizeStageWithHtml2Canvas(source, exportScale);
+        canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
       }
       if (!isCanvasExportable(canvas)) {
         throw new Error('The browser blocked image export for this render. Please switch to a system font or try the SVG download.');
