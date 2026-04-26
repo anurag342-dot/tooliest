@@ -102,6 +102,90 @@ const TOOLS = [
     meta: { title: 'Free Word Counter Tool - Count Words, Characters & Sentences | Tooliest', desc: 'Count words, characters, sentences, and paragraphs instantly. Free online word counter with reading time and readability score.' }
   },
   {
+    id: 'typing-speed-test',
+    name: 'Typing Speed Test',
+    pageHeading: 'Free Typing Speed Test - Private, No Keylogger',
+    description: 'Test typing speed in WPM with live accuracy tracking, local personal bests, and a browser-only engine that keeps every keystroke on your device.',
+    category: 'text',
+    icon: '⌨️',
+    tags: ['typing test', 'wpm test', 'typing speed', 'accuracy', 'privacy'],
+    isAI: false,
+    relatedCategoryIds: ['developer', 'privacy'],
+    education: '<strong>Why use a private typing test?</strong><br>Many typing sites focus on leaderboards and competition, but say very little about where the text you type actually goes. Tooliest keeps the typing engine in your browser, stores progress locally, and avoids sending typing data to a server so the experience feels more like a personal training tool than a logged web app.',
+    whyUse: [
+      'Measure WPM, raw speed, accuracy, and errors in one private browser-based session without creating an account.',
+      'Keep coming back to the same local dashboard and chase personal bests across different practice modes and durations.',
+      'Practice normal words, full sentences, code snippets, number strings, or your own custom text without leaving the page.'
+    ],
+    whoUses: 'Students, developers, writers, data-entry professionals, support teams, and anyone who wants a repeatable daily typing workout without handing keystrokes to a third-party service.',
+    faqLimit: 4,
+    faq: [
+      { q: 'What is a good typing speed?', a: 'The average typist usually lands around 40 to 50 WPM. A strong everyday typing speed often reaches 65 to 75 WPM, while programmers and competitive typists can go much higher.' },
+      { q: 'How is WPM calculated?', a: 'WPM is calculated as total typed characters divided by 5, then divided by elapsed time in minutes. Tooliest also shows raw WPM and accuracy so you can separate clean execution from pure speed.' },
+      { q: 'Are my keystrokes logged on this test?', a: 'No. Tooliest processes the typing test entirely in your browser and does not send typing data anywhere. Personal bests and attempts are stored locally on this device only.' },
+      { q: 'How can I improve my typing speed?', a: 'Practice consistently, focus on accuracy before pushing speed, keep your hands relaxed on the home row, and review the mistake analysis after each run so you know what to train next.' }
+    ],
+    customSections: [
+      {
+        heading: 'How to Improve Your Typing Speed',
+        body: [
+          'The biggest gains usually come from consistency instead of marathon sessions. Short daily practice blocks, clean finger placement, and reviewing repeated mistakes can raise both speed and confidence much more reliably than trying to sprint through every run.'
+        ],
+      },
+      {
+        heading: 'What Is WPM and How Is It Calculated?',
+        body: [
+          'WPM stands for words per minute, and most typing tools treat one word as five characters including spaces. That standard makes speed easier to compare over time, even when the prompt contains different word lengths, punctuation, or code symbols.'
+        ],
+      },
+      {
+        heading: 'Why Privacy Matters in a Typing Test',
+        body: [
+          'A server-side typing test can capture every character you press, which matters even more when you practice with custom text that might include real names, internal terminology, or workflow notes. A browser-only typing test keeps that material on your device instead of turning practice into another logging surface.'
+        ],
+      },
+    ],
+    relatedLinks: [
+      {
+        toolId: 'word-counter',
+        title: 'Word Counter',
+        description: 'Review longer practice passages and finished writing samples',
+      },
+      {
+        toolId: 'lorem-ipsum',
+        title: 'Lorem Ipsum Generator',
+        description: 'Practice typing with random text',
+      },
+      {
+        toolId: 'password-security-suite',
+        title: 'Password Generator',
+        description: 'Test whether you can type complex passwords accurately',
+      },
+    ],
+    contentHighlights: [
+      'A private typing test is especially useful when custom practice text might include sensitive phrases or internal terminology that should never leave the browser.',
+      'Tracking personal bests locally makes the tool feel like a long-term training companion instead of a disposable one-off speed test.',
+      'Switching between words, sentences, code, numbers, and custom text helps users train the exact kind of typing they do in real work.'
+    ],
+    aeoSnippet: {
+      heading: 'Is There a Typing Speed Test That Does Not Log Keystrokes?',
+      answer: 'Yes. Tooliest runs the typing engine directly in your browser, so your keystrokes stay on your device. That lets you practice both standard prompts and your own custom text without sending typing data to a server.',
+    },
+    extraStructuredData: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Tooliest Typing Speed Test',
+        applicationCategory: 'UtilitiesApplication',
+        operatingSystem: 'Any',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        description: 'Private browser-based typing speed test with WPM tracking, local personal bests, and zero keystroke uploads.',
+        url: 'https://tooliest.com/typing-speed-test'
+      }
+    ],
+    meta: { title: 'Free Typing Speed Test - WPM Test, No Keylogger | Tooliest', desc: 'Test your typing speed and accuracy in WPM. Your keystrokes never leave your device - the only typing test that is genuinely private. Track your personal best offline with no account needed.' }
+  },
+  {
     id: 'character-counter',
     name: 'Character Counter',
     description: 'Count characters with and without spaces. Perfect for social media limits.',
@@ -1963,6 +2047,22 @@ const TOOLIEST_SEO_OVERRIDES = {
       { date: '2026-03-15', text: 'Launched the browser-based counter with reading-time and readability support.' },
     ],
   },
+  'typing-speed-test': {
+    metaDesc: 'Test your typing speed and accuracy in WPM. Your keystrokes never leave your device - the only typing test that is genuinely private. Track your personal best offline with no account needed.',
+    summaryHeading: 'How Do I Test My Typing Speed Online Without Logging My Keystrokes?',
+    howToHeading: 'How Can I Run a Private Typing Speed Test Step by Step?',
+    howToSteps: [
+      { name: 'Choose the test mode', text: 'Pick standard words, full sentences, code snippets, numbers, or your own custom text depending on the kind of typing you want to practice.' },
+      { name: 'Set the timer or word target', text: 'Choose a time-based sprint or, in Words mode, switch to a fixed word-count run so the session matches your practice goal.' },
+      { name: 'Type and watch the live metrics', text: 'Start typing to launch the timer automatically, then monitor WPM, raw speed, accuracy, and errors as the test updates in real time.' },
+      { name: 'Review the result and local history', text: 'When the run ends, compare the score against your personal best, check the sparkline trend, and use the mistake analysis to decide what to train next.' },
+    ],
+    changelog: [
+      { date: '2026-04-26', text: 'Launched the private browser-based Typing Speed Test with words, sentences, code, numbers, and custom text practice.' },
+      { date: '2026-04-26', text: 'Added local personal best tracking, sparkline history, mistake analysis, and a zero-keystroke-upload privacy banner.' },
+      { date: '2026-04-26', text: 'Connected the typing workflow to Word Counter, Lorem Ipsum, and password practice links for follow-up training.' },
+    ],
+  },
   'slug-generator': {
     metaDesc: 'Turn headlines into clean SEO-friendly URL slugs with hyphens, lowercase text, and trimmed stop words. Free, instant, no signup. Try Tooliest now.',
     summaryHeading: 'How Do I Convert Text Into an SEO-Friendly URL Slug?',
@@ -3329,6 +3429,12 @@ const signatureMakerTool = TOOLS.find((tool) => tool.id === 'signature-maker');
 if (signatureMakerTool) {
   signatureMakerTool.lastReviewed = '2026-04-24';
   signatureMakerTool.lastReviewedLabel = 'April 24, 2026';
+}
+
+const typingSpeedTestTool = TOOLS.find((tool) => tool.id === 'typing-speed-test');
+if (typingSpeedTestTool) {
+  typingSpeedTestTool.lastReviewed = '2026-04-26';
+  typingSpeedTestTool.lastReviewedLabel = 'April 26, 2026';
 }
 
 // Count tools per category

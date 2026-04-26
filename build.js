@@ -32,6 +32,8 @@ function computeAssetVersion() {
     'js/renderers4.js',
     'js/renderers5.js',
     'js/renderers6.js',
+    'js/typing-speed-data.js',
+    'js/typing-speed-renderer.js',
     'js/renderers-invoice.js',
     'js/email-sig-renderer.js',
     'js/signature-maker-renderer.js',
@@ -177,6 +179,8 @@ const LAZY_RENDERER_SOURCE_FILES = [
   'js/renderers4.js',
   'js/renderers5.js',
   'js/renderers6.js',
+  'js/typing-speed-data.js',
+  'js/typing-speed-renderer.js',
   'js/renderers-invoice.js',
   'js/email-sig-renderer.js',
   'js/signature-maker-renderer.js',
@@ -188,6 +192,7 @@ const LAZY_RENDERER_CHUNKS = [
   { sourceFiles: ['node_modules/qrcode-generator/qrcode.js', 'js/renderers4.js'], outputFile: 'js/renderers4.min.js' },
   { sourceFiles: ['js/renderers5.js'], outputFile: 'js/renderers5.min.js' },
   { sourceFiles: ['js/renderers6.js', 'js/renderers-invoice.js', 'js/email-sig-renderer.js', 'js/signature-maker-renderer.js'], outputFile: 'js/renderers6.min.js' },
+  { sourceFiles: ['js/typing-speed-data.js', 'js/typing-speed-renderer.js'], outputFile: 'js/renderers7.min.js' },
 ];
 const TOOL_RENDERER_SOURCE_FILES = ['js/renderers.js', ...LAZY_RENDERER_SOURCE_FILES];
 
@@ -2118,6 +2123,7 @@ function renderToolPage(tool, tools, categories) {
   const canonicalPath = getToolPath(tool.id);
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
   const description = tool.meta?.desc || tool.description;
+  const toolHeading = tool.pageHeading || tool.name;
   const toolLastModified = getToolLastModifiedDate(tool);
   const toolKeywords = [...tool.tags, categoryName.toLowerCase(), 'free online tool', 'browser-based', 'tooliest'].join(', ');
 
@@ -2220,7 +2226,7 @@ function renderToolPage(tool, tools, categories) {
           <span>${escapeHtml(tool.name)}</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <h1 style="margin:0"><span role="img" aria-label="${escapeAttr(tool.name)} icon">${tool.icon}</span> ${escapeHtml(tool.name)} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">AI-Powered</span>' : ''}</h1>
+          <h1 style="margin:0"><span role="img" aria-label="${escapeAttr(tool.name)} icon">${tool.icon}</span> ${escapeHtml(toolHeading)} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">AI-Powered</span>' : ''}</h1>
           <a class="btn btn-secondary btn-sm" href="#tool-workspace" aria-label="Jump to the live ${escapeAttr(tool.name)} workspace">Jump to Live Tool</a>
         </div>
         <p>${escapeHtml(tool.description)}</p>

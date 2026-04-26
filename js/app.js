@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.17', date: '2026-04-26', items: ['Added the private browser-based Typing Speed Test with words, sentences, code, numbers, and custom text practice', 'Shipped local personal best tracking, sparkline score history, mistake analysis, and a no-keystroke-upload privacy banner', 'Connected the typing workflow to Word Counter, Lorem Ipsum, and password practice tools for follow-up training'] },
   { version: '3.16', date: '2026-04-24', items: ['Added the browser-based Online Signature Maker with draw, type, and upload modes plus transparent PNG and SVG export', 'Connected signature workflows directly into invoices, PDF compression, password protection, and image resizing', 'Added realistic signature preview contexts so exported signatures can be checked against invoices, documents, and email use cases'] },
   { version: '3.15', date: '2026-04-24', items: ['Added the browser-based Email Signature Generator with three table-based templates for Gmail, Outlook, and Apple Mail', 'Shipped instant HTML copy actions, Outlook-friendly output, and live preview chrome without any signup wall', 'Added cross-links into QR, image resizing, and invoice workflows for faster business setup'] },
   { version: '3.14', date: '2026-04-24', items: ['Improved asset versioning and cache refresh behavior so newly shipped tools and fixes appear more reliably after deployment', 'Tightened page revalidation rules for the site shell, categories, and tool routes', 'Reduced stale-service-worker cases that were hiding recent Tooliest updates in normal browsing sessions'] },
@@ -31,7 +32,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260426-073b2853';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260426-0169f204';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -2155,10 +2156,11 @@ const App = {
   },
 
   getToolPageHTML(tool, catName, related, compareCandidates, isEmbed) {
+    const toolHeading = tool.pageHeading || tool.name;
     if (isEmbed) {
       return `<div class="tool-page tool-page-embed">
         <div class="tool-page-header">
-          <h1 style="margin:0">${tool.icon} ${tool.name}</h1>
+          <h1 style="margin:0">${tool.icon} ${toolHeading}</h1>
           <p>${tool.description}</p>
         </div>
         <div class="tool-workspace" id="tool-workspace"></div>
@@ -2175,7 +2177,7 @@ const App = {
           <span>${tool.name}</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <h1 style="margin:0">${tool.icon} ${tool.name} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">AI-Powered</span>' : ''}</h1>
+          <h1 style="margin:0">${tool.icon} ${toolHeading} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">AI-Powered</span>' : ''}</h1>
           <div class="tool-header-actions">
             <button class="btn btn-secondary btn-sm" id="compare-tool-btn" aria-label="Compare this tool with another tool"${compareCandidates.length ? '' : ' disabled'}>Compare</button>
             <button class="btn btn-secondary btn-sm" id="print-tool-btn" aria-label="Print this tool output">Print</button>

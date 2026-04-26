@@ -136,6 +136,9 @@
 /word-counter
   Cache-Control: public, max-age=0, must-revalidate
 
+/typing-speed-test
+  Cache-Control: public, max-age=0, must-revalidate
+
 /character-counter
   Cache-Control: public, max-age=0, must-revalidate
 
