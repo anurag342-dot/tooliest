@@ -1097,38 +1097,76 @@ greet('World');`;
       .code-shot-save-popover.is-open {
         display: grid;
       }
-      .code-shot-checkbox {
+      .code-shot-toggle {
         display: grid;
         grid-template-columns: 18px minmax(0, 1fr);
         gap: 10px;
         color: var(--text-secondary);
         align-items: start;
+        width: 100%;
+        padding: 0;
+        border: none;
+        background: transparent;
+        font: inherit;
+        text-align: left;
         cursor: pointer;
         user-select: none;
       }
-      .code-shot-checkbox input {
+      .code-shot-toggle-box {
         width: 18px;
         height: 18px;
         margin: 2px 0 0;
-        accent-color: var(--accent-primary);
-        cursor: pointer;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        background: rgba(255,255,255,0.04);
+        position: relative;
+        box-sizing: border-box;
+        transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
       }
-      .code-shot-checkbox span {
+      .code-shot-toggle span:last-child {
         line-height: 1.45;
       }
-      .code-shot-checkbox input:checked + span {
+      .code-shot-toggle[aria-pressed="true"] {
         color: var(--text-primary);
       }
-      .code-shot-checkbox input:disabled + span {
+      .code-shot-toggle[aria-pressed="true"] .code-shot-toggle-box {
+        background: var(--accent-primary);
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.22), 0 8px 18px rgba(139, 92, 246, 0.18);
+      }
+      .code-shot-toggle[aria-pressed="true"] .code-shot-toggle-box::after {
+        content: '✓';
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .code-shot-toggle:focus-visible {
+        outline: 2px solid var(--accent-primary);
+        outline-offset: 3px;
+        border-radius: 8px;
+      }
+      .code-shot-toggle:disabled,
+      .code-shot-toggle[aria-disabled="true"] {
+        cursor: not-allowed;
+      }
+      .code-shot-toggle:disabled span:last-child,
+      .code-shot-toggle[aria-disabled="true"] span:last-child {
         color: var(--text-tertiary);
       }
       .code-shot-field.is-disabled .code-shot-group-label,
       .code-shot-field.is-disabled .code-shot-help {
         color: var(--text-tertiary);
       }
-      .code-shot-field.is-disabled .code-shot-checkbox {
+      .code-shot-field.is-disabled .code-shot-toggle {
         opacity: 0.72;
-        cursor: not-allowed;
+      }
+      .code-shot-field.is-disabled .code-shot-toggle-box {
+        background: rgba(255,255,255,0.03);
       }
       .code-shot-mobile-jump {
         display: none;
@@ -1385,29 +1423,44 @@ greet('World');`;
                       </div>
                       <div class="code-shot-field">
                         <span class="code-shot-group-label">Diff mode</span>
-                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-diff-mode"><span>Use + / - line coloring</span></label>
+                        <button type="button" class="code-shot-toggle" id="cs-diff-mode" aria-pressed="false">
+                          <span class="code-shot-toggle-box" aria-hidden="true"></span>
+                          <span>Use + / - line coloring</span>
+                        </button>
                       </div>
                     </div>
                     <div class="code-shot-grid two">
                       <div class="code-shot-field" id="cs-dim-lines-field">
                         <span class="code-shot-group-label">Dim unfocused lines</span>
-                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-dim-lines"><span>Focus on highlighted lines</span></label>
+                        <button type="button" class="code-shot-toggle" id="cs-dim-lines" aria-pressed="false">
+                          <span class="code-shot-toggle-box" aria-hidden="true"></span>
+                          <span>Focus on highlighted lines</span>
+                        </button>
                         <div class="code-shot-help" id="cs-dim-lines-help">Add highlighted lines first to enable this focus mode.</div>
                       </div>
                       <div class="code-shot-field">
                         <span class="code-shot-group-label">Blur sensitive strings</span>
-                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-blur-sensitive"><span>Redact secrets in the preview</span></label>
+                        <button type="button" class="code-shot-toggle" id="cs-blur-sensitive" aria-pressed="false">
+                          <span class="code-shot-toggle-box" aria-hidden="true"></span>
+                          <span>Redact secrets in the preview</span>
+                        </button>
                         <div class="code-shot-help">Looks for API keys, JWTs, long tokens, and password strings. Click a string in the preview to force redact or reveal it.</div>
                       </div>
                     </div>
                     <div class="code-shot-grid two">
                       <div class="code-shot-field">
                         <span class="code-shot-group-label">Auto-pair editor</span>
-                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-auto-pair"><span>Insert matching brackets and quotes</span></label>
+                        <button type="button" class="code-shot-toggle" id="cs-auto-pair" aria-pressed="false">
+                          <span class="code-shot-toggle-box" aria-hidden="true"></span>
+                          <span>Insert matching brackets and quotes</span>
+                        </button>
                       </div>
                       <div class="code-shot-field">
                         <span class="code-shot-group-label">Watermark</span>
-                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-watermark"><span>Show tooliest.com watermark</span></label>
+                        <button type="button" class="code-shot-toggle" id="cs-watermark" aria-pressed="false">
+                          <span class="code-shot-toggle-box" aria-hidden="true"></span>
+                          <span>Show tooliest.com watermark</span>
+                        </button>
                       </div>
                     </div>
                     <div class="code-shot-field">
@@ -1451,7 +1504,10 @@ greet('World');`;
                       </div>
                       <div class="code-shot-field" id="cs-ligature-field">
                         <span class="code-shot-group-label">Ligatures</span>
-                        <label class="code-shot-checkbox"><input type="checkbox" id="cs-ligatures"><span>Enable ligatures</span></label>
+                        <button type="button" class="code-shot-toggle" id="cs-ligatures" aria-pressed="false">
+                          <span class="code-shot-toggle-box" aria-hidden="true"></span>
+                          <span>Enable ligatures</span>
+                        </button>
                       </div>
                     </div>
                     <div class="code-shot-grid two">
@@ -2564,12 +2620,12 @@ greet('World');`;
     runtime.elements.cardWidth.value = state.cardWidthChoice;
     runtime.elements.cardWidthCustom.value = state.customCardWidth;
     runtime.elements.chromeColor.value = state.chromeColor || (THEMES[state.theme] || THEMES['one-dark']).card.titlebarBg;
-    runtime.elements.ligatures.checked = !!state.ligatures;
-    runtime.elements.diffMode.checked = !!state.diffMode;
-    runtime.elements.dimLines.checked = !!state.dimUnfocused;
-    runtime.elements.blurSensitive.checked = !!state.blurSensitive;
-    runtime.elements.autoPair.checked = !!state.autoPair;
-    runtime.elements.watermark.checked = !!state.watermark;
+    runtime.elements.ligatures.setAttribute('aria-pressed', String(!!state.ligatures));
+    runtime.elements.diffMode.setAttribute('aria-pressed', String(!!state.diffMode));
+    runtime.elements.dimLines.setAttribute('aria-pressed', String(!!state.dimUnfocused));
+    runtime.elements.blurSensitive.setAttribute('aria-pressed', String(!!state.blurSensitive));
+    runtime.elements.autoPair.setAttribute('aria-pressed', String(!!state.autoPair));
+    runtime.elements.watermark.setAttribute('aria-pressed', String(!!state.watermark));
     runtime.elements.watermarkText.value = state.watermarkText;
     runtime.elements.watermarkNote.hidden = Boolean(state.watermark || state.watermarkText.trim());
     runtime.elements.ligatureField.style.display = getFontMeta(state.fontFamily).ligatures ? 'grid' : 'none';
@@ -2577,8 +2633,9 @@ greet('World');`;
     if (!hasHighlights) {
       state.dimUnfocused = false;
     }
-    runtime.elements.dimLines.checked = !!state.dimUnfocused;
+    runtime.elements.dimLines.setAttribute('aria-pressed', String(!!state.dimUnfocused));
     runtime.elements.dimLines.disabled = !hasHighlights;
+    runtime.elements.dimLines.setAttribute('aria-disabled', String(!hasHighlights));
     runtime.elements.dimLinesField?.classList.toggle('is-disabled', !hasHighlights);
     if (runtime.elements.dimLinesHelp) {
       runtime.elements.dimLinesHelp.textContent = hasHighlights
@@ -3389,8 +3446,9 @@ greet('World');`;
       renderPreview(runtime);
       saveState(runtime);
     });
-    elements.ligatures.addEventListener('change', () => {
-      runtime.state.ligatures = elements.ligatures.checked;
+    elements.ligatures.addEventListener('click', () => {
+      runtime.state.ligatures = !runtime.state.ligatures;
+      syncControlState(runtime);
       renderEditorMirror(runtime);
       renderPreview(runtime);
       saveState(runtime);
@@ -3414,28 +3472,32 @@ greet('World');`;
       renderPreview(runtime);
       saveState(runtime);
     });
-    elements.diffMode.addEventListener('change', () => {
-      runtime.state.diffMode = elements.diffMode.checked;
+    elements.diffMode.addEventListener('click', () => {
+      runtime.state.diffMode = !runtime.state.diffMode;
       syncControlState(runtime);
       renderPreview(runtime);
       saveState(runtime);
     });
-    elements.dimLines.addEventListener('change', () => {
-      runtime.state.dimUnfocused = elements.dimLines.checked;
+    elements.dimLines.addEventListener('click', () => {
+      if (elements.dimLines.disabled) return;
+      runtime.state.dimUnfocused = !runtime.state.dimUnfocused;
+      syncControlState(runtime);
       renderPreview(runtime);
       saveState(runtime);
     });
-    elements.blurSensitive.addEventListener('change', () => {
-      runtime.state.blurSensitive = elements.blurSensitive.checked;
+    elements.blurSensitive.addEventListener('click', () => {
+      runtime.state.blurSensitive = !runtime.state.blurSensitive;
+      syncControlState(runtime);
       renderPreview(runtime);
       saveState(runtime);
     });
-    elements.autoPair.addEventListener('change', () => {
-      runtime.state.autoPair = elements.autoPair.checked;
+    elements.autoPair.addEventListener('click', () => {
+      runtime.state.autoPair = !runtime.state.autoPair;
+      syncControlState(runtime);
       saveState(runtime);
     });
-    elements.watermark.addEventListener('change', () => {
-      runtime.state.watermark = elements.watermark.checked;
+    elements.watermark.addEventListener('click', () => {
+      runtime.state.watermark = !runtime.state.watermark;
       syncControlState(runtime);
       renderPreview(runtime);
       saveState(runtime);
