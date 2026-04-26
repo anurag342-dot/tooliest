@@ -2858,6 +2858,8 @@ greet('World');`;
     canvas.height = Math.max(1, Math.round(height * scale));
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Unable to prepare the PNG canvas.');
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
     context.scale(scale, scale);
     context.drawImage(image, 0, 0, width, height);
     return canvas;
@@ -2900,6 +2902,15 @@ greet('World');`;
     }
   }
 
+  function isCanvasExportable(canvas) {
+    try {
+      canvas.toDataURL('image/png');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   async function exportPng(runtime, mode) {
     const button = mode === 'copy' ? runtime.elements.copyBtn : runtime.elements.pngBtn;
     const originalLabel = button.textContent;
@@ -2911,13 +2922,19 @@ greet('World');`;
 
       const preview = buildPreview(runtime, { interactive: false });
       const source = preview.stage;
-      const exportScale = Math.max(2, Math.min(4, window.devicePixelRatio || 1));
+      const exportScale = Math.max(4, Math.min(6, Math.ceil((window.devicePixelRatio || 1) * 2)));
       let canvas;
 
       try {
         canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
       } catch (_) {
         canvas = await rasterizeStageWithHtml2Canvas(source, exportScale);
+      }
+      if (!isCanvasExportable(canvas)) {
+        canvas = await rasterizeStageWithHtml2Canvas(source, exportScale);
+      }
+      if (!isCanvasExportable(canvas)) {
+        throw new Error('The browser blocked image export for this render. Please switch to a system font or try the SVG download.');
       }
 
       const activeTab = getActiveTab(runtime.state);
