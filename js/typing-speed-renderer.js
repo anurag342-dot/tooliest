@@ -151,7 +151,7 @@
     };
 
     text = text.replace(/[\u2018\u2019\u201A\u201B\u2032\u201C\u201D\u201E\u201F\u2033\u2013\u2014\u2212\u2026\u00A0\u2007\u202F\t]/g, (character) => substitutions[character] || ' ');
-    text = text.replace(/[\u200B-\u200D\u2060\uFE0E\uFE0F]/g, '');
+    text = text.replace(/[\u061C\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFE0E\uFE0F]/g, '');
     text = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
 
     const units = splitTextUnits(text);
