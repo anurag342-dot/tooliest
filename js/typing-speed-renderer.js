@@ -28,6 +28,9 @@
   const TIME_OPTIONS = [15, 30, 60, 120, 300];
   const WORD_COUNT_OPTIONS = [10, 25, 50, 100];
   const DIFFICULTY_OPTIONS = ['easy', 'medium', 'hard'];
+  const GRAPHEME_SEGMENTER = typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'
+    ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+    : null;
 
   function readStorage(key, fallback) {
     try {
@@ -106,12 +109,84 @@
     return `${Number(value || 0).toFixed(1)}%`;
   }
 
-  function cleanCustomText(value) {
-    return String(value || '')
-      .replace(/\r\n/g, '\n')
-      .replace(/[ \t]+/g, ' ')
-      .replace(/\n{3,}/g, '\n\n')
+  function splitTextUnits(value) {
+    const input = String(value || '').replace(/\r/g, '');
+    if (!input) return [];
+    if (GRAPHEME_SEGMENTER) {
+      return Array.from(GRAPHEME_SEGMENTER.segment(input), (entry) => entry.segment);
+    }
+    return Array.from(input);
+  }
+
+  function joinTextUnits(units) {
+    return (units || []).join('');
+  }
+
+  function sanitizePracticeText(value) {
+    const original = String(value || '');
+    let text = original.replace(/\r\n?/g, '\n');
+    if (typeof text.normalize === 'function') {
+      text = text.normalize('NFKC');
+    }
+
+    const substitutions = {
+      '\u2018': '\'',
+      '\u2019': '\'',
+      '\u201A': '\'',
+      '\u201B': '\'',
+      '\u2032': '\'',
+      '\u201C': '"',
+      '\u201D': '"',
+      '\u201E': '"',
+      '\u201F': '"',
+      '\u2033': '"',
+      '\u2013': '-',
+      '\u2014': '-',
+      '\u2212': '-',
+      '\u2026': '...',
+      '\u00A0': ' ',
+      '\u2007': ' ',
+      '\u202F': ' ',
+      '\t': ' ',
+    };
+
+    text = text.replace(/[\u2018\u2019\u201A\u201B\u2032\u201C\u201D\u201E\u201F\u2033\u2013\u2014\u2212\u2026\u00A0\u2007\u202F\t]/g, (character) => substitutions[character] || ' ');
+    text = text.replace(/[\u200B-\u200D\u2060\uFE0E\uFE0F]/g, '');
+    text = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
+
+    const units = splitTextUnits(text);
+    const filtered = [];
+    let removedUnsupported = 0;
+
+    units.forEach((unit) => {
+      if (unit === '\n') {
+        filtered.push(' ');
+        return;
+      }
+      if (unit === '\uFFFD') {
+        removedUnsupported += 1;
+        return;
+      }
+      if (/\p{Extended_Pictographic}/u.test(unit)) {
+        removedUnsupported += 1;
+        return;
+      }
+      filtered.push(unit);
+    });
+
+    const cleaned = joinTextUnits(filtered)
+      .replace(/\s+/g, ' ')
       .trim();
+
+    return {
+      text: cleaned,
+      changed: cleaned !== original.trim(),
+      removedUnsupported,
+    };
+  }
+
+  function cleanCustomText(value) {
+    return sanitizePracticeText(value).text;
   }
 
   function getConfigKey(config) {
@@ -144,8 +219,8 @@
   }
 
   function analyzeTyped(expected, typed) {
-    const target = String(expected || '');
-    const actual = String(typed || '');
+    const target = splitTextUnits(expected);
+    const actual = splitTextUnits(typed);
     let correct = 0;
     let total = 0;
     const errors = [];
@@ -161,7 +236,7 @@
         errors.push({
           expected: expectedChar || '(extra)',
           typed: typedChar,
-          fragment: target.slice(Math.max(0, index - 1), Math.min(target.length, index + 2)) || typedChar,
+          fragment: joinTextUnits(target.slice(Math.max(0, index - 1), Math.min(target.length, index + 2))) || typedChar,
         });
       }
     }
@@ -423,6 +498,7 @@
         config: { ...config },
         seed: generated.seed,
         text: generated.text,
+        textUnits: splitTextUnits(generated.text),
         codeLanguages: generated.codeLanguages || [],
         tokens: tokenMode ? generated.text.split(/\s+/).filter(Boolean) : [],
         tokenMode,
@@ -430,6 +506,7 @@
         committedWords: [],
         currentInput: '',
         streamInput: '',
+        streamInputUnits: [],
         streamLastLength: 0,
         isRunning: false,
         isFinished: false,
@@ -552,6 +629,7 @@
               <label for="typing-custom-text">Custom text</label>
               <textarea id="typing-custom-text" rows="4" placeholder="Paste at least 20 characters of your own text to practice.">${ToolRenderers.escapeHtml(config.customText)}</textarea>
               <div class="typing-custom-warning hidden" id="typing-custom-warning">Add at least 20 characters to use your own text. Until then, Tooliest shows a private placeholder passage so the layout never breaks.</div>
+              <div class="typing-custom-warning hidden" id="typing-custom-sanitized">Unsupported or confusing characters were cleaned up so the prompt stays typeable.</div>
             </div>
           </div>
           <p class="typing-config-note">Screen reader users: this tool requires visual interaction and is not fully accessible in screen reader mode. We are working on an accessible alternative.</p>
@@ -669,6 +747,7 @@
       languageSelect: container.querySelector('#typing-language-select'),
       customText: container.querySelector('#typing-custom-text'),
       customWarning: container.querySelector('#typing-custom-warning'),
+      customSanitized: container.querySelector('#typing-custom-sanitized'),
       wordsModeWrap: container.querySelector('#typing-words-mode-wrap'),
       timeWrap: container.querySelector('#typing-time-wrap'),
       wordCountWrap: container.querySelector('#typing-word-count-wrap'),
@@ -742,6 +821,7 @@
       refs.languageWrap.style.display = isLanguageMode ? '' : 'none';
       refs.customWrap.style.display = isCustom ? '' : 'none';
       refs.customWarning.classList.toggle('hidden', !(isCustom && cleanCustomText(config.customText).length < 20));
+      refs.customSanitized.classList.add('hidden');
       refs.inputWrap.style.display = config.mode === 'code' ? 'none' : '';
       refs.codeInputWrap.style.display = config.mode === 'code' ? '' : 'none';
       refs.input.disabled = config.mode === 'code';
@@ -765,24 +845,24 @@
     }
 
     function normalizeStreamValue(rawValue) {
-      const cleanValue = String(rawValue || '').replace(/\r/g, '');
+      const inputUnits = splitTextUnits(rawValue);
       if (config.mode !== 'code') {
-        return cleanValue.slice(0, state.text.length);
+        return joinTextUnits(inputUnits.slice(0, state.textUnits.length));
       }
 
-      let normalized = '';
+      const normalized = [];
       let expectedIndex = 0;
-      for (let index = 0; index < cleanValue.length && expectedIndex < state.text.length; index += 1) {
-        const typedChar = cleanValue[index];
-        while (state.text[expectedIndex] === '\n' && typedChar !== '\n') {
-          normalized += '\n';
+      for (let index = 0; index < inputUnits.length && expectedIndex < state.textUnits.length; index += 1) {
+        const typedChar = inputUnits[index];
+        while (state.textUnits[expectedIndex] === '\n' && typedChar !== '\n') {
+          normalized.push('\n');
           expectedIndex += 1;
         }
-        if (expectedIndex >= state.text.length) break;
-        normalized += typedChar;
+        if (expectedIndex >= state.textUnits.length) break;
+        normalized.push(typedChar);
         expectedIndex += 1;
       }
-      return normalized.slice(0, state.text.length);
+      return joinTextUnits(normalized.slice(0, state.textUnits.length));
     }
 
     function renderDashboard() {
@@ -829,10 +909,10 @@
           incorrectChars += stats.incorrect;
         }
       } else {
-        const length = includeCurrent ? state.streamInput.length : state.streamInput.length;
+        const length = state.streamInputUnits.length;
         for (let index = 0; index < length; index += 1) {
-          const typedChar = state.streamInput[index];
-          const expectedChar = state.text[index] || '';
+          const typedChar = state.streamInputUnits[index];
+          const expectedChar = state.textUnits[index] || '';
           if (!typedChar) continue;
           totalChars += 1;
           if (typedChar === expectedChar) correctChars += 1;
@@ -918,16 +998,16 @@
         refs.display.innerHTML = html.join('');
       } else {
         const html = [];
-        for (let index = 0; index < state.text.length; index += 1) {
-          const expectedChar = state.text[index] || '';
-          const typedChar = state.streamInput[index] || '';
+        for (let index = 0; index < state.textUnits.length; index += 1) {
+          const expectedChar = state.textUnits[index] || '';
+          const typedChar = state.streamInputUnits[index] || '';
           if (typedChar) {
             if (typedChar === expectedChar) {
               html.push(`<span class="typing-char-correct">${ToolRenderers.escapeHtml(typedChar)}</span>`);
             } else {
               html.push(`<span class="typing-char-error">${ToolRenderers.escapeHtml(expectedChar || ' ')}<sup>${ToolRenderers.escapeHtml(typedChar)}</sup></span>`);
             }
-          } else if (index === state.streamInput.length) {
+          } else if (index === state.streamInputUnits.length) {
             html.push(`<span class="typing-char-current">${ToolRenderers.escapeHtml(expectedChar || ' ')}</span>`);
           } else {
             html.push(`<span class="typing-char-upcoming">${ToolRenderers.escapeHtml(expectedChar)}</span>`);
@@ -1117,8 +1197,13 @@
     });
 
     refs.customText.addEventListener('input', () => {
-      config.customText = refs.customText.value;
+      const sanitized = sanitizePracticeText(refs.customText.value);
+      config.customText = sanitized.text;
+      if (refs.customText.value !== sanitized.text) {
+        refs.customText.value = sanitized.text;
+      }
       updateConfigUi();
+      refs.customSanitized.classList.toggle('hidden', !sanitized.changed);
       if (config.mode === 'custom') resetTest(false);
       else saveConfig();
     });
@@ -1156,23 +1241,25 @@
         if (activeInput.value !== nextValue) {
           activeInput.value = nextValue;
         }
-        if (nextValue.length > state.streamLastLength) {
-          for (let index = state.streamLastLength; index < nextValue.length; index += 1) {
-            const typedChar = nextValue[index];
-            const expectedChar = state.text[index] || '';
+        const nextUnits = splitTextUnits(nextValue);
+        if (nextUnits.length > state.streamLastLength) {
+          for (let index = state.streamLastLength; index < nextUnits.length; index += 1) {
+            const typedChar = nextUnits[index];
+            const expectedChar = state.textUnits[index] || '';
             if (typedChar !== expectedChar) {
               state.errors.push({
                 expected: expectedChar || '(extra)',
                 typed: typedChar,
-                fragment: state.text.slice(Math.max(0, index - 1), Math.min(state.text.length, index + 2)) || typedChar,
+                fragment: joinTextUnits(state.textUnits.slice(Math.max(0, index - 1), Math.min(state.textUnits.length, index + 2))) || typedChar,
               });
             }
           }
         }
         state.streamInput = nextValue;
-        state.streamLastLength = nextValue.length;
+        state.streamInputUnits = nextUnits;
+        state.streamLastLength = nextUnits.length;
         if (nextValue && !state.isRunning) startTest();
-        if (state.streamInput.length >= state.text.length) finishTest();
+        if (state.streamInputUnits.length >= state.textUnits.length) finishTest();
       }
       renderDisplay();
       updateLiveStats();
