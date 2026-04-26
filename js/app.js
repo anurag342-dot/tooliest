@@ -3,6 +3,9 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.16', date: '2026-04-24', items: ['Added the browser-based Online Signature Maker with draw, type, and upload modes plus transparent PNG and SVG export', 'Connected signature workflows directly into invoices, PDF compression, password protection, and image resizing', 'Added realistic signature preview contexts so exported signatures can be checked against invoices, documents, and email use cases'] },
+  { version: '3.15', date: '2026-04-24', items: ['Added the browser-based Email Signature Generator with three table-based templates for Gmail, Outlook, and Apple Mail', 'Shipped instant HTML copy actions, Outlook-friendly output, and live preview chrome without any signup wall', 'Added cross-links into QR, image resizing, and invoice workflows for faster business setup'] },
+  { version: '3.14', date: '2026-04-24', items: ['Improved asset versioning and cache refresh behavior so newly shipped tools and fixes appear more reliably after deployment', 'Tightened page revalidation rules for the site shell, categories, and tool routes', 'Reduced stale-service-worker cases that were hiding recent Tooliest updates in normal browsing sessions'] },
   { version: '3.13', date: '2026-04-23', items: ['Added a full browser-based invoice generator with reusable business profiles, live previews, drafts, and PDF export', 'Created a dedicated invoice social preview card and related-tool workflow links for post-download steps', 'Refreshed cached assets and offline routes so the new invoicing experience loads cleanly'] },
   { version: '3.12', date: '2026-04-23', items: ['Added clearer before-and-after upload previews across image editing tools', 'Made source and output files easier to verify before downloading changes', 'Refreshed cached assets so the upgraded preview UI appears immediately'] },
   { version: '3.11', date: '2026-04-23', items: ['Trimmed the oversized empty space under embedded PDF workspaces', 'Changed the embedded PDF height measurement to follow the real workspace content instead of the full viewport', 'Reduced the fallback PDF frame height for cleaner first paint on document tools'] },
@@ -28,7 +31,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260424-8a81d6a1';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260426-cde82ab5';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';

@@ -556,7 +556,7 @@
   }
   .sm-stage {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 260px;
+    grid-template-columns: minmax(0, 1fr);
     gap: 18px;
     align-items: start;
   }
@@ -578,8 +578,7 @@
   }
   .sm-tip-card {
     padding: 18px;
-    position: sticky;
-    top: 92px;
+    position: static;
   }
   .sm-tip-card h3,
   .sm-preview-head h3,
@@ -642,6 +641,7 @@
     background: transparent;
   }
   .sm-upload-drop {
+    display: block;
     margin-bottom: 16px;
     border: 1.5px dashed rgba(139, 92, 246, 0.32);
     border-radius: 16px;
@@ -658,6 +658,16 @@
     transform: translateY(-1px);
   }
   .sm-upload-drop input { display: none; }
+  .sm-upload-drop strong {
+    display: block;
+    font-size: 1.08rem;
+    line-height: 1.35;
+    color: var(--text-primary);
+  }
+  .sm-upload-drop p {
+    max-width: 560px;
+    margin-inline: auto;
+  }
   .sm-section-stack { display: flex; flex-direction: column; gap: 16px; }
   .sm-grid {
     display: grid;
@@ -670,6 +680,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
   }
   .sm-field label,
   .sm-label {
@@ -683,6 +694,46 @@
   .sm-field select,
   .sm-field textarea {
     width: 100%;
+  }
+  .sm-field input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .sm-field input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.24);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+  }
+  .sm-field input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -8px;
+    border: 2px solid #ffffff;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+    box-shadow: 0 8px 20px rgba(6, 182, 212, 0.22);
+  }
+  .sm-field input[type="range"]::-moz-range-track {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.24);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+  }
+  .sm-field input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #ffffff;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+    box-shadow: 0 8px 20px rgba(6, 182, 212, 0.22);
   }
   .sm-field input[type="text"],
   .sm-field input[type="url"],
@@ -717,6 +768,15 @@
     display: none;
     font-weight: 700;
     color: #c4b5fd;
+  }
+  .sm-upload-controls {
+    align-items: start;
+  }
+  .sm-upload-field {
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.02);
   }
   .sm-controls-row,
   .sm-export-actions,
@@ -1089,15 +1149,23 @@
     clip: rect(0, 0, 0, 0);
     border: 0;
   }
-  @media (max-width: 1080px) {
+  @media (min-width: 1420px) {
     .sm-stage {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) 280px;
     }
     .sm-tip-card {
-      position: static;
+      position: sticky;
+      top: 92px;
     }
+  }
+  @media (max-width: 1080px) {
     .sm-workflow-steps {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 900px) {
+    .sm-upload-controls {
+      grid-template-columns: 1fr;
     }
   }
   @media (max-width: 767px) {
@@ -1206,13 +1274,13 @@
             <strong>Drop a signature image here or click to browse</strong>
             <p class="sm-note" style="margin-top:8px">PNG, JPG, JPEG, or WebP. Tooliest removes light backgrounds locally in your browser.</p>
           </label>
-          <div class="sm-grid sm-grid-2">
-            <div class="sm-field">
+          <div class="sm-grid sm-grid-2 sm-upload-controls">
+            <div class="sm-field sm-upload-field">
               <label for="sm-threshold">Background removal strength</label>
               <input type="range" id="sm-threshold" min="0" max="255" step="1" aria-label="Background removal threshold">
               <span class="sm-note" id="sm-threshold-value"></span>
             </div>
-            <div class="sm-field">
+            <div class="sm-field sm-upload-field">
               <span class="sm-label">Before / After</span>
               <div class="sm-controls-row">
                 <button class="sm-option-button" type="button" data-upload-view="processed">Processed</button>
