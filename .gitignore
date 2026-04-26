@@ -76,3 +76,10 @@ web_modules/
 # Optional: Ignore media/asset uploads if strictly local
 # /uploads/
 # /tmp/
+
+# Local workspace scratch artifacts
+.playwright-cli/
+output/
+tmp/
+create_project.ps1
+populate_project.ps1

@@ -1702,6 +1702,131 @@ const TOOLS = [
     ],
     meta: { title: 'Chmod Calculator - Unix File Permissions | Tooliest', desc: 'Calculate Unix chmod permissions. Convert between numeric (755) and symbolic (rwxr-xr-x) notation.' }
   },
+  {
+    id: 'code-screenshot',
+    name: 'Code Screenshot Generator',
+    description: 'Create beautiful syntax-highlighted code images with themes, gradients, tabs, and browser-only PNG or SVG export.',
+    category: 'developer',
+    icon: '🖼️',
+    tags: ['code screenshot', 'carbon alternative', 'syntax highlight', 'png', 'svg', 'developer'],
+    isAI: false,
+    education: '<strong>What makes a code screenshot worth sharing?</strong><br>A strong code image balances readability, contrast, file size, and context. Developers usually need a legible type scale, a recognizable theme, clear window chrome, and export dimensions that match social posts, docs, or slide decks. Tooliest keeps all of that in your browser, so the source code never needs to leave your machine.',
+    whyUse: ['Turn raw snippets into polished screenshots without uploading code to a server', 'Export PNG for social posts or SVG for docs, presentations, and retina-safe reuse', 'Highlight lines, blur secrets, and show multi-file tabs for tutorials and technical writeups'],
+    whoUses: 'Developers, technical writers, DevRel teams, teachers, conference speakers, and anyone who shares code in documentation or on social media.',
+    howToSteps: [
+      { name: 'Paste your code', text: 'Drop a snippet into the browser-based editor or start typing directly in the lightweight code input.' },
+      { name: 'Choose the look', text: 'Pick a language, theme, font, window chrome, background, and line highlighting until the preview feels ready to share.' },
+      { name: 'Tune the export', text: 'Apply a social size preset, watermark, blur mode, or multi-file tab layout to match the final use case.' },
+      { name: 'Download the image', text: 'Export a high-resolution PNG for social posts or an SVG for documentation, slides, and reusable vector workflows.' },
+    ],
+    customSections: [
+      {
+        heading: 'How to Create a Beautiful Code Screenshot',
+        body: [
+          'Paste your snippet into the editor, pick a theme, and the code screenshot generator renders a live syntax highlighted code image immediately in your browser.',
+          'From there you can change the window chrome, background, font, and social size preset until the screenshot feels ready for docs, slides, or a post you want to share code on Twitter with.',
+          'When the preview looks right, export a sharp PNG for social media or an SVG for documentation without ever uploading the source code to a server.'
+        ]
+      },
+      {
+        heading: 'Code Screenshot Tips for Developers Sharing on Social Media',
+        body: [
+          'Use the built-in size presets to match the platform before you export. A 16:9 image works best for Twitter and LinkedIn, while square layouts hold up well on feeds that crop aggressively.',
+          'Keeping the same theme, background family, and title style across posts makes your screenshots feel branded over time. PNG is the better default for code because text edges and color contrast stay crisp.',
+          'Line highlighting is the fastest way to teach from a screenshot. Instead of asking readers to scan every line, spotlight the exact lines that matter and dim the rest for focus.'
+        ]
+      },
+      {
+        heading: 'SVG vs PNG — Which Export Format Should You Use?',
+        body: [
+          'PNG is the best code image format for social media because every platform understands it and it keeps syntax coloring consistent across devices.',
+          'SVG is better for blog posts, documentation systems, and presentations where you may need to resize the screenshot later without losing sharpness. For short snippets SVG can also produce smaller files than a PNG.',
+          'If you are publishing to a platform that compresses uploads heavily, export PNG. If you are reusing the asset across docs, slide decks, and design tools, export SVG.'
+        ]
+      },
+      {
+        heading: 'Is This a Free Alternative to Carbon.sh?',
+        body: [
+          'Yes. Both Tooliest and Carbon make attractive code images for developers, and both can be used for free.',
+          'Tooliest leans into privacy and workflow control: it works offline, your code never leaves the browser, and it adds line highlighting, blur-sensitive-data mode, multi-tab screenshots, and social size presets.',
+          'Carbon still has the advantage of a longer track record and a broader community theme culture. Try both and see which fits your workflow.'
+        ]
+      }
+    ],
+    faq: [
+      {
+        q: 'Is my code sent to a server when generating a screenshot?',
+        a: 'No. Every operation - syntax highlighting, theme application, font rendering, and image generation - happens entirely inside your browser using JavaScript and the Canvas API. Your code never leaves your device. You can verify this yourself by opening your browser\'s DevTools, going to the Network tab, and observing zero requests made during code editing or image export.',
+      },
+      {
+        q: 'What programming languages does this code screenshot tool support?',
+        a: 'The tool supports 20+ programming languages including JavaScript, TypeScript, Python, HTML, CSS, SCSS, JSON, Bash/Shell, SQL, PHP, Ruby, Go, Rust, Java, C, C++, C#, Swift, Kotlin, Markdown, YAML, Dockerfile, and GraphQL. Language is auto-detected from your code, with a manual override dropdown.',
+      },
+      {
+        q: 'What is the difference between PNG and SVG export for code screenshots?',
+        a: 'PNG export produces a high-resolution raster image at 2x Retina quality - ideal for Twitter, LinkedIn, Reddit, and blog platforms. SVG export produces a scalable vector file that can be resized to any dimension without quality loss - ideal for presentations, documentation, and print. SVG also produces smaller file sizes for simple code snippets.',
+      },
+      {
+        q: 'Can I use this code screenshot generator offline?',
+        a: 'Yes. After the first page load, all assets - highlight.js, themes, fonts, and the export engine - are cached by the service worker. The tool works completely without an internet connection. This makes it usable on airplanes, in conference settings with poor wifi, and on air-gapped or restricted corporate networks.',
+      },
+      {
+        q: 'How do I add a code screenshot to a blog post or Twitter?',
+        a: 'Paste your code, select a theme (One Dark and GitHub Light are the most popular for social sharing), choose a background, and click Download PNG. The exported image is 2x resolution, suitable for all screen densities. For Twitter/X, the optimal image ratio is 16:9 - use the Twitter preset in the Size Presets dropdown to auto-configure this.',
+      },
+      {
+        q: 'Is there a free alternative to Carbon.sh?',
+        a: 'Tooliest\'s Code Screenshot Generator is a fully free alternative to Carbon.sh with key advantages: it works offline, your code is never uploaded to any server, it renders faster, and it includes features Carbon lacks such as line highlighting, blur-sensitive-data mode, multi-tab code files, and social media size presets.',
+      },
+    ],
+    faqLimit: 6,
+    extraStructuredData: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Tooliest Code Screenshot Generator',
+        applicationCategory: 'DeveloperApplication',
+        operatingSystem: 'Any (web browser)',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+        featureList: [
+          '20+ syntax highlighting themes',
+          '20+ programming languages',
+          'PNG and SVG export',
+          'Offline support',
+          'Zero server uploads',
+          'Custom fonts, padding, window chrome',
+          'Gradient backgrounds',
+          'Line highlighting',
+          'Social media size presets',
+        ],
+        description: 'Browser-based code screenshot generator. Create beautiful, syntax-highlighted code images for sharing on social media, blogs, and documentation. Fully client-side - your code never leaves your device.',
+        url: 'https://tooliest.com/code-screenshot',
+        creator: {
+          '@type': 'Organization',
+          name: 'Tooliest',
+          url: 'https://tooliest.com',
+        },
+      },
+    ],
+    relatedLinksHeading: 'Related Tools',
+    relatedLinks: [
+      { href: '/json-formatter', title: 'JSON Formatter', description: 'Format your JSON before screenshotting it' },
+      { href: '/css-beautifier', title: 'CSS Beautifier', description: 'Clean up your CSS for a sharper screenshot' },
+      { href: '/image-compressor', title: 'Image Compressor', description: 'Reduce your PNG file size after exporting' },
+      { href: '/qr-code-generator', title: 'QR Code Generator', description: 'Turn your GitHub URL into a QR code' },
+      { href: '/string-encoder', title: 'Base64 Encoder', description: 'Encode strings before pasting them in' },
+    ],
+    meta: { title: 'Code Screenshot Generator — Beautiful Code Images, Offline-Ready | Tooliest', desc: 'Create stunning syntax-highlighted code screenshots in seconds. 20+ themes, 20+ languages, custom fonts, window chrome, gradient backgrounds. Download as PNG or SVG. Your code never leaves your browser — works offline too.' },
+    ogImage: '/og/code-screenshot.png',
+    ogImageAlt: 'Code Screenshot Generator social preview from Tooliest',
+    hideTrustPanel: true,
+    hideHeaderActions: true,
+    disableComparePanel: true,
+  },
 
   // ===== FINANCE TOOLS =====
   {
@@ -2627,6 +2752,22 @@ const TOOLIEST_SEO_OVERRIDES = {
       { date: '2026-04-17', text: 'Launched the browser-based QR code generator with PNG download support.' },
     ],
   },
+  'code-screenshot': {
+    metaDesc: 'Create stunning syntax-highlighted code screenshots in seconds. 20+ themes, 20+ languages, custom fonts, window chrome, gradient backgrounds. Download as PNG or SVG. Your code never leaves your browser - works offline too.',
+    howToSteps: [
+      { name: 'Paste your code', text: 'Drop a snippet into the browser-based editor or start typing directly in the lightweight code input.' },
+      { name: 'Choose the look', text: 'Pick a language, theme, font, window chrome, background, and line highlighting until the preview feels ready to share.' },
+      { name: 'Tune the export', text: 'Apply a social size preset, watermark, blur mode, or multi-file tab layout to match the final use case.' },
+      { name: 'Download the image', text: 'Export a high-resolution PNG for social posts or an SVG for documentation, slides, and reusable vector workflows.' },
+    ],
+    ogImage: '/og/code-screenshot.png',
+    ogImageAlt: 'Code Screenshot Generator social preview from Tooliest',
+    changelog: [
+      { date: '2026-04-26', text: 'Launched the browser-based code screenshot generator with live themes, local exports, multi-file tabs, and secret-redaction controls.' },
+      { date: '2026-04-26', text: 'Added offline caching for highlight.js, export assets, and coding fonts so screenshots still work after the first load.' },
+      { date: '2026-04-26', text: 'Shipped crawlable FAQ content, SoftwareApplication schema, and a dedicated social preview card for the new developer workflow.' },
+    ],
+  },
   'invoice-generator': {
     metaDesc: 'Generate professional invoices in seconds. Add your logo, line items, tax rates, and custom notes. Download as PDF instantly. 100% free, no signup, works offline.',
     summaryHeading: 'How Do I Generate an Invoice Online Without Signing Up?',
@@ -3435,6 +3576,12 @@ const typingSpeedTestTool = TOOLS.find((tool) => tool.id === 'typing-speed-test'
 if (typingSpeedTestTool) {
   typingSpeedTestTool.lastReviewed = '2026-04-26';
   typingSpeedTestTool.lastReviewedLabel = 'April 26, 2026';
+}
+
+const codeScreenshotTool = TOOLS.find((tool) => tool.id === 'code-screenshot');
+if (codeScreenshotTool) {
+  codeScreenshotTool.lastReviewed = '2026-04-26';
+  codeScreenshotTool.lastReviewedLabel = 'April 26, 2026';
 }
 
 // Count tools per category

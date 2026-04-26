@@ -406,6 +406,9 @@
 /chmod-calculator
   Cache-Control: public, max-age=0, must-revalidate
 
+/code-screenshot
+  Cache-Control: public, max-age=0, must-revalidate
+
 /loan-mortgage-analyzer
   Cache-Control: public, max-age=0, must-revalidate
 

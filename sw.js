@@ -1,10 +1,19 @@
-const ASSET_VERSION = '20260426-5d981121';
+const ASSET_VERSION = '20260426-21dd65a3';
 // [TOOLIEST AUDIT] Tie the offline cache name to the asset version so old release caches are purged automatically.
 const CACHE_NAME = `tooliest-${ASSET_VERSION}-offline`;
-const GOOGLE_FONTS_STYLESHEET = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
+const GOOGLE_FONTS_STYLESHEETS = [
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin',
+  'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Inconsolata:wght@400;700&family=IBM+Plex+Mono:wght@400;700&display=swap',
+];
 const EXTERNAL_TOOL_MODULES = [
   'https://cdn.jsdelivr.net/npm/jspdf@3.0.2/+esm',
   'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm',
+  'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/graphql.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/markdown.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dockerfile.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
 ];
 const TOOL_ROUTES = [
   '/word-counter',
@@ -105,6 +114,7 @@ const TOOL_ROUTES = [
   '/invoice-generator',
   '/email-signature-generator',
   '/signature-maker',
+  '/code-screenshot',
   '/audio-converter',
   '/inflation-calculator',
 ];
@@ -155,27 +165,29 @@ const URLS_TO_CACHE = [
 ];
 
 async function warmGoogleFontsCache(cache) {
-  try {
-    const response = await fetch(GOOGLE_FONTS_STYLESHEET, { mode: 'cors' });
-    if (!response.ok) return;
+  await Promise.all(GOOGLE_FONTS_STYLESHEETS.map(async (stylesheetUrl) => {
+    try {
+      const response = await fetch(stylesheetUrl, { mode: 'cors' });
+      if (!response.ok) return;
 
-    await cache.put(GOOGLE_FONTS_STYLESHEET, response.clone());
-    const cssText = await response.text();
-    const fontUrls = cssText.match(/https:\/\/fonts\.gstatic\.com\/[^)"'\s]+/g) || [];
+      await cache.put(stylesheetUrl, response.clone());
+      const cssText = await response.text();
+      const fontUrls = cssText.match(/https:\/\/fonts\.gstatic\.com\/[^)"'\s]+/g) || [];
 
-    await Promise.all(fontUrls.map(async (fontUrl) => {
-      try {
-        const fontResponse = await fetch(fontUrl, { mode: 'cors' });
-        if (fontResponse.ok || fontResponse.type === 'opaque') {
-          await cache.put(fontUrl, fontResponse);
+      await Promise.all(fontUrls.map(async (fontUrl) => {
+        try {
+          const fontResponse = await fetch(fontUrl, { mode: 'cors' });
+          if (fontResponse.ok || fontResponse.type === 'opaque') {
+            await cache.put(fontUrl, fontResponse);
+          }
+        } catch (error) {
+          console.warn('[Service Worker] Failed to warm font cache:', fontUrl, error);
         }
-      } catch (error) {
-        console.warn('[Service Worker] Failed to warm font cache:', fontUrl, error);
-      }
-    }));
-  } catch (error) {
-    console.warn('[Service Worker] Failed to cache Google Fonts stylesheet.', error);
-  }
+      }));
+    } catch (error) {
+      console.warn('[Service Worker] Failed to cache Google Fonts stylesheet.', stylesheetUrl, error);
+    }
+  }));
 }
 
 async function warmExternalToolModules(cache) {

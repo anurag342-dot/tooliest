@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.18', date: '2026-04-26', items: ['Added the browser-only Code Screenshot Generator with syntax highlighting, multi-file tabs, PNG and SVG export, and share-ready themes', 'Brought offline-ready code image creation into the developer workflow without server uploads or Carbon-style network dependence', 'Connected screenshot exports into JSON formatting, CSS cleanup, image compression, and QR sharing workflows'] },
   { version: '3.17', date: '2026-04-26', items: ['Added the private browser-based Typing Speed Test with words, sentences, code, numbers, and custom text practice', 'Shipped local personal best tracking, sparkline score history, mistake analysis, and a no-keystroke-upload privacy banner', 'Connected the typing workflow to Word Counter, Lorem Ipsum, and password practice tools for follow-up training'] },
   { version: '3.16', date: '2026-04-24', items: ['Added the browser-based Online Signature Maker with draw, type, and upload modes plus transparent PNG and SVG export', 'Connected signature workflows directly into invoices, PDF compression, password protection, and image resizing', 'Added realistic signature preview contexts so exported signatures can be checked against invoices, documents, and email use cases'] },
   { version: '3.15', date: '2026-04-24', items: ['Added the browser-based Email Signature Generator with three table-based templates for Gmail, Outlook, and Apple Mail', 'Shipped instant HTML copy actions, Outlook-friendly output, and live preview chrome without any signup wall', 'Added cross-links into QR, image resizing, and invoice workflows for faster business setup'] },
@@ -32,7 +33,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260426-5d981121';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260426-21dd65a3';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -2157,6 +2158,36 @@ const App = {
 
   getToolPageHTML(tool, catName, related, compareCandidates, isEmbed) {
     const toolHeading = tool.pageHeading || tool.name;
+    const showHeaderActions = !tool.hideHeaderActions;
+    const showTrustPanel = !tool.hideTrustPanel;
+    const showComparePanel = !tool.disableComparePanel && compareCandidates.length;
+    const headerActionButtons = [];
+    if (!tool.disableComparePanel) {
+      headerActionButtons.push(`<button class="btn btn-secondary btn-sm" id="compare-tool-btn" aria-label="Compare this tool with another tool"${compareCandidates.length ? '' : ' disabled'}>Compare</button>`);
+    }
+    headerActionButtons.push('<button class="btn btn-secondary btn-sm" id="print-tool-btn" aria-label="Print this tool output">Print</button>');
+    headerActionButtons.push('<button class="btn btn-secondary btn-sm" id="share-tool-btn" aria-label="Share this tool">Share</button>');
+    const headerActionsHtml = showHeaderActions && headerActionButtons.length
+      ? `<div class="tool-header-actions">${headerActionButtons.join('')}</div>`
+      : '';
+    const trustPanelHtml = showTrustPanel ? this.getToolTrustPanelHTML(tool, related) : '';
+    const comparePanelHtml = showComparePanel ? `<div class="compare-panel" id="compare-panel">
+        <div class="compare-panel-header">
+          <div>
+            <h3>Compare Tools</h3>
+            <p>Open a related tool side by side without losing your place.</p>
+          </div>
+          <div class="compare-panel-actions">
+            <select id="compare-tool-select" aria-label="Select a tool to compare">
+              <option value="">Choose a tool</option>
+              ${compareCandidates.map(candidate => `<option value="${candidate.id}">${candidate.name}</option>`).join('')}
+            </select>
+            <button class="btn btn-secondary btn-sm" id="compare-launch-btn">Open Compare View</button>
+            <button class="btn btn-secondary btn-sm hidden" id="compare-close-btn">Close</button>
+          </div>
+        </div>
+        <div id="tool-comparison-root"></div>
+      </div>` : '';
     if (isEmbed) {
       return `<div class="tool-page tool-page-embed">
         <div class="tool-page-header">
@@ -2178,35 +2209,15 @@ const App = {
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <h1 style="margin:0">${tool.icon} ${toolHeading} ${tool.isAI ? '<span class="ai-badge" style="font-size:0.5em;vertical-align:middle">AI-Powered</span>' : ''}</h1>
-          <div class="tool-header-actions">
-            <button class="btn btn-secondary btn-sm" id="compare-tool-btn" aria-label="Compare this tool with another tool"${compareCandidates.length ? '' : ' disabled'}>Compare</button>
-            <button class="btn btn-secondary btn-sm" id="print-tool-btn" aria-label="Print this tool output">Print</button>
-            <button class="btn btn-secondary btn-sm" id="share-tool-btn" aria-label="Share this tool">Share</button>
-          </div>
+          ${headerActionsHtml}
         </div>
         <p>${tool.description}</p>
         <p class="tool-last-updated"><time datetime="${tool.lastReviewed || ''}">Last reviewed: ${tool.lastReviewedLabel || tool.lastReviewed || ''}</time> · ${tool.reviewedBy || 'Reviewed by Tooliest'}</p>
-        ${this.getToolTrustPanelHTML(tool, related)}
+        ${trustPanelHtml}
       </div>
       ${this.getAdHTML('tool-top')}
       <div class="tool-workspace" id="tool-workspace"></div>
-      ${compareCandidates.length ? `<div class="compare-panel" id="compare-panel">
-        <div class="compare-panel-header">
-          <div>
-            <h3>Compare Tools</h3>
-            <p>Open a related tool side by side without losing your place.</p>
-          </div>
-          <div class="compare-panel-actions">
-            <select id="compare-tool-select" aria-label="Select a tool to compare">
-              <option value="">Choose a tool</option>
-              ${compareCandidates.map(candidate => `<option value="${candidate.id}">${candidate.name}</option>`).join('')}
-            </select>
-            <button class="btn btn-secondary btn-sm" id="compare-launch-btn">Open Compare View</button>
-            <button class="btn btn-secondary btn-sm hidden" id="compare-close-btn">Close</button>
-          </div>
-        </div>
-        <div id="tool-comparison-root"></div>
-      </div>` : ''}
+      ${comparePanelHtml}
       ${this.getToolContentSectionsHTML(tool)}
       ${this.getAdHTML('tool-bottom')}
       ${this.getRelatedToolsSectionHTML(tool, related)}

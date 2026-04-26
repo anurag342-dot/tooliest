@@ -30,7 +30,7 @@ const TOOL_RENDERER_CHUNKS = {
     'age-calculator', 'tip-calculator', 'bmi-calculator',
   ],
   'renderers6.min.js': ['audio-converter', 'invoice-generator', 'email-signature-generator', 'signature-maker'],
-  'renderers7.min.js': ['typing-speed-test'],
+  'renderers7.min.js': ['typing-speed-test', 'code-screenshot'],
 };
 
 const TOOL_RENDERER_CHUNK_MAP = Object.entries(TOOL_RENDERER_CHUNKS).reduce((map, [chunkFile, toolIds]) => {
@@ -89,7 +89,7 @@ const ToolRenderers = {
       return;
     }
 
-    const version = typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '20260426-5d981121';
+    const version = typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '20260426-21dd65a3';
     const chunkPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       // [TOOLIEST AUDIT] Lazy-load non-core renderer chunks so the first render ships a much smaller JS payload.

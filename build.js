@@ -34,6 +34,7 @@ function computeAssetVersion() {
     'js/renderers6.js',
     'js/typing-speed-data.js',
     'js/typing-speed-renderer.js',
+    'js/code-screenshot-renderer.js',
     'js/renderers-invoice.js',
     'js/email-sig-renderer.js',
     'js/signature-maker-renderer.js',
@@ -181,6 +182,7 @@ const LAZY_RENDERER_SOURCE_FILES = [
   'js/renderers6.js',
   'js/typing-speed-data.js',
   'js/typing-speed-renderer.js',
+  'js/code-screenshot-renderer.js',
   'js/renderers-invoice.js',
   'js/email-sig-renderer.js',
   'js/signature-maker-renderer.js',
@@ -192,7 +194,7 @@ const LAZY_RENDERER_CHUNKS = [
   { sourceFiles: ['node_modules/qrcode-generator/qrcode.js', 'js/renderers4.js'], outputFile: 'js/renderers4.min.js' },
   { sourceFiles: ['js/renderers5.js'], outputFile: 'js/renderers5.min.js' },
   { sourceFiles: ['js/renderers6.js', 'js/renderers-invoice.js', 'js/email-sig-renderer.js', 'js/signature-maker-renderer.js'], outputFile: 'js/renderers6.min.js' },
-  { sourceFiles: ['js/typing-speed-data.js', 'js/typing-speed-renderer.js'], outputFile: 'js/renderers7.min.js' },
+  { sourceFiles: ['js/typing-speed-data.js', 'js/typing-speed-renderer.js', 'js/code-screenshot-renderer.js'], outputFile: 'js/renderers7.min.js' },
 ];
 const TOOL_RENDERER_SOURCE_FILES = ['js/renderers.js', ...LAZY_RENDERER_SOURCE_FILES];
 
@@ -732,8 +734,13 @@ function syncSourceAssetVersions() {
   });
 }
 
-function syncStaticPageAssetVersions() {
-  Object.values(STATIC_PAGE_SOURCE_FILES).forEach((sourceFile) => {
+function syncStaticPageAssetVersions(tools = []) {
+  const standaloneSourceFiles = tools
+    .map((tool) => tool.standaloneSourceFile)
+    .filter(Boolean);
+  const sourceFiles = [...new Set([...Object.values(STATIC_PAGE_SOURCE_FILES), ...standaloneSourceFiles])];
+
+  sourceFiles.forEach((sourceFile) => {
     const sourcePath = path.join(__dirname, sourceFile);
     const originalHtml = fs.readFileSync(sourcePath, 'utf8');
     let nextHtml = originalHtml;
@@ -3287,7 +3294,7 @@ async function build() {
   await bundleJavascript();
   minifyCSSFile();
   removeDirectoryIfExists('tool');
-  syncStaticPageAssetVersions();
+  syncStaticPageAssetVersions(tools);
   writeOgAssets(tools, categories);
   writeIndexNowKeyFiles();
   writeRoutingFiles(tools, categories);
