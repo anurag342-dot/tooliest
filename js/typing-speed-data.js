@@ -112,6 +112,79 @@
     { language: 'Python', text: 'elapsed_minutes = max(elapsed_seconds / 60, 1 / 60)' },
   ];
 
+  const CODE_EXAMPLES = {
+    javascript: [
+      [
+        'const attempts = JSON.parse(localStorage.getItem("typingAttempts") || "[]");',
+        'const recent = attempts.slice(-10);',
+        'const average = recent.reduce((sum, run) => sum + run.wpm, 0) / Math.max(recent.length, 1);',
+        'console.log(`Average WPM: ${average.toFixed(1)}`);',
+      ].join('\n'),
+      [
+        'function formatResult(result) {',
+        '  const accuracy = `${result.accuracy.toFixed(1)}%`;',
+        '  return `${result.wpm} WPM at ${accuracy} accuracy`;',
+        '}',
+        '',
+        'statusLabel.textContent = formatResult(latestResult);',
+      ].join('\n'),
+      [
+        'const config = { mode: "words", duration: 60, language: "english" };',
+        'const prompt = buildPrompt(config);',
+        'hiddenInput.focus();',
+        'renderPrompt(prompt);',
+      ].join('\n'),
+    ],
+    python: [
+      [
+        'history = load_history()',
+        'recent = history[-10:]',
+        'average = sum(item["wpm"] for item in recent) / max(len(recent), 1)',
+        'print(f"Average WPM: {average:.1f}")',
+      ].join('\n'),
+      [
+        'def summarize_run(result):',
+        '    accuracy = f"{result[\'accuracy\']:.1f}%"',
+        '    return f"{result[\'wpm\']} WPM at {accuracy} accuracy"',
+        '',
+        'status_label = summarize_run(latest_result)',
+      ].join('\n'),
+      [
+        'config = {"mode": "code", "duration": 60, "language": "english"}',
+        'prompt = build_prompt(config)',
+        'render_prompt(prompt)',
+        'save_state(config)',
+      ].join('\n'),
+    ],
+    html: [
+      [
+        '<section class="typing-results">',
+        '  <h2>Latest Run</h2>',
+        '  <p>84 WPM with 97.4% accuracy</p>',
+        '</section>',
+      ].join('\n'),
+      [
+        '<div class="typing-dashboard">',
+        '  <button type="button">Reset Stats</button>',
+        '  <canvas id="typing-sparkline" width="320" height="80"></canvas>',
+        '</div>',
+      ].join('\n'),
+      [
+        '<label for="typing-input">Type here</label>',
+        '<input id="typing-input" type="text" autocomplete="off" spellcheck="false">',
+        '<p aria-live="polite">Your result updates as you type.</p>',
+      ].join('\n'),
+    ],
+  };
+
+  const NUMBER_SCENARIOS = [
+    'INV-1048 04/26/2026 458.22 98451 #7721 17:45 +977-9700064756',
+    'PO-8821 2026-05-14 1200.50 18.00% 3307 4419 6721 5802',
+    'REF-2917 09:30 67.40 18/24 503-17-88 440022 7815',
+    'ID-4408 12/11/2026 998.04 441-882-190 71% 4506 8820',
+    'TKT-7314 08:55 245.75 5520-7719-4402 13/18 9071',
+  ];
+
   function buildWeightedPool(seed, targetLength) {
     const targetEasy = Math.floor(targetLength * 0.6);
     const targetMedium = Math.floor(targetLength * 0.3);
@@ -146,6 +219,46 @@
     return bank;
   }
 
+  function shuffleWithSeed(values, seed) {
+    const list = values.slice();
+    const random = mulberry32(seed);
+    for (let index = list.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(random() * (index + 1));
+      [list[index], list[swapIndex]] = [list[swapIndex], list[index]];
+    }
+    return list;
+  }
+
+  function stripSentencePunctuation(sentence) {
+    return String(sentence || '')
+      .replace(/[.,!?;:]+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function buildSentenceSequence(language, seed, minCharacters = 900) {
+    const bank = shuffleWithSeed(SENTENCE_BANKS[language] || SENTENCE_BANKS.english, seed);
+    const selected = [];
+    let total = 0;
+    for (let index = 0; index < bank.length && total < minCharacters; index += 1) {
+      selected.push(bank[index]);
+      total += bank[index].length + 1;
+    }
+    return selected.join(' ');
+  }
+
+  function buildWordSequence(language, seed, minWords = 300) {
+    const bank = shuffleWithSeed(SENTENCE_BANKS[language] || SENTENCE_BANKS.english, seed);
+    const selected = [];
+    let totalWords = 0;
+    for (let index = 0; index < bank.length && totalWords < minWords; index += 1) {
+      const normalized = stripSentencePunctuation(bank[index]);
+      selected.push(normalized);
+      totalWords += normalized.split(/\s+/).filter(Boolean).length;
+    }
+    return selected.join(' ');
+  }
+
   const WORD_POOLS = Object.fromEntries(
     Object.entries(WORD_SEEDS).map(([language, seed]) => [
       language,
@@ -167,12 +280,20 @@
     wordPools: WORD_POOLS,
     sentenceBanks: SENTENCE_BANKS,
     codeSnippets: CODE_SNIPPETS,
+    codeExamples: CODE_EXAMPLES,
+    numberScenarios: NUMBER_SCENARIOS,
     getWordPool(language, difficulty) {
       const pools = WORD_POOLS[language] || WORD_POOLS.english;
       return pools[difficulty] || pools.medium;
     },
     getSentenceBank(language) {
       return SENTENCE_BANKS[language] || SENTENCE_BANKS.english;
+    },
+    getSentenceSequence(language, seed, minCharacters) {
+      return buildSentenceSequence(language, seed, minCharacters);
+    },
+    getWordSequence(language, seed, minWords) {
+      return buildWordSequence(language, seed, minWords);
     },
   };
 })(window);

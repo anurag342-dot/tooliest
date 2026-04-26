@@ -293,9 +293,12 @@
   }
 
   function buildWordsText(config, seed) {
+    const count = config.wordsMode === 'count' ? Math.max(config.wordCount + 220, 300) : 300;
+    if (typeof DATA.getWordSequence === 'function') {
+      return DATA.getWordSequence(config.language, seed, count);
+    }
     const pool = (DATA.getWordPool && DATA.getWordPool(config.language, config.difficulty)) || ['typing'];
     const random = mulberry32(seed);
-    const count = config.wordsMode === 'count' ? Math.max(config.wordCount + 220, 300) : 300;
     const words = [];
     for (let index = 0; index < count; index += 1) {
       words.push(pool[Math.floor(random() * pool.length)] || 'typing');
@@ -304,34 +307,42 @@
   }
 
   function buildSentenceText(config, seed) {
-    const bank = shuffle((DATA.getSentenceBank && DATA.getSentenceBank(config.language)) || ['Practice builds speed.'], seed);
-    const selected = [];
-    let totalLength = 0;
-    for (let index = 0; index < bank.length && selected.length < 18; index += 1) {
-      selected.push(bank[index]);
-      totalLength += bank[index].length;
-      if (totalLength > 1100) break;
+    if (typeof DATA.getSentenceSequence === 'function') {
+      return DATA.getSentenceSequence(config.language, seed, 1100);
     }
-    return selected.join(' ');
+    const bank = shuffle((DATA.getSentenceBank && DATA.getSentenceBank(config.language)) || ['Practice builds speed.'], seed);
+    return bank.slice(0, 12).join(' ');
   }
 
   function buildCodeText(seed) {
-    const snippets = shuffle(DATA.codeSnippets || [], seed);
-    return snippets.slice(0, 10).map((snippet) => snippet.text).join('  ');
+    const groups = DATA.codeExamples || {};
+    const languages = shuffle(Object.keys(groups), seed).filter((key) => Array.isArray(groups[key]) && groups[key].length);
+    if (!languages.length) {
+      const snippets = shuffle(DATA.codeSnippets || [], seed);
+      return snippets.slice(0, 10).map((snippet) => snippet.text).join('\n\n');
+    }
+    const blocks = [];
+    languages.slice(0, 3).forEach((language, languageIndex) => {
+      const examples = shuffle(groups[language], seed + languageIndex);
+      if (examples[0]) {
+        blocks.push(`${language.toUpperCase()}\n${examples[0]}`);
+      }
+    });
+    return blocks.join('\n\n');
   }
 
   function buildNumbersText(seed) {
+    const scenarios = shuffle(DATA.numberScenarios || [], seed);
+    if (scenarios.length) {
+      return scenarios.slice(0, 12).join(' ');
+    }
     const random = mulberry32(seed);
     const digits = '0123456789';
-    const symbols = '-+=/*()[]{}#@%&';
     const groups = [];
-    while (groups.length < 260) {
-      const length = 3 + Math.floor(random() * 5);
+    while (groups.length < 220) {
       let next = '';
-      for (let index = 0; index < length; index += 1) {
-        next += random() > 0.78
-          ? symbols[Math.floor(random() * symbols.length)]
-          : digits[Math.floor(random() * digits.length)];
+      for (let index = 0; index < 6; index += 1) {
+        next += digits[Math.floor(random() * digits.length)];
       }
       groups.push(next);
     }
@@ -412,10 +423,10 @@
         .typing-live-stat { border:1px solid var(--border-color); border-radius:16px; padding:12px 14px; background:var(--bg-tertiary); }
         .typing-live-stat strong { display:block; color:var(--text-primary); font-size:1.1rem; }
         .typing-live-stat span { display:block; color:var(--text-tertiary); font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; margin-top:3px; }
-        .typing-display-wrap { position:relative; border:1px solid var(--border-color); border-radius:24px; background:linear-gradient(180deg, rgba(15,23,42,0.82), rgba(15,23,42,0.64)); padding:24px; min-height:240px; overflow:hidden; }
+        .typing-display-wrap { position:relative; border:1px solid var(--border-color); border-radius:24px; background:linear-gradient(180deg, rgba(15,23,42,0.82), rgba(15,23,42,0.64)); padding:24px; min-height:240px; max-height:320px; overflow:auto; scrollbar-gutter:stable; }
         .typing-display { font-size:clamp(1.05rem, 1.35vw, 1.25rem); line-height:1.95; color:var(--text-primary); word-break:break-word; }
         .typing-display.mode-code { white-space:pre-wrap; font-family:var(--font-mono); }
-        .typing-word { display:inline-block; margin:0 0.4ch 0.46rem 0; padding:2px 4px; border-radius:10px; }
+        .typing-word { display:inline-block; margin:0 0.4ch 0.46rem 0; padding:2px 4px; border-radius:10px; scroll-margin-block:88px; }
         .typing-word-current { background:rgba(59,130,246,0.12); box-shadow:inset 0 -2px 0 rgba(59,130,246,0.78); }
         .typing-char-correct { color:#97a0bc; }
         .typing-char-error { color:#fca5a5; text-decoration:underline wavy #f87171; text-underline-offset:3px; }
@@ -799,27 +810,23 @@
 
     function renderDisplay() {
       if (state.tokenMode) {
-        const start = Math.max(0, state.currentWordIndex - 10);
-        const end = Math.min(state.tokens.length, state.currentWordIndex + 28);
         const html = [];
-        for (let index = start; index < end; index += 1) {
+        for (let index = 0; index < state.tokens.length; index += 1) {
           const expected = state.tokens[index];
           if (index < state.currentWordIndex) {
             const committed = state.committedWords[index] || { expected, typed: '' };
-            html.push(`<span class="typing-word">${renderTokenChars(expected, committed.typed, false)}</span>`);
+            html.push(`<span class="typing-word" data-word-index="${index}">${renderTokenChars(expected, committed.typed, false)}</span>`);
           } else if (index === state.currentWordIndex) {
-            html.push(`<span class="typing-word typing-word-current">${renderTokenChars(expected, state.currentInput, true)}</span>`);
+            html.push(`<span class="typing-word typing-word-current" data-word-index="${index}">${renderTokenChars(expected, state.currentInput, true)}</span>`);
           } else {
-            html.push(`<span class="typing-word">${ToolRenderers.escapeHtml(expected)}</span>`);
+            html.push(`<span class="typing-word" data-word-index="${index}">${ToolRenderers.escapeHtml(expected)}</span>`);
           }
         }
         refs.display.className = 'typing-display';
         refs.display.innerHTML = html.join('');
       } else {
-        const start = Math.max(0, state.streamInput.length - 48);
-        const end = Math.min(state.text.length, state.streamInput.length + 280);
         const html = [];
-        for (let index = start; index < end; index += 1) {
+        for (let index = 0; index < state.text.length; index += 1) {
           const expectedChar = state.text[index] || '';
           const typedChar = state.streamInput[index] || '';
           if (typedChar) {
@@ -837,6 +844,12 @@
         refs.display.className = `typing-display${config.mode === 'code' ? ' mode-code' : ''}`;
         refs.display.innerHTML = html.join('');
       }
+      requestAnimationFrame(() => {
+        const currentWord = state.tokenMode
+          ? refs.display.querySelector(`[data-word-index="${state.currentWordIndex}"]`)
+          : refs.display.querySelector('.typing-char-current');
+        currentWord?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      });
     }
 
     function updateTimer() {
@@ -977,6 +990,7 @@
       refs.results.hidden = true;
       refs.resultBig.textContent = '0';
       refs.input.value = '';
+      refs.displayWrap.scrollTop = 0;
       refs.guidance.textContent = state.tokenMode
         ? 'Click or tap the prompt, then type the current word and press Space to advance. Backspace stays within the active word only.'
         : 'Click or tap the prompt, then type through the full prompt in one continuous flow.';
