@@ -1686,6 +1686,7 @@ body.nav-menu-open {
 
 .compare-panel-actions select {
   min-width: 220px;
+  flex: 1 1 280px;
 }
 
 .compare-layout {
@@ -2811,8 +2812,12 @@ body.embed-mode.standalone-tool-embed {
   }
 }
 
-@media (min-width: 960px) {
-  .compare-layout {
+@media (min-width: 1280px) {
+  .tool-page.tool-page-compare-active {
+    max-width: min(1500px, calc(100vw - 40px));
+  }
+
+  .tool-page.tool-page-compare-active .compare-layout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

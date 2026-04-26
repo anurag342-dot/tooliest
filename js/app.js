@@ -31,7 +31,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260426-cde82ab5';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260426-073b2853';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -3112,6 +3112,7 @@ const App = {
   openToolComparison(primaryTool, compareToolId) {
     const comparisonRoot = document.getElementById('tool-comparison-root');
     const closeButton = document.getElementById('compare-close-btn');
+    const toolPage = comparisonRoot?.closest('.tool-page');
     const compareTool = TOOLS.find(tool => tool.id === compareToolId);
     const iframeSandbox = 'allow-same-origin allow-scripts allow-forms allow-downloads';
     const workspace = document.getElementById('tool-workspace');
@@ -3191,6 +3192,7 @@ const App = {
     };
 
     closeButton?.classList.remove('hidden');
+    toolPage?.classList.add('tool-page-compare-active');
     comparisonRoot.scrollIntoView({ behavior: 'smooth', block: 'start' });
   },
 
@@ -3212,8 +3214,10 @@ const App = {
     }
 
     const comparisonRoot = document.getElementById('tool-comparison-root');
+    const toolPage = comparisonRoot?.closest('.tool-page');
     comparisonRoot?.replaceChildren();
     document.getElementById('compare-close-btn')?.classList.add('hidden');
+    toolPage?.classList.remove('tool-page-compare-active');
   },
 
   // ===== FEAT-03: KEYBOARD SHORTCUTS PANEL =====

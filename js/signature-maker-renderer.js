@@ -343,6 +343,24 @@
     return option;
   }
 
+  function warmAllPreviewFonts(previewText, onReady) {
+    if (!window.__tooliestSignatureFontPreviewWarmPromise) {
+      window.__tooliestSignatureFontPreviewWarmPromise = ensureFontStylesheet()
+        .then(async () => {
+          if (document.fonts && document.fonts.load) {
+            await Promise.all(TYPE_FONTS.map((font) => document.fonts.load(`42px ${font.family}`, previewText || 'Signature')));
+          }
+        })
+        .catch((error) => {
+          console.warn('[Tooliest] Signature preview fonts did not finish loading.', error);
+        });
+    }
+    return window.__tooliestSignatureFontPreviewWarmPromise
+      .then(async () => {
+        if (typeof onReady === 'function') onReady();
+      });
+  }
+
   function midpoint(left, right) {
     return {
       x: (left.x + right.x) / 2,
@@ -373,10 +391,10 @@
     const speedFactor = clamp(speed * 10, 0, 1);
 
     if (stroke.style === 'brush') {
-      return clamp(pressureWidth * (1.9 - speedFactor), base * 0.7, base * 2.8);
+      return clamp(pressureWidth * (3.1 - speedFactor * 1.75), base * 0.95, base * 4.3);
     }
 
-    return clamp(pressureWidth * (1.12 - speedFactor * 0.18), base * 0.85, base * 1.8);
+    return clamp(pressureWidth * (1.45 - speedFactor * 0.52), base * 0.78, base * 2.35);
   }
 
   function drawDot(ctx, point, stroke) {
@@ -400,6 +418,15 @@
     ctx.strokeStyle = stroke.color;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+    if (stroke.style === 'ink') {
+      ctx.globalAlpha = 0.94;
+      ctx.shadowBlur = 1.5;
+      ctx.shadowColor = stroke.color;
+    } else if (stroke.style === 'brush') {
+      ctx.globalAlpha = 0.97;
+      ctx.shadowBlur = widthValue(stroke.widthPreset) * 1.4;
+      ctx.shadowColor = stroke.color;
+    }
 
     if (points.length === 2) {
       ctx.beginPath();
@@ -1561,7 +1588,7 @@
         const previewText = state.type.text.trim() || 'Your Signature';
         refs.fontGrid.innerHTML = TYPE_FONTS.map((font) => `
           <button class="sm-font-card ${state.type.font === font.id ? 'is-active' : ''}" type="button" data-font-choice="${escapeAttr(font.id)}">
-            <span style="font-family:${escapeAttr(font.family)};font-size:1.7rem;line-height:1.1">${escapeHtml(previewText)}</span>
+            <span style="font-family:${escapeAttr(font.family)};font-size:1.95rem;line-height:1.1">${escapeHtml(previewText)}</span>
             <small>${escapeHtml(font.id)}</small>
           </button>
         `).join('');
@@ -1677,10 +1704,6 @@
         const ctx = targetCanvas.getContext('2d');
         ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
 
-        if (!options.omitBaseline && state.draw.baselineEnabled) {
-          renderBaseline(ctx);
-        }
-
         if (clearAnimation && !options.omitAnimation) {
           const progress = clamp((timestamp - clearAnimation.start) / CLEAR_DURATION, 0, 1);
           if (clearAnimation.image) {
@@ -1693,6 +1716,11 @@
             return;
           }
           clearAnimation = null;
+          ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+        }
+
+        if (!options.omitBaseline && state.draw.baselineEnabled) {
+          renderBaseline(ctx);
         }
 
         state.draw.strokes.forEach((stroke) => drawStroke(ctx, stroke));
@@ -2343,8 +2371,6 @@
         const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
         if (file) handleUploadFile(file);
       });
-      refs.uploadDrop.addEventListener('click', () => refs.uploadInput.click());
-
       async function handleUploadFile(file) {
         clearStatus();
         if (!file) return;
@@ -2450,7 +2476,11 @@
       syncControls();
       renderSavedSignatures();
       startTipRotation();
-      ensureFontStylesheet();
+      warmAllPreviewFonts(state.type.text, () => {
+        renderFontGrid();
+        renderTypeCanvas();
+        schedulePreview();
+      });
       syncModeRendering();
       schedulePreview();
     },
