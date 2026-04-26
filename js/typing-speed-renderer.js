@@ -314,24 +314,49 @@
     return bank.slice(0, 12).join(' ');
   }
 
+  function formatCodeLanguageLabel(language) {
+    if (language === 'javascript') return 'JavaScript';
+    if (language === 'python') return 'Python';
+    if (language === 'html') return 'HTML';
+    return String(language || '').toUpperCase();
+  }
+
   function buildCodeText(seed) {
+    if (typeof DATA.getCodeSequenceData === 'function') {
+      const sequence = DATA.getCodeSequenceData(seed, 1300);
+      return {
+        text: sequence && sequence.text ? sequence.text : '',
+        codeLanguages: Array.isArray(sequence?.languages) ? sequence.languages : [],
+      };
+    }
     if (typeof DATA.getCodeSequence === 'function') {
-      return DATA.getCodeSequence(seed, 1300);
+      return {
+        text: DATA.getCodeSequence(seed, 1300),
+        codeLanguages: [],
+      };
     }
     const groups = DATA.codeExamples || {};
     const languages = shuffle(Object.keys(groups), seed).filter((key) => Array.isArray(groups[key]) && groups[key].length);
     if (!languages.length) {
       const snippets = shuffle(DATA.codeSnippets || [], seed);
-      return snippets.slice(0, 10).map((snippet) => snippet.text).join('\n\n');
+      return {
+        text: snippets.slice(0, 10).map((snippet) => snippet.text).join('\n\n'),
+        codeLanguages: [...new Set(snippets.slice(0, 10).map((snippet) => formatCodeLanguageLabel(snippet.language)))],
+      };
     }
     const blocks = [];
+    const codeLanguages = [];
     languages.slice(0, 3).forEach((language, languageIndex) => {
       const examples = shuffle(groups[language], seed + languageIndex);
       if (examples[0]) {
-        blocks.push(`${language.toUpperCase()}\n${examples[0]}`);
+        blocks.push(examples[0]);
+        codeLanguages.push(formatCodeLanguageLabel(language));
       }
     });
-    return blocks.join('\n\n');
+    return {
+      text: blocks.join('\n\n'),
+      codeLanguages: [...new Set(codeLanguages)],
+    };
   }
 
   function buildNumbersText(seed) {
@@ -363,7 +388,14 @@
   function buildText(config) {
     const seed = hashString(`${Date.now()}:${config.mode}:${config.language}:${config.difficulty}:${config.wordCount}:${config.timeLimit}`);
     if (config.mode === 'sentences') return { seed, text: buildSentenceText(config, seed) };
-    if (config.mode === 'code') return { seed, text: buildCodeText(seed) };
+    if (config.mode === 'code') {
+      const codePrompt = buildCodeText(seed);
+      return {
+        seed,
+        text: codePrompt.text,
+        codeLanguages: codePrompt.codeLanguages || [],
+      };
+    }
     if (config.mode === 'numbers') return { seed, text: buildNumbersText(seed) };
     if (config.mode === 'custom') return { seed, text: buildCustomText(config) };
     return { seed, text: buildWordsText(config, seed) };
@@ -391,6 +423,7 @@
         config: { ...config },
         seed: generated.seed,
         text: generated.text,
+        codeLanguages: generated.codeLanguages || [],
         tokens: tokenMode ? generated.text.split(/\s+/).filter(Boolean) : [],
         tokenMode,
         currentWordIndex: 0,
@@ -440,9 +473,12 @@
         .typing-char-extra { color:#fecaca; background:rgba(248,113,113,0.12); border-radius:6px; text-decoration:underline wavy #f87171; text-underline-offset:3px; }
         .typing-char-current { background:rgba(99,102,241,0.16); border-radius:6px; box-shadow:inset 0 -2px 0 #60a5fa; }
         .typing-char-upcoming { color:var(--text-primary); }
+        .typing-code-meta { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+        .typing-code-chip { border-radius:999px; border:1px solid rgba(96,165,250,0.32); background:rgba(59,130,246,0.12); color:#dbeafe; padding:7px 12px; font-size:0.82rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; }
         .typing-inline-note { display:flex; gap:12px; align-items:flex-start; margin-top:14px; color:var(--text-tertiary); font-size:0.9rem; line-height:1.6; }
         .typing-input-row { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin-top:18px; }
         .typing-input-row .input-group { flex:1 1 420px; margin:0; }
+        .typing-input-row textarea { min-height:132px; font-family:var(--font-mono); line-height:1.7; resize:vertical; }
         .typing-results[hidden] { display:none !important; }
         .typing-results { margin-top:18px; padding-top:18px; border-top:1px solid var(--border-color); display:grid; gap:16px; }
         .typing-results-head { display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; }
@@ -535,6 +571,7 @@
             </div>
           </div>
           <div class="typing-progress" aria-hidden="true"><span id="typing-progress-bar"></span></div>
+          <div class="typing-code-meta" id="typing-code-meta" hidden></div>
           <div class="typing-display-wrap" id="typing-display-wrap" tabindex="0" aria-label="Typing prompt area">
             <div class="typing-display" id="typing-display" aria-live="polite"></div>
             <canvas class="typing-confetti" id="typing-confetti" hidden></canvas>
@@ -544,9 +581,13 @@
             <span id="typing-guidance">Click or tap the prompt, then start typing. In Words mode, press Space to lock in each word.</span>
           </div>
           <div class="typing-input-row">
-            <div class="input-group">
+            <div class="input-group" id="typing-input-wrap">
               <label for="typing-input">Type here</label>
               <input id="typing-input" type="text" role="textbox" aria-label="Type here" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Click here and start typing..." />
+            </div>
+            <div class="input-group" id="typing-code-input-wrap" style="display:none">
+              <label for="typing-code-input">Type code here</label>
+              <textarea id="typing-code-input" rows="5" role="textbox" aria-label="Type code here" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Click here and start typing code..."></textarea>
             </div>
             <button type="button" class="btn btn-secondary" id="typing-restart-btn" style="min-height:52px">Restart</button>
           </div>
@@ -636,10 +677,14 @@
       timer: container.querySelector('#typing-timer'),
       timerCaption: container.querySelector('#typing-timer-caption'),
       progress: container.querySelector('#typing-progress-bar'),
+      codeMeta: container.querySelector('#typing-code-meta'),
       display: container.querySelector('#typing-display'),
       displayWrap: container.querySelector('#typing-display-wrap'),
       guidance: container.querySelector('#typing-guidance'),
+      inputWrap: container.querySelector('#typing-input-wrap'),
       input: container.querySelector('#typing-input'),
+      codeInputWrap: container.querySelector('#typing-code-input-wrap'),
+      codeInput: container.querySelector('#typing-code-input'),
       restartBtn: container.querySelector('#typing-restart-btn'),
       statWpm: container.querySelector('#typing-stat-wpm'),
       statRaw: container.querySelector('#typing-stat-raw'),
@@ -697,6 +742,47 @@
       refs.languageWrap.style.display = isLanguageMode ? '' : 'none';
       refs.customWrap.style.display = isCustom ? '' : 'none';
       refs.customWarning.classList.toggle('hidden', !(isCustom && cleanCustomText(config.customText).length < 20));
+      refs.inputWrap.style.display = config.mode === 'code' ? 'none' : '';
+      refs.codeInputWrap.style.display = config.mode === 'code' ? '' : 'none';
+      refs.input.disabled = config.mode === 'code';
+      refs.codeInput.disabled = config.mode !== 'code';
+    }
+
+    function getActiveInput() {
+      return config.mode === 'code' ? refs.codeInput : refs.input;
+    }
+
+    function renderCodeMeta() {
+      if (config.mode !== 'code' || !state || !Array.isArray(state.codeLanguages) || !state.codeLanguages.length) {
+        refs.codeMeta.hidden = true;
+        refs.codeMeta.innerHTML = '';
+        return;
+      }
+      refs.codeMeta.hidden = false;
+      refs.codeMeta.innerHTML = state.codeLanguages
+        .map((language) => `<span class="typing-code-chip">${ToolRenderers.escapeHtml(language)}</span>`)
+        .join('');
+    }
+
+    function normalizeStreamValue(rawValue) {
+      const cleanValue = String(rawValue || '').replace(/\r/g, '');
+      if (config.mode !== 'code') {
+        return cleanValue.slice(0, state.text.length);
+      }
+
+      let normalized = '';
+      let expectedIndex = 0;
+      for (let index = 0; index < cleanValue.length && expectedIndex < state.text.length; index += 1) {
+        const typedChar = cleanValue[index];
+        while (state.text[expectedIndex] === '\n' && typedChar !== '\n') {
+          normalized += '\n';
+          expectedIndex += 1;
+        }
+        if (expectedIndex >= state.text.length) break;
+        normalized += typedChar;
+        expectedIndex += 1;
+      }
+      return normalized.slice(0, state.text.length);
     }
 
     function renderDashboard() {
@@ -883,7 +969,7 @@
       state.errors.push(...stats.errors);
       state.currentWordIndex += 1;
       state.currentInput = '';
-      refs.input.value = '';
+      getActiveInput().value = '';
     }
 
     function finishTest() {
@@ -996,10 +1082,14 @@
       refs.results.hidden = true;
       refs.resultBig.textContent = '0';
       refs.input.value = '';
+      refs.codeInput.value = '';
       refs.displayWrap.scrollTop = 0;
       refs.guidance.textContent = state.tokenMode
         ? 'Click or tap the prompt, then type the current word and press Space to advance. Backspace stays within the active word only.'
-        : 'Click or tap the prompt, then type through the full prompt in one continuous flow.';
+        : (config.mode === 'code'
+          ? 'Click or tap the prompt, then type through the code in one continuous flow. Line labels are visual only, and line breaks advance automatically as you continue typing.'
+          : 'Click or tap the prompt, then type through the full prompt in one continuous flow.');
+      renderCodeMeta();
       renderDisplay();
       updateTimer();
       updateLiveStats();
@@ -1033,11 +1123,11 @@
       else saveConfig();
     });
 
-    refs.displayWrap.addEventListener('click', () => refs.input.focus());
-    refs.displayWrap.addEventListener('touchstart', () => refs.input.focus(), { passive: true });
+    refs.displayWrap.addEventListener('click', () => getActiveInput().focus());
+    refs.displayWrap.addEventListener('touchstart', () => getActiveInput().focus(), { passive: true });
 
-    refs.input.addEventListener('keydown', (event) => {
-      if (event.key === 'Backspace' && !refs.input.value) {
+    function handleInputKeydown(event) {
+      if (event.key === 'Backspace' && !event.currentTarget.value) {
         event.preventDefault();
         return;
       }
@@ -1053,15 +1143,19 @@
       } else if (!state.isRunning && event.key.length === 1) {
         startTest();
       }
-    });
+    }
 
-    refs.input.addEventListener('input', () => {
+    function handleInputChange(event) {
       if (state.isFinished) return;
+      const activeInput = event.currentTarget;
       if (state.tokenMode) {
-        state.currentInput = refs.input.value.replace(/\s+/g, '');
+        state.currentInput = activeInput.value.replace(/\s+/g, '');
         if (state.currentInput && !state.isRunning) startTest();
       } else {
-        const nextValue = refs.input.value.replace(/\r/g, '').slice(0, state.text.length);
+        const nextValue = normalizeStreamValue(activeInput.value);
+        if (activeInput.value !== nextValue) {
+          activeInput.value = nextValue;
+        }
         if (nextValue.length > state.streamLastLength) {
           for (let index = state.streamLastLength; index < nextValue.length; index += 1) {
             const typedChar = nextValue[index];
@@ -1082,16 +1176,21 @@
       }
       renderDisplay();
       updateLiveStats();
+    }
+
+    [refs.input, refs.codeInput].forEach((inputElement) => {
+      inputElement.addEventListener('keydown', handleInputKeydown);
+      inputElement.addEventListener('input', handleInputChange);
     });
 
     refs.restartBtn.addEventListener('click', () => {
       resetTest(true);
-      refs.input.focus();
+      getActiveInput().focus();
     });
 
     refs.tryAgainBtn.addEventListener('click', () => {
       resetTest(true);
-      refs.input.focus();
+      getActiveInput().focus();
     });
 
     refs.settingsBtn.addEventListener('click', () => {

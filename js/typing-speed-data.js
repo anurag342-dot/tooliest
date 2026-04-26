@@ -284,9 +284,17 @@
     return selected.join(' ');
   }
 
+  function formatCodeLanguageLabel(language) {
+    if (language === 'javascript') return 'JavaScript';
+    if (language === 'python') return 'Python';
+    if (language === 'html') return 'HTML';
+    return String(language || '').toUpperCase();
+  }
+
   function buildCodeSequence(seed, minCharacters) {
     const languages = shuffleWithSeed(Object.keys(CODE_EXAMPLES), seed).filter((key) => Array.isArray(CODE_EXAMPLES[key]) && CODE_EXAMPLES[key].length);
     const blocks = [];
+    const labels = [];
     let total = 0;
     let round = 0;
 
@@ -296,15 +304,19 @@
         const examples = shuffleWithSeed(CODE_EXAMPLES[language], seed + round * 71 + languageIndex * 13);
         examples.slice(0, 2).forEach((example) => {
           if (total >= minCharacters) return;
-          const block = `${language.toUpperCase()}\n${example}`;
+          const block = example;
           blocks.push(block);
+          labels.push(formatCodeLanguageLabel(language));
           total += block.length + 2;
         });
       });
       round += 1;
     }
 
-    return blocks.join('\n\n');
+    return {
+      text: blocks.join('\n\n'),
+      languages: [...new Set(labels)],
+    };
   }
 
   function buildNumberSequence(seed, count) {
@@ -364,6 +376,9 @@
       return buildWordSequence(language, seed, minWords || 300);
     },
     getCodeSequence(seed, minCharacters) {
+      return buildCodeSequence(seed, minCharacters || 1300).text;
+    },
+    getCodeSequenceData(seed, minCharacters) {
       return buildCodeSequence(seed, minCharacters || 1300);
     },
     getNumberSequence(seed, count) {
