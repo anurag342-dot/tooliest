@@ -2818,6 +2818,398 @@ greet('World');`;
     ].join('');
   }
 
+  const CANVAS_SHADOWS = {
+    none: null,
+    subtle: { offsetX: 0, offsetY: 4, blur: 24, color: 'rgba(0,0,0,0.12)' },
+    medium: { offsetX: 0, offsetY: 8, blur: 40, color: 'rgba(0,0,0,0.25)' },
+    heavy: { offsetX: 0, offsetY: 16, blur: 64, color: 'rgba(0,0,0,0.45)' },
+    glow: { offsetX: 0, offsetY: 0, blur: 40, color: 'rgba(99, 91, 255, 0.4)' },
+    warm: { offsetX: 0, offsetY: 8, blur: 40, color: 'rgba(255, 100, 50, 0.3)' },
+  };
+
+  function computeCanvasExportScale(stageWidth, stageHeight) {
+    const maxEdge = 8192;
+    const maxPixels = 24000000;
+    const edgeScale = Math.min(maxEdge / Math.max(stageWidth, 1), maxEdge / Math.max(stageHeight, 1));
+    const pixelScale = Math.sqrt(maxPixels / Math.max(stageWidth * stageHeight, 1));
+    return clamp(Math.min(4, edgeScale, pixelScale), 1, 4);
+  }
+
+  function traceRoundRectPath(context, x, y, width, height, radius) {
+    const safeRadius = Math.max(0, Math.min(Number(radius) || 0, width / 2, height / 2));
+    context.beginPath();
+    if (typeof context.roundRect === 'function') {
+      context.roundRect(x, y, width, height, safeRadius);
+      return;
+    }
+    context.moveTo(x + safeRadius, y);
+    context.lineTo(x + width - safeRadius, y);
+    context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+    context.lineTo(x + width, y + height - safeRadius);
+    context.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+    context.lineTo(x + safeRadius, y + height);
+    context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+    context.lineTo(x, y + safeRadius);
+    context.quadraticCurveTo(x, y, x + safeRadius, y);
+    context.closePath();
+  }
+
+  function applyCanvasShadow(context, shadowId) {
+    const shadow = CANVAS_SHADOWS[shadowId];
+    if (!shadow) {
+      context.shadowColor = 'transparent';
+      context.shadowBlur = 0;
+      context.shadowOffsetX = 0;
+      context.shadowOffsetY = 0;
+      return;
+    }
+    context.shadowColor = shadow.color;
+    context.shadowBlur = shadow.blur;
+    context.shadowOffsetX = shadow.offsetX;
+    context.shadowOffsetY = shadow.offsetY;
+  }
+
+  function expandCanvasText(text, tabSize) {
+    return String(text || '').replace(/\t/g, ' '.repeat(Number(tabSize) || 2));
+  }
+
+  function measureCanvasText(context, text, letterSpacing, tabSize) {
+    const expanded = expandCanvasText(text, tabSize);
+    if (!expanded) return 0;
+    const baseWidth = context.measureText(expanded).width;
+    return baseWidth + (Math.max(0, expanded.length - 1) * (Number(letterSpacing) || 0));
+  }
+
+  function drawCanvasText(context, text, x, y, letterSpacing, tabSize) {
+    const expanded = expandCanvasText(text, tabSize);
+    if (!expanded) return x;
+    const spacing = Number(letterSpacing) || 0;
+    if (!spacing) {
+      context.fillText(expanded, x, y);
+      return x + context.measureText(expanded).width;
+    }
+    let cursor = x;
+    for (const character of expanded) {
+      context.fillText(character, cursor, y);
+      cursor += context.measureText(character).width + spacing;
+    }
+    return cursor;
+  }
+
+  function truncateCanvasText(context, text, maxWidth) {
+    const value = String(text || '');
+    if (!value) return value;
+    if (context.measureText(value).width <= maxWidth) return value;
+    const ellipsis = '...';
+    let candidate = value;
+    while (candidate.length > 1 && context.measureText(candidate + ellipsis).width > maxWidth) {
+      candidate = candidate.slice(0, -1);
+    }
+    return `${candidate}${ellipsis}`;
+  }
+
+  function createCanvasBackgroundFill(context, runtime, width, height) {
+    if (runtime.state.backgroundMode === 'gradient') {
+      const gradient = context.createLinearGradient(0, 0, width, height);
+      extractGradientStops(GRADIENTS[runtime.state.gradient] || GRADIENTS.cosmic).forEach((stop) => {
+        gradient.addColorStop(Number.parseFloat(stop.offset) / 100, stop.color);
+      });
+      return gradient;
+    }
+    if (runtime.state.backgroundMode === 'solid') {
+      return runtime.state.solidColor;
+    }
+    return null;
+  }
+
+  function createCodeFont(fontMeta, metrics, letterSpacing) {
+    return `${metrics.fontSize}px ${fontMeta.stack}`;
+  }
+
+  function drawCanvasMacChrome(context, runtime, metrics, activeTab, titleColor, headerColor) {
+    const hasTabs = runtime.state.tabs.length > 1;
+    const topHeight = 40;
+    context.fillStyle = runtime.state.chrome === 'glass' ? rgba(headerColor, 0.78) : headerColor;
+    context.fillRect(0, 0, metrics.cardWidth, hasTabs ? 72 : 40);
+    context.strokeStyle = rgba(metrics.theme.card.borderColor, 0.9);
+    context.beginPath();
+    context.moveTo(0, topHeight + 0.5);
+    context.lineTo(metrics.cardWidth, topHeight + 0.5);
+    context.stroke();
+
+    buildMacDots(runtime.state.chrome === 'glass' ? 14 : 12).forEach(([color, size], index) => {
+      context.fillStyle = color;
+      context.beginPath();
+      context.arc(22 + (index * (size + 6)), topHeight / 2, size / 2, 0, Math.PI * 2);
+      context.fill();
+    });
+
+    context.fillStyle = titleColor;
+    context.globalAlpha = 0.84;
+    context.font = `13px ${getFontMeta(runtime.state.fontFamily).stack}`;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(truncateCanvasText(context, activeTab.name || defaultFileName(metrics.language.id, 1), metrics.cardWidth * 0.6), metrics.cardWidth / 2, topHeight / 2);
+    context.globalAlpha = 1;
+
+    if (hasTabs) {
+      const tabY = 44;
+      let tabX = 12;
+      runtime.state.tabs.forEach((tab) => {
+        const isActive = tab.id === activeTab.id;
+        const label = tab.name || defaultFileName(metrics.language.id, 1);
+        const width = Math.min(170, Math.max(76, 22 + (label.length * 7)));
+        traceRoundRectPath(context, tabX, tabY, width, 22, 10);
+        context.fillStyle = isActive
+          ? rgba(metrics.theme.background, metrics.theme.mode === 'dark' ? 0.88 : 0.96)
+          : rgba(metrics.theme.background, metrics.theme.mode === 'dark' ? 0.38 : 0.12);
+        context.fill();
+        context.strokeStyle = rgba(metrics.theme.card.borderColor, 0.75);
+        context.stroke();
+        context.fillStyle = isActive ? metrics.theme.text : titleColor;
+        context.font = `12px ${getFontMeta(runtime.state.fontFamily).stack}`;
+        context.textAlign = 'left';
+        context.textBaseline = 'middle';
+        context.fillText(truncateCanvasText(context, label, width - 18), tabX + 10, tabY + 11);
+        tabX += width + 8;
+      });
+    }
+
+    return hasTabs ? 72 : 40;
+  }
+
+  function drawCanvasWindowsChrome(context, runtime, metrics, activeTab, titleColor, headerColor) {
+    const hasTabs = runtime.state.tabs.length > 1;
+    const topHeight = 32;
+    context.fillStyle = headerColor;
+    context.fillRect(0, 0, metrics.cardWidth, hasTabs ? 64 : 32);
+    context.strokeStyle = rgba(metrics.theme.card.borderColor, 0.9);
+    context.beginPath();
+    context.moveTo(0, topHeight + 0.5);
+    context.lineTo(metrics.cardWidth, topHeight + 0.5);
+    context.stroke();
+
+    context.fillStyle = titleColor;
+    context.font = `13px ${getFontMeta(runtime.state.fontFamily).stack}`;
+    context.textAlign = 'left';
+    context.textBaseline = 'middle';
+    context.fillText(truncateCanvasText(context, activeTab.name || defaultFileName(metrics.language.id, 1), metrics.cardWidth * 0.5), 14, 16);
+
+    const actionBaseX = metrics.cardWidth - 138;
+    context.fillStyle = '#c42b1c';
+    context.fillRect(actionBaseX + 92, 0, 46, topHeight);
+    context.fillStyle = titleColor;
+    context.fillText('-', actionBaseX + 18, 16);
+    context.fillText('[]', actionBaseX + 58, 16);
+    context.fillStyle = '#ffffff';
+    context.fillText('x', actionBaseX + 108, 16);
+
+    if (hasTabs) {
+      const tabY = 36;
+      let tabX = 12;
+      runtime.state.tabs.forEach((tab) => {
+        const isActive = tab.id === activeTab.id;
+        const label = tab.name || defaultFileName(metrics.language.id, 1);
+        const width = Math.min(170, Math.max(76, 22 + (label.length * 7)));
+        traceRoundRectPath(context, tabX, tabY, width, 22, 10);
+        context.fillStyle = isActive
+          ? rgba(metrics.theme.background, metrics.theme.mode === 'dark' ? 0.88 : 0.96)
+          : rgba(metrics.theme.background, metrics.theme.mode === 'dark' ? 0.38 : 0.12);
+        context.fill();
+        context.strokeStyle = rgba(metrics.theme.card.borderColor, 0.75);
+        context.stroke();
+        context.fillStyle = isActive ? metrics.theme.text : titleColor;
+        context.font = `12px ${getFontMeta(runtime.state.fontFamily).stack}`;
+        context.fillText(truncateCanvasText(context, label, width - 18), tabX + 10, tabY + 11);
+        tabX += width + 8;
+      });
+    }
+
+    return hasTabs ? 64 : 32;
+  }
+
+  function drawCanvasBrowserChrome(context, runtime, metrics, activeTab, titleColor, headerColor) {
+    const hasTabs = runtime.state.tabs.length > 1;
+    const totalHeight = hasTabs ? 84 : 66;
+    context.fillStyle = headerColor;
+    context.fillRect(0, 0, metrics.cardWidth, totalHeight);
+
+    let tabX = 14;
+    runtime.state.tabs.forEach((tab) => {
+      const isActive = tab.id === activeTab.id;
+      const label = tab.name || defaultFileName(metrics.language.id, 1);
+      const width = Math.min(180, Math.max(72, 26 + (label.length * 7)));
+      traceRoundRectPath(context, tabX, 10, width, 28, 10);
+      context.fillStyle = isActive
+        ? metrics.theme.background
+        : rgba(metrics.theme.background, metrics.theme.mode === 'dark' ? 0.34 : 0.14);
+      context.fill();
+      context.strokeStyle = rgba(metrics.theme.card.borderColor, 0.75);
+      context.stroke();
+      context.fillStyle = metrics.theme.accent;
+      traceRoundRectPath(context, tabX + 8, 17, 16, 16, 4);
+      context.fill();
+      context.fillStyle = isActive ? metrics.theme.text : titleColor;
+      context.font = `12px ${getFontMeta(runtime.state.fontFamily).stack}`;
+      context.textAlign = 'left';
+      context.textBaseline = 'middle';
+      context.fillText(truncateCanvasText(context, label, width - 44), tabX + 30, 24);
+      context.globalAlpha = 0.7;
+      context.fillText('x', tabX + width - 14, 24);
+      context.globalAlpha = 1;
+      tabX += width + 8;
+    });
+
+    const urlY = hasTabs ? 48 : 40;
+    traceRoundRectPath(context, 14, urlY, metrics.cardWidth - 28, 18, 9);
+    context.fillStyle = rgba(metrics.theme.background, metrics.theme.mode === 'dark' ? 0.55 : 0.08);
+    context.fill();
+    context.fillStyle = titleColor;
+    context.font = `12px ${getFontMeta(runtime.state.fontFamily).stack}`;
+    context.textAlign = 'left';
+    context.textBaseline = 'middle';
+    context.fillText(`file:///${activeTab.name || defaultFileName(metrics.language.id, 1)}`, 28, urlY + 9);
+    return totalHeight;
+  }
+
+  async function rasterizeStageWithCanvas(runtime, scale) {
+    const activeTab = getActiveTab(runtime.state);
+    const model = runtime.semanticModels.get(activeTab.id) || createPlainModel(getEffectiveCode(activeTab));
+    const metrics = buildPreviewMetrics(runtime, model);
+    const theme = metrics.theme;
+    const fontMeta = getFontMeta(runtime.state.fontFamily);
+    const letterSpacing = Number(runtime.state.letterSpacing) || 0;
+    const highlightMap = parseHighlightSpec(activeTab.highlightSpec, runtime.state.diffMode);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(metrics.stageWidth * scale));
+    canvas.height = Math.max(1, Math.round(metrics.stageHeight * scale));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Unable to prepare the PNG canvas.');
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.scale(scale, scale);
+
+    const backgroundFill = createCanvasBackgroundFill(context, runtime, metrics.stageWidth, metrics.stageHeight);
+    if (backgroundFill) {
+      context.fillStyle = backgroundFill;
+      context.fillRect(0, 0, metrics.stageWidth, metrics.stageHeight);
+    } else {
+      context.clearRect(0, 0, metrics.stageWidth, metrics.stageHeight);
+    }
+
+    const scaledCardWidth = metrics.cardWidth * metrics.contentScale;
+    const scaledCardHeight = metrics.cardHeight * metrics.contentScale;
+    const cardX = metrics.preset.width && metrics.preset.height
+      ? metrics.padding + ((metrics.stageWidth - (metrics.padding * 2) - scaledCardWidth) / 2)
+      : metrics.padding;
+    const cardY = metrics.preset.width && metrics.preset.height
+      ? metrics.padding + ((metrics.stageHeight - (metrics.padding * 2) - scaledCardHeight) / 2)
+      : metrics.padding;
+
+    context.save();
+    context.translate(cardX, cardY);
+    context.scale(metrics.contentScale, metrics.contentScale);
+
+    context.save();
+    applyCanvasShadow(context, runtime.state.shadow);
+    traceRoundRectPath(context, 0, 0, metrics.cardWidth, metrics.cardHeight, runtime.state.borderRadius);
+    context.fillStyle = theme.background;
+    context.fill();
+    context.restore();
+
+    traceRoundRectPath(context, 0, 0, metrics.cardWidth, metrics.cardHeight, runtime.state.borderRadius);
+    context.fillStyle = theme.background;
+    context.fill();
+    context.strokeStyle = theme.card.borderColor;
+    context.stroke();
+
+    context.save();
+    traceRoundRectPath(context, 0, 0, metrics.cardWidth, metrics.cardHeight, runtime.state.borderRadius);
+    context.clip();
+
+    const headerColor = runtime.state.chromeColor || theme.card.titlebarBg;
+    const titleColor = theme.card.titlebarText;
+    let bodyTop = 0;
+    if (runtime.state.chrome === 'macos' || runtime.state.chrome === 'glass') {
+      bodyTop = drawCanvasMacChrome(context, runtime, metrics, activeTab, titleColor, headerColor);
+    } else if (runtime.state.chrome === 'windows') {
+      bodyTop = drawCanvasWindowsChrome(context, runtime, metrics, activeTab, titleColor, headerColor);
+    } else if (runtime.state.chrome === 'browser') {
+      bodyTop = drawCanvasBrowserChrome(context, runtime, metrics, activeTab, titleColor, headerColor);
+    }
+
+    const bodyX = metrics.codePaddingX;
+    const bodyY = bodyTop + metrics.codePaddingY;
+    const bodyWidth = metrics.cardWidth - (metrics.codePaddingX * 2);
+    const codeX = bodyX + metrics.gutterWidth;
+    const redactionLabel = '\u2588'.repeat(8);
+
+    model.lines.forEach((line, index) => {
+      const lineNumber = index + 1;
+      const y = bodyY + (index * metrics.lineHeightPx);
+      const highlightKind = highlightMap.get(lineNumber);
+      const highlightStyle = lineHighlightColors(theme, highlightKind);
+      const dim = runtime.state.dimUnfocused && highlightMap.size > 0 && !highlightKind;
+
+      if (highlightKind) {
+        context.fillStyle = highlightStyle.background;
+        context.fillRect(bodyX, y, bodyWidth, metrics.lineHeightPx);
+        context.fillStyle = highlightStyle.accent;
+        context.fillRect(bodyX, y, 3, metrics.lineHeightPx);
+      }
+
+      context.save();
+      context.globalAlpha = dim ? 0.35 : 1;
+      context.font = createCodeFont(fontMeta, metrics, letterSpacing);
+      context.textBaseline = 'top';
+
+      context.fillStyle = theme.gutter;
+      context.textAlign = 'right';
+      context.fillText(String(lineNumber), bodyX + metrics.gutterWidth - 14, y);
+
+      let cursorX = codeX;
+      context.textAlign = 'left';
+      line.tokens.forEach((token, tokenIndex) => {
+        const tokenStyle = resolveTokenTheme(theme, token);
+        const isBlurred = isTokenBlurred(runtime, token, lineNumber, tokenIndex);
+        const tokenText = expandCanvasText(token.text, runtime.state.tabSize);
+        if (isBlurred) {
+          const redactionWidth = Math.max(36, measureCanvasText(context, redactionLabel, letterSpacing, runtime.state.tabSize) + 4);
+          context.fillStyle = tokenStyle.color;
+          traceRoundRectPath(context, cursorX, y + 2, redactionWidth, metrics.fontSize, 2);
+          context.fill();
+          cursorX += redactionWidth;
+          return;
+        }
+
+        if (tokenStyle.background) {
+          const tokenWidth = Math.max(1, measureCanvasText(context, tokenText, letterSpacing, runtime.state.tabSize));
+          context.fillStyle = tokenStyle.background;
+          context.fillRect(cursorX, y + 2, tokenWidth, metrics.fontSize);
+        }
+
+        context.fillStyle = tokenStyle.color;
+        context.font = `${tokenStyle.fontStyle === 'italic' ? 'italic ' : ''}${tokenStyle.fontWeight} ${metrics.fontSize}px ${fontMeta.stack}`;
+        cursorX = drawCanvasText(context, tokenText, cursorX, y, letterSpacing, runtime.state.tabSize);
+      });
+
+      context.restore();
+    });
+
+    context.restore();
+    context.restore();
+
+    if (runtime.state.watermark || runtime.state.watermarkText.trim()) {
+      context.fillStyle = rgba(theme.text, 0.45);
+      context.font = `11px ${fontMeta.stack}`;
+      context.textAlign = 'right';
+      context.textBaseline = 'alphabetic';
+      context.fillText(runtime.state.watermarkText.trim() || 'tooliest.com', metrics.stageWidth - 12, metrics.stageHeight - 12);
+    }
+
+    return { canvas, metrics, model };
+  }
+
   function serializePreviewStage(stage) {
     const clone = stage.cloneNode(true);
     clone.style.transform = 'none';
@@ -2889,11 +3281,17 @@ greet('World');`;
 
       return await window.html2canvas(stage, {
         scale,
-        useCORS: true,
+        useCORS: false,
         allowTaint: false,
         backgroundColor: null,
         logging: false,
-        foreignObjectRendering: true,
+        foreignObjectRendering: false,
+        width,
+        height,
+        windowWidth: width,
+        windowHeight: height,
+        scrollX: 0,
+        scrollY: 0,
       });
     } finally {
       if (captureHost.parentNode) {
@@ -2911,6 +3309,54 @@ greet('World');`;
     }
   }
 
+  function readCanvasPixel(context, x, y) {
+    const sample = context.getImageData(Math.max(0, x), Math.max(0, y), 1, 1).data;
+    return [sample[0], sample[1], sample[2], sample[3]];
+  }
+
+  function pixelDistance(a, b) {
+    return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) + Math.abs(a[3] - b[3]);
+  }
+
+  function canvasLooksLikeBackgroundOnly(canvas, metrics) {
+    if (!canvas || !metrics) return false;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) return false;
+
+    const scaledCardWidth = metrics.cardWidth * metrics.contentScale;
+    const scaledCardHeight = metrics.cardHeight * metrics.contentScale;
+    const cardX = metrics.preset.width && metrics.preset.height
+      ? metrics.padding + ((metrics.stageWidth - (metrics.padding * 2) - scaledCardWidth) / 2)
+      : metrics.padding;
+    const cardY = metrics.preset.width && metrics.preset.height
+      ? metrics.padding + ((metrics.stageHeight - (metrics.padding * 2) - scaledCardHeight) / 2)
+      : metrics.padding;
+    const scaleX = canvas.width / Math.max(metrics.stageWidth, 1);
+    const scaleY = canvas.height / Math.max(metrics.stageHeight, 1);
+    const clampStageX = (value) => Math.max(1, Math.min(metrics.stageWidth - 2, Math.round(value)));
+    const clampStageY = (value) => Math.max(1, Math.min(metrics.stageHeight - 2, Math.round(value)));
+    const toPixelX = (value) => Math.max(0, Math.min(canvas.width - 1, Math.round(value * scaleX)));
+    const toPixelY = (value) => Math.max(0, Math.min(canvas.height - 1, Math.round(value * scaleY)));
+
+    const outside = readCanvasPixel(
+      context,
+      toPixelX(clampStageX(Math.max(2, metrics.padding * 0.4))),
+      toPixelY(clampStageY(Math.max(2, metrics.padding * 0.4)))
+    );
+    const border = readCanvasPixel(
+      context,
+      toPixelX(clampStageX(cardX + 4)),
+      toPixelY(clampStageY(cardY + 4))
+    );
+    const inside = readCanvasPixel(
+      context,
+      toPixelX(clampStageX(cardX + Math.min(48, Math.max(14, scaledCardWidth * 0.1)))),
+      toPixelY(clampStageY(cardY + Math.min(scaledCardHeight - 6, Math.max(18, (metrics.chromeHeight * metrics.contentScale) + 18))))
+    );
+
+    return pixelDistance(outside, border) < 24 && pixelDistance(outside, inside) < 32;
+  }
+
   async function exportPng(runtime, mode) {
     const button = mode === 'copy' ? runtime.elements.copyBtn : runtime.elements.pngBtn;
     const originalLabel = button.textContent;
@@ -2921,20 +3367,30 @@ greet('World');`;
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
 
       const preview = buildPreview(runtime, { interactive: false });
+      const exportScale = computeCanvasExportScale(preview.metrics.stageWidth, preview.metrics.stageHeight);
       const source = preview.stage;
-      const exportScale = Math.max(4, Math.min(6, Math.ceil((window.devicePixelRatio || 1) * 2)));
-      let canvas;
-
+      let canvas = null;
       try {
         canvas = await rasterizeStageWithHtml2Canvas(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
       } catch (_) {
+        try {
+          canvas = (await rasterizeStageWithCanvas(runtime, exportScale)).canvas;
+        } catch (_) {
+          canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+        }
+      }
+      if (!isCanvasExportable(canvas) || canvasLooksLikeBackgroundOnly(canvas, preview.metrics)) {
+        try {
+          canvas = (await rasterizeStageWithCanvas(runtime, exportScale)).canvas;
+        } catch (_) {
+          canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+        }
+      }
+      if (!isCanvasExportable(canvas) || canvasLooksLikeBackgroundOnly(canvas, preview.metrics)) {
         canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
       }
-      if (!isCanvasExportable(canvas)) {
-        canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
-      }
-      if (!isCanvasExportable(canvas)) {
-        throw new Error('The browser blocked image export for this render. Please switch to a system font or try the SVG download.');
+      if (!isCanvasExportable(canvas) || canvasLooksLikeBackgroundOnly(canvas, preview.metrics)) {
+        throw new Error('The browser blocked image export for this render. Please try the SVG download.');
       }
 
       const activeTab = getActiveTab(runtime.state);
