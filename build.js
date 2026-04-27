@@ -739,6 +739,7 @@ function syncStaticPageAssetVersions(tools = []) {
     .map((tool) => tool.standaloneSourceFile)
     .filter(Boolean);
   const sourceFiles = [...new Set([...Object.values(STATIC_PAGE_SOURCE_FILES), ...standaloneSourceFiles])];
+  const toolCountLabel = `${tools.length}+`;
 
   sourceFiles.forEach((sourceFile) => {
     const sourcePath = path.join(__dirname, sourceFile);
@@ -752,6 +753,10 @@ function syncStaticPageAssetVersions(tools = []) {
     nextHtml = nextHtml.replace(
       /window\.__TOOLIEST_ASSET_VERSION='[^']+'/g,
       `window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}'`
+    );
+    nextHtml = nextHtml.replace(
+      /(<div class="stat-num" data-tool-count="free-tools">)([^<]*)(<\/div>)/g,
+      `$1${toolCountLabel}$3`
     );
     nextHtml = repairMojibakeSegments(nextHtml);
 
