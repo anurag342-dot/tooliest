@@ -3484,12 +3484,15 @@ greet('World');`;
       const exportScale = computeCanvasExportScale(preview.metrics.stageWidth, preview.metrics.stageHeight);
       const source = preview.stage;
       let canvas;
+      let usedFallbackRenderer = false;
       try {
         canvas = (await rasterizeStageWithCanvas(runtime, exportScale)).canvas;
       } catch (_) {
+        usedFallbackRenderer = true;
         canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
       }
-      if (!isCanvasExportable(canvas) || canvasLooksLikeBackgroundOnly(canvas, preview.metrics)) {
+      const looksBlank = usedFallbackRenderer && canvasLooksLikeBackgroundOnly(canvas, preview.metrics);
+      if (!isCanvasExportable(canvas) || looksBlank) {
         throw new Error('The browser blocked image export for this render. Please try the SVG download.');
       }
 
