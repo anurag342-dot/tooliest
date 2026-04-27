@@ -3355,6 +3355,61 @@ greet('World');`;
     }
   }
 
+  async function rasterizeStandalonePreviewWithHtml2Canvas(stage, width, height, scale) {
+    await ensureHtml2Canvas();
+    const captureHost = document.createElement('div');
+    captureHost.style.cssText = [
+      'position:fixed',
+      'left:-20000px',
+      'top:0',
+      `width:${width}px`,
+      `height:${height}px`,
+      'pointer-events:none',
+      'overflow:visible',
+      'z-index:-1',
+      'background:transparent',
+    ].join(';');
+
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = [
+      `width:${width}px`,
+      `height:${height}px`,
+      'position:relative',
+      'overflow:visible',
+      'background:transparent',
+    ].join(';');
+    stage.style.transform = 'none';
+    stage.style.transformOrigin = 'top left';
+    wrapper.appendChild(stage);
+    captureHost.appendChild(wrapper);
+    document.body.appendChild(captureHost);
+
+    try {
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+
+      return await window.html2canvas(wrapper, {
+        scale,
+        useCORS: false,
+        allowTaint: false,
+        backgroundColor: null,
+        logging: false,
+        foreignObjectRendering: false,
+        width,
+        height,
+        windowWidth: width,
+        windowHeight: height,
+        scrollX: 0,
+        scrollY: 0,
+      });
+    } finally {
+      if (captureHost.parentNode) {
+        captureHost.parentNode.removeChild(captureHost);
+      }
+    }
+  }
+
   function isCanvasExportable(canvas) {
     try {
       canvas.toDataURL('image/png');
@@ -3426,15 +3481,19 @@ greet('World');`;
       const source = preview.stage;
       let canvas = null;
       try {
-        canvas = await rasterizeVisiblePreviewWithHtml2Canvas(runtime, exportScale);
+        canvas = await rasterizeStandalonePreviewWithHtml2Canvas(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
       } catch (_) {
         try {
-          canvas = await rasterizeStageWithHtml2Canvas(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+          canvas = await rasterizeVisiblePreviewWithHtml2Canvas(runtime, exportScale);
         } catch (_) {
           try {
-            canvas = (await rasterizeStageWithCanvas(runtime, exportScale)).canvas;
+            canvas = await rasterizeStageWithHtml2Canvas(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
           } catch (_) {
-            canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+            try {
+              canvas = (await rasterizeStageWithCanvas(runtime, exportScale)).canvas;
+            } catch (_) {
+              canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+            }
           }
         }
       }
