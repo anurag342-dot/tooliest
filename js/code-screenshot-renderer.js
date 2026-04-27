@@ -2926,6 +2926,10 @@ greet('World');`;
     return `${metrics.fontSize}px ${fontMeta.stack}`;
   }
 
+  function getLineTextOffset(metrics) {
+    return Math.max(0, (metrics.lineHeightPx - metrics.fontSize) / 2);
+  }
+
   function drawCanvasMacChrome(context, runtime, metrics, activeTab, titleColor, headerColor) {
     const hasTabs = runtime.state.tabs.length > 1;
     const topHeight = 40;
@@ -3148,18 +3152,20 @@ greet('World');`;
     const codeX = bodyX + metrics.gutterWidth;
     const redactionLabel = '\u2588'.repeat(8);
 
+    const lineTextOffset = getLineTextOffset(metrics);
     model.lines.forEach((line, index) => {
       const lineNumber = index + 1;
-      const y = bodyY + (index * metrics.lineHeightPx);
+      const rowY = bodyY + (index * metrics.lineHeightPx);
+      const textY = rowY + lineTextOffset;
       const highlightKind = highlightMap.get(lineNumber);
       const highlightStyle = lineHighlightColors(theme, highlightKind);
       const dim = runtime.state.dimUnfocused && highlightMap.size > 0 && !highlightKind;
 
       if (highlightKind) {
         context.fillStyle = highlightStyle.background;
-        context.fillRect(bodyX, y, bodyWidth, metrics.lineHeightPx);
+        context.fillRect(bodyX, rowY, bodyWidth, metrics.lineHeightPx);
         context.fillStyle = highlightStyle.accent;
-        context.fillRect(bodyX, y, 3, metrics.lineHeightPx);
+        context.fillRect(bodyX, rowY, 3, metrics.lineHeightPx);
       }
 
       context.save();
@@ -3169,7 +3175,7 @@ greet('World');`;
 
       context.fillStyle = theme.gutter;
       context.textAlign = 'right';
-      context.fillText(String(lineNumber), bodyX + metrics.gutterWidth - 14, y);
+      context.fillText(String(lineNumber), bodyX + metrics.gutterWidth - 14, textY);
 
       let cursorX = codeX;
       context.textAlign = 'left';
@@ -3180,7 +3186,7 @@ greet('World');`;
         if (isBlurred) {
           const redactionWidth = Math.max(36, measureCanvasText(context, redactionLabel, letterSpacing, runtime.state.tabSize) + 4);
           context.fillStyle = tokenStyle.color;
-          traceRoundRectPath(context, cursorX, y + 2, redactionWidth, metrics.fontSize, 2);
+          traceRoundRectPath(context, cursorX, textY + 2, redactionWidth, metrics.fontSize, 2);
           context.fill();
           cursorX += redactionWidth;
           return;
@@ -3189,12 +3195,12 @@ greet('World');`;
         if (tokenStyle.background) {
           const tokenWidth = Math.max(1, measureCanvasText(context, tokenText, letterSpacing, runtime.state.tabSize));
           context.fillStyle = tokenStyle.background;
-          context.fillRect(cursorX, y + 2, tokenWidth, metrics.fontSize);
+          context.fillRect(cursorX, textY + 2, tokenWidth, metrics.fontSize);
         }
 
         context.fillStyle = tokenStyle.color;
         context.font = `${tokenStyle.fontStyle === 'italic' ? 'italic ' : ''}${tokenStyle.fontWeight} ${metrics.fontSize}px ${fontMeta.stack}`;
-        cursorX = drawCanvasText(context, tokenText, cursorX, y, letterSpacing, runtime.state.tabSize);
+        cursorX = drawCanvasText(context, tokenText, cursorX, textY, letterSpacing, runtime.state.tabSize);
       });
 
       context.restore();
@@ -3633,27 +3639,31 @@ greet('World');`;
       const chrome = renderSvgChrome(runtime, metrics);
       const codeGroup = [];
       const bodyTop = chrome.height + metrics.codePaddingY;
+      const bodyLeft = metrics.codePaddingX;
+      const bodyWidth = metrics.cardWidth - (metrics.codePaddingX * 2);
+      const lineTextOffset = getLineTextOffset(metrics);
       model.lines.forEach((line, index) => {
         const lineNumber = index + 1;
-        const y = bodyTop + (index * metrics.lineHeightPx);
+        const rowY = bodyTop + (index * metrics.lineHeightPx);
+        const textY = rowY + lineTextOffset;
         const highlightKind = highlightMap.get(lineNumber);
         if (highlightKind) {
           const highlightStyle = lineHighlightColors(metrics.theme, highlightKind);
-          codeGroup.push(`<rect x="0" y="${chrome.height + (index * metrics.lineHeightPx) + 3}" width="${metrics.cardWidth}" height="${metrics.lineHeightPx}" fill="${highlightStyle.background}" />`);
-          codeGroup.push(`<rect x="0" y="${chrome.height + (index * metrics.lineHeightPx) + 3}" width="3" height="${metrics.lineHeightPx}" fill="${highlightStyle.accent}" />`);
+          codeGroup.push(`<rect x="${bodyLeft}" y="${rowY}" width="${bodyWidth}" height="${metrics.lineHeightPx}" fill="${highlightStyle.background}" />`);
+          codeGroup.push(`<rect x="${bodyLeft}" y="${rowY}" width="3" height="${metrics.lineHeightPx}" fill="${highlightStyle.accent}" />`);
         }
-        codeGroup.push(`<text x="${metrics.codePaddingX + metrics.gutterWidth - 14}" y="${y}" text-anchor="end" dominant-baseline="hanging" font-size="${metrics.fontSize}" fill="${metrics.theme.gutter}" font-family="${xmlEscape(font.stack)}">${lineNumber}</text>`);
+        codeGroup.push(`<text x="${metrics.codePaddingX + metrics.gutterWidth - 14}" y="${textY}" text-anchor="end" dominant-baseline="hanging" font-size="${metrics.fontSize}" fill="${metrics.theme.gutter}" font-family="${xmlEscape(font.stack)}">${lineNumber}</text>`);
         let currentX = metrics.codePaddingX + metrics.gutterWidth;
         line.tokens.forEach((token, tokenIndex) => {
           const tokenStyle = resolveTokenTheme(metrics.theme, token);
           const isBlurred = isTokenBlurred(runtime, token, lineNumber, tokenIndex);
           const width = measureTextWidth(token.text, metrics.fontSize, Number(runtime.state.letterSpacing) || 0, runtime.state.tabSize);
           if (isBlurred) {
-            codeGroup.push(`<rect x="${currentX}" y="${y + 2}" width="${Math.max(36, measureTextWidth('████████', metrics.fontSize, Number(runtime.state.letterSpacing) || 0, runtime.state.tabSize))}" height="${metrics.fontSize}" rx="2" fill="${tokenStyle.color}" />`);
+            codeGroup.push(`<rect x="${currentX}" y="${textY + 2}" width="${Math.max(36, measureTextWidth('████████', metrics.fontSize, Number(runtime.state.letterSpacing) || 0, runtime.state.tabSize))}" height="${metrics.fontSize}" rx="2" fill="${tokenStyle.color}" />`);
             currentX += Math.max(36, measureTextWidth('████████', metrics.fontSize, Number(runtime.state.letterSpacing) || 0, runtime.state.tabSize));
             return;
           }
-          codeGroup.push(`<text x="${currentX}" y="${y}" dominant-baseline="hanging" font-size="${metrics.fontSize}" font-family="${xmlEscape(font.stack)}" font-weight="${tokenStyle.fontWeight}" font-style="${tokenStyle.fontStyle}" fill="${tokenStyle.color}" xml:space="preserve">${xmlEscape(token.text)}</text>`);
+          codeGroup.push(`<text x="${currentX}" y="${textY}" dominant-baseline="hanging" font-size="${metrics.fontSize}" font-family="${xmlEscape(font.stack)}" font-weight="${tokenStyle.fontWeight}" font-style="${tokenStyle.fontStyle}" fill="${tokenStyle.color}" xml:space="preserve">${xmlEscape(token.text)}</text>`);
           currentX += width;
         });
       });
