@@ -2949,7 +2949,11 @@ greet('World');`;
     context.font = `13px ${getFontMeta(runtime.state.fontFamily).stack}`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    context.fillText(truncateCanvasText(context, activeTab.name || defaultFileName(metrics.language.id, 1), metrics.cardWidth * 0.6), metrics.cardWidth / 2, topHeight / 2);
+    context.fillText(
+      truncateCanvasText(context, activeTab.name || defaultFileName(metrics.language.id, 1), Math.max(80, metrics.cardWidth - 176)),
+      metrics.cardWidth / 2,
+      topHeight / 2
+    );
     context.globalAlpha = 1;
 
     if (hasTabs) {
@@ -3479,32 +3483,10 @@ greet('World');`;
       const preview = buildPreview(runtime, { interactive: false });
       const exportScale = computeCanvasExportScale(preview.metrics.stageWidth, preview.metrics.stageHeight);
       const source = preview.stage;
-      let canvas = null;
+      let canvas;
       try {
-        canvas = await rasterizeStandalonePreviewWithHtml2Canvas(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+        canvas = (await rasterizeStageWithCanvas(runtime, exportScale)).canvas;
       } catch (_) {
-        try {
-          canvas = await rasterizeVisiblePreviewWithHtml2Canvas(runtime, exportScale);
-        } catch (_) {
-          try {
-            canvas = await rasterizeStageWithHtml2Canvas(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
-          } catch (_) {
-            try {
-              canvas = (await rasterizeStageWithCanvas(runtime, exportScale)).canvas;
-            } catch (_) {
-              canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
-            }
-          }
-        }
-      }
-      if (!isCanvasExportable(canvas) || canvasLooksLikeBackgroundOnly(canvas, preview.metrics)) {
-        try {
-          canvas = (await rasterizeStageWithCanvas(runtime, exportScale)).canvas;
-        } catch (_) {
-          canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
-        }
-      }
-      if (!isCanvasExportable(canvas) || canvasLooksLikeBackgroundOnly(canvas, preview.metrics)) {
         canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
       }
       if (!isCanvasExportable(canvas) || canvasLooksLikeBackgroundOnly(canvas, preview.metrics)) {
