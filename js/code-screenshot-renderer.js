@@ -3300,6 +3300,61 @@ greet('World');`;
     }
   }
 
+  async function rasterizeVisiblePreviewWithHtml2Canvas(runtime, scale) {
+    await ensureHtml2Canvas();
+    const liveWrapper = runtime.elements.previewZoomWrap;
+    const metrics = runtime.lastPreviewMetrics;
+    if (!liveWrapper || !metrics) {
+      throw new Error('The live preview was not ready to export.');
+    }
+
+    const bounds = liveWrapper.getBoundingClientRect();
+    const renderedWidth = Math.max(1, Math.round(bounds.width || Number.parseFloat(liveWrapper.style.width) || metrics.stageWidth));
+    const renderedHeight = Math.max(1, Math.round(bounds.height || Number.parseFloat(liveWrapper.style.height) || metrics.stageHeight));
+    const captureScale = Math.max(1, scale * (metrics.stageWidth / Math.max(renderedWidth, 1)));
+    const captureHost = document.createElement('div');
+    captureHost.style.cssText = [
+      'position:fixed',
+      'left:-20000px',
+      'top:0',
+      'pointer-events:none',
+      'overflow:visible',
+      'z-index:-1',
+      'background:transparent',
+    ].join(';');
+
+    const clone = liveWrapper.cloneNode(true);
+    clone.style.transform = 'none';
+    clone.style.transformOrigin = 'top left';
+    captureHost.appendChild(clone);
+    document.body.appendChild(captureHost);
+
+    try {
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+
+      return await window.html2canvas(clone, {
+        scale: captureScale,
+        useCORS: false,
+        allowTaint: false,
+        backgroundColor: null,
+        logging: false,
+        foreignObjectRendering: false,
+        width: renderedWidth,
+        height: renderedHeight,
+        windowWidth: renderedWidth,
+        windowHeight: renderedHeight,
+        scrollX: 0,
+        scrollY: 0,
+      });
+    } finally {
+      if (captureHost.parentNode) {
+        captureHost.parentNode.removeChild(captureHost);
+      }
+    }
+  }
+
   function isCanvasExportable(canvas) {
     try {
       canvas.toDataURL('image/png');
@@ -3371,12 +3426,16 @@ greet('World');`;
       const source = preview.stage;
       let canvas = null;
       try {
-        canvas = await rasterizeStageWithHtml2Canvas(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+        canvas = await rasterizeVisiblePreviewWithHtml2Canvas(runtime, exportScale);
       } catch (_) {
         try {
-          canvas = (await rasterizeStageWithCanvas(runtime, exportScale)).canvas;
+          canvas = await rasterizeStageWithHtml2Canvas(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
         } catch (_) {
-          canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+          try {
+            canvas = (await rasterizeStageWithCanvas(runtime, exportScale)).canvas;
+          } catch (_) {
+            canvas = await rasterizeStageWithSvg(source, preview.metrics.stageWidth, preview.metrics.stageHeight, exportScale);
+          }
         }
       }
       if (!isCanvasExportable(canvas) || canvasLooksLikeBackgroundOnly(canvas, preview.metrics)) {
