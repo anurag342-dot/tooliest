@@ -1633,6 +1633,7 @@ function renderFooter() {
           <li><a href="${STATIC_PAGE_PATHS.terms}">Terms of Service</a></li>
           <li><a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a></li>
           <li><a href="/sitemap.html">All Tools (Sitemap)</a></li>
+          <li><a href="https://github.com/anurag342-dot/tooliest" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
       </div>
     </div>

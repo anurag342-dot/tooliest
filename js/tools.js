@@ -2828,7 +2828,164 @@ const TOOLIEST_SEO_OVERRIDES = {
       { date: '2026-04-24', text: 'Connected the signature tool to invoice, compression, password protection, and image resizing workflows.' },
     ],
   },
+  'css-minifier': {
+    metaDesc: 'Minify CSS online to remove whitespace, comments, and redundant rules. Reduce file size for faster page loads. Free, private, no signup. Try Tooliest.',
+    summaryHeading: 'How Do I Minify CSS for Faster Page Loads?',
+    contentHighlights: [
+      'CSS minification typically removes comments, extra whitespace, newlines, and shortens color values, saving 15-40% on uncompressed file size depending on formatting habits.',
+      'Minified CSS combined with GZIP or Brotli compression can reduce transfer size by 80-90%, which directly improves Largest Contentful Paint and overall Core Web Vitals.',
+    ],
+    faqExtras: [
+      { q: 'What is the difference between CSS minification and GZIP compression?', a: 'Minification removes unnecessary characters from source code, while GZIP compresses the entire file for transfer. They work together: minify first to remove redundancy, then let the server GZIP the smaller file for even greater savings.' },
+    ],
+  },
+  'css-beautifier': {
+    metaDesc: 'Format and beautify minified CSS with proper indentation and line breaks. Read, debug, and edit CSS easily. Free, private, no signup. Try Tooliest.',
+    summaryHeading: 'How Do I Beautify Minified CSS Online?',
+    contentHighlights: [
+      'Beautified CSS with consistent indentation makes it much easier to spot specificity conflicts, missing closing braces, and duplicated property declarations.',
+      'Most teams beautify CSS during development and debugging, then minify it again before deploying to production for optimal performance.',
+    ],
+  },
+  'js-minifier': {
+    metaDesc: 'Minify JavaScript online to shrink file size and speed up page loads. Remove whitespace, shorten variables, strip comments. Free, private. Try Tooliest.',
+    summaryHeading: 'How Do I Minify JavaScript for Production?',
+    contentHighlights: [
+      'JavaScript minification removes whitespace, shortens variable names, and strips comments. For large applications, this can reduce bundle size by 30-60% before compression.',
+      'Tree-shaking removes unused exports at build time, while minification shrinks the remaining code. Both are complementary steps in a modern JavaScript build pipeline.',
+    ],
+    faqExtras: [
+      { q: 'What is the difference between tree-shaking and minification?', a: 'Tree-shaking removes entire unused modules and exports from the bundle, while minification compresses the remaining code by shortening names and removing whitespace. Tree-shaking happens during bundling; minification is a post-processing step.' },
+    ],
+  },
+  'js-beautifier': {
+    metaDesc: 'Format and beautify minified JavaScript with proper indentation and structure. Debug production code easily. Free, private, no signup. Try Tooliest.',
+    summaryHeading: 'How Do I Beautify Minified JavaScript Online?',
+    contentHighlights: [
+      'Beautifying minified JavaScript restores readable indentation and line breaks, which is essential when debugging production issues or reviewing third-party scripts.',
+      'Browser DevTools can pretty-print scripts on the fly, but a standalone beautifier gives you a permanent formatted copy you can save, annotate, and compare.',
+    ],
+  },
+  'html-minifier': {
+    metaDesc: 'Minify HTML by removing whitespace, comments, and unnecessary attributes. Reduce page size for faster rendering. Free, private, no signup. Try Tooliest.',
+    summaryHeading: 'How Do I Minify HTML Without Breaking the Page?',
+    contentHighlights: [
+      'HTML minification is safe for most attributes and whitespace, but be careful with pre-formatted content, inline scripts, and whitespace-sensitive CSS layouts.',
+      'Removing HTML comments, optional closing tags, and redundant attributes can save 5-15% on typical pages, with the biggest gains on content-heavy templates.',
+    ],
+    faqExtras: [
+      { q: 'Which HTML attributes are safe to remove during minification?', a: 'Default type attributes on scripts and stylesheets, boolean attribute values like checked="checked", and most optional closing tags for li, td, tr, and similar elements are generally safe to remove.' },
+    ],
+  },
+  'html-beautifier': {
+    metaDesc: 'Format messy HTML with proper indentation and tag nesting. Review page structure clearly. Free, browser-based, no signup required. Try Tooliest.',
+    summaryHeading: 'How Do I Format and Indent HTML Online?',
+    contentHighlights: [
+      'Well-indented HTML makes it easier to trace nesting errors, find unclosed tags, and understand component boundaries in complex page templates.',
+      'Beautifying HTML is especially useful when inspecting CMS output, email template code, or server-rendered markup that lacks consistent formatting.',
+    ],
+  },
+  'json-minifier': {
+    metaDesc: 'Minify JSON by stripping whitespace and line breaks to reduce payload size. Ideal for API responses and config files. Free, private. Try Tooliest.',
+    summaryHeading: 'How Do I Minify JSON for Smaller Payloads?',
+    contentHighlights: [
+      'JSON minification removes all optional whitespace and line breaks, which is useful for reducing API response sizes, config payloads, and localStorage entries.',
+      'Minified JSON is harder for humans to read but identical in structure and meaning to the formatted version, making it safe for any machine-to-machine workflow.',
+    ],
+  },
+  'character-counter': {
+    metaDesc: 'Count characters with and without spaces for Twitter, Instagram, meta descriptions, and other platform limits. Free, instant, no signup. Try Tooliest.',
+    summaryHeading: 'How Do I Count Characters for Platform Limits?',
+    topicLabel: 'characters',
+    contentHighlights: [
+      'Platform character limits vary widely: Twitter/X allows 280, Instagram bios cap at 150, meta descriptions perform best under 160, and LinkedIn headlines allow 120 characters.',
+      'Character counting with and without spaces matters because some platforms count spaces while others do not, and the difference can push you over a limit unexpectedly.',
+    ],
+    faqExtras: [
+      { q: 'What is the Twitter/X character limit?', a: 'Twitter/X allows up to 280 characters per tweet for standard accounts. Twitter Blue subscribers can post up to 25,000 characters. URLs count toward the limit.' },
+      { q: 'How long should a meta description be?', a: 'Google typically displays 150-160 characters of a meta description in search results. Keep your descriptions under 160 characters to avoid truncation.' },
+    ],
+  },
+  'text-reverser': {
+    metaDesc: 'Reverse text, words, or individual characters instantly. Useful for encoding puzzles, testing, and text manipulation. Free, private. Try Tooliest.',
+    summaryHeading: 'How Do I Reverse Text Online?',
+    topicLabel: 'text',
+    contentHighlights: [
+      'Text reversal has practical uses in programming (palindrome checks, string algorithms), puzzle creation, and creative writing experiments.',
+      'Reversing by character produces mirror text, while reversing by word keeps each word readable but flips their order in the sentence.',
+    ],
+  },
+  'remove-duplicates': {
+    metaDesc: 'Remove duplicate lines from text and keep only unique entries. Clean lists, logs, and data exports instantly. Free, private, no signup. Try Tooliest.',
+    summaryHeading: 'How Do I Remove Duplicate Lines From Text?',
+    topicLabel: 'lines',
+    contentHighlights: [
+      'Deduplication is essential when cleaning email lists, log files, CSV exports, and any text data where repeated entries waste space or cause processing errors.',
+      'Case-sensitive deduplication treats "Hello" and "hello" as different lines, while case-insensitive mode catches duplicates regardless of capitalization.',
+    ],
+  },
+  'twitter-counter': {
+    metaDesc: 'Count characters for Twitter/X posts with a real-time limit indicator. Stay within 280 characters. Free, private, no signup. Try Tooliest.',
+    summaryHeading: 'How Do I Count Characters for Twitter/X Posts?',
+    topicLabel: 'Twitter/X characters',
+    contentHighlights: [
+      'Standard Twitter/X posts allow 280 characters. URLs are shortened to 23 characters regardless of length, and some emoji count as 2 characters.',
+      'Threads allow you to chain multiple tweets, but each individual tweet still needs to stay within the 280-character limit for standard accounts.',
+    ],
+  },
+  'image-resizer': {
+    metaDesc: 'Resize images to exact dimensions or by percentage. Maintain aspect ratio or crop freely. Free, browser-based, no signup required. Try Tooliest.',
+    summaryHeading: 'How Do I Resize Images Online Without Uploads?',
+    topicLabel: 'images',
+    contentHighlights: [
+      'Common web image sizes include 1200x630 for Open Graph social cards, 1080x1080 for Instagram posts, and 1920x1080 for blog hero images.',
+      'Maintaining aspect ratio prevents stretching or squashing. Most image resizers lock the ratio by default and calculate the other dimension automatically.',
+    ],
+  },
+  'image-cropper': {
+    metaDesc: 'Crop images with preset ratios or custom dimensions. Remove unwanted areas and focus on what matters. Free, browser-based. Try Tooliest.',
+    summaryHeading: 'How Do I Crop Images Online Without Uploading?',
+    topicLabel: 'images',
+    contentHighlights: [
+      'Common crop ratios include 1:1 for profile photos and Instagram, 16:9 for YouTube thumbnails and presentations, and 4:3 for traditional photo prints.',
+      'Cropping differs from resizing: cropping removes parts of the image to change composition, while resizing scales the entire image up or down.',
+    ],
+  },
+  'js-obfuscator': {
+    metaDesc: 'Obfuscate JavaScript source code to protect logic from casual copying. Rename variables, encode strings, and add dead code. Free, private. Try Tooliest.',
+    summaryHeading: 'How Do I Obfuscate JavaScript Code Online?',
+    topicLabel: 'JavaScript',
+    contentHighlights: [
+      'Obfuscation makes code harder to read by renaming variables, encoding strings, and inserting dead code, but it does not provide true security against determined reverse engineering.',
+      'Common use cases include protecting client-side business logic, license validation code, and proprietary algorithms shipped in browser-based applications.',
+    ],
+  },
+  'base64-encoder': {
+    metaDesc: 'Encode and decode text and files with Base64 encoding. Convert between binary and text-safe formats. Free, browser-based. Try Tooliest.',
+    summaryHeading: 'How Do I Encode and Decode Base64 Online?',
+    contentHighlights: [
+      'Base64 encoding converts binary data into ASCII text, which is useful for embedding images in CSS, transmitting binary payloads in JSON, and encoding email attachments.',
+      'Base64 increases data size by about 33% because it represents 3 bytes of binary data as 4 ASCII characters, so it trades size for compatibility.',
+    ],
+  },
+  'url-encoder': {
+    metaDesc: 'Encode and decode URL strings with percent-encoding. Make URLs safe for browsers and APIs. Free, browser-based, no signup. Try Tooliest.',
+    summaryHeading: 'How Do I URL-Encode Special Characters?',
+    contentHighlights: [
+      'URL encoding replaces unsafe characters like spaces, ampersands, and equals signs with percent-encoded equivalents so they can be safely included in query strings and paths.',
+      'Forgetting to URL-encode user input in query parameters is a common source of broken links and can introduce security vulnerabilities in web applications.',
+    ],
+  },
+  'string-encoder': {
+    metaDesc: 'Encode and decode strings with Base64, URL encoding, HTML entities, and more. Compare formats side by side. Free, private. Try Tooliest.',
+    summaryHeading: 'How Do I Encode Text in Multiple Formats?',
+    contentHighlights: [
+      'Different encoding formats serve different purposes: Base64 for binary-to-text, URL encoding for query strings, HTML entities for safe markup display, and Unicode escapes for internationalization.',
+      'Seeing the same text encoded in multiple formats side by side helps developers choose the right encoding for their specific use case and catch double-encoding bugs.',
+    ],
+  },
 };
+
 
 const TOOLIEST_CATEGORY_AUDIENCES = {
   text: 'Writers, editors, students, marketers, and documentation teams handling everyday text workflows.',
