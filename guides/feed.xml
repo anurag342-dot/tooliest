@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tooliest Guides &amp; Tutorials</title>
+    <link>https://tooliest.com/guides/</link>
+    <description>In-depth guides on image optimization, CSS performance, PDF workflows, and more from Tooliest.</description>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 29 Apr 2026 12:00:00 +0545</lastBuildDate>
+    <atom:link href="https://tooliest.com/guides/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>How to Optimize Images for Web Without Losing Quality</title>
+      <link>https://tooliest.com/guides/optimize-images-for-web/</link>
+      <description>Learn how to compress, resize, and convert images for faster page loads without visible quality loss. Covers format selection, compression sweet spots, EXIF stripping, and responsive images with srcset.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Tue, 29 Apr 2026 12:00:00 +0545</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/optimize-images-for-web/</guid>
+    </item>
+    <item>
+      <title>CSS Minification: How It Works, Why It Matters, and When to Use It</title>
+      <link>https://tooliest.com/guides/css-minification-performance/</link>
+      <description>Understand what CSS minification removes, how it compares to GZIP compression, when not to minify, and how to integrate it into your build pipeline.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Tue, 29 Apr 2026 12:00:00 +0545</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/css-minification-performance/</guid>
+    </item>
+    <item>
+      <title>PDF Workflow Guide: Merge, Split, Compress, and Protect PDFs in the Browser</title>
+      <link>https://tooliest.com/guides/pdf-workflow-guide/</link>
+      <description>A complete guide to working with PDFs in the browser. Learn when to merge, split, compress, watermark, and password-protect PDFs without uploading files to external servers.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Tue, 29 Apr 2026 12:00:00 +0545</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/pdf-workflow-guide/</guid>
+    </item>
+  </channel>
+</rss>
