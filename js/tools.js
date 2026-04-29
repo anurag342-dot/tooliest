@@ -2897,6 +2897,12 @@ const TOOLIEST_SEO_OVERRIDES = {
     metaDesc: 'Count characters with and without spaces for Twitter, Instagram, meta descriptions, and other platform limits. Free, instant, no signup. Try Tooliest.',
     summaryHeading: 'How Do I Count Characters for Platform Limits?',
     topicLabel: 'characters',
+    howToSteps: [
+      { name: 'Paste or type your text', text: 'Enter the text you want to measure into the Character Counter editor. The counts begin updating immediately.' },
+      { name: 'Check characters with and without spaces', text: 'Compare both counts — some platforms like Twitter count spaces, while others like SMS character limits may not.' },
+      { name: 'Compare against platform limits', text: 'Reference the platform limit you are targeting (280 for Twitter, 150 for Instagram bios, 160 for meta descriptions) and trim your text accordingly.' },
+      { name: 'Copy the final version', text: 'Once your text fits within the target character limit, copy it directly into your post, bio, or metadata field.' },
+    ],
     contentHighlights: [
       'Platform character limits vary widely: Twitter/X allows 280, Instagram bios cap at 150, meta descriptions perform best under 160, and LinkedIn headlines allow 120 characters.',
       'Character counting with and without spaces matters because some platforms count spaces while others do not, and the difference can push you over a limit unexpectedly.',
@@ -2928,6 +2934,12 @@ const TOOLIEST_SEO_OVERRIDES = {
     metaDesc: 'Count characters for Twitter/X posts with a real-time limit indicator. Stay within 280 characters. Free, private, no signup. Try Tooliest.',
     summaryHeading: 'How Do I Count Characters for Twitter/X Posts?',
     topicLabel: 'Twitter/X characters',
+    howToSteps: [
+      { name: 'Type or paste your tweet', text: 'Enter your tweet text into the Twitter Counter editor. The character count starts updating immediately.' },
+      { name: 'Watch the 280-character limit bar', text: 'The live progress bar shows how close you are to the 280-character limit. It changes color as you approach the maximum.' },
+      { name: 'Account for URLs and emoji', text: 'Remember that Twitter shortens all URLs to 23 characters and some emoji count as 2 characters. The counter reflects the actual Twitter-counted length.' },
+      { name: 'Copy your tweet when ready', text: 'Once the counter confirms you are within the limit, copy the text and paste it directly into Twitter/X.' },
+    ],
     contentHighlights: [
       'Standard Twitter/X posts allow 280 characters. URLs are shortened to 23 characters regardless of length, and some emoji count as 2 characters.',
       'Threads allow you to chain multiple tweets, but each individual tweet still needs to stay within the 280-character limit for standard accounts.',
@@ -2937,6 +2949,12 @@ const TOOLIEST_SEO_OVERRIDES = {
     metaDesc: 'Resize images to exact dimensions or by percentage. Maintain aspect ratio or crop freely. Free, browser-based, no signup required. Try Tooliest.',
     summaryHeading: 'How Do I Resize Images Online Without Uploads?',
     topicLabel: 'images',
+    howToSteps: [
+      { name: 'Upload your image', text: 'Drag and drop or click to select the image you want to resize. The file stays in your browser and is never uploaded.' },
+      { name: 'Set the target dimensions', text: 'Enter exact width and height in pixels, or use a percentage to scale proportionally. Lock the aspect ratio to prevent distortion.' },
+      { name: 'Preview the resized result', text: 'See a live preview of how your image will look at the new dimensions before downloading.' },
+      { name: 'Download the resized image', text: 'Save the resized image in your preferred format (PNG, JPEG, or WebP) directly to your device.' },
+    ],
     contentHighlights: [
       'Common web image sizes include 1200x630 for Open Graph social cards, 1080x1080 for Instagram posts, and 1920x1080 for blog hero images.',
       'Maintaining aspect ratio prevents stretching or squashing. Most image resizers lock the ratio by default and calculate the other dimension automatically.',
@@ -2946,6 +2964,12 @@ const TOOLIEST_SEO_OVERRIDES = {
     metaDesc: 'Crop images with preset ratios or custom dimensions. Remove unwanted areas and focus on what matters. Free, browser-based. Try Tooliest.',
     summaryHeading: 'How Do I Crop Images Online Without Uploading?',
     topicLabel: 'images',
+    howToSteps: [
+      { name: 'Upload your image', text: 'Select or drag the image you want to crop. It loads instantly in the browser without any server upload.' },
+      { name: 'Choose a crop ratio or go freeform', text: 'Pick a preset ratio (1:1 for Instagram, 16:9 for YouTube, 4:3 for prints) or drag the crop area freely for custom dimensions.' },
+      { name: 'Position the crop area', text: 'Drag and resize the selection box to frame exactly the part of the image you want to keep.' },
+      { name: 'Download the cropped image', text: 'Hit crop and download the result. The original image outside the crop area is permanently removed from the output file.' },
+    ],
     contentHighlights: [
       'Common crop ratios include 1:1 for profile photos and Instagram, 16:9 for YouTube thumbnails and presentations, and 4:3 for traditional photo prints.',
       'Cropping differs from resizing: cropping removes parts of the image to change composition, while resizing scales the entire image up or down.',
@@ -3433,10 +3457,10 @@ function buildTooliestHowToSteps(tool) {
   switch (getTooliestOperationType(tool)) {
     case 'counter':
       return [
-        { name: 'Paste your text', text: `Paste or type the ${topic} content you want to measure into the ${tool.name} editor.` },
-        { name: 'Review the live totals', text: 'Watch the counters update instantly as you edit so you can see words, characters, or related limits in real time.' },
-        { name: 'Use the extra metrics', text: 'Check the supporting stats such as sentences, paragraphs, reading time, or readability when they are relevant to the workflow.' },
-        { name: 'Copy or refine the draft', text: 'Adjust the source text until it fits the target limit, then copy the final version or continue editing in place.' },
+        { name: 'Paste your text', text: `Paste or type your text into the ${tool.name} editor to start counting.` },
+        { name: 'Review the live totals', text: `Watch the ${topic} totals update instantly as you edit so you can track limits in real time.` },
+        { name: 'Check supporting metrics', text: 'Review additional stats like sentences, paragraphs, reading time, and readability scores to fine-tune your content.' },
+        { name: 'Copy or refine your text', text: 'Adjust your text until it fits the target limit, then copy the final version or continue editing in place.' },
       ];
     case 'formatter':
       return [
