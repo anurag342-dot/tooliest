@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){var match=window.location.pathname.match(/^\/tool\/([^/]+)\/?$/);if(!match)return;var target='/' + match[1] + (window.location.search||'') + (window.location.hash||'');window.location.replace(target);})();</script>
+  <script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>PDF Workflow Guide: Merge, Split, Compress, and Protect PDFs | Tooliest</title>
+  <meta name="description" content="A complete guide to working with PDFs in the browser. Learn when to merge, split, compress, watermark, and password-protect PDFs — all without uploading files to external servers.">
+  <meta name="author" content="Anurag">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#8b5cf6">
+  <script>try{const savedTheme=localStorage.getItem('tooliest_theme');if(savedTheme==='light'||savedTheme==='dark'){document.documentElement.setAttribute('data-theme',savedTheme);}}catch(_){}</script>
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="PDF Workflow Guide: Merge, Split, Compress, and Protect PDFs">
+  <meta property="og:description" content="Learn how to handle common PDF tasks entirely in the browser with privacy-first tools.">
+  <meta property="og:url" content="https://tooliest.com/guides/pdf-workflow-guide/">
+  <meta property="og:site_name" content="Tooliest">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://tooliest.com/guides/pdf-workflow-guide/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/css/styles3.min.css?v=20260429-e7738af7">
+  <script>window.__TOOLIEST_ASSET_VERSION='20260429-e7738af7';</script>
+  <script src="/js/consent.js?v=20260429-e7738af7" defer></script>
+  <style>
+    .guide-page { max-width: 780px; margin: 0 auto; padding: 40px 24px 80px; }
+    .guide-page h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; margin: 40px 0 20px; line-height: 1.2; }
+    .guide-page h2 { font-size: 1.4rem; font-weight: 700; margin: 36px 0 14px; color: var(--text-primary); }
+    .guide-page h3 { font-size: 1.1rem; font-weight: 600; margin: 24px 0 10px; }
+    .guide-page p { color: var(--text-secondary); line-height: 1.8; margin: 0 0 16px; }
+    .guide-page ul, .guide-page ol { color: var(--text-secondary); line-height: 1.8; margin: 0 0 20px; padding-left: 24px; }
+    .guide-page li { margin-bottom: 8px; }
+    .guide-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; color: var(--text-tertiary); font-size: 0.9rem; flex-wrap: wrap; }
+    .guide-breadcrumb { font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 16px; }
+    .guide-breadcrumb a { color: var(--accent-primary); }
+    .guide-cta { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin: 28px 0; }
+    .guide-cta a { color: var(--accent-primary); font-weight: 600; }
+    .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.92rem; }
+    .comparison-table th, .comparison-table td { padding: 10px 14px; border: 1px solid var(--border-color); text-align: left; }
+    .comparison-table th { background: var(--bg-tertiary); font-weight: 600; }
+    .comparison-table td { color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo" aria-label="Tooliest homepage">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text"><span>Tooliest</span></span>
+      </a>
+      <div class="nav-links" id="nav-links">
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+      </div>
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </nav>
+
+  <main class="main-content" id="main-content">
+    <article class="guide-page" itemscope itemtype="https://schema.org/Article">
+      <div class="guide-breadcrumb">
+        <a href="/">Home</a> → <a href="/guides/">Guides</a> → PDF Workflow
+      </div>
+
+      <h1 itemprop="headline">PDF Workflow Guide: Merge, Split, Compress, and Protect PDFs in the Browser</h1>
+      <div class="guide-meta">
+        <span>By <strong itemprop="author">Anurag</strong></span>
+        <time datetime="2026-04-29" itemprop="datePublished">April 29, 2026</time>
+        <span>~8 min read</span>
+      </div>
+
+      <p>PDFs are the universal document format — contracts, invoices, reports, and applications all rely on them. But working with PDFs has traditionally required expensive desktop software or uploading sensitive files to random web services. Neither is ideal when you're dealing with contracts, financial documents, or personal records.</p>
+
+      <p>I built Tooliest's suite of 15 PDF tools specifically to solve this problem. Every tool runs entirely in your browser using <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener noreferrer">PDF.js</a> (Mozilla's open-source PDF renderer) and <a href="https://pdf-lib.js.org/" target="_blank" rel="noopener noreferrer">pdf-lib</a>. Your files never leave your device — not even temporarily. Here's how to handle every common PDF task.</p>
+
+      <h2>1. Merging Multiple PDFs into One</h2>
+
+      <p><strong>When to use:</strong> Combining separate documents into a single file for submission, archiving, or sharing. Common scenarios include merging cover letter + resume, combining invoices for a quarterly report, or assembling a multi-section proposal.</p>
+
+      <p><strong>How it works:</strong> The merger reads each PDF's internal page tree, copies all pages into a new document in the order you specify, and preserves the original formatting, fonts, and embedded images. Bookmarks and form fields from the source documents are maintained where possible.</p>
+
+      <p><strong>Tips for better results:</strong></p>
+      <ul>
+        <li>Arrange files in the desired order before merging — it's faster than reordering pages after the fact</li>
+        <li>If one document is landscape and another is portrait, the merged PDF preserves each page's individual orientation</li>
+        <li>For very large merges (50+ pages), the browser may use significant memory. Close other tabs if you notice slowdowns</li>
+      </ul>
+
+      <div class="guide-cta">
+        🔧 <strong>Merge PDFs:</strong> <a href="/pdf-merger">Tooliest PDF Merger</a> — Drag and drop multiple files, reorder them, and download a single combined PDF.
+      </div>
+
+      <h2>2. Splitting a PDF into Separate Files</h2>
+
+      <p><strong>When to use:</strong> Extracting specific pages from a large document. Examples: pulling a single chapter from an ebook, separating individual invoices from a batch export, or isolating signature pages for separate distribution.</p>
+
+      <p><strong>How it works:</strong> You specify which pages to extract (e.g., "1-3, 7, 12-15"), and the tool creates a new PDF containing only those pages. The original file is never modified.</p>
+
+      <div class="guide-cta">
+        🔧 <strong>Split PDFs:</strong> <a href="/pdf-splitter">Tooliest PDF Splitter</a> — Enter page ranges and extract them instantly.
+      </div>
+
+      <h2>3. Compressing PDFs for Email and Upload</h2>
+
+      <p><strong>When to use:</strong> When a PDF exceeds email attachment limits (typically 25MB for Gmail), upload restrictions on government or job application portals, or when storage space matters.</p>
+
+      <p><strong>How compression works:</strong> PDF compression primarily targets embedded images, which are usually the largest component of a PDF's file size. The compressor re-encodes images at a lower quality setting and optionally removes unused fonts, metadata, and redundant objects from the PDF's internal structure.</p>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>PDF Content Type</th>
+            <th>Compression Potential</th>
+            <th>Quality Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Scanned documents</strong> (image-heavy)</td><td>50–80% reduction</td><td>Slight softening at high compression</td></tr>
+          <tr><td><strong>Mixed content</strong> (text + images)</td><td>30–60% reduction</td><td>Text stays crisp; images may soften</td></tr>
+          <tr><td><strong>Text-only PDFs</strong></td><td>5–15% reduction</td><td>No visible change</td></tr>
+          <tr><td><strong>Already compressed PDFs</strong></td><td>0–5% reduction</td><td>Diminishing returns</td></tr>
+        </tbody>
+      </table>
+
+      <div class="guide-cta">
+        🔧 <strong>Compress PDFs:</strong> <a href="/pdf-compressor">Tooliest PDF Compressor</a> — Choose your compression level and see the file size reduction.
+      </div>
+
+      <h2>4. Rotating and Reordering Pages</h2>
+
+      <p><strong>When to use:</strong> Fixing scanned documents where some pages are sideways or upside down, or rearranging pages that were scanned out of order.</p>
+
+      <p>Rotation works on individual pages or all pages at once. You can rotate 90°, 180°, or 270° clockwise. Reordering lets you drag pages into the correct sequence before saving.</p>
+
+      <div class="guide-cta">
+        🔧 <a href="/pdf-rotate">Rotate PDF Pages</a> · <a href="/pdf-reorder">Reorder PDF Pages</a>
+      </div>
+
+      <h2>5. Adding Watermarks</h2>
+
+      <p><strong>When to use:</strong> Marking documents as "DRAFT", "CONFIDENTIAL", or "SAMPLE" before distribution. Watermarks discourage unauthorized redistribution and make it clear that a document isn't final.</p>
+
+      <p><strong>Options:</strong> Text watermarks (custom text, font size, color, opacity, rotation angle) or image watermarks (company logo overlay). Both are applied non-destructively — the original content underneath remains intact.</p>
+
+      <div class="guide-cta">
+        🔧 <strong>Add watermarks:</strong> <a href="/pdf-watermark">Tooliest PDF Watermark</a> — Customize text, position, opacity, and color.
+      </div>
+
+      <h2>6. Password-Protecting PDFs</h2>
+
+      <p><strong>When to use:</strong> Securing sensitive documents like financial statements, medical records, or legal agreements before sending them via email or shared drives.</p>
+
+      <p>PDF encryption uses <strong>AES-256</strong>, which is the same encryption standard used by banks and government agencies. You set a password, and recipients must enter it to open the file. Without the password, the PDF's content is cryptographically inaccessible — not just hidden behind a dialog box.</p>
+
+      <p><strong>Important:</strong> If the recipient forgets the password, neither you nor Tooliest can recover it. The encryption happens entirely in your browser, so no password is ever transmitted or stored anywhere. Always share the password through a separate channel (e.g., send the PDF via email and the password via text message).</p>
+
+      <div class="guide-cta">
+        🔧 <strong>Protect PDFs:</strong> <a href="/pdf-protect">Tooliest PDF Password Protection</a> — AES-256 encryption, entirely in your browser.
+      </div>
+
+      <h2>7. Converting Between PDFs and Images</h2>
+
+      <p>Sometimes you need to go between formats:</p>
+      <ul>
+        <li><strong>PDF → Images:</strong> When you need to embed PDF pages in a presentation, social media post, or website. Each page becomes a separate PNG or JPEG. <a href="/pdf-to-images">Try PDF to Images →</a></li>
+        <li><strong>Images → PDF:</strong> When you need to combine photos, screenshots, or scans into a single document for submission. <a href="/images-to-pdf">Try Images to PDF →</a></li>
+        <li><strong>PDF → Text:</strong> When you need to extract the text content from a PDF for editing, translation, or analysis. <a href="/pdf-to-text">Try PDF to Text →</a></li>
+        <li><strong>Text → PDF:</strong> When you need to create a clean PDF from plain text. <a href="/text-to-pdf">Try Text to PDF →</a></li>
+      </ul>
+
+      <h2>Privacy: Why Browser-Based Matters for PDFs</h2>
+
+      <p>Most online PDF tools upload your file to a server, process it remotely, and return the result. Your sensitive documents pass through infrastructure you don't control, potentially stored in logs, cached by CDNs, or accessible to employees of the service.</p>
+
+      <p>Tooliest's PDF tools run entirely in your browser using JavaScript. The files you select are read by your browser's local File API, processed in memory, and the result is generated as a local download. At no point does any file data leave your device. You can verify this by opening your browser's Network tab while using any tool — you'll see zero file upload requests.</p>
+
+      <h2>Complete PDF Tool Reference</h2>
+
+      <table class="comparison-table">
+        <thead>
+          <tr><th>Task</th><th>Tool</th><th>Use Case</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Combine files</td><td><a href="/pdf-merger">PDF Merger</a></td><td>Combine resume + cover letter</td></tr>
+          <tr><td>Extract pages</td><td><a href="/pdf-splitter">PDF Splitter</a></td><td>Pull chapters from ebooks</td></tr>
+          <tr><td>Reduce size</td><td><a href="/pdf-compressor">PDF Compressor</a></td><td>Fit under email attachment limits</td></tr>
+          <tr><td>Fix orientation</td><td><a href="/pdf-rotate">PDF Rotate</a></td><td>Fix sideways scanned pages</td></tr>
+          <tr><td>Rearrange pages</td><td><a href="/pdf-reorder">PDF Reorder</a></td><td>Fix out-of-order scans</td></tr>
+          <tr><td>Extract pages</td><td><a href="/pdf-extract">PDF Extract</a></td><td>Save specific page ranges</td></tr>
+          <tr><td>Delete pages</td><td><a href="/pdf-delete-pages">Delete Pages</a></td><td>Remove blank/unwanted pages</td></tr>
+          <tr><td>Add watermark</td><td><a href="/pdf-watermark">PDF Watermark</a></td><td>Mark drafts as CONFIDENTIAL</td></tr>
+          <tr><td>Add page numbers</td><td><a href="/pdf-page-numbers">Page Numbers</a></td><td>Number pages for reference</td></tr>
+          <tr><td>Encrypt</td><td><a href="/pdf-protect">PDF Protect</a></td><td>AES-256 password encryption</td></tr>
+          <tr><td>Sign documents</td><td><a href="/signature-maker">Signature Maker</a></td><td>Create signatures for PDFs</td></tr>
+          <tr><td>PDF → Images</td><td><a href="/pdf-to-images">PDF to Images</a></td><td>Extract pages as PNG/JPEG</td></tr>
+          <tr><td>Images → PDF</td><td><a href="/images-to-pdf">Images to PDF</a></td><td>Combine photos into one document</td></tr>
+          <tr><td>PDF → Text</td><td><a href="/pdf-to-text">PDF to Text</a></td><td>Extract text for editing</td></tr>
+          <tr><td>Text → PDF</td><td><a href="/text-to-pdf">Text to PDF</a></td><td>Create PDFs from plain text</td></tr>
+        </tbody>
+      </table>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <p class="footer-brand-title">⚡ <span>Tooliest</span></p>
+        <p>Free browser-based tools for developers, designers, writers, and marketers. All tools run directly on your device for speed, privacy, and zero signup friction.</p>
+      </div>
+      <div class="footer-col">
+        <p class="footer-col-title">Company</p>
+        <ul>
+          <li><a href="/about">About Us</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/privacy">Privacy Policy</a></li>
+          <li><a href="/terms">Terms of Service</a></li>
+          <li><a href="/sitemap.html">All Tools (Sitemap)</a></li>
+          <li><a href="https://github.com/anurag342-dot/tooliest" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="adsense-disclosure">Tooliest is free to use &mdash; every tool runs privately in your browser with no data collection. <a href="/privacy">Read our privacy policy &rarr;</a></p>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Tooliest.com &mdash; All tools are free and run in your browser.</span>
+    </div>
+  </footer>
+
+  <div id="cookie-banner" role="dialog" aria-label="Cookie consent" aria-live="polite">
+    <div class="cookie-inner">
+      <div class="cookie-icon">🍪</div>
+      <div class="cookie-text">
+        <strong>We use browser storage and optional cookies to keep Tooliest free</strong>
+        <p>Tooliest uses browser storage to remember your privacy choices on this device. <a href="/privacy">Learn more.</a></p>
+      </div>
+      <div class="cookie-actions">
+        <button id="cookie-reject-btn">Reject Non-Essential</button>
+        <button id="cookie-accept-btn">Accept All Cookies</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      document.querySelector('.navbar')?.classList.toggle('scrolled', window.scrollY > 20);
+    });
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const navLinks = document.getElementById('nav-links');
+    mobileMenuBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navLinks?.classList.toggle('mobile-open');
+      const isOpen = navLinks?.classList.contains('mobile-open');
+      document.body.classList.toggle('nav-menu-open', Boolean(isOpen));
+      mobileMenuBtn.textContent = isOpen ? '✕' : '☰';
+      mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  </script>
+</body>
+</html>
