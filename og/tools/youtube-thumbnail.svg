@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">YouTube Thumbnail Previewer</title>
-  <desc id="desc">Preview youtube thumbnail before sharing or publishing. Free, private, and no signup required. Try YouTube Thumbnail Previewer on Tooliest now.</desc>
+  <desc id="desc">Preview how your YouTube thumbnail will look in search results and feeds. Free, private, and no signup required. Try YouTube Thumbnail Previewer on.</desc>
   <defs>
     <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
       <stop offset="0%" stop-color="#081221" />
@@ -25,9 +25,9 @@
   <text x="320" y="150" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="1.4" fill="#93c5fd">Social Media on Tooliest</text>
   <text x="320" y="235" font-family="Inter, Arial, sans-serif" font-size="62" font-weight="800" fill="#f8fafc">YouTube Thumbnail</text>
   <text x="320" y="309" font-family="Inter, Arial, sans-serif" font-size="62" font-weight="800" fill="#f8fafc">Previewer</text>
-  <text x="120" y="392" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">Preview youtube thumbnail before sharing or</text>
-  <text x="120" y="430" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">publishing. Free, private, and no signup</text>
-  <text x="120" y="468" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">required. Try YouTube Thumbnail Previewer on...</text>
+  <text x="120" y="392" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">Preview how your YouTube thumbnail will look in</text>
+  <text x="120" y="430" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">search results and feeds. Free, private, and no</text>
+  <text x="120" y="468" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">signup required. Try YouTube Thumbnail Previewer...</text>
   <rect x="120" y="486" width="260" height="56" rx="28" fill="rgba(139, 92, 246, 0.16)" stroke="rgba(139, 92, 246, 0.32)" />
   <text x="150" y="522" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#e9d5ff">Free and private</text>
   <text x="952" y="528" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" fill="#e2e8f0">tooliest.com</text>

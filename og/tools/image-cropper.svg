@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">Image Cropper</title>
-  <desc id="desc">Crop image cropper quickly and keep only the part you need. Free, private, and no signup required. Try Image Cropper on Tooliest now.</desc>
+  <desc id="desc">Crop images with preset ratios or custom dimensions. Free, private, and no signup required. Try Image Cropper on Tooliest now.</desc>
   <defs>
     <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
       <stop offset="0%" stop-color="#081221" />
@@ -24,8 +24,8 @@
   <text x="192" y="218" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="800" fill="#ffffff">T</text>
   <text x="320" y="150" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="1.4" fill="#93c5fd">Image Tools on Tooliest</text>
   <text x="320" y="235" font-family="Inter, Arial, sans-serif" font-size="62" font-weight="800" fill="#f8fafc">Image Cropper</text>
-  <text x="120" y="392" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">Crop image cropper quickly and keep only the</text>
-  <text x="120" y="430" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">part you need. Free, private, and no signup</text>
+  <text x="120" y="392" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">Crop images with preset ratios or custom</text>
+  <text x="120" y="430" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">dimensions. Free, private, and no signup</text>
   <text x="120" y="468" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="500" fill="#cbd5e1">required. Try Image Cropper on Tooliest now.</text>
   <rect x="120" y="486" width="260" height="56" rx="28" fill="rgba(139, 92, 246, 0.16)" stroke="rgba(139, 92, 246, 0.32)" />
   <text x="150" y="522" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700" fill="#e9d5ff">Free and private</text>

@@ -2119,7 +2119,7 @@ const TOOLS = [
 
 const TOOLIEST_REVIEWED_DATE = '2026-04-20';
 const TOOLIEST_REVIEWED_LABEL = 'April 20, 2026';
-const TOOLIEST_ENGINEERING_REVIEWER = 'Accuracy verified by the Tooliest Engineering Team';
+const TOOLIEST_ENGINEERING_REVIEWER = 'Maintained by the Tooliest team';
 const TOOLIEST_FINANCE_TOOL_IDS = new Set([
   'loan-mortgage-analyzer',
   'compound-interest',
@@ -2882,7 +2882,7 @@ function getTooliestTopicLabel(tool) {
 
   const cleaned = String(tool.name || '')
     .replace(/\b(Ultimate|Free|Online|Browser-Based)\b/gi, '')
-    .replace(/\b(Tool|Suite|Generator|Calculator|Analyzer|Formatter|Beautifier|Minifier|Checker|Previewer|Preview|Parser|Converter|Decoder|Encoder|Playground|Simulator|Validator)\b/gi, '')
+    .replace(/\b(Tool|Suite|Generator|Calculator|Analyzer|Formatter|Beautifier|Minifier|Checker|Previewer|Preview|Parser|Converter|Decoder|Encoder|Playground|Simulator|Validator|Counter|Reverser|Resizer|Cropper|Obfuscator|Compressor|Stripper|Tester|Maker|Writer)\b/gi, '')
     .replace(/[()/]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -2922,7 +2922,12 @@ function getTooliestWriterTaskLabel(tool) {
   if (label.includes('meta')) return 'meta descriptions';
   if (label.includes('paraphraser')) return 'text with new wording';
   if (label.includes('summarizer')) return 'summaries';
-  return 'content drafts';
+  if (label.includes('blog')) return 'blog ideas';
+  if (label.includes('hashtag')) return 'hashtags';
+  if (label.includes('caption') || label.includes('instagram')) return 'captions';
+  if (label.includes('palette') || label.includes('color')) return 'color palettes';
+  if (label.includes('schema')) return 'schema markup';
+  return tool.name.toLowerCase();
 }
 
 function getTooliestActionSentence(tool) {
@@ -3035,51 +3040,26 @@ function getTooliestHowToHeading(tool) {
 }
 
 function buildTooliestMetaLead(tool) {
-  const topic = getTooliestTopicLabel(tool).toLowerCase();
-  switch (getTooliestOperationType(tool)) {
-    case 'counter':
-      return `Count ${topic} instantly`;
-    case 'formatter':
-      return `Format ${topic} instantly with clean readable output`;
-    case 'minifier':
-      return `Minify ${topic} fast to reduce size and clutter`;
-    case 'checker':
-      return `Check ${topic} quickly and catch issues early`;
-    case 'calculator':
-      return `Calculate ${topic} with instant results and scenario testing`;
-    case 'writer':
-      return `Draft ${getTooliestWriterTaskLabel(tool)} with AI in seconds`;
-    case 'generator':
-      return `Generate ${topic} in seconds`;
-    case 'converter':
-      return `Convert ${topic} instantly`;
-    case 'encoder':
-      return `Encode or decode ${topic} in seconds`;
-    case 'parser':
-      return `Parse ${topic} into plain English instantly`;
-    case 'picker':
-      return `Pick ${topic} values and copy the exact code you need`;
-    case 'compressor':
-      return `Compress ${topic} quickly while keeping size and quality in balance`;
-    case 'resizer':
-      return `Resize ${topic} to the exact dimensions you need`;
-    case 'cropper':
-      return `Crop ${topic} quickly and keep only the part you need`;
-    case 'stripper':
-      return `Remove hidden ${topic} metadata before you share the file`;
-    case 'obfuscator':
-      return `Obfuscate ${topic} fast before shipping or sharing it`;
-    case 'preview':
-      return `Preview ${topic} before sharing or publishing`;
-    case 'simulator':
-      return `Simulate ${topic} quickly inside your browser`;
-    case 'reverser':
-      return `Reverse ${topic} instantly`;
-    case 'deduper':
-      return `Remove duplicate ${topic} entries in seconds`;
-    default:
-      return normalizeTooliestPlainText(tool.description).replace(/\.$/, '') || `${tool.name} runs directly in your browser`;
+  const override = getTooliestSeoOverride(tool).topicLabel;
+  if (override) {
+    const topic = override.toLowerCase();
+    switch (getTooliestOperationType(tool)) {
+      case 'counter': return `Count ${topic} instantly`;
+      case 'formatter': return `Format ${topic} instantly with clean readable output`;
+      case 'minifier': return `Minify ${topic} fast to reduce size and clutter`;
+      case 'checker': return `Check ${topic} quickly and catch issues early`;
+      case 'calculator': return `Calculate ${topic} with instant results and scenario testing`;
+      case 'writer': return `Draft ${getTooliestWriterTaskLabel(tool)} with AI in seconds`;
+      case 'generator': return `Generate ${topic} in seconds`;
+      case 'converter': return `Convert ${topic} instantly`;
+      case 'encoder': return `Encode or decode ${topic} in seconds`;
+      default: break;
+    }
   }
+  // Use the tool's own description as the lead — it's already human-written and unique
+  const desc = normalizeTooliestPlainText(tool.description).replace(/\.$/, '');
+  if (desc && desc.length > 20) return desc;
+  return `${tool.name} runs directly in your browser`;
 }
 
 function buildTooliestMetaDescription(tool) {
@@ -3091,11 +3071,12 @@ function buildTooliestMetaDescription(tool) {
     ? 'Free, browser-based, and no signup required.'
     : 'Free, private, and no signup required.';
   const cta = getTooliestOperationType(tool) === 'calculator'
-    ? `Plan faster with ${tool.name} on Tooliest.`
+    ? `Try ${tool.name} on Tooliest now.`
     : `Try ${tool.name} on Tooliest now.`;
 
   return truncateTooliestText(`${lead}. ${privacy} ${cta}`, 155);
 }
+
 
 function buildTooliestEducation(tool) {
   const topic = getTooliestTopicLabel(tool).toLowerCase();

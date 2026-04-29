@@ -1206,7 +1206,7 @@
     </section>
 
     <aside class="inv-sidebar">
-      <div class="ad-space" aria-label="Advertisement"><span>Advertisement</span></div>
+      <!-- Ad space removed for AdSense compliance: re-enable after approval -->
       <div class="inv-panel inv-preview-card">
         <div class="inv-preview-head" style="margin-bottom:14px">
           <h3>Live Preview</h3>

@@ -415,7 +415,7 @@ function applyPdfOverrides(tools) {
     tool.meta = tool.meta || {};
     if (override.metaTitle) tool.meta.title = override.metaTitle;
     if (override.metaDesc) tool.meta.desc = override.metaDesc;
-    tool.reviewedBy = 'Accuracy verified by the Tooliest Engineering Team';
+    tool.reviewedBy = 'Maintained by the Tooliest team';
   });
 }
 
@@ -489,7 +489,7 @@ function renderFooter() {
         </ul>
       </div>
     </div>
-    <p class="adsense-disclosure">Tooliest is supported by advertising through Google AdSense. Ad revenue helps keep every tool free. <a href="/privacy">Learn about our ad policy</a></p>
+    <p class="adsense-disclosure">Tooliest is free to use &mdash; every tool runs privately in your browser with no data collection. <a href="/privacy">Read our privacy policy</a></p>
     <div class="footer-bottom">
       <span>&copy; 2026 Tooliest.com - All tools are free and run in your browser.</span>
       <span>
@@ -830,7 +830,7 @@ function renderPage(tool, categories, tools, originalHtml) {
   const ogImageUrl = ogImage.startsWith('http') ? ogImage : getAbsoluteUrl(ogImage);
   const reviewedDate = tool.lastReviewed || BUILD_DATE;
   const reviewedLabel = tool.lastReviewedLabel || tool.lastReviewed || BUILD_DATE;
-  const reviewedBy = tool.reviewedBy || 'Accuracy verified by the Tooliest Engineering Team';
+  const reviewedBy = tool.reviewedBy || 'Maintained by the Tooliest team';
 
   return repairTextArtifacts(`<!DOCTYPE html>
 <html lang="en">
@@ -882,7 +882,8 @@ function renderPage(tool, categories, tools, originalHtml) {
   <link rel="stylesheet" href="${CSS_BUNDLE_PATH}">
   <script>window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}';</script>
   <script src="${CONSENT_PATH}" defer></script>
-  ${ADSENSE_SCRIPT_TAG}
+  <!-- AdSense script removed for compliance: re-enable after approval -->
+  <!-- ${ADSENSE_SCRIPT_TAG} -->
   ${buildStructuredData(tool, categories)}
 </head>
 <body>
