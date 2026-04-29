@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_CHANGELOG = [
+  { version: '3.19', date: '2026-04-29', items: ['Launched the Guides &amp; Tutorials section with three in-depth editorial articles on image optimization, CSS minification, and PDF workflows', 'Added unique educational content, HowTo steps, and FAQ extras to 17 tool pages including all minifiers, beautifiers, counters, and image tools', 'Improved site identity with founder info, GitHub link in navigation and footer, and honest privacy-first disclosure across all pages', 'Added Guides navigation link, homepage guides section, RSS feed, and sitemap entries for better discoverability'] },
   { version: '3.18', date: '2026-04-26', items: ['Added the browser-only Code Screenshot Generator with syntax highlighting, multi-file tabs, PNG and SVG export, and share-ready themes', 'Brought offline-ready code image creation into the developer workflow without server uploads or Carbon-style network dependence', 'Connected screenshot exports into JSON formatting, CSS cleanup, image compression, and QR sharing workflows'] },
   { version: '3.17', date: '2026-04-26', items: ['Added the private browser-based Typing Speed Test with words, sentences, code, numbers, and custom text practice', 'Shipped local personal best tracking, sparkline score history, mistake analysis, and a no-keystroke-upload privacy banner', 'Connected the typing workflow to Word Counter, Lorem Ipsum, and password practice tools for follow-up training'] },
   { version: '3.16', date: '2026-04-24', items: ['Added the browser-based Online Signature Maker with draw, type, and upload modes plus transparent PNG and SVG export', 'Connected signature workflows directly into invoices, PDF compression, password protection, and image resizing', 'Added realistic signature preview contexts so exported signatures can be checked against invoices, documents, and email use cases'] },
@@ -33,7 +34,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260429-4874c2bc';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260429-22f09cae';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';

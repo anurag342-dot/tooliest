@@ -3023,6 +3023,10 @@ function writeSitemap(tools, categories) {
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.privacy), priority: '0.3', changefreq: 'yearly', lastmod: getStaticPageLastModifiedDate('privacy.html') },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.3', changefreq: 'yearly', lastmod: getStaticPageLastModifiedDate('terms.html') },
     { loc: getAbsoluteUrl('/sitemap.html'), priority: '0.4', changefreq: 'monthly', lastmod: getSourceModifiedDate(['build.js', 'js/tools.js']) },
+    { loc: getAbsoluteUrl('/guides/'), priority: '0.7', changefreq: 'weekly', lastmod: getSiteLastModifiedDate() },
+    { loc: getAbsoluteUrl('/guides/optimize-images-for-web/'), priority: '0.8', changefreq: 'monthly', lastmod: getSiteLastModifiedDate() },
+    { loc: getAbsoluteUrl('/guides/css-minification-performance/'), priority: '0.8', changefreq: 'monthly', lastmod: getSiteLastModifiedDate() },
+    { loc: getAbsoluteUrl('/guides/pdf-workflow-guide/'), priority: '0.8', changefreq: 'monthly', lastmod: getSiteLastModifiedDate() },
   ];
 
   const categoryPages = getRenderableCategories(categories).map((category) => ({
@@ -3105,6 +3109,14 @@ function writeHtmlSitemap(tools, categories) {
       <h2><a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${SOFTWARE_CLUSTERS.length} published clusters)</span></h2>
       <ul>${SOFTWARE_CLUSTERS.map((cluster) => `<li><a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a> - ${escapeHtml(cluster.summary)}</li>`).join('')}</ul>
     </div>`;
+  const guidesBlock = `<div class="sitemap-category">
+      <h2><a href="/guides/">📚 Guides &amp; Tutorials</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(3 articles)</span></h2>
+      <ul>
+        <li><a href="/guides/optimize-images-for-web/">How to Optimize Images for Web Without Losing Quality</a> &mdash; Compress, resize, convert images for faster page loads. Covers formats, dimensions, and srcset.</li>
+        <li><a href="/guides/css-minification-performance/">CSS Minification: How It Works, Why It Matters</a> &mdash; Understand minification vs GZIP, when not to minify, and build pipeline integration.</li>
+        <li><a href="/guides/pdf-workflow-guide/">PDF Workflow Guide: Merge, Split, Compress, Protect</a> &mdash; Handle all common PDF tasks in the browser with privacy-first tools.</li>
+      </ul>
+    </div>`;
   const categoryBlocks = renderableCategories.map(cat => {
     const catTools = getCategoryTools(tools, cat.id);
     return `<div class="sitemap-category">
@@ -3127,6 +3139,7 @@ function writeHtmlSitemap(tools, categories) {
       <div class="tool-content-sections">
         ${staticBlock}
         ${softwareBlock}
+        ${guidesBlock}
         ${categoryBlocks}
       </div>
     </div>
