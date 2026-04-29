@@ -3079,6 +3079,18 @@ function writeSitemap(tools, categories) {
     writeSitemapUrlFile('sitemap-software.xml', softwarePages),
   ];
 
+  // Add guides sitemap if it exists
+  const guidesSitemapPath = path.join(__dirname, 'sitemap-guides.xml');
+  if (fs.existsSync(guidesSitemapPath)) {
+    sitemapFiles.push({ loc: getAbsoluteUrl('/sitemap-guides.xml'), lastmod: getSiteLastModifiedDate() });
+  }
+
+  // Copy feed.xml to root for discoverability
+  const guidesFeedSrc = path.join(__dirname, 'guides', 'feed.xml');
+  if (fs.existsSync(guidesFeedSrc)) {
+    fs.copyFileSync(guidesFeedSrc, path.join(__dirname, 'feed.xml'));
+  }
+
   const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapFiles.map((entry) => `  <sitemap>\n    <loc>${escapeXml(entry.loc)}</loc>\n    <lastmod>${escapeXml(entry.lastmod)}</lastmod>\n  </sitemap>`).join('\n')}\n</sitemapindex>\n`;
   fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), sitemapIndex);
 
