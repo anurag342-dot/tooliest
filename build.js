@@ -1579,6 +1579,7 @@ function renderNavbar() {
         <a href="/category/ai">AI Tools</a>
         <a href="/category/pdf">PDF</a>
         <a href="/category/developer">Dev</a>
+        <a href="/guides/">Guides</a>
         <a href="${STATIC_PAGE_PATHS.about}">About</a>
         <a href="#" id="nav-install-btn" style="color:var(--accent-primary);font-weight:600;">Install App</a>
         <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="App.toggleTheme()" aria-label="Toggle theme">&#9728;</button>
