@@ -239,7 +239,7 @@ async function callOpenRouter(prompt, apiKey) {
         'X-Title': 'Tooliest AI Tools',
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-3.3-70b-instruct:free',
+        model: 'openrouter/free',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 1024,
         temperature: 0.7,
@@ -388,9 +388,9 @@ export async function onRequest(context) {
 
   if (openRouterResult.ok) {
     return finish(
-      json({ success: true, result: openRouterResult.text, model: 'nvidia' }, 200, origin),
+      json({ success: true, result: openRouterResult.text, model: 'openrouter' }, 200, origin),
       true,
-      'nvidia'
+      'openrouter'
     );
   }
 
@@ -398,7 +398,7 @@ export async function onRequest(context) {
     return finish(
       json({ success: false, error: 'AI returned an unexpected response. Try again.' }, 502, origin),
       false,
-      'nvidia'
+      'openrouter'
     );
   }
 
@@ -406,7 +406,7 @@ export async function onRequest(context) {
     return finish(
       json({ success: false, error: 'Could not reach AI service. Check your connection.' }, 503, origin),
       false,
-      'nvidia'
+      'openrouter'
     );
   }
 
@@ -414,13 +414,13 @@ export async function onRequest(context) {
     return finish(
       json({ success: false, error: 'AI service is busy. Please try again shortly.' }, 429, origin),
       false,
-      'nvidia'
+      'openrouter'
     );
   }
 
   return finish(
     json({ success: false, error: 'AI service temporarily unavailable. Try again in a moment.' }, 503, origin),
     false,
-    'nvidia'
+    'openrouter'
   );
 }

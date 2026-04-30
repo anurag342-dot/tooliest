@@ -960,10 +960,20 @@ async function callAI(tool, input, options = {}) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tool, input: trimmed, options }),
     });
-    if (response.status === 429) { showError('Too many requests. Please wait a few minutes and try again.'); return null; }
-    if (response.status === 413) { showError('Input is too long. Please shorten it and try again.'); return null; }
-    if (response.status === 403) { showError('Request blocked. Please refresh the page and try again.'); return null; }
-    if (!response.ok) { showError('Something went wrong. Please try again shortly.'); return null; }
+
+    let errorMessage = '';
+    if (!response.ok) {
+      try {
+        const errorData = await response.clone().json();
+        errorMessage = typeof errorData?.error === 'string' ? errorData.error : '';
+      } catch (_) {}
+    }
+
+    if (response.status === 429) { showError(errorMessage || 'Too many requests. Please wait a few minutes and try again.'); return null; }
+    if (response.status === 413) { showError(errorMessage || 'Input is too long. Please shorten it and try again.'); return null; }
+    if (response.status === 403) { showError(errorMessage || 'Request blocked. Please refresh the page and try again.'); return null; }
+    if (!response.ok) { showError(errorMessage || 'Something went wrong. Please try again shortly.'); return null; }
+
     const data = await response.json();
     if (data.success) { showResult(data.result); return data.result; }
     showError(data.error || 'AI could not process this. Please rephrase and try again.');
