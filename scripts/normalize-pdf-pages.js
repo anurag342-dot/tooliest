@@ -441,7 +441,7 @@ function renderNavbar() {
         <a href="/about">About</a>
         <a href="#" id="nav-install-btn" style="color:var(--accent-primary);font-weight:600;">Install App</a>
         <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="window.App&&App.toggleTheme&&App.toggleTheme()" aria-label="Toggle theme">&#9728;</button>
-        <button class="theme-toggle-btn" id="changelog-btn" onclick="window.App&&App.showChangelog&&App.showChangelog()" aria-label="What's new" title="What's New">&#127381;</button>
+        <button class="theme-toggle-btn" id="whats-new-btn" onclick="window.App&&App.showWhatsNew&&App.showWhatsNew()" aria-label="What's new" title="What's New">&#127381;</button>
       </div>
       <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Open search">&#128269;</button>
       <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open navigation menu">&#9776;</button>
@@ -549,7 +549,6 @@ function renderToolContentSections(tool, categories) {
   const steps = Array.isArray(tool.howToSteps) ? tool.howToSteps : [];
   const highlights = Array.isArray(tool.contentHighlights) ? tool.contentHighlights : [];
   const faq = Array.isArray(tool.faq) ? tool.faq : [];
-  const changelog = Array.isArray(tool.changelog) ? tool.changelog : [];
   const references = Array.isArray(tool.referenceLinks) ? tool.referenceLinks : [];
   const relatedCategories = getRelatedCategories(tool, categories);
 
@@ -610,12 +609,6 @@ function renderToolContentSections(tool, categories) {
     </section>`
     : '';
 
-  const changelogHtml = changelog.length
-    ? `<section class="tool-content-section">
-      <h2>Changelog</h2>
-      <ul class="changelog-list">${changelog.map((entry) => `<li><time datetime="${escapeAttr(entry.date)}">${escapeHtml(entry.date)}</time> - ${escapeHtml(entry.text)}</li>`).join('')}</ul>
-    </section>`
-    : '';
 
   const referencesHtml = references.length
     ? `<section class="tool-content-section">
@@ -639,7 +632,6 @@ function renderToolContentSections(tool, categories) {
       ${whoUsesHtml}
       ${faqHtml}
       ${relatedCategoriesHtml}
-      ${changelogHtml}
       ${referencesHtml}
     </div>
   </article>`;

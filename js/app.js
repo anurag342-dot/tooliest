@@ -2,7 +2,8 @@
 // TOOLIEST.COM — Main Application (SPA Router)
 // ============================================
 
-const TOOLIEST_CHANGELOG = [
+const TOOLIEST_WHATS_NEW = [
+  { version: '3.20', date: '2026-04-30', items: ['Removed the repeated release-history sections from tool pages so the educational content stays cleaner and easier to scan', 'Removed the About page release-history block and kept product updates in one shared What&apos;s New panel instead of duplicating them across the site', 'Refreshed the What&apos;s New feed and navigation label so the latest updates stay easy to find without cluttering normal tool pages'] },
   { version: '3.19', date: '2026-04-29', items: ['Launched the Guides &amp; Tutorials section with three in-depth editorial articles on image optimization, CSS minification, and PDF workflows', 'Added unique educational content, HowTo steps, and FAQ extras to 17 tool pages including all minifiers, beautifiers, counters, and image tools', 'Improved site identity with founder info, GitHub link in navigation and footer, and honest privacy-first disclosure across all pages', 'Added Guides navigation link, homepage guides section, RSS feed, and sitemap entries for better discoverability'] },
   { version: '3.18', date: '2026-04-26', items: ['Added the browser-only Code Screenshot Generator with syntax highlighting, multi-file tabs, PNG and SVG export, and share-ready themes', 'Brought offline-ready code image creation into the developer workflow without server uploads or Carbon-style network dependence', 'Connected screenshot exports into JSON formatting, CSS cleanup, image compression, and QR sharing workflows'] },
   { version: '3.17', date: '2026-04-26', items: ['Added the private browser-based Typing Speed Test with words, sentences, code, numbers, and custom text practice', 'Shipped local personal best tracking, sparkline score history, mistake analysis, and a no-keystroke-upload privacy banner', 'Connected the typing workflow to Word Counter, Lorem Ipsum, and password practice tools for follow-up training'] },
@@ -14,7 +15,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '3.11', date: '2026-04-23', items: ['Trimmed the oversized empty space under embedded PDF workspaces', 'Changed the embedded PDF height measurement to follow the real workspace content instead of the full viewport', 'Reduced the fallback PDF frame height for cleaner first paint on document tools'] },
   { version: '3.10', date: '2026-04-23', items: ['Moved PDF tools into isolated embedded workspaces so uploads, drag-and-drop, and downloads keep their original behavior', 'Stopped SPA re-hydration from overwriting embedded standalone PDF documents', 'Refreshed asset versions to flush the broken cached PDF tool shell'] },
   { version: '3.9', date: '2026-04-21', items: ['Allowed the shared PDF CDN dependencies inside the site security policy', 'Preserved direct external PDF helper scripts when mounting PDF tools into the Tooliest shell', 'Refreshed asset versions so browsers stop serving the broken PDF library path'] },
-  { version: '3.8', date: '2026-04-21', items: ['Moved PDF tools onto the normal Tooliest tool-page shell without forced full-page jumps', 'Restored compare, performance, trust, and quick-action sections on PDF tool pages', 'Swapped the changelog pill to a simple new emoji and refreshed cached shell assets'] },
+  { version: '3.8', date: '2026-04-21', items: ['Moved PDF tools onto the normal Tooliest tool-page shell without forced full-page jumps', 'Restored compare, performance, trust, and quick-action sections on PDF tool pages', 'Swapped the updates pill to a simple new emoji and refreshed cached shell assets'] },
   { version: '3.7', date: '2026-04-21', items: ['Repaired broken shell icons and text that were showing as corrupted symbols', 'Restored the PDF category, updated tool totals, and refreshed the homepage shell', 'Made the install entry consistently visible with browser-menu fallback guidance'] },
   { version: '3.6', date: '2026-04-20', items: ['Reduced repeated tool-count messaging across the homepage hero', 'Bumped the asset version to flush stale cached homepage shells after the SEO refresh'] },
   { version: '3.5', date: '2026-04-18', items: ['Removed duplicate tool-introduction blocks from tool pages', 'Kept the structured What Is section as the single explanation area for each tool'] },
@@ -34,7 +35,7 @@ const TOOLIEST_CHANGELOG = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260429-77a719ef';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260430-bd6913ad';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -1930,7 +1931,7 @@ const App = {
     const versionMatch = TOOLIEST_ASSET_VERSION.match(/^(\d{4})(\d{2})(\d{2})/);
     const releaseDate = versionMatch
       ? `${versionMatch[1]}-${versionMatch[2]}-${versionMatch[3]}`
-      : (TOOLIEST_CHANGELOG[0]?.date || new Date().toISOString().split('T')[0]);
+      : (TOOLIEST_WHATS_NEW[0]?.date || new Date().toISOString().split('T')[0]);
 
     return new Date(`${releaseDate}T00:00:00`).toLocaleDateString(undefined, {
       year: 'numeric',
@@ -2037,12 +2038,6 @@ const App = {
         <ul>${relatedCategories.map((category) => `<li><a href="${this.getCategoryPath(category.id)}">${this.escapeHTML(category.name)}</a> — ${category.count || 0} tools</li>`).join('')}</ul>
       </section>`
       : '';
-    const changelogHtml = Array.isArray(tool.changelog) && tool.changelog.length
-      ? `<section class="tool-content-section">
-        <h2>Changelog</h2>
-        <ul class="changelog-list">${tool.changelog.map((entry) => `<li><time datetime="${this.escapeHTML(entry.date)}">${this.escapeHTML(entry.date)}</time> — ${this.escapeHTML(entry.text)}</li>`).join('')}</ul>
-      </section>`
-      : '';
     const referencesHtml = Array.isArray(tool.referenceLinks) && tool.referenceLinks.length
       ? `<section class="tool-content-section">
         <h2>Reference Sources</h2>
@@ -2078,7 +2073,6 @@ const App = {
       ${whoUsesHtml}
       ${faqHtml}
       ${relatedCategoriesHtml}
-      ${changelogHtml}
       ${referencesHtml}
       </div>
     </article>`;
@@ -3283,19 +3277,19 @@ const App = {
     document.getElementById('shortcuts-close')?.addEventListener('click', dismiss);
   },
 
-  // ===== FEAT-05: WHAT'S NEW CHANGELOG =====
-  showChangelog() {
-    const existing = document.getElementById('changelog-overlay');
-    if (existing) { this.dismissManagedOverlay('changelog-overlay'); return; }
+  // ===== FEAT-05: WHAT'S NEW PANEL =====
+  showWhatsNew() {
+    const existing = document.getElementById('whats-new-overlay');
+    if (existing) { this.dismissManagedOverlay('whats-new-overlay'); return; }
     const overlay = document.createElement('div');
-    overlay.id = 'changelog-overlay';
-    overlay.innerHTML = `<div class="changelog-panel" role="dialog" aria-modal="true" aria-label="Tooliest changelog" tabindex="-1">
+    overlay.id = 'whats-new-overlay';
+    overlay.innerHTML = `<div class="whats-new-panel" role="dialog" aria-modal="true" aria-label="Tooliest what's new" tabindex="-1">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
         <h2 style="font-size:1.2rem;font-weight:700">🆕 What's New</h2>
-        <button id="changelog-close" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer">✕</button>
+        <button id="whats-new-close" style="background:none;border:none;color:var(--text-secondary);font-size:1.3rem;cursor:pointer">✕</button>
       </div>
-      ${TOOLIEST_CHANGELOG.map(v => `
-        <div class="changelog-entry">
+      ${TOOLIEST_WHATS_NEW.map(v => `
+        <div class="whats-new-entry">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-weight:700;color:var(--accent-primary)">v${v.version}</span>
             <span style="font-size:0.8rem;color:var(--text-tertiary)">${v.date}</span>
@@ -3307,7 +3301,7 @@ const App = {
       `).join('')}
     </div>`;
     document.body.appendChild(overlay);
-    const panel = overlay.querySelector('.changelog-panel');
+    const panel = overlay.querySelector('.whats-new-panel');
     let releaseFocus = null;
     const dismiss = () => {
       releaseFocus?.();
@@ -3316,8 +3310,8 @@ const App = {
     overlay.__tooliestDismiss = dismiss;
     releaseFocus = this.activateOverlayFocusTrap(overlay, panel, dismiss);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
-    document.getElementById('changelog-close')?.addEventListener('click', dismiss);
-    safeLocalSet('tooliest_changelog_seen', TOOLIEST_CHANGELOG[0].version);
+    document.getElementById('whats-new-close')?.addEventListener('click', dismiss);
+    safeLocalSet('tooliest_whats_new_seen', TOOLIEST_WHATS_NEW[0].version);
   },
 };
 
@@ -3379,7 +3373,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (App.dismissManagedOverlay('email-capture-overlay')) return;
     if (App.dismissManagedOverlay('shortcuts-overlay')) return;
-    if (App.dismissManagedOverlay('changelog-overlay')) return;
+    if (App.dismissManagedOverlay('whats-new-overlay')) return;
     if (App.dismissManagedOverlay('welcome-tour-overlay')) return;
     return;
   }

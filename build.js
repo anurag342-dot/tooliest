@@ -1583,7 +1583,7 @@ function renderNavbar() {
         <a href="${STATIC_PAGE_PATHS.about}">About</a>
         <a href="#" id="nav-install-btn" style="color:var(--accent-primary);font-weight:600;">Install App</a>
         <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="App.toggleTheme()" aria-label="Toggle theme">&#9728;</button>
-        <button class="theme-toggle-btn" id="changelog-btn" onclick="App.showChangelog()" aria-label="What's new" title="What's New">🆕</button>
+        <button class="theme-toggle-btn" id="whats-new-btn" onclick="App.showWhatsNew()" aria-label="What's new" title="What's New">🆕</button>
       </div>
 
       <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Open search">&#128269;</button>
@@ -1865,12 +1865,6 @@ function renderToolContentSections(tool, categories) {
     </section>`
     : '';
 
-  const changelogHtml = Array.isArray(tool.changelog) && tool.changelog.length
-    ? `<section class="tool-content-section">
-      <h2>Changelog</h2>
-      <ul class="changelog-list">${tool.changelog.map((entry) => `<li><time datetime="${escapeAttr(entry.date)}">${escapeHtml(entry.date)}</time> - ${escapeHtml(entry.text)}</li>`).join('')}</ul>
-    </section>`
-    : '';
 
   return `<article class="tool-article">
     <div class="tool-content-sections">
@@ -1891,7 +1885,6 @@ function renderToolContentSections(tool, categories) {
     ${whoUsesHtml}
     ${faqHtml}
     ${relatedCategoriesHtml}
-    ${changelogHtml}
     ${referencesHtml}
     </div>
   </article>`;

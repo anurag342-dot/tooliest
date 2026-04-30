@@ -3629,23 +3629,6 @@ function buildTooliestAccuracyDisclaimer(tool) {
   return 'These results are estimates for planning purposes only. Rates, taxes, fees, returns, and real-world conditions can materially change the outcome.';
 }
 
-function buildTooliestChangelog(tool) {
-  const topic = getTooliestTopicLabel(tool).toLowerCase();
-  return [
-    {
-      date: TOOLIEST_REVIEWED_DATE,
-      text: `Reviewed and refreshed the crawlable ${topic} content, metadata, and structured data for stronger search visibility.`,
-    },
-    {
-      date: '2026-04-18',
-      text: 'Improved the first-load page experience so the crawlable explanation and live workspace stay aligned.',
-    },
-    {
-      date: '2026-03-15',
-      text: `Published the browser-based ${tool.name} workflow on Tooliest.`,
-    },
-  ];
-}
 
 function buildTooliestReferenceLinks(tool) {
   const override = getTooliestSeoOverride(tool).referenceLinks;
@@ -3696,7 +3679,6 @@ TOOLS.forEach((tool) => {
     : (TOOLIEST_HOME_CATEGORY_RELATIONS[tool.category] || []);
   tool.aeoSnippet = override.aeoSnippet || tool.aeoSnippet || null;
   tool.contentHighlights = mergeTooliestList(tool.contentHighlights, override.contentHighlights || [], 3);
-  tool.changelog = override.changelog || tool.changelog || buildTooliestChangelog(tool);
   tool.methodology = buildTooliestMethodology(tool);
   tool.accuracyDisclaimer = buildTooliestAccuracyDisclaimer(tool);
   tool.referenceLinks = buildTooliestReferenceLinks(tool);

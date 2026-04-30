@@ -149,8 +149,8 @@
   background: rgba(139, 92, 246, 0.08);
 }
 
-/* === Overlay Panels (Shortcuts + Changelog) === */
-#shortcuts-overlay, #changelog-overlay, #email-capture-overlay {
+/* === Overlay Panels (Shortcuts + What's New) === */
+#shortcuts-overlay, #whats-new-overlay, #email-capture-overlay {
   position: fixed;
   inset: 0;
   z-index: var(--z-overlay);
@@ -164,7 +164,7 @@
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-.shortcuts-panel, .changelog-panel, .email-capture-panel {
+.shortcuts-panel, .whats-new-panel, .email-capture-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -229,12 +229,12 @@ kbd {
   color: var(--text-primary);
 }
 
-.changelog-entry {
+.whats-new-entry {
   padding: 16px 0;
   border-bottom: 1px solid var(--border-color);
 }
 
-.changelog-entry:last-child { border-bottom: none; }
+.whats-new-entry:last-child { border-bottom: none; }
 
 .email-capture-panel {
   width: min(560px, 100%);
@@ -1452,11 +1452,6 @@ body.nav-menu-open {
   color: var(--text-secondary);
 }
 
-.changelog-list {
-  list-style: none;
-  display: grid;
-  gap: 12px;
-}
 
 .changelog-list li {
   padding-left: 0;
@@ -3147,7 +3142,7 @@ body.embed-mode.standalone-tool-embed {
     content: 'Theme';
   }
 
-  .nav-links.mobile-open #changelog-btn::after {
+  .nav-links.mobile-open #whats-new-btn::after {
     content: "What's New";
   }
 
