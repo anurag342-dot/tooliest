@@ -229,21 +229,20 @@ async function callGemini(prompt, apiKey) {
 
 async function callOpenRouter(prompt, apiKey) {
   let response;
-
   try {
-    response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+    response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://tooliest.com',
+        'X-Title': 'Tooliest AI Tools',
       },
       body: JSON.stringify({
-        model: 'deepseek-ai/deepseek-v4-pro',
+        model: 'meta-llama/llama-3.3-70b-instruct:free',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 1024,
         temperature: 0.7,
-        top_p: 0.95,
-        stream: false,
       }),
     });
   } catch (_) {
@@ -268,7 +267,6 @@ async function callOpenRouter(prompt, apiKey) {
 
   return { ok: true, text: text.trim() };
 }
-
 export async function onRequest(context) {
   const request = context.request;
   const startedAt = Date.now();
@@ -381,7 +379,7 @@ export async function onRequest(context) {
     );
   }
 
-  const openRouterResult = await callOpenRouter(prompt, context.env.NVIDIA_API_KEY);
+  const openRouterResult = await callOpenRouter(prompt, context.env.OPENROUTER_API_KEY);
 
   if (openRouterResult.ok) {
     return finish(
