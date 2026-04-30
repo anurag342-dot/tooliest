@@ -420,38 +420,7 @@ Object.assign(ToolRenderers.renderers, {
     _cs(c);
   },
 
-  // ===== AI TOOLS =====
-  'ai-text-summarizer'(c) {
-    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Paste text to summarize</label><textarea id="tool-input" rows="10" placeholder="Paste a long article or text here..."></textarea></div><div class="input-group"><label>Summary sentences: <span id="as-cnt">3</span></label><input type="range" id="as-count" min="1" max="10" value="3"></div><button class="btn btn-primary mb-4">✨ Summarize with AI</button><div class="input-group"><label>Summary</label><div class="output-area empty" id="tool-output"><button class="copy-btn hidden" id="copy-btn">Copy</button></div></div></div>`;
-    document.getElementById('as-count').addEventListener('input',(e)=>document.getElementById('as-cnt').textContent=e.target.value);
-    c.querySelector('.btn-primary').addEventListener('click',()=>{const text=document.getElementById('tool-input').value;const count=+document.getElementById('as-count').value;if(!text.trim()){App.toast('Enter text to summarize');return}const summary=AI.summarize(text,count);_show(summary)});
-    _cs(c);
-  },
-
-  'ai-paraphraser'(c) {
-    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Enter text to paraphrase</label><textarea id="tool-input" rows="6" placeholder="Enter text here..."></textarea></div><div class="input-group"><label>Style</label><select id="ap-style"><option value="standard">Standard</option><option value="formal">Formal</option><option value="creative">Creative</option></select></div><button class="btn btn-primary mb-4">🔄 Paraphrase with AI</button><div class="input-group"><label>Paraphrased Text</label><div class="output-area empty" id="tool-output"><button class="copy-btn hidden" id="copy-btn">Copy</button></div></div></div>`;
-    c.querySelector('.btn-primary').addEventListener('click',()=>{const text=document.getElementById('tool-input').value;const style=document.getElementById('ap-style').value;if(!text.trim())return;_show(AI.paraphrase(text,style))});
-    _cs(c);
-  },
-
-  'ai-email-writer'(c) {
-    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Email Purpose</label><select id="ae-purpose"><option value="follow-up">Follow Up</option><option value="meeting-request">Meeting Request</option><option value="thank-you">Thank You</option><option value="introduction">Introduction</option><option value="general">General</option></select></div><div class="input-group"><label>Recipient Name</label><input type="text" id="ae-recipient" placeholder="John Smith"></div><div class="input-group"><label>Tone</label><select id="ae-tone"><option value="professional">💼 Professional</option><option value="casual">😎 Casual</option><option value="friendly">😊 Friendly</option></select></div><div class="input-group"><label>Details (optional)</label><input type="text" id="ae-details" placeholder="Brief context..."></div><button class="btn btn-primary mb-4">✉️ Generate Email</button><div class="input-group"><label>Generated Email</label><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><button class="copy-btn hidden" id="copy-btn">Copy</button></div></div></div>`;
-    c.querySelector('.btn-primary').addEventListener('click',()=>{const purpose=document.getElementById('ae-purpose').value;const recipient=document.getElementById('ae-recipient').value;const tone=document.getElementById('ae-tone').value;const details=document.getElementById('ae-details').value;_show(AI.writeEmail(purpose,recipient,tone,details))});
-    _cs(c);
-  },
-
-  'ai-blog-ideas'(c) {
-    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Topic or Keyword</label><input type="text" id="bi-topic" placeholder="artificial intelligence, fitness, cooking..."></div><div class="input-group"><label>Number of ideas: <span id="bi-cnt">5</span></label><input type="range" id="bi-count" min="3" max="15" value="5"></div><button class="btn btn-primary mb-4">💡 Generate Ideas</button><div id="bi-results"></div></div>`;
-    document.getElementById('bi-count').addEventListener('input',(e)=>document.getElementById('bi-cnt').textContent=e.target.value);
-    c.querySelector('.btn-primary').addEventListener('click',()=>{const topic=document.getElementById('bi-topic').value;const count=+document.getElementById('bi-count').value;if(!topic)return;const ideas=AI.generateBlogIdeas(topic,count);const results=document.getElementById('bi-results');results.innerHTML=ideas.map((idea,i)=>`<div class="bi-copy-item" data-copy="${ToolRenderers.escapeAttr(idea)}" style="padding:14px;background:var(--bg-glass);border:1px solid var(--border-color);border-radius:var(--radius-md);margin-bottom:8px;cursor:pointer;transition:border-color 0.2s"><span style="color:var(--accent-primary);font-weight:700;margin-right:8px">${i+1}.</span>${ToolRenderers.escapeHtml(idea)}</div>`).join('');results.querySelectorAll('.bi-copy-item').forEach((item)=>{item.addEventListener('click',()=>copyToClipboard(item.dataset.copy||''));item.addEventListener('mouseenter',()=>{item.style.borderColor='var(--border-accent)';});item.addEventListener('mouseleave',()=>{item.style.borderColor='var(--border-color)';});});});
-  },
-
-  'ai-meta-writer'(c) {
-    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Page Title</label><input type="text" id="am-title" placeholder="My Blog Post Title"></div><div class="input-group"><label>Target Keyword (optional)</label><input type="text" id="am-keyword" placeholder="seo tools"></div><button class="btn btn-primary mb-4">✨ Generate Meta Descriptions</button><div id="am-results"></div></div>`;
-    c.querySelector('.btn-primary').addEventListener('click',()=>{const title=document.getElementById('am-title').value;const keyword=document.getElementById('am-keyword').value;if(!title)return;const descriptions=[];for(let i=0;i<5;i++)descriptions.push(AI.writeMetaDescription(title,'',keyword));const results=document.getElementById('am-results');results.innerHTML=descriptions.map((desc,i)=>{const len=desc.length;const color=len>160?'#f43f5e':len>140?'#f59e0b':'#10b981';return`<div class="meta-copy-item" data-copy="${ToolRenderers.escapeAttr(desc)}" style="padding:14px;background:var(--bg-glass);border:1px solid var(--border-color);border-radius:var(--radius-md);margin-bottom:8px;cursor:pointer"><div class="flex justify-between items-center mb-2"><span style="font-weight:600;color:var(--accent-primary)">Option ${i+1}</span><span style="font-size:0.75rem;color:${color}">${len}/160 chars</span></div><p class="meta-text" style="font-size:0.9rem;line-height:1.5">${ToolRenderers.escapeHtml(desc)}</p></div>`}).join('');results.querySelectorAll('.meta-copy-item').forEach((item)=>{item.addEventListener('click',()=>copyToClipboard(item.dataset.copy||''));});});
-  },
-
-  // ===== DEVELOPER =====
+   // ===== DEVELOPER =====
   'cron-parser'(c) {
     c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Cron Expression</label><input type="text" id="cp-input" value="0 9 * * 1-5" placeholder="* * * * *"></div><div style="font-size:0.8rem;color:var(--text-tertiary);margin-bottom:16px;font-family:var(--font-mono)">minute hour day-of-month month day-of-week</div><div class="stat-card" id="cp-result" style="text-align:left;padding:20px"></div><div class="color-values mt-4" id="cp-fields"></div></div>`;
     const explain=()=>{const cron=document.getElementById('cp-input').value.trim().split(/\s+/);if(cron.length<5){document.getElementById('cp-result').innerHTML='<span style="color:var(--accent-tertiary)">Need 5 fields: minute hour day month weekday</span>';return}const labels=['Minute','Hour','Day of Month','Month','Day of Week'];const explain_field=(val,label)=>{if(val==='*')return'Every '+label.toLowerCase();if(val.includes('/'))return'Every '+val.split('/')[1]+' '+label.toLowerCase()+'(s)';if(val.includes('-'))return label+' '+val.split('-')[0]+' through '+val.split('-')[1];if(val.includes(','))return label+' '+val;return label+' '+val};const parts=labels.map((l,i)=>explain_field(cron[i],l));const weekdays=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];let readable='Runs '+parts.join(', ');document.getElementById('cp-result').innerHTML=`<div style="font-weight:600;margin-bottom:8px;color:var(--accent-primary)">📅 Schedule</div><p>${ToolRenderers.escapeHtml(readable)}</p>`;document.getElementById('cp-fields').innerHTML=labels.map((l,i)=>`<div class="color-value-item"><span>${l}</span><span>${ToolRenderers.escapeHtml(cron[i]||'*')}</span></div>`).join('')};
@@ -961,4 +930,239 @@ Object.assign(ToolRenderers.renderers, {
     });
     fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
   },
+});
+
+// ===== AI HELPER SYSTEM =====
+
+const _AI_PROXY_PATH = '/api/ai-proxy';
+const _AI_INPUT_LIMIT = 5000;
+const _AI_CALL_STATE = { showError: null, showResult: null, setLoading: null };
+
+function _setAIHandlerState(handlers) {
+  _AI_CALL_STATE.showError = typeof handlers?.showError === 'function' ? handlers.showError : null;
+  _AI_CALL_STATE.showResult = typeof handlers?.showResult === 'function' ? handlers.showResult : null;
+  _AI_CALL_STATE.setLoading = typeof handlers?.setLoading === 'function' ? handlers.setLoading : null;
+}
+
+async function callAI(tool, input, options = {}) {
+  const trimmed = input ? input.trim() : '';
+  const showError = _AI_CALL_STATE.showError || ((msg) => { if (typeof App !== 'undefined') App.toast(msg, 'error'); });
+  const showResult = _AI_CALL_STATE.showResult || (() => {});
+  const setLoading = _AI_CALL_STATE.setLoading || (() => {});
+
+  if (trimmed.length < 10) { showError('Please enter at least a sentence of text.'); return null; }
+  if (trimmed.length > _AI_INPUT_LIMIT) { showError('Input is too long. Please keep it under 5000 characters.'); return null; }
+
+  setLoading(true);
+  try {
+    const response = await fetch(_AI_PROXY_PATH, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tool, input: trimmed, options }),
+    });
+    if (response.status === 429) { showError('Too many requests. Please wait a few minutes and try again.'); return null; }
+    if (response.status === 413) { showError('Input is too long. Please shorten it and try again.'); return null; }
+    if (response.status === 403) { showError('Request blocked. Please refresh the page and try again.'); return null; }
+    if (!response.ok) { showError('Something went wrong. Please try again shortly.'); return null; }
+    const data = await response.json();
+    if (data.success) { showResult(data.result); return data.result; }
+    showError(data.error || 'AI could not process this. Please rephrase and try again.');
+    return null;
+  } catch (_) {
+    showError(!navigator.onLine ? 'You appear to be offline. Check your connection.' : 'Could not reach the AI service. Please try again in a moment.');
+    return null;
+  } finally {
+    setLoading(false);
+  }
+}
+
+function _createAISpinner() {
+  const s = document.createElement('span');
+  s.setAttribute('aria-hidden', 'true');
+  s.style.cssText = 'width:14px;height:14px;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;margin-left:6px;vertical-align:middle';
+  return s;
+}
+
+function _toggleAIChoiceButtons(buttons, activeValue) {
+  buttons.forEach((b) => {
+    const isActive = b.dataset.value === String(activeValue);
+    b.classList.toggle('btn-primary', isActive);
+    b.classList.toggle('btn-secondary', !isActive);
+    b.setAttribute('aria-pressed', String(isActive));
+  });
+}
+
+function _bindAIChoiceButtons(buttons, defaultValue, onChange) {
+  let currentValue = String(defaultValue);
+  const apply = (value) => {
+    currentValue = String(value);
+    _toggleAIChoiceButtons(buttons, currentValue);
+    if (typeof onChange === 'function') onChange(currentValue);
+  };
+  buttons.forEach((b) => b.addEventListener('click', () => apply(b.dataset.value || defaultValue)));
+  apply(defaultValue);
+  return () => currentValue;
+}
+
+function _bindAICharCounter(inputs, counter, getText) {
+  const fields = Array.isArray(inputs) ? inputs : [inputs];
+  const update = () => {
+    const raw = typeof getText === 'function' ? getText() : (fields[0]?.value || '');
+    if (counter) counter.textContent = `${String(raw).length} / 5000 characters`;
+  };
+  fields.filter(Boolean).forEach((f) => f.addEventListener('input', update));
+  update();
+  return update;
+}
+
+function _createAIWorkspaceBindings(container, options = {}) {
+  const button = container.querySelector(options.buttonSelector || '.btn-primary');
+  const output = container.querySelector(options.outputSelector || '#tool-output');
+  const outputText = container.querySelector(options.outputTextSelector || '#tool-output-text');
+  const copyButton = container.querySelector(options.copySelector || '#copy-btn');
+  const error = container.querySelector(options.errorSelector || '#tool-error');
+  const placeholderText = options.placeholderText || 'Your AI output will appear here.';
+  const originalLabel = button ? button.textContent.trim() : 'Generate';
+
+  if (copyButton && outputText) {
+    copyButton.addEventListener('click', () => copyToClipboard(outputText.textContent || '', copyButton));
+  }
+
+  const hideError = () => { if (error) { error.classList.add('hidden'); error.textContent = ''; } };
+  const showError = (msg) => {
+    hideError();
+    if (error) { error.textContent = msg; error.classList.remove('hidden'); }
+    else if (typeof App !== 'undefined') App.toast(msg, 'error');
+  };
+  const showResult = (text) => {
+    hideError();
+    if (output) output.classList.remove('empty');
+    if (outputText) outputText.textContent = text;
+    if (copyButton && output) { copyButton.classList.remove('hidden'); output.appendChild(copyButton); }
+  };
+  const resetOutput = () => {
+    if (output) output.classList.add('empty');
+    if (outputText) outputText.textContent = placeholderText;
+    if (copyButton && output) { copyButton.classList.add('hidden'); output.appendChild(copyButton); }
+  };
+  const setLoading = (isLoading) => {
+    if (!button) return;
+    button.disabled = isLoading;
+    button.setAttribute('aria-busy', String(isLoading));
+    button.textContent = '';
+    if (isLoading) { button.append('Generating... '); button.appendChild(_createAISpinner()); }
+    else { button.textContent = originalLabel; }
+  };
+
+  resetOutput();
+  hideError();
+  return { button, output, outputText, showError, showResult, resetOutput, setLoading };
+}
+
+// ===== REAL AI TOOLS =====
+Object.assign(ToolRenderers.renderers, {
+
+  'ai-text-summarizer'(c) {
+    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Paste text to summarize</label><textarea id="tool-input" rows="10" placeholder="Paste a long article or text here..."></textarea><div id="as-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Summary Length</label><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-secondary" data-value="short">Short</button><button type="button" class="btn btn-secondary" data-value="medium">Medium</button><button type="button" class="btn btn-secondary" data-value="detailed">Detailed</button></div></div><button class="btn btn-primary mb-4" type="button">&#10024; Summarize with AI</button><div id="tool-error" class="hidden" style="margin:-4px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Summary</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><div id="tool-output-text">Your summary will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
+    const input = c.querySelector('#tool-input');
+    const bindings = _createAIWorkspaceBindings(c, { placeholderText: 'Your summary will appear here.' });
+    const getLength = _bindAIChoiceButtons(Array.from(c.querySelectorAll('[data-value]')), 'medium');
+    _bindAICharCounter(input, c.querySelector('#as-char-count'));
+    bindings.button.addEventListener('click', () => {
+      _setAIHandlerState(bindings);
+      bindings.resetOutput();
+      callAI('summarizer', input.value, { length: getLength() });
+    });
+  },
+
+  'ai-paraphraser'(c) {
+    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Enter text to paraphrase</label><textarea id="tool-input" rows="6" placeholder="Enter text here..."></textarea><div id="ap-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Style</label><select id="ap-style"><option value="standard">Standard</option><option value="formal">Formal</option><option value="casual">Casual</option><option value="creative">Creative</option><option value="simple">Simple</option></select></div><button class="btn btn-primary mb-4" type="button">&#128260; Paraphrase with AI</button><div id="tool-error" class="hidden" style="margin:-4px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Paraphrased Text</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><div id="tool-output-text">Your paraphrased text will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
+    const input = c.querySelector('#tool-input');
+    const style = c.querySelector('#ap-style');
+    const bindings = _createAIWorkspaceBindings(c, { placeholderText: 'Your paraphrased text will appear here.' });
+    _bindAICharCounter(input, c.querySelector('#ap-char-count'));
+    bindings.button.addEventListener('click', () => {
+      _setAIHandlerState(bindings);
+      bindings.resetOutput();
+      callAI('paraphraser', input.value, { style: style.value });
+    });
+  },
+
+  'ai-email-writer'(c) {
+    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Email Type</label><select id="ae-type"><option value="reply">Reply</option><option value="cold-outreach">Cold Outreach</option><option value="follow-up">Follow-up</option><option value="complaint">Complaint</option><option value="thank-you">Thank You</option></select></div><div class="input-group"><label>Recipient Name</label><input type="text" id="ae-recipient" placeholder="John Smith"></div><div class="input-group"><label>Tone</label><select id="ae-tone"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="assertive">Assertive</option><option value="apologetic">Apologetic</option><option value="persuasive">Persuasive</option></select></div><div class="input-group"><label>Details / Context</label><input type="text" id="ae-details" placeholder="Brief context..."><div id="ae-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><button class="btn btn-primary mb-4" type="button">&#9993; Generate Email</button><div id="tool-error" class="hidden" style="margin:-4px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Generated Email</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><div id="tool-output-text">Your AI email will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
+    const type = c.querySelector('#ae-type');
+    const recipient = c.querySelector('#ae-recipient');
+    const tone = c.querySelector('#ae-tone');
+    const details = c.querySelector('#ae-details');
+    const bindings = _createAIWorkspaceBindings(c, { placeholderText: 'Your AI email will appear here.' });
+    const buildInput = () => {
+      const parts = [];
+      if (recipient.value.trim()) parts.push(`Recipient: ${recipient.value.trim()}`);
+      if (details.value.trim()) parts.push(`Context: ${details.value.trim()}`);
+      return parts.join('\n');
+    };
+    _bindAICharCounter([recipient, details], c.querySelector('#ae-char-count'), buildInput);
+    bindings.button.addEventListener('click', () => {
+      _setAIHandlerState(bindings);
+      bindings.resetOutput();
+      callAI('email', buildInput(), { tone: tone.value, type: type.value });
+    });
+  },
+
+  'ai-blog-ideas'(c) {
+    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Topic or Keyword</label><input type="text" id="bi-topic" placeholder="artificial intelligence, fitness, cooking..."><div id="bi-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Number of Ideas</label><div style="display:flex;gap:8px;flex-wrap:wrap" data-choice="count"><button type="button" class="btn btn-secondary" data-value="3">3</button><button type="button" class="btn btn-secondary" data-value="5">5</button><button type="button" class="btn btn-secondary" data-value="10">10</button></div></div><div class="input-group"><label>Format</label><div style="display:flex;gap:8px;flex-wrap:wrap" data-choice="format"><button type="button" class="btn btn-secondary" data-value="titles-only">Titles Only</button><button type="button" class="btn btn-secondary" data-value="titles-with-outline">Titles + Outline</button></div></div><button class="btn btn-primary mb-4" type="button">&#128161; Generate Ideas</button><div id="tool-error" class="hidden" style="margin:-4px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Generated Ideas</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="bi-results" style="white-space:pre-wrap"><div id="tool-output-text">Your blog ideas will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
+    const topic = c.querySelector('#bi-topic');
+    const bindings = _createAIWorkspaceBindings(c, { outputSelector: '#bi-results', placeholderText: 'Your blog ideas will appear here.' });
+    const getCount = _bindAIChoiceButtons(Array.from(c.querySelectorAll('[data-choice="count"] [data-value]')), '5');
+    const getFormat = _bindAIChoiceButtons(Array.from(c.querySelectorAll('[data-choice="format"] [data-value]')), 'titles-only');
+    _bindAICharCounter(topic, c.querySelector('#bi-char-count'));
+    bindings.button.addEventListener('click', () => {
+      _setAIHandlerState(bindings);
+      bindings.resetOutput();
+      callAI('blog', topic.value, { count: Number(getCount()), format: getFormat() });
+    });
+  },
+
+  'ai-meta-writer'(c) {
+    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Page Title</label><input type="text" id="am-title" placeholder="My Blog Post Title"></div><div class="input-group"><label>Target Keyword (optional)</label><input type="text" id="am-keyword" placeholder="seo tools"><div id="am-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Tone</label><select id="am-tone"><option value="neutral">Neutral</option><option value="engaging" selected>Engaging</option><option value="urgent">Urgent</option><option value="curious">Curious</option></select></div><div class="input-group"><label>Max Characters</label><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-secondary" data-value="150">150</button><button type="button" class="btn btn-secondary" data-value="155">155</button><button type="button" class="btn btn-secondary" data-value="160">160</button></div></div><button class="btn btn-primary mb-4" type="button">&#10024; Generate Meta Description</button><div id="tool-error" class="hidden" style="margin:-4px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Meta Description</label><div style="display:flex;align-items:center;gap:12px"><span id="am-output-count" style="font-size:0.78rem;color:var(--text-tertiary)">Output: 0 / 155 chars</span><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div></div><div class="output-area empty" id="am-results" style="white-space:pre-wrap"><div id="tool-output-text">Your meta description will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
+    const title = c.querySelector('#am-title');
+    const keyword = c.querySelector('#am-keyword');
+    const tone = c.querySelector('#am-tone');
+    const outputCount = c.querySelector('#am-output-count');
+    const bindings = _createAIWorkspaceBindings(c, { outputSelector: '#am-results', placeholderText: 'Your meta description will appear here.' });
+    const buildInput = () => {
+      const parts = [];
+      if (title.value.trim()) parts.push(`Page title: ${title.value.trim()}`);
+      if (keyword.value.trim()) parts.push(`Target keyword: ${keyword.value.trim()}`);
+      return parts.join('\n');
+    };
+    let lastCount = 0;
+    let getMaxChars = () => '155';
+    const renderOutputCount = (lim) => {
+      const limit = Number(lim || getMaxChars());
+      if (outputCount) {
+        outputCount.textContent = `Output: ${lastCount} / ${limit} chars`;
+        outputCount.style.color = lastCount > limit ? '#fda4af' : 'var(--text-tertiary)';
+      }
+    };
+    getMaxChars = _bindAIChoiceButtons(Array.from(c.querySelectorAll('[data-value]')), '155', renderOutputCount);
+    const baseShowResult = bindings.showResult;
+    bindings.showResult = (text) => {
+      const match = String(text || '').match(/\r?\nChars:\s*(\d+)\s*$/i);
+      const desc = match ? String(text).slice(0, match.index).trim() : String(text || '').trim();
+      lastCount = match ? Number(match[1]) : desc.length;
+      baseShowResult(desc);
+      renderOutputCount();
+    };
+    _bindAICharCounter([title, keyword], c.querySelector('#am-char-count'), buildInput);
+    renderOutputCount('155');
+    bindings.button.addEventListener('click', () => {
+      _setAIHandlerState(bindings);
+      lastCount = 0;
+      bindings.resetOutput();
+      renderOutputCount();
+      callAI('metadesc', buildInput(), { tone: tone.value, maxChars: Number(getMaxChars()) });
+    });
+  },
+
 });
