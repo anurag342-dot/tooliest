@@ -454,7 +454,7 @@ function renderFooter() {
     <div class="footer-inner">
       <div class="footer-brand">
         <p class="footer-brand-title">&#9889; <span>Tooliest</span></p>
-        <p>Free browser-based tools for developers, designers, writers, marketers, and document workflows. Every tool runs locally in your browser for speed and privacy.</p>
+        <p>Free browser-based tools and practical guides for developers, designers, writers, marketers, and document workflows. Most tools run locally on your device, and AI-assisted workflows are labeled clearly.</p>
       </div>
       <div class="footer-col">
         <p class="footer-col-title">PDF Tools</p>
@@ -834,7 +834,6 @@ function renderPage(tool, categories, tools, originalHtml) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeAttr(description)}">
-  <meta name="keywords" content="${escapeAttr(keywords)}">
   <meta name="author" content="Tooliest">
   <meta name="robots" content="index, follow">
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">

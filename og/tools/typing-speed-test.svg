@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">Typing Speed Test</title>
-  <desc id="desc">Test your typing speed and accuracy in WPM. Your keystrokes never leave your device - the only typing test that is genuinely private. Track your personal best offline with no account needed.</desc>
+  <desc id="desc">Test your typing speed and accuracy in WPM. Your keystrokes never leave your device - the only typing test that is genuinely private. Track your personal.</desc>
   <defs>
     <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
       <stop offset="0%" stop-color="#081221" />

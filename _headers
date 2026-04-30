@@ -82,6 +82,12 @@
 /terms.html
   Cache-Control: public, max-age=0, must-revalidate
 
+/disclaimer
+  Cache-Control: public, max-age=0, must-revalidate
+
+/disclaimer.html
+  Cache-Control: public, max-age=0, must-revalidate
+
 /category/text
   Cache-Control: public, max-age=0, must-revalidate
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">Free Invoice Generator</title>
-  <desc id="desc">Generate professional invoices in seconds. Add your logo, line items, tax rates, and custom notes. Download as PDF instantly. 100% free, no signup, works offline.</desc>
+  <desc id="desc">Generate professional invoices in seconds. Add your logo, line items, tax rates, and custom notes. Download as PDF instantly. 100% free, no signup, works.</desc>
   <defs>
     <linearGradient id="bgInvoice" x1="0%" x2="100%" y1="0%" y2="100%">
       <stop offset="0%" stop-color="#0f172a" />

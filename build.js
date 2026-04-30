@@ -97,6 +97,7 @@ const STATIC_PAGE_PATHS = {
   contact: '/contact',
   privacy: '/privacy',
   terms: '/terms',
+  disclaimer: '/disclaimer',
 };
 const SOFTWARE_HUB_PATH = '/software';
 const STATIC_PAGE_SOURCE_FILES = {
@@ -104,6 +105,7 @@ const STATIC_PAGE_SOURCE_FILES = {
   contact: 'contact.html',
   privacy: 'privacy.html',
   terms: 'terms.html',
+  disclaimer: 'disclaimer.html',
 };
 const ROOT_STATIC_FILE_PATHS = [
   '/ads.txt',
@@ -136,6 +138,7 @@ const RESERVED_ROOT_SEGMENTS = new Set([
   'contact',
   'privacy',
   'terms',
+  'disclaimer',
   'software',
   'category',
   'search',
@@ -734,11 +737,36 @@ function syncSourceAssetVersions() {
   });
 }
 
+function getManualHtmlSourceFiles() {
+  const guidesDir = path.join(__dirname, 'guides');
+  const htmlFiles = [];
+
+  if (!fs.existsSync(guidesDir)) {
+    return htmlFiles;
+  }
+
+  const walk = (currentDir) => {
+    fs.readdirSync(currentDir, { withFileTypes: true }).forEach((entry) => {
+      const absolutePath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        walk(absolutePath);
+        return;
+      }
+      if (entry.isFile() && absolutePath.endsWith('.html')) {
+        htmlFiles.push(path.relative(__dirname, absolutePath).replace(/\\/g, '/'));
+      }
+    });
+  };
+
+  walk(guidesDir);
+  return htmlFiles;
+}
+
 function syncStaticPageAssetVersions(tools = []) {
   const standaloneSourceFiles = tools
     .map((tool) => tool.standaloneSourceFile)
     .filter(Boolean);
-  const sourceFiles = [...new Set([...Object.values(STATIC_PAGE_SOURCE_FILES), ...standaloneSourceFiles])];
+  const sourceFiles = [...new Set([...Object.values(STATIC_PAGE_SOURCE_FILES), ...standaloneSourceFiles, ...getManualHtmlSourceFiles()])];
   const toolCountLabel = `${tools.length}+`;
 
   sourceFiles.forEach((sourceFile) => {
@@ -746,7 +774,7 @@ function syncStaticPageAssetVersions(tools = []) {
     const originalHtml = fs.readFileSync(sourcePath, 'utf8');
     let nextHtml = originalHtml;
 
-    // [TOOLIEST AUDIT] Keep static page asset versions aligned with the current build output.
+    // [TOOLIEST AUDIT] Keep manually maintained HTML pages aligned with the current build assets.
     nextHtml = replaceVersionedAssetReference(nextHtml, CSS_BUNDLE_PATH);
     nextHtml = replaceVersionedAssetReference(nextHtml, '/js/consent.js');
     nextHtml = replaceVersionedAssetReference(nextHtml, `/${BUNDLE_OUTPUT_FILE}`);
@@ -1485,10 +1513,10 @@ function getCategoryMeta(category, tools) {
     ? `Use ${count} free ${narrativeName} on Tooliest, including ${featuredTools}. Browser-based, fast, private, and no signup required. Explore the category now.`
     : `Use ${count} free ${narrativeName} on Tooliest. Browser-based, fast, private, and no signup required. Explore the category now.`;
   const defaultIntro = featuredTools
-    ? `Browse Tooliest's ${narrativeName} and launch every tool instantly in your browser without sending your data to a server. Popular picks include ${featuredTools}.`
-    : `Browse Tooliest's ${narrativeName} and launch every tool instantly in your browser without sending your data to a server.`;
+    ? `Browse Tooliest's ${narrativeName} and launch every tool instantly in your browser with clear privacy guidance for local and AI-assisted workflows. Popular picks include ${featuredTools}.`
+    : `Browse Tooliest's ${narrativeName} and launch every tool instantly in your browser with clear privacy guidance for local and AI-assisted workflows.`;
   const defaultTopToolsIntro = `These are some of the most useful ${narrativeName} on Tooliest when you want fast results without extra tabs, accounts, or uploads:`;
-  const defaultBenefitsIntro = `Tooliest's ${narrativeName} are designed for quick, practical work. You can launch a tool instantly, finish the task in one browser tab, and move on without handing your content to a server.`;
+  const defaultBenefitsIntro = `Tooliest's ${narrativeName} are designed for quick, practical work. You can launch a tool instantly, finish the task in one browser tab, and rely on the page guidance to explain whether the workflow stays local or uses a managed provider.`;
 
   const pdfDescription = featuredTools
     ? `Use ${count} free PDF tools on Tooliest to merge, split, compress, convert, protect, and export documents in your browser. Popular picks include ${featuredTools}. No signup required.`
@@ -1597,7 +1625,7 @@ function renderFooter() {
     <div class="footer-inner">
       <div class="footer-brand">
         <p class="footer-brand-title">&#9889; <span>Tooliest</span></p>
-        <p>Free browser-based tools for developers, designers, writers, marketers, and document workflows. All tools run directly in your browser, so your input stays on your device.</p>
+        <p>Free browser-based tools and practical guides for developers, designers, writers, marketers, and document workflows. Most tools run locally on your device, and AI-assisted workflows are labeled clearly.</p>
         <a class="footer-verification-link" href="https://codetrendy.com" target="_blank" rel="noopener noreferrer" aria-label="Tooliest is listed on CodeTrendy">
           <span class="footer-verification-label">Listed on CodeTrendy</span>
           <img src="https://codetrendy.com/api/badge?style=dark" alt="Listed on codetrendy.com" height="54" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='/images/codetrendy-badge-dark.svg';">
@@ -1632,18 +1660,20 @@ function renderFooter() {
           <li><a href="${STATIC_PAGE_PATHS.contact}">Contact</a></li>
           <li><a href="${STATIC_PAGE_PATHS.privacy}">Privacy Policy</a></li>
           <li><a href="${STATIC_PAGE_PATHS.terms}">Terms of Service</a></li>
+          <li><a href="${STATIC_PAGE_PATHS.disclaimer}">Disclaimer</a></li>
           <li><a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a></li>
           <li><a href="/sitemap.html">All Tools (Sitemap)</a></li>
           <li><a href="https://github.com/anurag342-dot/tooliest" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
       </div>
     </div>
-    <p class="adsense-disclosure">Tooliest is free to use &mdash; every tool runs privately in your browser with no data collection. <a href="${STATIC_PAGE_PATHS.privacy}">Read our privacy policy &rarr;</a></p>
+    <p class="adsense-disclosure">Tooliest is free to use &mdash; most tools run locally in your browser, and AI-assisted tools are clearly labeled when they use external model providers. <a href="${STATIC_PAGE_PATHS.privacy}">Read our privacy policy</a> and <a href="${STATIC_PAGE_PATHS.disclaimer}">review the site disclaimer</a>.</p>
     <div class="footer-bottom">
-      <span>&copy; 2026 Tooliest.com &mdash; All tools are free and run in your browser.</span>
+      <span>&copy; 2026 Tooliest.com &mdash; All tools are free to use.</span>
       <span>
         <a href="${STATIC_PAGE_PATHS.privacy}" style="color:inherit;opacity:0.7;">Privacy</a> &nbsp;&middot;&nbsp;
         <a href="${STATIC_PAGE_PATHS.terms}" style="color:inherit;opacity:0.7;">Terms</a> &nbsp;&middot;&nbsp;
+        <a href="${STATIC_PAGE_PATHS.disclaimer}" style="color:inherit;opacity:0.7;">Disclaimer</a> &nbsp;&middot;&nbsp;
         <a href="${STATIC_PAGE_PATHS.contact}" style="color:inherit;opacity:0.7;">Contact</a> &nbsp;&middot;&nbsp;
         <button onclick="TooliestConsent && TooliestConsent.reset()" style="background:none;border:none;color:inherit;opacity:0.7;cursor:pointer;font-size:inherit;padding:0;font-family:inherit;">Manage Cookies</button>
       </span>
@@ -1707,7 +1737,6 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeAttr(description)}">
-  <meta name="keywords" content="${escapeAttr(pageKeywords)}">
   <meta name="author" content="Tooliest">
   <meta name="robots" content="${escapeAttr(robots)}">
   <meta name="googlebot" content="${escapeAttr(googlebotRobots)}">
@@ -2234,6 +2263,37 @@ function renderToolPage(tool, tools, categories) {
     structuredData.push(...tool.extraStructuredData);
   }
 
+  const responsibleUseCopy = tool.category === 'ai'
+    ? `AI-assisted results from ${tool.name} should be reviewed for facts, tone, and context before you publish, send, or rely on them.`
+    : tool.category === 'finance'
+      ? `${tool.name} is useful for planning and quick comparisons, but the output is still an estimate and should not replace regulated disclosures or professional advice.`
+      : ['pdf', 'image'].includes(tool.category)
+        ? 'Check exported files, page order, image quality, and any sensitive details before you share the result outside your device.'
+        : 'Review the final output before you publish, deploy, or share it so the result fits the job you are trying to finish.';
+  const processingModelLabel = tool.category === 'ai'
+    ? 'Browser interface with managed AI processing'
+    : 'Browser-first workflow with lightweight processing';
+  const processingModelCopy = tool.category === 'ai'
+    ? 'The workspace stays lightweight in your browser, while Tooliest routes AI requests through its managed proxy so provider keys never touch the public page.'
+    : 'Tooliest is built for fast browser-based workflows, which makes it easier to go from input to result without an account wall or heavyweight desktop setup.';
+  const toolProofHtml = `<div class="tool-proof-grid">
+        <div class="tool-proof-card">
+          <span>Reviewed by</span>
+          <strong>Anurag, founder of Tooliest</strong>
+          <p>Each Tooliest tool page is reviewed for clarity, practical examples, and browser-side privacy notes before it is refreshed or republished.</p>
+        </div>
+        <div class="tool-proof-card">
+          <span>Processing model</span>
+          <strong>${processingModelLabel}</strong>
+          <p>${processingModelCopy}</p>
+        </div>
+        <div class="tool-proof-card">
+          <span>Use responsibly</span>
+          <strong>Double-check important results</strong>
+          <p>${responsibleUseCopy} Read the <a href="${STATIC_PAGE_PATHS.disclaimer}" class="tool-proof-link">Tooliest disclaimer</a> if the output affects financial, legal, academic, medical, or client-facing work.</p>
+        </div>
+      </div>`;
+
   const mainContent = `<main class="main-content" id="main-content">
     <div class="tool-page">
       <div class="tool-page-header">
@@ -2258,6 +2318,7 @@ function renderToolPage(tool, tools, categories) {
           <p style="color:var(--text-tertiary);font-size:0.9rem">If JavaScript is enabled, Tooliest will load the live browser-based tool automatically.</p>
         </div>
       </div>
+      ${toolProofHtml}
       ${renderToolContentSections(tool, categories)}
       ${renderStaticAdSpace('tool-bottom')}
       ${renderRelatedTools(tool, tools, categories)}
@@ -3015,6 +3076,7 @@ function writeSitemap(tools, categories) {
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.contact), priority: '0.5', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('contact.html') },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.privacy), priority: '0.3', changefreq: 'yearly', lastmod: getStaticPageLastModifiedDate('privacy.html') },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.3', changefreq: 'yearly', lastmod: getStaticPageLastModifiedDate('terms.html') },
+    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.disclaimer), priority: '0.5', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('disclaimer.html') },
     { loc: getAbsoluteUrl('/sitemap.html'), priority: '0.4', changefreq: 'monthly', lastmod: getSourceModifiedDate(['build.js', 'js/tools.js']) },
     { loc: getAbsoluteUrl('/guides/'), priority: '0.7', changefreq: 'weekly', lastmod: getSiteLastModifiedDate() },
     { loc: getAbsoluteUrl('/guides/optimize-images-for-web/'), priority: '0.8', changefreq: 'monthly', lastmod: getSiteLastModifiedDate() },
@@ -3100,13 +3162,14 @@ function writeHtmlSitemap(tools, categories) {
     return `${shouldShowIcon ? `${escapeHtml(icon)} ` : ''}${escapeHtml(tool.name)}`;
   };
   const staticBlock = `<div class="sitemap-category">
-      <h2><a href="/">Site Pages</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(6 pages)</span></h2>
+      <h2><a href="/">Site Pages</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(7 pages)</span></h2>
       <ul>
         <li><a href="/">Homepage</a> - Browse every free online tool from the main Tooliest directory.</li>
         <li><a href="${STATIC_PAGE_PATHS.about}">About</a> - Learn how Tooliest works, how the site stays free, and why privacy matters here.</li>
         <li><a href="${STATIC_PAGE_PATHS.contact}">Contact</a> - Reach the Tooliest team with support questions, bug reports, or tool ideas.</li>
         <li><a href="${STATIC_PAGE_PATHS.privacy}">Privacy Policy</a> - Review browser storage, optional cookies, ads, and data-handling details.</li>
         <li><a href="${STATIC_PAGE_PATHS.terms}">Terms of Service</a> - Read the usage terms for Tooliest tools and site content.</li>
+        <li><a href="${STATIC_PAGE_PATHS.disclaimer}">Disclaimer</a> - Understand the limits of AI drafts, calculators, and general-purpose tool outputs before you rely on them.</li>
         <li><a href="/sitemap.html">HTML Sitemap</a> - Browse all tools, categories, and guide hubs from one crawlable page.</li>
       </ul>
     </div>`;
@@ -3194,6 +3257,37 @@ function writeHomePage(tools, categories) {
   ).join('');
 
   const toolCardsHtml = featuredTools.map(tool => renderStaticToolCard(tool, categories)).join('');
+  const softwareGuideCount = SOFTWARE_CLUSTERS.reduce((total, cluster) => total + 1 + cluster.comparisons.length + cluster.useCases.length, 0);
+  const practicalGuideCount = 3;
+  const editorialCount = softwareGuideCount + practicalGuideCount;
+  const editorialHubHtml = `<section class="tools-section" aria-labelledby="learn-with-tooliest-heading">
+      <div class="tool-content-sections">
+        <section class="tool-content-section">
+          <h2 id="learn-with-tooliest-heading">Guides, Reviews, and Buying Advice</h2>
+          <p>Tooliest now pairs its browser-based tools with more than ${editorialCount} original tutorials, software comparisons, and workflow guides so visitors can understand the why behind the tool as well as the click path.</p>
+        </section>
+        <div class="guide-card-grid">
+          <article class="guide-card">
+            <span class="guide-card-eyebrow">Tutorial hub</span>
+            <h3><a href="/guides/">Practical Guides &amp; Tutorials</a></h3>
+            <p>Start with Tooliest tutorials for image optimization, CSS cleanup, PDF workflows, and other privacy-first browser tasks.</p>
+            <div class="guide-card-actions"><a href="/guides/">Browse tutorials</a></div>
+          </article>
+          <article class="guide-card">
+            <span class="guide-card-eyebrow">Buying advice</span>
+            <h3><a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a></h3>
+            <p>Read published Semrush, Ahrefs, and Screaming Frog clusters, plus workflow comparisons designed for real software buyers.</p>
+            <div class="guide-card-actions"><a href="${SOFTWARE_HUB_PATH}">See software content</a></div>
+          </article>
+          <article class="guide-card">
+            <span class="guide-card-eyebrow">Trust signals</span>
+            <h3><a href="${STATIC_PAGE_PATHS.about}">About, Contact, and Policy Pages</a></h3>
+            <p>Review how Tooliest is maintained, how to reach Anurag directly, and which policies apply before you rely on a tool output.</p>
+            <div class="guide-card-actions"><a href="${STATIC_PAGE_PATHS.disclaimer}">Read the disclaimer</a></div>
+          </article>
+        </div>
+      </div>
+    </section>`;
   const crawlableDirectoryHtml = `<section class="tools-section" aria-labelledby="browse-all-tools-heading">
       <div class="tool-content-sections">
         <section class="tool-content-section">
@@ -3286,7 +3380,7 @@ function writeHomePage(tools, categories) {
           <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
         </div>
         <div class="hero-trust-strip" aria-label="Tooliest trust highlights">
-          <span class="trust-badge">100% Private - No Uploads</span>
+          <span class="trust-badge">Most Tools Stay Local</span>
           <span class="trust-badge">Instant Browser Results</span>
           <span class="trust-badge">PWA Ready + Offline Support</span>
           <span class="trust-badge">No Account Friction</span>
@@ -3297,12 +3391,13 @@ function writeHomePage(tools, categories) {
       <p class="category-scroll-indicator" id="category-scroll-indicator" aria-hidden="true">Swipe to see more categories &rarr;</p>
     </section>
     <section class="tools-section"><div class="tools-grid" id="tools-grid">${toolCardsHtml}</div></section>
+    ${editorialHubHtml}
     ${crawlableDirectoryHtml}
   </main>`;
 
   const html = renderPageShell({
-    title: `Tooliest - ${tools.length}+ Free Online Tools Powered by AI`,
-    description: `Access ${tools.length}+ free online tools for text, SEO, CSS, colors, images, JSON, encoding, math, and more. No signup required. Start free with Tooliest today.`,
+    title: `Tooliest - ${tools.length}+ Free Online Tools, Guides, and Reviews`,
+    description: `Access ${tools.length}+ free online tools plus original guides, comparisons, and browser-first workflow advice for SEO, content, design, and developer tasks.`,
     canonicalPath: '/',
     structuredData,
     mainContent,

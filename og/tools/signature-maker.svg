@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">Online Signature Maker</title>
-  <desc id="desc">Create a handwritten digital signature for free. Draw with mouse or finger, choose a signature style, and download as transparent PNG. No signup, no upload, your signature stays on your device.</desc>
+  <desc id="desc">Create a handwritten digital signature for free. Draw with mouse or finger, choose a signature style, and download as transparent PNG. No signup, no.</desc>
   <defs>
     <linearGradient id="bgSignature" x1="0%" x2="100%" y1="0%" y2="100%">
       <stop offset="0%" stop-color="#0b1020" />

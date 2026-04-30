@@ -2117,9 +2117,9 @@ const TOOLS = [
   },
 ];
 
-const TOOLIEST_REVIEWED_DATE = '2026-04-20';
-const TOOLIEST_REVIEWED_LABEL = 'April 20, 2026';
-const TOOLIEST_ENGINEERING_REVIEWER = 'Maintained by the Tooliest team';
+const TOOLIEST_REVIEWED_DATE = '2026-04-30';
+const TOOLIEST_REVIEWED_LABEL = 'April 30, 2026';
+const TOOLIEST_ENGINEERING_REVIEWER = 'Reviewed by Anurag, founder of Tooliest';
 const TOOLIEST_FINANCE_TOOL_IDS = new Set([
   'loan-mortgage-analyzer',
   'compound-interest',
@@ -3243,19 +3243,61 @@ function buildTooliestMetaLead(tool) {
   return `${tool.name} runs directly in your browser`;
 }
 
+function isTooliestFormulaicMetaDescription(text = '', toolName = '') {
+  const normalized = String(text || '').toLowerCase();
+  const normalizedToolName = String(toolName || '').toLowerCase();
+  if (!normalized) return true;
+  return normalized.includes('no signup required')
+    || normalized.includes('free, private')
+    || normalized.includes('free, browser-based')
+    || normalized.includes('try ' + normalizedToolName + ' on tooliest now')
+    || normalized.includes('try tooliest now')
+    || normalized.includes('runs directly in your browser')
+    || normalized.includes('free online tool powered by ai');
+}
+
+function buildTooliestMetaSupport(tool) {
+  const label = `${tool.id} ${tool.name} ${tool.description || ''} ${(tool.tags || []).join(' ')}`.toLowerCase();
+  const categoryName = getTooliestCategory(tool).name.replace(/\s+tools$/i, '').toLowerCase();
+
+  if (tool.isAI || /summarizer|paraphraser|email writer|meta writer|blog idea/.test(label)) {
+    return 'Review the draft, refine the prompt, and reuse the output in your workflow in minutes.';
+  }
+
+  switch (getTooliestOperationType(tool)) {
+    case 'calculator':
+      return 'Compare scenarios quickly, check the assumptions, and use the result as a planning reference.';
+    case 'converter':
+      return 'Switch formats, units, or file types quickly without opening a heavier desktop workflow.';
+    case 'formatter':
+      return 'Clean up messy input so it is easier to read, debug, and copy back into your project.';
+    case 'checker':
+      return 'Validate the input, spot mistakes earlier, and fix issues before you publish or deploy.';
+    case 'generator':
+      return 'Create a ready-to-use first pass faster, then copy or export the result immediately.';
+    case 'parser':
+      return 'Translate compact syntax into plain English so you can verify the rule before it goes live.';
+    default:
+      return `Use this browser-based ${categoryName} workflow to finish the task faster without extra setup.`;
+  }
+}
+
 function buildTooliestMetaDescription(tool) {
   const override = getTooliestSeoOverride(tool).metaDesc;
-  if (override) return override;
+  if (override) return truncateTooliestText(override, 155);
+
+  const existing = tool.meta && typeof tool.meta.desc === 'string' ? tool.meta.desc.trim() : '';
+  if (existing && !isTooliestFormulaicMetaDescription(existing, tool.name)) {
+    return truncateTooliestText(existing, 155);
+  }
 
   const lead = buildTooliestMetaLead(tool);
+  const support = buildTooliestMetaSupport(tool);
   const privacy = TOOLIEST_FINANCE_TOOL_IDS.has(tool.id)
-    ? 'Free, browser-based, and no signup required.'
-    : 'Free, private, and no signup required.';
-  const cta = getTooliestOperationType(tool) === 'calculator'
-    ? `Try ${tool.name} on Tooliest now.`
-    : `Try ${tool.name} on Tooliest now.`;
+    ? 'Free browser-based planning tool with no signup required.'
+    : 'Free browser tool with no signup required.';
 
-  return truncateTooliestText(`${lead}. ${privacy} ${cta}`, 155);
+  return truncateTooliestText(`${lead}. ${support} ${privacy}`, 155);
 }
 
 
@@ -3549,6 +3591,16 @@ function buildTooliestFaq(tool) {
   const secondStep = steps[1]?.text || 'Adjust the relevant settings so the output matches the task.';
   const thirdStep = steps[2]?.text || 'Run the tool and review the result in the workspace.';
   const finalStep = steps[3]?.text || 'Copy, download, or reuse the result right away.';
+  const aiLabel = `${tool.id} ${tool.name} ${tool.description || ''}`.toLowerCase();
+
+  if (tool.isAI || /summarizer|paraphraser|email writer|meta writer|blog idea/.test(aiLabel)) {
+    return [
+      { q: `How should I write a better prompt for ${tool.name}?`, a: `Give ${tool.name} enough context to understand the job, the audience, and the format you want. Short prompts can work for simple rewrites, but better results usually come from adding the goal, tone, constraints, and any facts the draft must keep.` },
+      { q: `Should I review the output from ${tool.name} before publishing it?`, a: `Yes. AI output should be treated as a first draft, not a final authority. Check facts, names, tone, and any brand-specific claims before you send, publish, or rely on the text professionally.` },
+      { q: `Does ${tool.name} store my prompt or generated text?`, a: `Tooliest is built to keep the front-end workflow simple and private. The page does not require an account, and you can review, refine, and copy the result immediately without building a saved history inside Tooliest.` },
+    ];
+  }
+
   switch (getTooliestOperationType(tool)) {
     case 'counter':
       return [
@@ -3616,6 +3668,10 @@ function buildTooliestFaq(tool) {
 function buildTooliestMethodology(tool) {
   const override = getTooliestSeoOverride(tool).methodology;
   if (override) return override;
+  const label = `${tool.id} ${tool.name} ${tool.description || ''}`.toLowerCase();
+  if (tool.isAI || /summarizer|paraphraser|email writer|meta writer|blog idea/.test(label)) {
+    return '<strong>Generation methodology</strong><p>This tool turns your prompt into a draft using a remote language model, then returns the response inside the Tooliest workspace. Output quality depends on prompt clarity, model behavior, and whether the source text already contains enough factual context to support a strong answer.</p>';
+  }
   if (!TOOLIEST_FINANCE_TOOL_IDS.has(tool.id)) return '';
 
   return '<strong>Calculation methodology</strong><p>This calculator applies standard financial formulas to the assumptions you enter so you can compare scenarios quickly in the browser. Results are informational only and should not replace regulated disclosures, tax advice, or guidance from a licensed financial professional.</p>';
@@ -3624,11 +3680,156 @@ function buildTooliestMethodology(tool) {
 function buildTooliestAccuracyDisclaimer(tool) {
   const override = getTooliestSeoOverride(tool).accuracyDisclaimer;
   if (override) return override;
+  const label = `${tool.id} ${tool.name} ${tool.description || ''}`.toLowerCase();
+  if (tool.isAI || /summarizer|paraphraser|email writer|meta writer|blog idea/.test(label)) {
+    return 'AI-generated text should be reviewed for factual accuracy, tone, and suitability before you publish it, send it, or rely on it in a professional setting.';
+  }
   if (!TOOLIEST_FINANCE_TOOL_IDS.has(tool.id)) return '';
 
   return 'These results are estimates for planning purposes only. Rates, taxes, fees, returns, and real-world conditions can materially change the outcome.';
 }
 
+function buildTooliestContentHighlights(tool) {
+  const label = `${tool.id} ${tool.name} ${tool.description || ''}`.toLowerCase();
+
+  if (tool.isAI || /summarizer|paraphraser|email writer|meta writer|blog idea/.test(label)) {
+    return [
+      'AI drafting tools usually improve when the prompt clearly states the audience, desired output format, and any facts that must stay unchanged.',
+      'The fastest way to improve a weak result is usually to tighten the source prompt, add missing context, or ask for a narrower outcome instead of regenerating blindly.',
+    ];
+  }
+
+  switch (getTooliestOperationType(tool)) {
+    case 'calculator':
+      return [
+        'Planning tools are most useful when you change one assumption at a time, because that makes it easier to see which variable actually drives the result.',
+        'A quick browser-based estimate can speed up decisions, but it is still worth checking final rates, fees, limits, or policy details before you act on the number.',
+      ];
+    case 'converter':
+      return [
+        'The best conversion workflow is usually the one that preserves the detail you care about while reducing the manual cleanup you would otherwise do by hand.',
+        'When a conversion touches file types, units, or formats with different constraints, always spot-check the output before you send it into a production workflow.',
+      ];
+    case 'formatter':
+      return [
+        'Formatting is most helpful when the source content is dense, minified, or copied from logs, because visual structure makes debugging and review much faster.',
+        'A readable version of code or data is easier to verify, annotate, and hand off, especially when several people need to inspect the same payload.',
+      ];
+    case 'checker':
+      return [
+        'Validation tools save time because they surface obvious issues early, before small mistakes compound into longer debugging or publishing cycles.',
+        'If the result looks surprising, rerun the check after changing one field at a time so you can isolate which assumption or rule is causing the failure.',
+      ];
+    case 'generator':
+      return [
+        'Generators work best when the structure is repetitive but the final output still needs a human review for wording, formatting, or brand fit.',
+        'A generated first pass is often enough to remove setup friction, then you can spend your time polishing the parts that actually require judgment.',
+      ];
+    default:
+      return [
+        `${tool.name} is most useful when you need a quick answer or transformation without pausing to open a larger app or a slower manual workflow.`,
+        'Browser-based tools are especially handy for short tasks, rapid checks, and situations where you want to copy the result immediately and keep moving.',
+      ];
+  }
+}
+
+function buildTooliestCustomSections(tool) {
+  const label = `${tool.id} ${tool.name} ${tool.description || ''}`.toLowerCase();
+
+  if (tool.isAI || /summarizer|paraphraser|email writer|meta writer|blog idea/.test(label)) {
+    return [
+      {
+        heading: `How to Get Better Results from ${tool.name}`,
+        body: [
+          'Start with a concrete input instead of a vague request. The strongest prompts usually include the audience, the format you want back, and the details that must stay accurate.',
+          'If the first draft is close but not quite right, refine the source text or narrow the instruction. Asking for a shorter summary, a more formal tone, or a stricter character limit usually produces cleaner results than simply regenerating the same prompt.'
+        ]
+      },
+      {
+        heading: 'What to Review Before You Use the Output',
+        body: [
+          'Read the final text as if it were going straight to a customer, coworker, or search result. Check names, claims, dates, compliance language, and any brand-specific phrasing before you publish or send it.',
+          'AI drafting is strongest as an acceleration layer, not as a blind autopilot. A quick human edit often turns a decent first pass into something trustworthy and on-brand.'
+        ]
+      }
+    ];
+  }
+
+  switch (getTooliestOperationType(tool)) {
+    case 'calculator':
+      return [
+        {
+          heading: `When ${tool.name} Is Most Useful`,
+          body: [
+            'Use this tool when you need a fast estimate, want to compare a few scenarios, or need a clearer feel for how one assumption changes the final outcome.',
+            'It is especially helpful early in the decision process, when you are still pressure-testing options and do not yet need a full spreadsheet or formal report.'
+          ]
+        },
+        {
+          heading: 'What Can Change the Final Result',
+          body: [
+            'Even small input changes can matter when the calculation depends on rates, time, recurring costs, or threshold rules. That is why it is worth rerunning the numbers after each meaningful adjustment.',
+            'Treat the output as a planning aid rather than a guarantee, then verify the final figures against the real contract, statement, policy, or source data you will actually use.'
+          ]
+        }
+      ];
+    case 'converter':
+      return [
+        {
+          heading: 'Common Conversion Workflows',
+          body: [
+            'Most people use conversion tools when they are moving content between platforms, file formats, or systems that expect different standards.',
+            'A fast browser-based converter is especially useful when the job is small, repetitive, or urgent and you want to finish it without opening a heavier desktop app.'
+          ]
+        },
+        {
+          heading: 'What to Check After Converting',
+          body: [
+            'Always review the output for formatting, precision, compatibility, or visual quality before you reuse it. That quick check catches the edge cases that depend on the source format.',
+            'If a conversion supports multiple output modes, choose the one that best matches the destination rather than assuming the smallest or fastest option is automatically best.'
+          ]
+        }
+      ];
+    case 'formatter':
+      return [
+        {
+          heading: 'Why Readability Matters in Raw Input',
+          body: [
+            'Dense or minified content is harder to inspect because important structure gets buried. Reformatting the input makes nested data, indentation, and repeated patterns much easier to scan.',
+            'That matters most when you are debugging, reviewing third-party payloads, or trying to understand where an issue begins before you make an edit.'
+          ]
+        }
+      ];
+    case 'checker':
+      return [
+        {
+          heading: 'How to Use Validation Results Well',
+          body: [
+            'A checker is most valuable when you treat the output as a decision aid instead of a black box. Review the flagged issue, understand what triggered it, then rerun the test after each fix.',
+            'That small loop usually saves more time than making several changes at once and then guessing which one actually solved the problem.'
+          ]
+        }
+      ];
+    default:
+      return [];
+  }
+}
+
+function mergeTooliestSections(existingSections, generatedSections, limit = generatedSections.length || 0) {
+  const merged = [];
+  [...(Array.isArray(existingSections) ? existingSections : []), ...(Array.isArray(generatedSections) ? generatedSections : [])].forEach((section) => {
+    if (!section || typeof section !== 'object') return;
+    const heading = String(section.heading || '').trim();
+    const body = Array.isArray(section.body)
+      ? section.body.map((item) => String(item || '').trim()).filter(Boolean)
+      : [String(section.body || '').trim()].filter(Boolean);
+    if (!heading || !body.length) return;
+    if (merged.some((item) => item.heading === heading)) return;
+    if (limit && merged.length >= limit) return;
+    merged.push({ heading, body });
+  });
+  return merged;
+}
 
 function buildTooliestReferenceLinks(tool) {
   const override = getTooliestSeoOverride(tool).referenceLinks;
@@ -3678,7 +3879,8 @@ TOOLS.forEach((tool) => {
     ? tool.relatedCategoryIds
     : (TOOLIEST_HOME_CATEGORY_RELATIONS[tool.category] || []);
   tool.aeoSnippet = override.aeoSnippet || tool.aeoSnippet || null;
-  tool.contentHighlights = mergeTooliestList(tool.contentHighlights, override.contentHighlights || [], 3);
+  tool.contentHighlights = mergeTooliestList(tool.contentHighlights, [...buildTooliestContentHighlights(tool), ...(override.contentHighlights || [])], 3);
+  tool.customSections = mergeTooliestSections(tool.customSections, buildTooliestCustomSections(tool), 3);
   tool.methodology = buildTooliestMethodology(tool);
   tool.accuracyDisclaimer = buildTooliestAccuracyDisclaimer(tool);
   tool.referenceLinks = buildTooliestReferenceLinks(tool);

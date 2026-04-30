@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">BMI Calculator</title>
-  <desc id="desc">Calculate BMI instantly with metric or imperial inputs and see your weight category in seconds. Free, private, and no signup required. Check BMI with Tooliest.</desc>
+  <desc id="desc">Calculate BMI instantly with metric or imperial inputs and see your weight category in seconds. Free, private, and no signup required. Check BMI with.</desc>
   <defs>
     <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
       <stop offset="0%" stop-color="#081221" />

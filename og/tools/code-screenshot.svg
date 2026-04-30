@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">Code Screenshot Generator</title>
-  <desc id="desc">Create stunning syntax-highlighted code screenshots in seconds. 20+ themes, 20+ languages, custom fonts, window chrome, gradient backgrounds. Download as PNG or SVG. Your code never leaves your browser - works offline too.</desc>
+  <desc id="desc">Create stunning syntax-highlighted code screenshots in seconds. 20+ themes, 20+ languages, custom fonts, window chrome, gradient backgrounds. Download as.</desc>
   <defs>
     <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
       <stop offset="0%" stop-color="#081221" />

@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_WHATS_NEW = [
+  { version: '3.21', date: '2026-04-30', items: ['Added a standalone disclaimer page plus clearer privacy, terms, and contact copy so policy pages read like a real publisher site instead of a placeholder setup', 'Expanded tool pages with reviewed-by founder context, deeper supporting sections, and stronger editorial navigation into guides, software comparisons, and the full tool directory', 'Tightened homepage and category trust language so pages accurately explain when workflows stay local and when AI-assisted tools use managed provider requests'] },
   { version: '3.20', date: '2026-04-30', items: ['Removed the repeated release-history sections from tool pages so the educational content stays cleaner and easier to scan', 'Removed the About page release-history block and kept product updates in one shared What&apos;s New panel instead of duplicating them across the site', 'Refreshed the What&apos;s New feed and navigation label so the latest updates stay easy to find without cluttering normal tool pages'] },
   { version: '3.19', date: '2026-04-29', items: ['Launched the Guides &amp; Tutorials section with three in-depth editorial articles on image optimization, CSS minification, and PDF workflows', 'Added unique educational content, HowTo steps, and FAQ extras to 17 tool pages including all minifiers, beautifiers, counters, and image tools', 'Improved site identity with founder info, GitHub link in navigation and footer, and honest privacy-first disclosure across all pages', 'Added Guides navigation link, homepage guides section, RSS feed, and sitemap entries for better discoverability'] },
   { version: '3.18', date: '2026-04-26', items: ['Added the browser-only Code Screenshot Generator with syntax highlighting, multi-file tabs, PNG and SVG export, and share-ready themes', 'Brought offline-ready code image creation into the developer workflow without server uploads or Carbon-style network dependence', 'Connected screenshot exports into JSON formatting, CSS cleanup, image compression, and QR sharing workflows'] },
@@ -35,7 +36,7 @@ const TOOLIEST_WHATS_NEW = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260430-bd6913ad';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260430-ecbf297f';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -649,8 +650,8 @@ const App = {
     const count = tools.length;
     const narrativeName = this.getCategoryNarrativeName(category);
     const featuredNames = this.getFeaturedToolNames(tools, 3);
-    const defaultDescription = `Explore ${count} free ${narrativeName} on Tooliest. Browser-based utilities with no signup, no uploads, and no server processing. Explore the category now.`;
-    const defaultIntro = `Browse Tooliest's ${narrativeName} and launch every tool instantly in your browser without sending your data to a server.`;
+    const defaultDescription = `Explore ${count} free ${narrativeName} on Tooliest. Browser-based utilities with no signup, clear privacy notes, and fast workflows. Explore the category now.`;
+    const defaultIntro = `Browse Tooliest's ${narrativeName} and launch every tool instantly in your browser with clear privacy guidance for local and AI-assisted workflows.`;
     const pdfDescription = featuredNames
       ? `Use ${count} free PDF tools on Tooliest to merge, split, compress, convert, protect, and export documents in your browser. Popular picks include ${featuredNames}. No signup required.`
       : `Use ${count} free PDF tools on Tooliest to merge, split, compress, convert, protect, and export documents in your browser. No signup required.`;
@@ -670,7 +671,7 @@ const App = {
         : `These are some of the most useful ${narrativeName} on Tooliest when you want fast results without extra tabs, accounts, or uploads:`,
       benefitsIntro: categoryId === 'pdf'
         ? 'Browser-based PDF tools are useful when you need to fix or export a document quickly without installing desktop software, creating an account, or sending files to a server.'
-        : `Tooliest's ${narrativeName} are designed for quick, practical work. You can launch a tool instantly, finish the task in one browser tab, and move on without handing your content to a server.`,
+        : `Tooliest's ${narrativeName} are designed for quick, practical work. You can launch a tool instantly, finish the task in one browser tab, and rely on the page guidance to explain whether the workflow stays local or uses a managed provider.`,
       faq: this.getCategoryFaqItems(category, tools),
     };
   },
@@ -1524,7 +1525,7 @@ const App = {
         <div class="hero-stat"><div class="stat-value">0</div><div class="stat-label">Signups Needed</div></div>
       </div>
       <div class="hero-trust-strip" aria-label="Tooliest trust highlights">
-        <span class="trust-badge">100% Private - No Uploads</span>
+        <span class="trust-badge">Most Tools Stay Local</span>
         <span class="trust-badge">Instant Browser Results</span>
         <span class="trust-badge">PWA Ready + Offline Support</span>
         <span class="trust-badge">No Account Friction</span>

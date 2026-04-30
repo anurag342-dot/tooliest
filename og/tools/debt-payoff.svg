@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">Debt Payoff Calculator</title>
-  <desc id="desc">Plan debt snowball and avalanche payoff strategies with timelines and interest comparisons. Free, browser-based, no signup. Compare debt plans with Tooliest.</desc>
+  <desc id="desc">Plan debt snowball and avalanche payoff strategies with timelines and interest comparisons. Free, browser-based, no signup. Compare debt plans with.</desc>
   <defs>
     <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
       <stop offset="0%" stop-color="#081221" />
