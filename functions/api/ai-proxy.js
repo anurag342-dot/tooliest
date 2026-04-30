@@ -3,6 +3,10 @@ const VALID_TOOLS = new Set(['summarizer', 'paraphraser', 'email', 'blog', 'meta
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 
+// Keep the existing secret names so the Cloudflare Pages config does not need to change.
+const PRIMARY_OPENROUTER_MODEL = 'openai/gpt-oss-120b:free';
+const FALLBACK_OPENROUTER_MODEL = 'nvidia/nemotron-3-super-120b-a12b';
+
 const rateLimitStore = new Map();
 
 function isLocalOrigin(origin) {
@@ -186,49 +190,29 @@ function isServerError(status) {
   return Number.isInteger(status) && status >= 500 && status < 600;
 }
 
-async function callGemini(prompt, apiKey) {
-  let response;
+function extractOpenRouterText(data) {
+  const content = data?.choices?.[0]?.message?.content;
 
-  try {
-    response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            maxOutputTokens: 1024,
-            temperature: 0.7,
-          },
-        }),
-      }
-    );
-  } catch (_) {
-    return { ok: false, networkError: true };
+  if (typeof content === 'string') {
+    return content.trim();
   }
 
-  if (!response.ok) {
-    return { ok: false, status: response.status };
+  if (Array.isArray(content)) {
+    const joined = content
+      .filter((item) => item && typeof item === 'object' && item.type === 'text' && typeof item.text === 'string')
+      .map((item) => item.text)
+      .join('')
+      .trim();
+
+    return joined;
   }
 
-  let data;
-  try {
-    data = await response.json();
-  } catch (_) {
-    return { ok: false, parseError: true };
-  }
-
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (typeof text !== 'string' || !text.trim()) {
-    return { ok: false, unexpectedFormat: true };
-  }
-
-  return { ok: true, text: text.trim() };
+  return '';
 }
 
-async function callOpenRouter(prompt, apiKey) {
+async function callOpenRouterModel(prompt, apiKey, modelId) {
   let response;
+
   try {
     response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -239,7 +223,7 @@ async function callOpenRouter(prompt, apiKey) {
         'X-Title': 'Tooliest AI Tools',
       },
       body: JSON.stringify({
-        model: 'openrouter/free',
+        model: modelId,
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 1024,
         temperature: 0.7,
@@ -260,18 +244,20 @@ async function callOpenRouter(prompt, apiKey) {
     return { ok: false, parseError: true };
   }
 
-  const text = data?.choices?.[0]?.message?.content;
-  if (typeof text !== 'string' || !text.trim()) {
+  const text = extractOpenRouterText(data);
+  if (!text) {
     return { ok: false, unexpectedFormat: true };
   }
 
-  return { ok: true, text: text.trim() };
+  return { ok: true, text };
 }
+
 export async function onRequest(context) {
   const request = context.request;
   const startedAt = Date.now();
   const origin = request.headers.get('Origin') || '';
   let tool = null;
+
   const finish = (response, success, model) => {
     logRequest(tool, startedAt, success, model);
     return response;
@@ -301,16 +287,14 @@ export async function onRequest(context) {
       true,
       null
     );
-  };
+  }
 
   if (request.method !== 'POST') {
     return finish(json({ success: false, error: 'Method not allowed.' }, 405, origin), false, null);
   }
 
   const ipAddress =
-    request.headers.get('CF-Connecting-IP') ||
-    request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
-    '';
+    request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() || '';
   const shouldRateLimit = !isLocalOrigin(origin) && Boolean(ipAddress);
 
   if (shouldRateLimit && !consumeRateLimit(ipAddress)) {
@@ -355,72 +339,76 @@ export async function onRequest(context) {
   const safeOptions = normalizeOptions(tool, payload.options);
   const prompt = buildPrompt(tool, trimmedInput, safeOptions);
 
-  const geminiResult = await callGemini(prompt, context.env.GEMINI_API_KEY);
+  const primaryResult = await callOpenRouterModel(prompt, context.env.GEMINI_API_KEY, PRIMARY_OPENROUTER_MODEL);
 
-  if (geminiResult.ok) {
+  if (primaryResult.ok) {
     return finish(
-      json({ success: true, result: geminiResult.text, model: 'gemini' }, 200, origin),
+      json({ success: true, result: primaryResult.text, model: PRIMARY_OPENROUTER_MODEL }, 200, origin),
       true,
-      'gemini'
+      PRIMARY_OPENROUTER_MODEL
     );
   }
 
-  if (geminiResult.parseError || geminiResult.unexpectedFormat) {
+  if (primaryResult.parseError || primaryResult.unexpectedFormat) {
     return finish(
       json({ success: false, error: 'AI returned an unexpected response. Try again.' }, 502, origin),
       false,
-      'gemini'
+      PRIMARY_OPENROUTER_MODEL
     );
   }
 
   const shouldFallback =
-    geminiResult.networkError || geminiResult.status === 429 || isServerError(geminiResult.status);
+    primaryResult.networkError || primaryResult.status === 429 || isServerError(primaryResult.status);
 
   if (!shouldFallback) {
     return finish(
       json({ success: false, error: 'AI service temporarily unavailable. Try again in a moment.' }, 503, origin),
       false,
-      'gemini'
+      PRIMARY_OPENROUTER_MODEL
     );
   }
 
-  const openRouterResult = await callOpenRouter(prompt, context.env.OPENROUTER_API_KEY);
+  const fallbackResult = await callOpenRouterModel(
+    prompt,
+    context.env.OPENROUTER_API_KEY,
+    FALLBACK_OPENROUTER_MODEL
+  );
 
-  if (openRouterResult.ok) {
+  if (fallbackResult.ok) {
     return finish(
-      json({ success: true, result: openRouterResult.text, model: 'openrouter' }, 200, origin),
+      json({ success: true, result: fallbackResult.text, model: FALLBACK_OPENROUTER_MODEL }, 200, origin),
       true,
-      'openrouter'
+      FALLBACK_OPENROUTER_MODEL
     );
   }
 
-  if (openRouterResult.parseError || openRouterResult.unexpectedFormat) {
+  if (fallbackResult.parseError || fallbackResult.unexpectedFormat) {
     return finish(
       json({ success: false, error: 'AI returned an unexpected response. Try again.' }, 502, origin),
       false,
-      'openrouter'
+      FALLBACK_OPENROUTER_MODEL
     );
   }
 
-  if (openRouterResult.networkError) {
+  if (fallbackResult.networkError) {
     return finish(
       json({ success: false, error: 'Could not reach AI service. Check your connection.' }, 503, origin),
       false,
-      'openrouter'
+      FALLBACK_OPENROUTER_MODEL
     );
   }
 
-  if (openRouterResult.status === 429) {
+  if (fallbackResult.status === 429) {
     return finish(
       json({ success: false, error: 'AI service is busy. Please try again shortly.' }, 429, origin),
       false,
-      'openrouter'
+      FALLBACK_OPENROUTER_MODEL
     );
   }
 
   return finish(
     json({ success: false, error: 'AI service temporarily unavailable. Try again in a moment.' }, 503, origin),
     false,
-    'openrouter'
+    FALLBACK_OPENROUTER_MODEL
   );
 }
