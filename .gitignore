@@ -83,3 +83,5 @@ output/
 tmp/
 create_project.ps1
 populate_project.ps1
+
+.dev.vars
