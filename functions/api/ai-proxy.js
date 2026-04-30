@@ -307,8 +307,13 @@ export async function onRequest(context) {
     return finish(json({ success: false, error: 'Method not allowed.' }, 405, origin), false, null);
   }
 
-  const ipAddress = request.headers.get('CF-Connecting-IP') || 'unknown';
-  if (!consumeRateLimit(ipAddress)) {
+  const ipAddress =
+    request.headers.get('CF-Connecting-IP') ||
+    request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+    '';
+  const shouldRateLimit = !isLocalOrigin(origin) && Boolean(ipAddress);
+
+  if (shouldRateLimit && !consumeRateLimit(ipAddress)) {
     return finish(
       json({ success: false, error: 'Too many requests. Please wait a few minutes.' }, 429, origin),
       false,
