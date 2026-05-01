@@ -3,7 +3,6 @@ const path = require('path');
 const vm = require('vm');
 
 const ROOT = path.resolve(__dirname, '..');
-const BUILD_JS_PATH = path.join(ROOT, 'build.js');
 const TOOLS_JS_PATH = path.join(ROOT, 'js', 'tools.js');
 const SITE_URL = 'https://tooliest.com';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin';
@@ -26,7 +25,7 @@ const PDF_OVERRIDES = {
       { q: 'Can I rearrange PDF pages before merging?', a: 'Yes. PDF Merger includes page thumbnails, so you can drag pages into the exact order you want before downloading the final file.' },
       { q: 'Is PDF merging private on Tooliest?', a: 'Yes. The merge happens on your device in the browser, so your PDFs are not uploaded to a remote server.' },
     ],
-    metaDesc: 'Merge multiple PDF files into one document with drag-and-drop page ordering and thumbnail previews. Free, private, and no signup required. Try Tooliest now.',
+    metaDesc: 'Merge PDF files in your browser with drag-and-drop page ordering and thumbnails. Private, fast, and no signup required on Tooliest.',
   },
   'pdf-splitter': {
     icon: '&#9986;',
@@ -60,7 +59,7 @@ const PDF_OVERRIDES = {
       { q: 'Why should I compress a PDF before sending it?', a: 'Smaller PDFs upload faster, work better with email attachment limits, and are easier to download on slower mobile connections.' },
       { q: 'Does Tooliest upload my PDF to compress it?', a: 'No. PDF Compressor works locally in your browser, so the document stays on your device throughout the workflow.' },
     ],
-    metaDesc: 'Compress PDF files online with browser-based quality controls and before-versus-after size comparisons. Free, private, and no signup required. Shrink your PDF now.',
+    metaDesc: 'Compress PDF files online with quality controls and size comparisons in your browser. Private, fast, and no signup required on Tooliest.',
   },
   'pdf-rotate': {
     icon: '&#128260;',
@@ -244,10 +243,10 @@ const PDF_OVERRIDES = {
 };
 
 function getAssetVersion() {
-  const source = fs.readFileSync(BUILD_JS_PATH, 'utf8');
-  const match = source.match(/const ASSET_VERSION = '([^']+)'/);
+  const source = fs.readFileSync(path.join(ROOT, 'js', 'app.js'), 'utf8');
+  const match = source.match(/const TOOLIEST_ASSET_VERSION = window\.__TOOLIEST_ASSET_VERSION \|\| '([^']+)'/);
   if (!match) {
-    throw new Error('Could not read ASSET_VERSION from build.js');
+    throw new Error('Could not read TOOLIEST_ASSET_VERSION from js/app.js');
   }
   return match[1];
 }
@@ -373,12 +372,18 @@ function getAbsoluteUrl(pathname) {
   return `${SITE_URL}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
 }
 
+function ensureTrailingSlashPathname(pathname) {
+  if (!pathname || pathname === '/') return '/';
+  if (/\.[a-z0-9]+$/i.test(pathname)) return pathname;
+  return pathname.endsWith('/') ? pathname : `${pathname}/`;
+}
+
 function getToolPath(toolId) {
-  return `/${toolId}`;
+  return ensureTrailingSlashPathname(`/${toolId}`);
 }
 
 function getCategoryPath(categoryId) {
-  return `/category/${categoryId}`;
+  return ensureTrailingSlashPathname(`/category/${categoryId}`);
 }
 
 function loadToolRegistry() {
@@ -457,12 +462,12 @@ function renderNavbar() {
       </div>
       <div class="nav-links" id="nav-links">
         <a href="/" class="active">Home</a>
-        <a href="/category/text">Text</a>
-        <a href="/category/seo">SEO</a>
-        <a href="/category/ai">AI Tools</a>
-        <a href="/category/pdf">PDF</a>
-        <a href="/category/developer">Dev</a>
-        <a href="/about">About</a>
+        <a href="/category/text/">Text</a>
+        <a href="/category/seo/">SEO</a>
+        <a href="/category/ai/">AI Tools</a>
+        <a href="/category/pdf/">PDF</a>
+        <a href="/category/developer/">Dev</a>
+        <a href="/about/">About</a>
         <a href="#" id="nav-install-btn" style="color:var(--accent-primary);font-weight:600;">Install App</a>
         <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="window.App&&App.toggleTheme&&App.toggleTheme()" aria-label="Toggle theme">&#9728;</button>
         <button class="theme-toggle-btn" id="whats-new-btn" onclick="window.App&&App.showWhatsNew&&App.showWhatsNew()" aria-label="What's new" title="What's New">&#127381;</button>
@@ -483,43 +488,43 @@ function renderFooter() {
       <div class="footer-col">
         <p class="footer-col-title">PDF Tools</p>
         <ul>
-          <li><a href="/pdf-merger">PDF Merger</a></li>
-          <li><a href="/pdf-splitter">PDF Splitter</a></li>
-          <li><a href="/pdf-compressor">PDF Compressor</a></li>
-          <li><a href="/pdf-to-images">PDF to Images</a></li>
-          <li><a href="/images-to-pdf">Images to PDF</a></li>
-          <li><a href="/pdf-to-text">PDF to Text</a></li>
+          <li><a href="/pdf-merger/">PDF Merger</a></li>
+          <li><a href="/pdf-splitter/">PDF Splitter</a></li>
+          <li><a href="/pdf-compressor/">PDF Compressor</a></li>
+          <li><a href="/pdf-to-images/">PDF to Images</a></li>
+          <li><a href="/images-to-pdf/">Images to PDF</a></li>
+          <li><a href="/pdf-to-text/">PDF to Text</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <p class="footer-col-title">Related Categories</p>
         <ul>
-          <li><a href="/category/pdf">PDF Tools</a></li>
-          <li><a href="/category/image">Image Tools</a></li>
-          <li><a href="/category/privacy">Privacy Tools</a></li>
-          <li><a href="/category/converter">Converters</a></li>
-          <li><a href="/category/text">Text Tools</a></li>
-          <li><a href="/software">SEO Software Guides</a></li>
+          <li><a href="/category/pdf/">PDF Tools</a></li>
+          <li><a href="/category/image/">Image Tools</a></li>
+          <li><a href="/category/privacy/">Privacy Tools</a></li>
+          <li><a href="/category/converter/">Converters</a></li>
+          <li><a href="/category/text/">Text Tools</a></li>
+          <li><a href="/software/">SEO Software Guides</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <p class="footer-col-title">Company</p>
         <ul>
-          <li><a href="/about">About Us</a></li>
-          <li><a href="/contact">Contact</a></li>
-          <li><a href="/privacy">Privacy Policy</a></li>
-          <li><a href="/terms">Terms of Service</a></li>
+          <li><a href="/about/">About Us</a></li>
+          <li><a href="/contact/">Contact</a></li>
+          <li><a href="/privacy/">Privacy Policy</a></li>
+          <li><a href="/terms/">Terms of Service</a></li>
           <li><a href="/sitemap.html">All Tools</a></li>
         </ul>
       </div>
     </div>
-    <p class="adsense-disclosure">Tooliest is free to use &mdash; every tool runs privately in your browser with no data collection. <a href="/privacy">Read our privacy policy</a></p>
+    <p class="adsense-disclosure">Tooliest is free to use &mdash; every tool runs privately in your browser with no data collection. <a href="/privacy/">Read our privacy policy</a></p>
     <div class="footer-bottom">
       <span>&copy; 2026 Tooliest.com - All tools are free and run in your browser.</span>
       <span>
-        <a href="/privacy" style="color:inherit;opacity:0.7;">Privacy</a> |
-        <a href="/terms" style="color:inherit;opacity:0.7;">Terms</a> |
-        <a href="/contact" style="color:inherit;opacity:0.7;">Contact</a> |
+        <a href="/privacy/" style="color:inherit;opacity:0.7;">Privacy</a> |
+        <a href="/terms/" style="color:inherit;opacity:0.7;">Terms</a> |
+        <a href="/contact/" style="color:inherit;opacity:0.7;">Contact</a> |
         <button onclick="window.TooliestConsent&&TooliestConsent.reset&&TooliestConsent.reset()" style="background:none;border:none;color:inherit;opacity:0.7;cursor:pointer;font-size:inherit;padding:0;font-family:inherit;">Manage Cookies</button>
       </span>
     </div>
@@ -550,7 +555,7 @@ function renderCookieBanner() {
       <div class="cookie-icon">&#127850;</div>
       <div class="cookie-text">
         <strong>We use browser storage and optional cookies to keep Tooliest free</strong>
-        <p>Tooliest uses browser storage to remember your privacy choices on this device. If you accept non-essential tracking, Google may also use cookies for analytics and ads. <a href="/privacy">Learn more in our Privacy Policy.</a></p>
+        <p>Tooliest uses browser storage to remember your privacy choices on this device. If you accept non-essential tracking, Google may also use cookies for analytics and ads. <a href="/privacy/">Learn more in our Privacy Policy.</a></p>
       </div>
       <div class="cookie-actions">
         <button id="cookie-reject-btn">Reject Non-Essential</button>
@@ -659,7 +664,7 @@ function renderToolContentSections(tool, categories) {
         <div style="width:48px;height:48px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0">A</div>
         <div style="flex:1;min-width:240px">
           <p style="margin:0 0 6px;color:var(--text-primary);font-weight:700">Written by ${escapeHtml(authorName)}</p>
-          <p style="margin:0;color:var(--text-secondary)">${escapeHtml(authorBio)} <a href="/about">Learn more about Tooliest</a>.</p>
+          <p style="margin:0;color:var(--text-secondary)">${escapeHtml(authorBio)} <a href="/about/">Learn more about Tooliest</a>.</p>
         </div>
       </div>
     </section>`;
@@ -743,7 +748,7 @@ function buildStructuredData(tool, categories) {
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer support',
-        url: `${SITE_URL}/contact`,
+        url: `${SITE_URL}/contact/`,
       },
     },
     {
@@ -753,7 +758,7 @@ function buildStructuredData(tool, categories) {
       url: canonicalUrl,
       description,
       applicationCategory: 'UtilityApplication',
-      operatingSystem: 'Any',
+      operatingSystem: 'Web',
       dateModified: tool.lastReviewed || BUILD_DATE,
       browserRequirements: 'Requires a JavaScript-enabled modern web browser',
       featureList: (tool.tags || []).join(', '),
@@ -907,15 +912,12 @@ function renderPage(tool, categories, tools, originalHtml) {
   <meta name="twitter:image" content="${escapeAttr(ogImageUrl)}">
   <meta name="twitter:image:alt" content="${escapeAttr(tool.ogImageAlt || `${tool.name} social preview card from Tooliest`)}">
   <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
-  <link rel="alternate" hreflang="en" href="${escapeAttr(canonicalUrl)}">
-  <link rel="alternate" hreflang="x-default" href="${SITE_URL}/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png">
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="${FONT_URL}" as="style">
   ${styleBlocks}
   <link rel="stylesheet" href="${FONT_URL}" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="${FONT_URL}"></noscript>

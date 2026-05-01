@@ -26,7 +26,7 @@ const GUIDE_LIBRARY = [
     slug: 'optimize-images-for-web',
     group: 'workflow',
     title: 'How to Optimize Images for Web Without Losing Quality',
-    description: 'Learn how to compress, resize, and convert images for faster page loads without visible quality loss. A practical guide covering formats, dimensions, metadata, and responsive delivery.',
+    description: 'Learn how to resize, compress, and convert images for faster page loads without visible quality loss.',
     socialDescription: 'A practical guide to image compression, resizing, format choice, and privacy-first delivery for faster websites.',
     teaser: 'Learn how to compress, resize, and convert images for faster page loads without visible quality loss. Covers format selection, compression tradeoffs, metadata stripping, and responsive images.',
     published: '2026-04-29',
@@ -43,15 +43,15 @@ const GUIDE_LIBRARY = [
 
       <h2>Resize for the layout that actually exists</h2>
       <p>One of the most common publishing mistakes is serving a 4000-pixel image into a container that only renders at 1200 pixels on desktop and far less on mobile. The browser still downloads the full file and throws most of that detail away. That means you pay the transfer cost without getting a visible benefit.</p>
-      <p>Before you compress anything, ask what the maximum rendered size will be. For hero images, that might be around 1600 pixels wide. For card thumbnails, it may be closer to 600 or 800. For avatars, it could be a few hundred pixels. Serve the right size first, then compress the smaller source. Tooliest's <a href="/image-resizer">Image Resizer</a> is useful here because it lets you match the asset to the layout before you start chasing file-size improvements.</p>
+      <p>Before you compress anything, ask what the maximum rendered size will be. For hero images, that might be around 1600 pixels wide. For card thumbnails, it may be closer to 600 or 800. For avatars, it could be a few hundred pixels. Serve the right size first, then compress the smaller source. Tooliest's <a href="/image-resizer/">Image Resizer</a> is useful here because it lets you match the asset to the layout before you start chasing file-size improvements.</p>
 
-      <h2>Compression works best when you compare visual outcomes, not just numbers</h2>
+      <h2>Compare visual quality, not just file-size numbers</h2>
       <p>There is no universal "best" quality setting because different images fail differently. A flat illustration can survive strong compression better than a photo with skin tones, gradients, or subtle texture. Instead of targeting a magic percentage, look for the lowest setting where the file still feels clean at real viewing size.</p>
-      <p>For many web photos, a WebP export in the mid-quality range is enough to cut file size dramatically while staying visually stable. That is why Tooliest's <a href="/image-compressor">Image Compressor</a> focuses on quick comparisons rather than pretending there is one perfect preset for every asset. The right workflow is to test, inspect, and stop when the savings are meaningful and the damage is not noticeable.</p>
+      <p>For many web photos, a WebP export in the mid-quality range is enough to cut file size dramatically while staying visually stable. That is why Tooliest's <a href="/image-compressor/">Image Compressor</a> focuses on quick comparisons rather than pretending there is one perfect preset for every asset. The right workflow is to test, inspect, and stop when the savings are meaningful and the damage is not noticeable.</p>
 
       <h2>Do not keep metadata you do not need</h2>
       <p>Camera images often carry EXIF data such as location, device model, capture settings, and timestamps. That metadata adds weight and can create privacy issues when you publish photos from a phone or personal camera. Most websites gain nothing from shipping it to every visitor.</p>
-      <p>If the image is headed for a blog post, landing page, portfolio, or support center, stripping metadata is usually the right default. Tooliest's <a href="/image-exif-stripper">EXIF Metadata Stripper</a> exists for exactly that reason: smaller files, less accidental data leakage, and cleaner assets before publication.</p>
+      <p>If the image is headed for a blog post, landing page, portfolio, or support center, stripping metadata is usually the right default. Tooliest's <a href="/image-exif-stripper/">EXIF Metadata Stripper</a> exists for exactly that reason: smaller files, less accidental data leakage, and cleaner assets before publication.</p>
 
       <h2>Responsive delivery matters just as much as optimization</h2>
       <p>An optimized file can still be delivered badly. If every device receives the same large image, you are forcing small screens to download more than they need. That is where responsive image patterns such as <code>srcset</code>, multiple export sizes, and sensible container widths still matter.</p>
@@ -59,7 +59,7 @@ const GUIDE_LIBRARY = [
 
       <h2>A simple workflow that works for most sites</h2>
       <p>For day-to-day publishing, keep the process boring and repeatable. Pick the format first. Resize to the largest real display size. Strip metadata. Compress until the image still looks good in context. Then deliver multiple sizes when the layout benefits from it. You will get better results from a consistent five-step workflow than from endlessly debating micro-optimizations.</p>
-      <p>If you want to keep the whole job in the browser, the usual Tooliest sequence is <a href="/image-resizer">Resize</a>, <a href="/image-converter">Convert</a>, <a href="/image-compressor">Compress</a>, and <a href="/image-exif-stripper">Strip metadata</a>. That is enough for most editorial and marketing workflows without sending files to a third-party service.</p>
+      <p>If you want to keep the whole job in the browser, the usual Tooliest sequence is <a href="/image-resizer/">Resize</a>, <a href="/image-converter/">Convert</a>, <a href="/image-compressor/">Compress</a>, and <a href="/image-exif-stripper/">Strip metadata</a>. That is enough for most editorial and marketing workflows without sending files to a third-party service.</p>
     `,
     faqs: [
       {
@@ -80,10 +80,10 @@ const GUIDE_LIBRARY = [
       },
     ],
     toolLinks: [
-      { href: '/image-compressor', label: 'Image Compressor', description: 'Reduce file size while keeping the image visually usable.' },
-      { href: '/image-resizer', label: 'Image Resizer', description: 'Match asset dimensions to the layout before you publish.' },
-      { href: '/image-converter', label: 'Image Converter', description: 'Switch between JPG, PNG, WebP, and other common formats.' },
-      { href: '/image-exif-stripper', label: 'EXIF Metadata Stripper', description: 'Remove camera metadata before sharing or publishing.' },
+      { href: '/image-compressor/', label: 'Image Compressor', description: 'Reduce file size while keeping the image visually usable.' },
+      { href: '/image-resizer/', label: 'Image Resizer', description: 'Match asset dimensions to the layout before you publish.' },
+      { href: '/image-converter/', label: 'Image Converter', description: 'Switch between JPG, PNG, WebP, and other common formats.' },
+      { href: '/image-exif-stripper/', label: 'EXIF Metadata Stripper', description: 'Remove camera metadata before sharing or publishing.' },
     ],
   },
   {
@@ -111,7 +111,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Minification is not a substitute for better CSS structure</h2>
       <p>You can minify a bloated stylesheet and still ship too much CSS. If a page loads thousands of unused selectors, a minifier cannot solve the architectural problem. That is why teams should think in layers: write maintainable source code, remove unused rules where possible, then minify the final asset for delivery.</p>
-      <p>Tooliest's <a href="/css-minifier">CSS Minifier</a> is useful when you want the final export quickly, but it works best as the last step after the stylesheet itself is already reasonably clean.</p>
+      <p>Tooliest's <a href="/css-minifier/">CSS Minifier</a> is useful when you want the final export quickly, but it works best as the last step after the stylesheet itself is already reasonably clean.</p>
 
       <h2>When not to minify by hand</h2>
       <p>Manually minifying source CSS and then continuing to edit that file is usually a bad workflow. It makes code review harder, introduces mistakes, and turns normal maintenance into guesswork. Keep readable source files for humans and minified output for production delivery.</p>
@@ -119,7 +119,7 @@ const GUIDE_LIBRARY = [
 
       <h2>A good default workflow</h2>
       <p>Write clean CSS. Remove unused code when you can. Minify the publishable output. Serve it with network compression. Cache it aggressively. That stack handles both transfer size and operational sanity. Teams get the performance benefit without sacrificing maintainability.</p>
-      <p>Tooliest's <a href="/css-minifier">CSS Minifier</a>, <a href="/css-beautifier">CSS Beautifier</a>, and <a href="/html-minifier">HTML Minifier</a> work nicely as a simple browser-based cleanup kit when you need to inspect, tidy, and publish frontend assets quickly.</p>
+      <p>Tooliest's <a href="/css-minifier/">CSS Minifier</a>, <a href="/css-beautifier/">CSS Beautifier</a>, and <a href="/html-minifier/">HTML Minifier</a> work nicely as a simple browser-based cleanup kit when you need to inspect, tidy, and publish frontend assets quickly.</p>
     `,
     faqs: [
       { q: 'Does CSS minification improve SEO directly?', a: 'Not directly as a ranking factor on its own, but faster pages can improve user experience and Core Web Vitals, which makes minification a useful supporting practice.' },
@@ -128,9 +128,9 @@ const GUIDE_LIBRARY = [
       { q: 'Should I keep a readable source file as well as a minified file?', a: 'Yes. Human-friendly source files are much easier to maintain. Minified CSS should be the deployment artifact, not the file your team edits directly.' },
     ],
     toolLinks: [
-      { href: '/css-minifier', label: 'CSS Minifier', description: 'Strip unnecessary bytes from production-ready CSS.' },
-      { href: '/css-beautifier', label: 'CSS Beautifier', description: 'Restore readable formatting before reviewing or editing styles.' },
-      { href: '/html-minifier', label: 'HTML Minifier', description: 'Trim frontend markup alongside your CSS payload.' },
+      { href: '/css-minifier/', label: 'CSS Minifier', description: 'Strip unnecessary bytes from production-ready CSS.' },
+      { href: '/css-beautifier/', label: 'CSS Beautifier', description: 'Restore readable formatting before reviewing or editing styles.' },
+      { href: '/html-minifier/', label: 'HTML Minifier', description: 'Trim frontend markup alongside your CSS payload.' },
     ],
   },
   {
@@ -150,19 +150,19 @@ const GUIDE_LIBRARY = [
 
       <h2>Know the job before you pick the tool</h2>
       <p>PDF tasks are easier when you categorize them correctly. Merging and splitting are structural tasks. Compression is a file-size task. Watermarking and page numbering are presentation tasks. Password protection is a security task. Text extraction is a content task. Once you know which category the job belongs to, the right next tool becomes much more obvious.</p>
-      <p>People often lose time because they use a single all-purpose app for everything, even when the task is tiny. A dedicated workflow is faster. If you only need to combine files, open <a href="/pdf-merger">PDF Merger</a>. If you need to shrink a heavy export, jump straight to <a href="/pdf-compressor">PDF Compressor</a>. The goal is less wandering and more finishing.</p>
+      <p>People often lose time because they use a single all-purpose app for everything, even when the task is tiny. A dedicated workflow is faster. If you only need to combine files, open <a href="/pdf-merger/">PDF Merger</a>. If you need to shrink a heavy export, jump straight to <a href="/pdf-compressor/">PDF Compressor</a>. The goal is less wandering and more finishing.</p>
 
       <h2>Merge, split, and reorder before you polish</h2>
       <p>When you are assembling a final document, deal with structure first. Merge the files, remove the pages you do not need, and reorder the sequence before you worry about watermarks or page numbers. Otherwise you end up redoing presentation steps every time the document changes.</p>
-      <p>This order matters in real work. A sales packet, onboarding document, or application bundle is almost always easier to build in stages: combine, trim, reorder, then finalize. Tooliest separates those actions into <a href="/pdf-merger">PDF Merger</a>, <a href="/pdf-splitter">PDF Splitter</a>, and <a href="/pdf-reorder">PDF Reorder</a> so you are not fighting one giant interface for small structural changes.</p>
+      <p>This order matters in real work. A sales packet, onboarding document, or application bundle is almost always easier to build in stages: combine, trim, reorder, then finalize. Tooliest separates those actions into <a href="/pdf-merger/">PDF Merger</a>, <a href="/pdf-splitter/">PDF Splitter</a>, and <a href="/pdf-reorder/">PDF Reorder</a> so you are not fighting one giant interface for small structural changes.</p>
 
       <h2>Compression is about constraints, not perfection</h2>
       <p>Most people compress PDFs because a portal rejects a file-size limit or because email attachments need to stay light. The trick is to reduce weight without making the document unreadable. Image-heavy PDFs usually shrink the most, especially scans and slide decks. Text-native PDFs often have less room to move unless fonts or embedded assets are excessive.</p>
-      <p>If the document contains signatures, small print, or diagrams, compression needs a quick sanity check before you send it. Tooliest's <a href="/pdf-compressor">PDF Compressor</a> is designed for that exact tradeoff: smaller files without turning the output into a fuzzy mess.</p>
+      <p>If the document contains signatures, small print, or diagrams, compression needs a quick sanity check before you send it. Tooliest's <a href="/pdf-compressor/">PDF Compressor</a> is designed for that exact tradeoff: smaller files without turning the output into a fuzzy mess.</p>
 
       <h2>Security and privacy are not the same thing</h2>
       <p>Password-protecting a PDF is useful, but it is not the same as keeping your workflow private. A file can be encrypted in the end result and still be exposed earlier if you uploaded it to a third-party service unnecessarily. That is why browser-based processing can matter even when the final document also needs a password.</p>
-      <p>If the PDF contains contracts, IDs, customer data, or internal notes, the safer sequence is usually: edit locally, protect locally, then share the finished file intentionally. Tooliest's <a href="/pdf-protect">PDF Password Protect</a> and browser-first PDF stack are built around that principle.</p>
+      <p>If the PDF contains contracts, IDs, customer data, or internal notes, the safer sequence is usually: edit locally, protect locally, then share the finished file intentionally. Tooliest's <a href="/pdf-protect/">PDF Password Protect</a> and browser-first PDF stack are built around that principle.</p>
 
       <h2>A practical PDF stack for everyday work</h2>
       <p>For most teams, the repeatable stack is simple: merge or split first, reorder if needed, compress only after structure is final, add page numbers or watermarks when the layout is locked, then protect the document if it contains sensitive content. That sequence reduces rework and keeps the output cleaner.</p>
@@ -175,11 +175,11 @@ const GUIDE_LIBRARY = [
       { q: 'Can I do common PDF tasks without installing desktop software?', a: 'Yes. Tooliest covers merging, splitting, reordering, compressing, watermarking, text extraction, and protection directly in the browser.' },
     ],
     toolLinks: [
-      { href: '/pdf-merger', label: 'PDF Merger', description: 'Combine multiple PDFs into one final document.' },
-      { href: '/pdf-splitter', label: 'PDF Splitter', description: 'Extract selected pages or break a PDF into smaller parts.' },
-      { href: '/pdf-compressor', label: 'PDF Compressor', description: 'Shrink file size for email, uploads, and storage.' },
-      { href: '/pdf-protect', label: 'PDF Password Protect', description: 'Add a password before sharing sensitive PDFs.' },
-      { href: '/pdf-watermark', label: 'PDF Watermark', description: 'Stamp exported documents with ownership or review labels.' },
+      { href: '/pdf-merger/', label: 'PDF Merger', description: 'Combine multiple PDFs into one final document.' },
+      { href: '/pdf-splitter/', label: 'PDF Splitter', description: 'Extract selected pages or break a PDF into smaller parts.' },
+      { href: '/pdf-compressor/', label: 'PDF Compressor', description: 'Shrink file size for email, uploads, and storage.' },
+      { href: '/pdf-protect/', label: 'PDF Password Protect', description: 'Add a password before sharing sensitive PDFs.' },
+      { href: '/pdf-watermark/', label: 'PDF Watermark', description: 'Stamp exported documents with ownership or review labels.' },
     ],
   },
   {
@@ -199,7 +199,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Formatting is for humans, validation is for machines</h2>
       <p>People often treat formatting and validation as the same thing, but they solve different problems. Formatting adds indentation and line breaks so you can scan nested objects more comfortably. Validation checks whether the syntax is actually legal JSON. A pretty file can still be invalid if the structure is broken.</p>
-      <p>That is why the clean workflow is usually <a href="/json-validator">validate first</a>, then <a href="/json-formatter">format for readability</a>. If the syntax is invalid, pretty-printing alone will not save you.</p>
+      <p>That is why the clean workflow is usually <a href="/json-validator/">validate first</a>, then <a href="/json-formatter/">format for readability</a>. If the syntax is invalid, pretty-printing alone will not save you.</p>
 
       <h2>The mistakes that break JSON most often</h2>
       <p>Most parse failures come from a short list of habits: leaving a trailing comma after the last item, forgetting that object keys must use double quotes, copying comments from JavaScript into raw JSON, or pasting values with smart quotes from a document editor. These are tiny errors, but parsers do not negotiate with them.</p>
@@ -207,11 +207,11 @@ const GUIDE_LIBRARY = [
 
       <h2>Minification and readability serve different stages of work</h2>
       <p>Readable JSON is better for review, debugging, onboarding, and QA. Minified JSON is better for transport, storage, or embedding where every byte matters. Neither is "more correct" than the other. They are just suited to different moments in the workflow.</p>
-      <p>That is why Tooliest separates <a href="/json-formatter">JSON Formatter</a> and <a href="/json-minifier">JSON Minifier</a>. One helps you think. The other helps you ship.</p>
+      <p>That is why Tooliest separates <a href="/json-formatter/">JSON Formatter</a> and <a href="/json-minifier/">JSON Minifier</a>. One helps you think. The other helps you ship.</p>
 
       <h2>Conversion matters when JSON leaves engineering</h2>
       <p>A lot of JSON work stops being purely technical once the data needs to move into spreadsheets, reporting tools, or manual review workflows. That is where conversion becomes useful. A marketing team may want CSV for a spreadsheet. A support lead may want a flattened export to spot patterns. A developer may need CSV to audit a large response with filters and formulas.</p>
-      <p>Tooliest's <a href="/json-to-csv">JSON to CSV</a> and <a href="/csv-to-json">CSV to JSON</a> tools are useful at that handoff point. They turn structured data into something easier to inspect outside code without manually rewriting the dataset.</p>
+      <p>Tooliest's <a href="/json-to-csv/">JSON to CSV</a> and <a href="/csv-to-json/">CSV to JSON</a> tools are useful at that handoff point. They turn structured data into something easier to inspect outside code without manually rewriting the dataset.</p>
 
       <h2>A solid JSON workflow is mostly about speed of feedback</h2>
       <p>The faster you can see whether the payload is valid, the less time you waste guessing. That sounds obvious, but it is the real reason formatter, validator, and converter tools stay useful. They shorten the loop between "something looks wrong" and "I know exactly what to fix."</p>
@@ -224,11 +224,11 @@ const GUIDE_LIBRARY = [
       { q: 'Should I format or validate JSON first?', a: 'Validate first. If the payload is invalid, formatting alone may not reveal the real structural problem clearly enough.' },
     ],
     toolLinks: [
-      { href: '/json-formatter', label: 'JSON Formatter', description: 'Pretty-print nested JSON so it is easier to read and debug.' },
-      { href: '/json-validator', label: 'JSON Validator', description: 'Catch invalid syntax before it breaks your workflow.' },
-      { href: '/json-to-csv', label: 'JSON to CSV', description: 'Turn structured data into a spreadsheet-friendly shape.' },
-      { href: '/csv-to-json', label: 'CSV to JSON', description: 'Convert tabular datasets back into JSON for apps and APIs.' },
-      { href: '/json-minifier', label: 'JSON Minifier', description: 'Strip unnecessary whitespace for compact transport.' },
+      { href: '/json-formatter/', label: 'JSON Formatter', description: 'Pretty-print nested JSON so it is easier to read and debug.' },
+      { href: '/json-validator/', label: 'JSON Validator', description: 'Catch invalid syntax before it breaks your workflow.' },
+      { href: '/json-to-csv/', label: 'JSON to CSV', description: 'Turn structured data into a spreadsheet-friendly shape.' },
+      { href: '/csv-to-json/', label: 'CSV to JSON', description: 'Convert tabular datasets back into JSON for apps and APIs.' },
+      { href: '/json-minifier/', label: 'JSON Minifier', description: 'Strip unnecessary whitespace for compact transport.' },
     ],
   },
   {
@@ -256,7 +256,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Random passwords and passphrases both have a place</h2>
       <p>For accounts stored in a password manager, long random strings are usually the strongest choice. They are hard to predict and easy for a manager to generate. For the few secrets you may need to type often, a long passphrase can be a reasonable compromise if it is unique and not built from obvious phrases, lyrics, or personal details.</p>
-      <p>Tooliest's <a href="/password-security-suite">Password Security Suite</a> is useful because it lets you test length, variety, and generator settings without uploading the secret to a remote page. The point is not to obsess over a score. It is to avoid weak patterns and create something you would not invent the same way twice.</p>
+      <p>Tooliest's <a href="/password-security-suite/">Password Security Suite</a> is useful because it lets you test length, variety, and generator settings without uploading the secret to a remote page. The point is not to obsess over a score. It is to avoid weak patterns and create something you would not invent the same way twice.</p>
 
       <h2>Two-factor authentication is not optional anymore</h2>
       <p>Strong passwords reduce risk, but they do not eliminate phishing, credential stuffing, or session theft. That is why two-factor authentication remains one of the highest-leverage upgrades you can make. Even when a password is exposed, a second factor can stop a routine compromise from becoming account access.</p>
@@ -273,8 +273,8 @@ const GUIDE_LIBRARY = [
       { q: 'Should I use a password generator?', a: 'Yes, especially when you have a password manager. Generators reduce predictability and make it much easier to keep every account unique.' },
     ],
     toolLinks: [
-      { href: '/password-security-suite', label: 'Password Security Suite', description: 'Generate strong passwords and test their strength locally in the browser.' },
-      { href: '/hash-generator', label: 'Hash Generator', description: 'Inspect how plaintext changes once it is hashed for secure storage workflows.' },
+      { href: '/password-security-suite/', label: 'Password Security Suite', description: 'Generate strong passwords and test their strength locally in the browser.' },
+      { href: '/hash-generator/', label: 'Hash Generator', description: 'Inspect how plaintext changes once it is hashed for secure storage workflows.' },
     ],
   },
   {
@@ -294,18 +294,18 @@ const GUIDE_LIBRARY = [
 
       <h2>Start with hue roles, not endless swatches</h2>
       <p>The most useful mental model is to assign jobs. One color leads the brand or primary action. Another handles support states or secondary emphasis. Neutral tones carry most surfaces, borders, and text scaffolding. Success, warning, and error states get their own semantic roles. Once the roles are clear, you stop choosing colors randomly and start building a system.</p>
-      <p>Tooliest's <a href="/palette-generator">Palette Generator</a> and <a href="/color-picker">Color Picker</a> are helpful because they let you test variations quickly without pretending every new hex code deserves equal weight in the interface.</p>
+      <p>Tooliest's <a href="/palette-generator/">Palette Generator</a> and <a href="/color-picker/">Color Picker</a> are helpful because they let you test variations quickly without pretending every new hex code deserves equal weight in the interface.</p>
 
       <h2>Contrast is a product decision, not just an accessibility checkbox</h2>
       <p>Low-contrast design often looks elegant in static mockups and frustrating in real use. Users do not experience a palette in a still Dribbble shot. They experience it on laptops in bright rooms, on low-battery mobile screens, and during long reading sessions where weak contrast becomes actual friction.</p>
-      <p>That is why contrast checking is not only about compliance. It is about readability, scannability, and confidence. Tooliest's <a href="/contrast-checker">Contrast Checker</a> helps turn vague design instinct into something measurable before the problem ships.</p>
+      <p>That is why contrast checking is not only about compliance. It is about readability, scannability, and confidence. Tooliest's <a href="/contrast-checker/">Contrast Checker</a> helps turn vague design instinct into something measurable before the problem ships.</p>
 
       <h2>Build palettes from relationships, not from isolated favorites</h2>
       <p>A common mistake is picking several individually attractive colors that do not work together in context. Good palettes are relational. They need a dominant anchor, a supporting range, and neutrals that do not fight for attention. If every card, badge, and button competes visually, the page feels louder than the content deserves.</p>
       <p>For most developer-facing interfaces, a small controlled palette wins. Use one strong accent, one or two complementary support colors, and a carefully spaced neutral scale. That gives the UI room to breathe and keeps states understandable.</p>
 
       <h2>Accessibility and color meaning should line up</h2>
-      <p>Color should not carry meaning alone. Success messages, destructive actions, and warnings should also use text, icons, or layout cues. That is especially important for users with low vision or color-vision differences. Tools such as <a href="/color-blindness-sim">Color Blindness Simulator</a> help you see when a palette only works for the people with the luckiest screens and strongest eyesight.</p>
+      <p>Color should not carry meaning alone. Success messages, destructive actions, and warnings should also use text, icons, or layout cues. That is especially important for users with low vision or color-vision differences. Tools such as <a href="/color-blindness-sim/">Color Blindness Simulator</a> help you see when a palette only works for the people with the luckiest screens and strongest eyesight.</p>
       <p>A palette is successful when it is beautiful enough to feel intentional and clear enough to survive real use. The second part is usually more important.</p>
 
       <h2>The fastest path to better UI color choices</h2>
@@ -319,10 +319,10 @@ const GUIDE_LIBRARY = [
       { q: 'How many brand or accent colors should most interfaces use?', a: 'Usually fewer than people expect. One dominant accent and a small supporting system are often enough for a clean, professional interface.' },
     ],
     toolLinks: [
-      { href: '/color-picker', label: 'Color Picker', description: 'Inspect and convert colors across HEX, RGB, and HSL.' },
-      { href: '/palette-generator', label: 'Palette Generator', description: 'Build supporting color sets from a base direction.' },
-      { href: '/contrast-checker', label: 'Contrast Checker', description: 'Measure text and UI contrast before shipping.' },
-      { href: '/color-blindness-sim', label: 'Color Blindness Simulator', description: 'Check whether a palette survives different vision conditions.' },
+      { href: '/color-picker/', label: 'Color Picker', description: 'Inspect and convert colors across HEX, RGB, and HSL.' },
+      { href: '/palette-generator/', label: 'Palette Generator', description: 'Build supporting color sets from a base direction.' },
+      { href: '/contrast-checker/', label: 'Contrast Checker', description: 'Measure text and UI contrast before shipping.' },
+      { href: '/color-blindness-sim/', label: 'Color Blindness Simulator', description: 'Check whether a palette survives different vision conditions.' },
     ],
   },
   {
@@ -344,15 +344,15 @@ const GUIDE_LIBRARY = [
       <p>If you only improve one field, improve the title tag. It is still one of the clearest ways to tell search engines and users what the page is about. Good titles do not chase every keyword variation. They lead with the main topic, stay readable, and reflect the actual promise of the page.</p>
       <p>That means avoiding titles that are either too generic or too stuffed. A title should make sense to a person first. Search engines are better at understanding context than they used to be, so the old tactic of awkward repetition is more likely to damage perception than help ranking.</p>
 
-      <h2>Meta descriptions do not rank the page by themselves, but they still influence clicks</h2>
+      <h2>Meta descriptions do not rank pages, but they influence clicks</h2>
       <p>Descriptions are best treated as click-support copy. They help reinforce the page angle, clarify the benefit, and reduce ambiguity in the search result. That matters because a page can technically rank and still underperform if the snippet gives users no compelling reason to choose it.</p>
-      <p>Tooliest's <a href="/meta-tag-generator">Meta Tag Generator</a> and <a href="/ai-meta-writer">AI Meta Description Writer</a> are useful here because they help you draft and test descriptions faster, but the final description still needs editorial judgment. The best snippet says what the page actually delivers.</p>
+      <p>Tooliest's <a href="/meta-tag-generator/">Meta Tag Generator</a> and <a href="/ai-meta-writer/">AI Meta Description Writer</a> are useful here because they help you draft and test descriptions faster, but the final description still needs editorial judgment. The best snippet says what the page actually delivers.</p>
 
       <h2>Canonical tags are about authority control</h2>
       <p>Canonicals are not only for giant ecommerce sites. Any site with variant URLs, tracking parameters, category overlaps, or lightly duplicated versions can benefit from a clear canonical signal. Without that signal, authority can split across versions of essentially the same page.</p>
       <p>Think of canonicals as a consolidation hint: this is the page we want treated as primary. They are especially important on content systems where slugs, archives, and filtered URLs can accidentally create duplicate paths.</p>
 
-      <h2>Open Graph and Twitter tags matter because search is not the only discovery layer</h2>
+      <h2>Open Graph and Twitter tags matter beyond search</h2>
       <p>Pages get shared in chat apps, social posts, communities, and internal work tools. When those previews look broken or vague, the page loses credibility before the click even happens. Open Graph and Twitter tags make the preview intentional instead of accidental.</p>
       <p>That is not a separate branding exercise. It is part of metadata quality. A good page should describe itself consistently whether it is discovered in Google, Slack, X, LinkedIn, or a team knowledge base.</p>
 
@@ -362,7 +362,7 @@ const GUIDE_LIBRARY = [
 
       <h2>A reliable metadata workflow</h2>
       <p>Start with the page intent. Write a title that names the topic cleanly. Add a description that explains the value without sounding like filler. Set the canonical deliberately. Make sure social tags reuse the same core message. Then validate the output before publishing. It is a small workflow, but it saves a surprising amount of SEO confusion later.</p>
-      <p>Tooliest covers most of that loop with <a href="/meta-tag-generator">Meta Tag Generator</a>, <a href="/schema-generator">Schema Generator</a>, <a href="/slug-generator">Slug Generator</a>, and <a href="/keyword-density">Keyword Density Checker</a> when you want to move from draft to QA without leaving the browser.</p>
+      <p>Tooliest covers most of that loop with <a href="/meta-tag-generator/">Meta Tag Generator</a>, <a href="/schema-generator/">Schema Generator</a>, <a href="/slug-generator/">Slug Generator</a>, and <a href="/keyword-density/">Keyword Density Checker</a> when you want to move from draft to QA without leaving the browser.</p>
     `,
     faqs: [
       { q: 'Do meta descriptions directly improve rankings?', a: 'Not in the same way title tags or page content can, but strong descriptions can improve click-through rate and make a result more compelling when it appears in search.' },
@@ -371,10 +371,10 @@ const GUIDE_LIBRARY = [
       { q: 'Should every page use the same metadata template?', a: 'No. A shared framework is fine, but each page still needs specific titles and descriptions that reflect its real purpose instead of sounding mass-generated.' },
     ],
     toolLinks: [
-      { href: '/meta-tag-generator', label: 'Meta Tag Generator', description: 'Build titles, descriptions, social tags, and canonical markup in one pass.' },
-      { href: '/ai-meta-writer', label: 'AI Meta Description Writer', description: 'Draft description options when you need a faster starting point.' },
-      { href: '/schema-generator', label: 'Schema Generator', description: 'Add structured-data support to the page alongside your metadata.' },
-      { href: '/slug-generator', label: 'Slug Generator', description: 'Turn a page topic into a cleaner, search-friendly URL.' },
+      { href: '/meta-tag-generator/', label: 'Meta Tag Generator', description: 'Build titles, descriptions, social tags, and canonical markup in one pass.' },
+      { href: '/ai-meta-writer/', label: 'AI Meta Description Writer', description: 'Draft description options when you need a faster starting point.' },
+      { href: '/schema-generator/', label: 'Schema Generator', description: 'Add structured-data support to the page alongside your metadata.' },
+      { href: '/slug-generator/', label: 'Slug Generator', description: 'Turn a page topic into a cleaner, search-friendly URL.' },
     ],
   },
   {
@@ -402,7 +402,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Capture groups are where regex becomes practical</h2>
       <p>Matching text is only half the story. Capture groups let you reuse pieces of the match, which is where regex becomes valuable in search-and-replace workflows. You can preserve the useful part of a pattern and rewrite the surrounding string without manual editing.</p>
-      <p>That is especially helpful when cleaning logs, renaming strings, normalizing dates, or massaging content before it enters another system. Tooliest's <a href="/regex-tester">Regex Tester</a> makes that easier because you can see the match groups live instead of guessing where the capture boundaries landed.</p>
+      <p>That is especially helpful when cleaning logs, renaming strings, normalizing dates, or massaging content before it enters another system. Tooliest's <a href="/regex-tester/">Regex Tester</a> makes that easier because you can see the match groups live instead of guessing where the capture boundaries landed.</p>
 
       <h2>Greedy patterns break more things than beginners expect</h2>
       <p>The dot-star pattern <code>.*</code> is powerful and dangerous because it is greedy by default. It will often consume far more than you intended. That is why beginners should practice the difference between greedy and non-greedy matching early. A small <code>?</code> can completely change the result.</p>
@@ -423,9 +423,9 @@ const GUIDE_LIBRARY = [
       { q: 'When should I avoid regex?', a: 'Avoid it when a simple parser, built-in string method, or explicit rule set would be clearer and easier to maintain than a dense pattern.' },
     ],
     toolLinks: [
-      { href: '/regex-tester', label: 'Regex Tester', description: 'Test matches, flags, and capture groups with live feedback.' },
-      { href: '/slug-generator', label: 'Slug Generator', description: 'See a practical example of string cleanup without writing regex by hand.' },
-      { href: '/remove-duplicates', label: 'Remove Duplicate Lines', description: 'Clean text before or after regex-based processing.' },
+      { href: '/regex-tester/', label: 'Regex Tester', description: 'Test matches, flags, and capture groups with live feedback.' },
+      { href: '/slug-generator/', label: 'Slug Generator', description: 'See a practical example of string cleanup without writing regex by hand.' },
+      { href: '/remove-duplicates/', label: 'Remove Duplicate Lines', description: 'Clean text before or after regex-based processing.' },
     ],
   },
   {
@@ -453,7 +453,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Common real-world uses</h2>
       <p>Base64 is common in data URIs, simple authentication headers, small inline asset workflows, JSON payloads that carry binary fragments, and developer tools that need to move content through text-only interfaces. It is also useful during debugging when you want to inspect or transfer content without dealing with raw binary files directly.</p>
-      <p>Tooliest's <a href="/base64-encoder">Base64 Encoder</a>, <a href="/base64-to-image">Base64 to Image</a>, and <a href="/image-to-base64">Image to Base64</a> cover the most common browser-side cases where developers or marketers just need the conversion done quickly.</p>
+      <p>Tooliest's <a href="/base64-encoder/">Base64 Encoder</a>, <a href="/base64-to-image/">Base64 to Image</a>, and <a href="/image-to-base64/">Image to Base64</a> cover the most common browser-side cases where developers or marketers just need the conversion done quickly.</p>
 
       <h2>Encoding is not encryption</h2>
       <p>This is the part worth repeating. If something is Base64-encoded, it can usually be decoded immediately by anyone who receives it. That makes it unsuitable as a privacy layer. It may hide the raw format from casual reading, but it does not provide meaningful security on its own.</p>
@@ -470,10 +470,10 @@ const GUIDE_LIBRARY = [
       { q: 'Should I Base64-encode large images for websites?', a: 'Usually not. It can make the payload heavier and harder to cache efficiently. It is more useful for small inline assets than for large media files.' },
     ],
     toolLinks: [
-      { href: '/base64-encoder', label: 'Base64 Encoder', description: 'Encode plain text or raw input into Base64 fast.' },
-      { href: '/base64-to-image', label: 'Base64 to Image', description: 'Decode image payloads back into a viewable file.' },
-      { href: '/image-to-base64', label: 'Image to Base64', description: 'Turn small images into data-URI-ready Base64 text.' },
-      { href: '/string-encoder', label: 'String Encoder', description: 'Compare Base64 with other text-safe encoding workflows.' },
+      { href: '/base64-encoder/', label: 'Base64 Encoder', description: 'Encode plain text or raw input into Base64 fast.' },
+      { href: '/base64-to-image/', label: 'Base64 to Image', description: 'Decode image payloads back into a viewable file.' },
+      { href: '/image-to-base64/', label: 'Image to Base64', description: 'Turn small images into data-URI-ready Base64 text.' },
+      { href: '/string-encoder/', label: 'String Encoder', description: 'Compare Base64 with other text-safe encoding workflows.' },
     ],
   },
   {
@@ -493,7 +493,7 @@ const GUIDE_LIBRARY = [
 
       <h2>The formula matters less than the intuition</h2>
       <p>The classic formula is useful, but the intuition is what changes decisions. A one-time deposit grows because every future period is calculated from the new higher balance. Recurring contributions make the picture stronger because each deposit starts its own compounding path. That means a monthly saver is not just adding money. They are constantly adding new growth seeds.</p>
-      <p>Tooliest's <a href="/compound-interest">Compound Interest Calculator</a> is helpful because it visualizes that effect in a way people can compare faster than they can by reading formulas alone.</p>
+      <p>Tooliest's <a href="/compound-interest/">Compound Interest Calculator</a> is helpful because it visualizes that effect in a way people can compare faster than they can by reading formulas alone.</p>
 
       <h2>Time usually beats intensity</h2>
       <p>Many savers ask how to "catch up" later with bigger deposits. The honest answer is that starting earlier is hard to replace. A modest amount invested for a long period can outperform a larger amount invested much later because the earlier contribution spends more years compounding.</p>
@@ -501,7 +501,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Return assumptions should stay humble</h2>
       <p>A projection is not a promise. Market returns fluctuate, fees matter, taxes matter, and real life interrupts saving patterns. That is why strong planning uses realistic ranges rather than one perfect expected return. Aggressive assumptions can make a plan look safe when it is actually fragile.</p>
-      <p>Tooliest also links this topic naturally with <a href="/sip-calculator">SIP Calculator</a>, <a href="/roi-calculator">ROI Calculator</a>, and <a href="/inflation-calculator">Inflation Calculator</a> because long-term growth only makes sense when you compare contributions, performance, and purchasing power together.</p>
+      <p>Tooliest also links this topic naturally with <a href="/sip-calculator/">SIP Calculator</a>, <a href="/roi-calculator/">ROI Calculator</a>, and <a href="/inflation-calculator/">Inflation Calculator</a> because long-term growth only makes sense when you compare contributions, performance, and purchasing power together.</p>
 
       <h2>The Rule of 72 is useful because it is memorable</h2>
       <p>The Rule of 72 is not a replacement for a calculator, but it is a good mental model. Divide 72 by the annual return and you get a rough estimate of how many years it could take for money to double. That shortcut helps people think quickly about the relationship between time and growth without opening a spreadsheet every time.</p>
@@ -518,10 +518,10 @@ const GUIDE_LIBRARY = [
       { q: 'Are monthly contributions more important than the starting balance?', a: 'Both matter, but consistent contributions can be one of the most controllable drivers of long-term outcomes, especially for people who are still building wealth.' },
     ],
     toolLinks: [
-      { href: '/compound-interest', label: 'Compound Interest Calculator', description: 'Model growth with principal, rate, time, and recurring contributions.' },
-      { href: '/sip-calculator', label: 'SIP Calculator', description: 'Estimate recurring investment growth over time.' },
-      { href: '/roi-calculator', label: 'ROI Calculator', description: 'Compare returns across different projects or investments.' },
-      { href: '/inflation-calculator', label: 'Inflation Calculator', description: 'See how purchasing power changes alongside growth assumptions.' },
+      { href: '/compound-interest/', label: 'Compound Interest Calculator', description: 'Model growth with principal, rate, time, and recurring contributions.' },
+      { href: '/sip-calculator/', label: 'SIP Calculator', description: 'Estimate recurring investment growth over time.' },
+      { href: '/roi-calculator/', label: 'ROI Calculator', description: 'Compare returns across different projects or investments.' },
+      { href: '/inflation-calculator/', label: 'Inflation Calculator', description: 'See how purchasing power changes alongside growth assumptions.' },
     ],
   },
   {
@@ -541,7 +541,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Slugs should describe the page without trying to tell the whole story</h2>
       <p>A slug is the page label, not the page summary. It should be short enough to scan, specific enough to distinguish the page, and stable enough that you are not tempted to rewrite it every few weeks. People often overdo slug length by including every modifier from the title. That rarely improves anything.</p>
-      <p>Tooliest's <a href="/slug-generator">Slug Generator</a> is useful because it strips noise fast and gives you something cleaner to evaluate. The real decision is still editorial: what is the simplest accurate label for this page?</p>
+      <p>Tooliest's <a href="/slug-generator/">Slug Generator</a> is useful because it strips noise fast and gives you something cleaner to evaluate. The real decision is still editorial: what is the simplest accurate label for this page?</p>
 
       <h2>Path depth matters less than clarity</h2>
       <p>There is no universal SEO rule that says every page must live close to the root. What matters more is whether the structure makes sense. A guide under <code>/guides/</code> or a software cluster under <code>/software/</code> is usually clearer than flattening everything into the root for the sake of theoretical simplicity.</p>
@@ -553,7 +553,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Avoid ugly parameters when a clean path would do</h2>
       <p>Parameters have their place, but content pages should not rely on them when a clean canonical path is more useful. URLs full of tracking fragments, session-style identifiers, or variant clutter are harder to trust, harder to share, and more likely to create duplicate-indexing problems if canonicals are weak.</p>
-      <p>That is where tools like <a href="/meta-tag-generator">Meta Tag Generator</a>, <a href="/sitemap-generator">Sitemap Generator</a>, and <a href="/robots-txt-generator">Robots.txt Generator</a> become part of the same hygiene system. URL quality is not isolated from the rest of technical SEO.</p>
+      <p>That is where tools like <a href="/meta-tag-generator/">Meta Tag Generator</a>, <a href="/sitemap-generator/">Sitemap Generator</a>, and <a href="/robots-txt-generator/">Robots.txt Generator</a> become part of the same hygiene system. URL quality is not isolated from the rest of technical SEO.</p>
 
       <h2>The best URL structure is boring and consistent</h2>
       <p>The strongest URL systems are almost never the most clever ones. They are the ones that make sense a year later. Keep slugs readable. Avoid unnecessary date fragments unless the date is truly part of the page identity. Use lowercase consistently. Prefer hyphens over awkward separators. Build paths that reflect the real content model of the site.</p>
@@ -566,10 +566,10 @@ const GUIDE_LIBRARY = [
       { q: 'What should I do if I change a slug?', a: 'Add a proper 301 redirect, update internal links, and make sure the canonical points to the new final URL.' },
     ],
     toolLinks: [
-      { href: '/slug-generator', label: 'Slug Generator', description: 'Turn a page title into a clean, lower-case, hyphenated slug.' },
-      { href: '/meta-tag-generator', label: 'Meta Tag Generator', description: 'Pair a clean URL with stronger supporting metadata.' },
-      { href: '/sitemap-generator', label: 'Sitemap Generator', description: 'Document canonical content URLs for crawling and discovery.' },
-      { href: '/robots-txt-generator', label: 'Robots.txt Generator', description: 'Support URL hygiene with cleaner crawl directives.' },
+      { href: '/slug-generator/', label: 'Slug Generator', description: 'Turn a page title into a clean, lower-case, hyphenated slug.' },
+      { href: '/meta-tag-generator/', label: 'Meta Tag Generator', description: 'Pair a clean URL with stronger supporting metadata.' },
+      { href: '/sitemap-generator/', label: 'Sitemap Generator', description: 'Document canonical content URLs for crawling and discovery.' },
+      { href: '/robots-txt-generator/', label: 'Robots.txt Generator', description: 'Support URL hygiene with cleaner crawl directives.' },
     ],
   },
   {
@@ -597,7 +597,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Spacing systems fail when they have no hierarchy</h2>
       <p>A clean UI rarely comes from random spacing values. It comes from a spacing scale and a decision about where each kind of space belongs. Internal component room is usually padding. Stack separation is usually margin or gap. Grid and flex layouts often become cleaner when spacing is handled by the parent instead of every child inventing its own rules.</p>
-      <p>That is where tools like <a href="/flexbox-playground">Flexbox Playground</a> and <a href="/box-shadow-generator">Box Shadow Generator</a> become more than visual toys. They make the box model visible while you are still learning the relationships between components.</p>
+      <p>That is where tools like <a href="/flexbox-playground/">Flexbox Playground</a> and <a href="/box-shadow-generator/">Box Shadow Generator</a> become more than visual toys. They make the box model visible while you are still learning the relationships between components.</p>
 
       <h2>Shadows and borders are part of the box conversation too</h2>
       <p>Designers and developers often treat shadows as decoration, but they also influence how the box feels. A subtle border and a soft shadow can make a surface legible against a complex background. Too many competing shadows, on the other hand, can make hierarchy harder to read rather than easier.</p>
@@ -614,9 +614,9 @@ const GUIDE_LIBRARY = [
       { q: 'Do shadows affect layout?', a: 'Not in the same way margin or padding do, but they do affect perceived weight, hierarchy, and how a component feels against its background.' },
     ],
     toolLinks: [
-      { href: '/flexbox-playground', label: 'Flexbox Playground', description: 'Test layout spacing and alignment behavior visually.' },
-      { href: '/box-shadow-generator', label: 'Box Shadow Generator', description: 'Dial in shadow weight while keeping component hierarchy readable.' },
-      { href: '/css-beautifier', label: 'CSS Beautifier', description: 'Clean up spacing and layout rules before reviewing them.' },
+      { href: '/flexbox-playground/', label: 'Flexbox Playground', description: 'Test layout spacing and alignment behavior visually.' },
+      { href: '/box-shadow-generator/', label: 'Box Shadow Generator', description: 'Dial in shadow weight while keeping component hierarchy readable.' },
+      { href: '/css-beautifier/', label: 'CSS Beautifier', description: 'Clean up spacing and layout rules before reviewing them.' },
     ],
   },
   {
@@ -640,7 +640,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Longer pages often win because they answer more questions</h2>
       <p>When longer content works well, it is usually because it covers related subtopics naturally: what the term means, how to do the task, what common mistakes look like, which alternatives exist, and what to check before publishing. That breadth makes the page more useful, more linkable, and more likely to satisfy the session.</p>
-      <p>Tooliest's <a href="/word-counter">Word Counter</a>, <a href="/keyword-density">Keyword Density Checker</a>, and <a href="/ai-text-summarizer">AI Text Summarizer</a> fit into that editorial workflow because they help teams assess length, repetition, and source material as they shape the page.</p>
+      <p>Tooliest's <a href="/word-counter/">Word Counter</a>, <a href="/keyword-density/">Keyword Density Checker</a>, and <a href="/ai-text-summarizer/">AI Text Summarizer</a> fit into that editorial workflow because they help teams assess length, repetition, and source material as they shape the page.</p>
 
       <h2>Filler harms trust faster than brevity</h2>
       <p>Many sites hear "longer content ranks" and immediately add empty sections that repeat obvious points. That can make a page feel mass-produced, which hurts both users and quality reviewers. If a section does not add context, examples, tradeoffs, or original framing, it probably does not deserve the space it takes up.</p>
@@ -661,9 +661,9 @@ const GUIDE_LIBRARY = [
       { q: 'How should I use a word-count tool during SEO writing?', a: 'Use it to compare drafts, measure coverage, and spot whether important sections are missing, not as a blind quota you must hit.' },
     ],
     toolLinks: [
-      { href: '/word-counter', label: 'Word Counter', description: 'Measure draft length, reading time, and readability while you write.' },
-      { href: '/keyword-density', label: 'Keyword Density Checker', description: 'Check repetition without forcing exact-match keywords unnaturally.' },
-      { href: '/meta-tag-generator', label: 'Meta Tag Generator', description: 'Pair fuller content with cleaner SERP metadata.' },
+      { href: '/word-counter/', label: 'Word Counter', description: 'Measure draft length, reading time, and readability while you write.' },
+      { href: '/keyword-density/', label: 'Keyword Density Checker', description: 'Check repetition without forcing exact-match keywords unnaturally.' },
+      { href: '/meta-tag-generator/', label: 'Meta Tag Generator', description: 'Pair fuller content with cleaner SERP metadata.' },
     ],
   },
   {
@@ -687,7 +687,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Design for reliable scanning first</h2>
       <p>The code still has to work. Contrast matters. Quiet space around the QR code matters. Over-styling can matter in the wrong way if it makes the pattern harder for scanners to parse. Branding is fine, but reliability should stay ahead of decoration.</p>
-      <p>Tooliest's <a href="/qr-code-generator">QR Code Generator</a> is most useful when the job is practical: generate the code, test it on a real phone, and confirm that the destination page loads cleanly on mobile before you print or publish anything.</p>
+      <p>Tooliest's <a href="/qr-code-generator/">QR Code Generator</a> is most useful when the job is practical: generate the code, test it on a real phone, and confirm that the destination page loads cleanly on mobile before you print or publish anything.</p>
 
       <h2>Always think about the destination experience</h2>
       <p>A QR code is a doorway. If the landing page is slow, confusing, or not mobile-friendly, the QR deployment fails even if the code scans perfectly. Businesses often over-focus on the code design and under-focus on where it leads.</p>
@@ -708,9 +708,9 @@ const GUIDE_LIBRARY = [
       { q: 'Why do some QR campaigns perform poorly even when the code works?', a: 'Because the destination page is often the real problem. Slow, confusing, or non-mobile-friendly landing pages can kill the experience after the scan.' },
     ],
     toolLinks: [
-      { href: '/qr-code-generator', label: 'QR Code Generator', description: 'Generate clean QR codes for links, text, contact info, and workflows.' },
-      { href: '/invoice-generator', label: 'Invoice Generator', description: 'Pair QR payment or download links with business documents.' },
-      { href: '/slug-generator', label: 'Slug Generator', description: 'Create shorter, cleaner URLs before turning them into codes.' },
+      { href: '/qr-code-generator/', label: 'QR Code Generator', description: 'Generate clean QR codes for links, text, contact info, and workflows.' },
+      { href: '/invoice-generator/', label: 'Invoice Generator', description: 'Pair QR payment or download links with business documents.' },
+      { href: '/slug-generator/', label: 'Slug Generator', description: 'Create shorter, cleaner URLs before turning them into codes.' },
     ],
   },
   {
@@ -730,7 +730,7 @@ const GUIDE_LIBRARY = [
 
       <h2>Minification is an optimization step</h2>
       <p>Minification removes comments, whitespace, and other unnecessary source-code characters. It may also shorten local identifiers and compress some expressions safely. The goal is smaller payloads and faster transfer, not secrecy. A determined developer can still inspect minified JavaScript without much trouble.</p>
-      <p>That is why minification belongs in almost every production frontend workflow. It helps browsers download and parse less code, and it is usually easy to automate. Tooliest's <a href="/js-minifier">JS Minifier</a> exists for exactly that use case.</p>
+      <p>That is why minification belongs in almost every production frontend workflow. It helps browsers download and parse less code, and it is usually easy to automate. Tooliest's <a href="/js-minifier/">JS Minifier</a> exists for exactly that use case.</p>
 
       <h2>Obfuscation is about raising the effort required to inspect code</h2>
       <p>Obfuscation changes the shape of the code more aggressively. It may rewrite control flow, hide strings, rename identifiers more harshly, or otherwise make the source harder to follow. This can deter casual copying or straightforward tampering, but it does not create true confidentiality if the code must still run on the client.</p>
@@ -745,7 +745,7 @@ const GUIDE_LIBRARY = [
       <p>That is the most important boundary in this entire conversation. Minification helps ship better JavaScript. Obfuscation may slow copying. Neither one fixes a security model that exposes the wrong logic to the browser in the first place.</p>
 
       <h2>A practical rule of thumb</h2>
-      <p>Minify production JavaScript by default. Obfuscate only when you have a clear reason, understand the debugging tradeoff, and are honest that the result is deterrence rather than protection. Tooliest's <a href="/js-obfuscator">JS Obfuscator</a> and <a href="/js-minifier">JS Minifier</a> are useful precisely because they keep those tasks distinct.</p>
+      <p>Minify production JavaScript by default. Obfuscate only when you have a clear reason, understand the debugging tradeoff, and are honest that the result is deterrence rather than protection. Tooliest's <a href="/js-obfuscator/">JS Obfuscator</a> and <a href="/js-minifier/">JS Minifier</a> are useful precisely because they keep those tasks distinct.</p>
       <p>When the goal is speed, reach for minification. When the goal is to slow casual inspection, consider obfuscation carefully. When the goal is security, redesign the architecture.</p>
     `,
     faqs: [
@@ -755,10 +755,10 @@ const GUIDE_LIBRARY = [
       { q: 'Where should sensitive logic live instead?', a: 'Sensitive logic, secrets, and protected decision rules should live on the server or in controlled backend infrastructure rather than in client-side code.' },
     ],
     toolLinks: [
-      { href: '/js-minifier', label: 'JS Minifier', description: 'Reduce JavaScript payload size for faster delivery.' },
-      { href: '/js-obfuscator', label: 'JS Obfuscator', description: 'Apply deterrence-focused transformations when the tradeoff makes sense.' },
-      { href: '/html-minifier', label: 'HTML Minifier', description: 'Trim surrounding frontend markup as part of a broader publishable bundle.' },
-      { href: '/css-minifier', label: 'CSS Minifier', description: 'Keep the rest of the frontend payload lean as well.' },
+      { href: '/js-minifier/', label: 'JS Minifier', description: 'Reduce JavaScript payload size for faster delivery.' },
+      { href: '/js-obfuscator/', label: 'JS Obfuscator', description: 'Apply deterrence-focused transformations when the tradeoff makes sense.' },
+      { href: '/html-minifier/', label: 'HTML Minifier', description: 'Trim surrounding frontend markup as part of a broader publishable bundle.' },
+      { href: '/css-minifier/', label: 'CSS Minifier', description: 'Keep the rest of the frontend payload lean as well.' },
     ],
   },
 ];

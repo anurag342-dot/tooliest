@@ -1,33 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /tmp/
-Allow: /js/
-Allow: /css/
-
-# Sitemaps
+Disallow: /api/
 Sitemap: https://tooliest.com/sitemap.xml
-
-# Specific bot directives
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: GPTBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: Anthropic-AI
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
-# Host
-Host: https://tooliest.com

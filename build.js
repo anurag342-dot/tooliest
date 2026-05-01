@@ -78,15 +78,16 @@ const THEME_BOOTSTRAP_INLINE = `<script data-cfasync="false">try{const savedThem
 const CRITICAL_CSS = `:root{--bg-primary:#0a0a0f;--bg-secondary:#12121a;--bg-tertiary:#1a1a2e;--bg-card:rgba(26,26,46,.6);--bg-glass:rgba(255,255,255,.03);--bg-glass-hover:rgba(255,255,255,.06);--text-primary:#e8e8f0;--text-secondary:#a0a0b8;--text-tertiary:#6b6b80;--accent-primary:#8b5cf6;--accent-secondary:#06b6d4;--accent-success:#10b981;--gradient-primary:linear-gradient(135deg,#8b5cf6,#06b6d4);--border-color:rgba(255,255,255,.06);--border-accent:rgba(139,92,246,.3);--font-primary:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:1400px;--nav-height:72px;--radius-md:12px;--radius-lg:16px;--radius-full:9999px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);--touch-target-min:44px;--z-nav:1000}[data-theme=light]{--bg-primary:#f8f9fc;--bg-secondary:#fff;--bg-tertiary:#e8eaf0;--bg-card:rgba(255,255,255,.85);--bg-glass:rgba(0,0,0,.02);--bg-glass-hover:rgba(0,0,0,.04);--text-primary:#1a1a2e;--text-secondary:#4a4a6a;--text-tertiary:#6b6b84;--border-color:rgba(0,0,0,.08)}html{font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;overscroll-behavior-y:contain}body{margin:0;font-family:var(--font-primary);background:var(--bg-primary);color:var(--text-primary);line-height:1.6;min-height:100vh}a{color:var(--accent-primary);text-decoration:none}img{display:block;max-width:100%}img[width][height]{height:auto}.skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}.skip-link:focus{left:16px;top:16px;width:auto;height:auto;padding:10px 14px;border-radius:999px;background:var(--bg-secondary);color:var(--text-primary);z-index:2000}.navbar{position:fixed;top:0;left:0;right:0;min-height:var(--nav-height);height:var(--nav-height);display:flex;align-items:center;padding:0 max(24px,calc(24px + var(--safe-left))) 0 max(24px,calc(24px + var(--safe-right)));background:rgba(10,10,15,.88);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border-color);z-index:var(--z-nav)}[data-theme=light] .navbar{background:rgba(255,255,255,.9)}.nav-inner{max-width:var(--max-width);width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px}.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.5rem;font-weight:800;color:var(--text-primary);flex-shrink:0}.nav-logo .logo-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;background:var(--gradient-primary)}.nav-logo .logo-text span,.hero h1 .gradient-text{-webkit-background-clip:text;-webkit-text-fill-color:transparent;background:var(--gradient-primary);background-clip:text}.nav-search{flex:1;max-width:480px;position:relative}.nav-search input{width:100%;height:42px;padding:0 16px 0 44px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-glass);color:var(--text-primary);font:inherit;outline:none}.nav-search .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-tertiary)}.nav-search .search-shortcut{position:absolute;right:14px;top:50%;transform:translateY(-50%);padding:2px 8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-tertiary);font:.7rem var(--font-mono);color:var(--text-tertiary)}.nav-links{display:flex;align-items:center;gap:8px;flex-shrink:0}.nav-links a,.theme-toggle-btn,.mobile-menu-btn,.mobile-search-btn{min-height:44px}.nav-links a{padding:8px 16px;border-radius:999px;color:var(--text-secondary);font-size:.9rem;font-weight:500}.theme-toggle-btn,.mobile-menu-btn,.mobile-search-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--border-color);border-radius:12px;background:none;color:var(--text-primary);cursor:pointer}.mobile-menu-btn,.mobile-search-btn{display:none}.main-content{padding-top:var(--nav-height);padding-bottom:var(--safe-bottom);min-height:100vh}.hero,.tool-page{max-width:900px;margin:0 auto;padding:80px 24px 40px}.hero{text-align:center}.hero h1{margin:0 0 20px;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;line-height:1.1}.hero p,.tool-page-header p{max-width:600px;margin:0 auto 30px;color:var(--text-secondary);font-size:clamp(1rem,2.4vw,1.2rem)}.hero-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-top:40px}.hero-stat{text-align:center}.hero-stat .stat-value{font-size:2rem;font-weight:800;color:var(--accent-primary)}.hero-stat .stat-label,.tool-breadcrumb{font-size:.85rem;color:var(--text-tertiary)}.hero-trust-strip{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:28px}.trust-badge,.category-tab,.tool-tag{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-glass);color:var(--text-secondary);font-size:.82rem;max-width:100%;white-space:normal;overflow-wrap:anywhere}.categories-section,.tools-section{padding:20px 24px}.category-tabs{max-width:var(--max-width);margin:0 auto 24px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.category-tab{white-space:nowrap}.tool-page-header{margin-bottom:32px}.tool-page-header h1{margin:0;font-size:2rem;font-weight:800}.tool-breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:16px}.tools-grid,.guide-card-grid,.tool-proof-grid,.tool-content-sections{display:grid;gap:20px}.tools-grid{max-width:var(--max-width);margin:0 auto;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}.tool-card,.guide-card,.tool-content-section,.tool-workspace,.tool-proof-card,.home-utility-panel{border:1px solid var(--border-color);border-radius:16px;background:var(--bg-card);min-width:0}.tool-card,.guide-card,.tool-content-section,.tool-proof-card,.home-utility-panel{padding:20px}.tool-card-link{display:block;color:inherit}.tool-card-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px}.tool-card-icon{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:var(--gradient-primary);font-size:1.6rem;flex-shrink:0}.tool-card-info h3{margin:0 0 4px;font-size:1.1rem}.tool-card p{margin:0 0 14px;color:var(--text-secondary)}.tool-card-tags{display:flex;flex-wrap:wrap;gap:8px}.guide-card-grid{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));margin-top:18px}.guide-card h3{margin:6px 0 10px;font-size:1.08rem}.tool-workspace{padding:0}.tool-workspace-body{padding:20px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border:none;border-radius:12px;background:var(--gradient-primary);color:#fff;font-weight:700;font:inherit;cursor:pointer}.btn-secondary{border:1px solid var(--border-color);background:var(--bg-glass);color:var(--text-primary)}.footer-verification-link img{width:320px;height:auto;max-width:100%;aspect-ratio:320/54}.ad-space,.adsbygoogle{display:block;width:100%;min-height:90px}@media (max-width:1176px){:root{--nav-height:60px}.navbar{padding:0 max(12px,calc(12px + var(--safe-left))) 0 max(12px,calc(12px + var(--safe-right)));height:60px;min-height:60px}.nav-inner{gap:8px;min-height:60px}.nav-search,.nav-links{display:none}.mobile-menu-btn,.mobile-search-btn{display:inline-flex}.nav-logo{gap:8px;font-size:1.1rem}.nav-logo .logo-icon{width:32px;height:32px;font-size:1.1rem}.hero,.tool-page{padding:48px 16px 32px}.hero-stats{gap:20px}.hero-trust-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.trust-badge{justify-content:center;text-align:center}}@media (max-width:640px){:root{--nav-height:56px}.navbar{padding:0 max(10px,calc(10px + var(--safe-left))) 0 max(10px,calc(10px + var(--safe-right)));height:56px;min-height:56px}.nav-inner{gap:6px}.hero,.tool-page,.categories-section,.tools-section{padding-left:12px;padding-right:12px}.hero h1{font-size:clamp(2rem,9vw,2.6rem)}.hero p{font-size:.98rem}.hero-stats{gap:16px}.hero-stat .stat-value{font-size:1.5rem}.tools-grid{grid-template-columns:1fr}.tool-card,.guide-card,.tool-content-section,.tool-proof-card,.home-utility-panel{padding:16px}}`;
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https:",
-  "frame-src 'self' https://www.googletagmanager.com",
-  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
-  "worker-src 'self' blob: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:",
+  "style-src 'self' 'unsafe-inline' https:",
+  "img-src 'self' data: https: blob:",
+  "font-src 'self' data: https:",
+  "connect-src 'self' https:",
+  "frame-src 'self' https:",
+  "worker-src 'self' blob: https:",
   "object-src 'none'",
   "base-uri 'self'",
+  "form-action 'self'",
 ].join('; ');
 const BRAND_ICON_PATHS = {
   svg: '/favicon.svg',
@@ -95,13 +96,13 @@ const BRAND_ICON_PATHS = {
   appleTouch: '/apple-touch-icon.png',
 };
 const STATIC_PAGE_PATHS = {
-  about: '/about',
-  contact: '/contact',
-  privacy: '/privacy',
-  terms: '/terms',
-  disclaimer: '/disclaimer',
+  about: '/about/',
+  contact: '/contact/',
+  privacy: '/privacy/',
+  terms: '/terms/',
+  disclaimer: '/disclaimer/',
 };
-const SOFTWARE_HUB_PATH = '/software';
+const SOFTWARE_HUB_PATH = '/software/';
 const STATIC_PAGE_SOURCE_FILES = {
   about: 'about.html',
   contact: 'contact.html',
@@ -706,6 +707,34 @@ function getAbsoluteUrl(pathname) {
   return new URL(pathname, SITE_URL).toString();
 }
 
+function ensureTrailingSlashPathname(pathname) {
+  if (!pathname || pathname === '/') return '/';
+  const match = String(pathname).match(/^([^?#]+)([?#].*)?$/);
+  const basePath = match ? match[1] : String(pathname);
+  const suffix = match && match[2] ? match[2] : '';
+  if (!basePath || basePath === '/') return pathname;
+  if (/\.[a-z0-9]+$/i.test(basePath)) return pathname;
+  return `${basePath.endsWith('/') ? basePath : `${basePath}/`}${suffix}`;
+}
+
+function normalizeInternalPageHref(href) {
+  if (!href) return href;
+  try {
+    const url = new URL(href, SITE_URL);
+    if (url.origin !== SITE_URL) return href;
+    const normalizedPath = ensureTrailingSlashPathname(url.pathname);
+    return `${normalizedPath}${url.search}${url.hash}`;
+  } catch (_) {
+    return href;
+  }
+}
+
+function normalizeInternalLinksHtml(html) {
+  return String(html || '').replace(/href=(['"])(\/[^'"]*)\1/g, (match, quote, href) => {
+    return `href=${quote}${normalizeInternalPageHref(href)}${quote}`;
+  });
+}
+
 function getVersionedAssetPath(pathname) {
   return `${pathname}?v=${ASSET_VERSION}`;
 }
@@ -965,6 +994,128 @@ function formatRssDate(isoDate) {
 
 function getGuideAbsolutePath(guide) {
   return `/guides/${guide.slug}/`;
+}
+
+const GUIDE_SEO_OVERRIDES = {
+  'optimize-images-for-web': {
+    seoTitle: 'Optimize Images for Web - Quality and Speed | Tooliest',
+    seoDescription: 'Learn how to resize, compress, convert, and deliver images faster without hurting visible quality.',
+  },
+  'css-minification-performance': {
+    seoTitle: 'CSS Minification Guide | Tooliest',
+  },
+  'pdf-workflow-guide': {
+    seoTitle: 'PDF Workflow Guide | Tooliest',
+    heading: 'PDF Workflow Guide',
+    seoDescription: 'Learn how to merge, split, compress, and protect PDFs in the browser with a privacy-first workflow.',
+  },
+  'json-format-validate-convert': {
+    seoTitle: 'JSON Guide - Format, Validate, Convert | Tooliest',
+  },
+  'password-security-2026': {
+    seoTitle: 'Password Security in 2026 | Tooliest',
+  },
+  'color-theory-for-developers': {
+    seoTitle: 'Color Theory for Developers | Tooliest',
+  },
+  'meta-tags-that-improve-rankings': {
+    seoTitle: 'Meta Tags for Better Rankings | Tooliest',
+  },
+  'regex-patterns-for-beginners': {
+    seoTitle: 'Regex for Beginners | Tooliest',
+  },
+  'what-is-base64-encoding': {
+    seoTitle: 'Base64 Encoding Guide | Tooliest',
+  },
+  'compound-interest-explained': {
+    seoTitle: 'Compound Interest Explained | Tooliest',
+  },
+  'seo-friendly-url-structure': {
+    seoTitle: 'SEO-Friendly URL Structure | Tooliest',
+  },
+  'css-box-model-explained': {
+    seoTitle: 'CSS Box Model Explained | Tooliest',
+  },
+  'word-count-and-seo-rankings': {
+    seoTitle: 'Word Count and SEO Rankings | Tooliest',
+  },
+  'qr-codes-for-business': {
+    seoTitle: 'QR Codes for Business | Tooliest',
+  },
+  'javascript-minification-vs-obfuscation': {
+    seoTitle: 'JS Minification vs Obfuscation | Tooliest',
+  },
+};
+
+const SOFTWARE_USE_CASE_HEADINGS = {
+  'semrush/for-agencies': 'Semrush for agencies',
+  'semrush/for-content-planning': 'Semrush for content planning',
+  'semrush/for-local-seo': 'Semrush for local SEO',
+  'screaming-frog/for-broken-links': 'Screaming Frog for broken links',
+  'screaming-frog/for-site-migrations': 'Screaming Frog for site migrations',
+  'screaming-frog/for-metadata-and-canonicals': 'Screaming Frog for metadata and canonicals',
+  'ahrefs/for-beginners': 'Ahrefs for beginners',
+  'ahrefs/for-low-competition-keywords': 'Ahrefs for low-competition keywords',
+  'ahrefs/for-saas-seo': 'Ahrefs for SaaS SEO',
+};
+
+function getGuideSeoOverride(guide) {
+  return GUIDE_SEO_OVERRIDES[guide.slug] || {};
+}
+
+function getGuideSeoTitle(guide) {
+  const override = getGuideSeoOverride(guide);
+  return override.seoTitle || guide.seoTitle || `${guide.title} | Tooliest`;
+}
+
+function getGuideHeading(guide) {
+  const override = getGuideSeoOverride(guide);
+  return override.heading || guide.heading || guide.title;
+}
+
+function getGuideMetaDescription(guide) {
+  const override = getGuideSeoOverride(guide);
+  return override.seoDescription || guide.seoDescription || guide.description;
+}
+
+function getSoftwareComparisonHeading(cluster, comparison) {
+  return `${cluster.name} vs ${comparison.competitor}`;
+}
+
+function getSoftwareComparisonSeoTitle(cluster, comparison) {
+  return `${getSoftwareComparisonHeading(cluster, comparison)} | Tooliest`;
+}
+
+function getSoftwareComparisonMetaDescription(cluster, comparison) {
+  return `${cluster.name} vs ${comparison.competitor}: compare fit, strengths, tradeoffs, and the better choice for your SEO workflow.`;
+}
+
+function getSoftwareUseCaseKey(cluster, useCase) {
+  return `${cluster.slug}/${useCase.slug}`;
+}
+
+function getSoftwareUseCaseHeading(cluster, useCase) {
+  return SOFTWARE_USE_CASE_HEADINGS[getSoftwareUseCaseKey(cluster, useCase)] || useCase.heading || useCase.title;
+}
+
+function getSoftwareUseCaseSeoTitle(cluster, useCase) {
+  return `${getSoftwareUseCaseHeading(cluster, useCase)} | Tooliest`;
+}
+
+function getSoftwareUseCaseMetaDescription(cluster, useCase) {
+  return `${getSoftwareUseCaseHeading(cluster, useCase)} guide covering best fit, setup steps, and common mistakes.`;
+}
+
+function getSoftwareClusterHeading(cluster) {
+  return `${cluster.name} review and buying guide`;
+}
+
+function getSoftwareClusterSeoTitle(cluster) {
+  return `${cluster.name} Review | Tooliest`;
+}
+
+function getSoftwareClusterMetaDescription(cluster) {
+  return `${cluster.name} review covering best fit, tradeoffs, pricing context, and the next comparisons to read.`;
 }
 
 function escapeXml(value = '') {
@@ -1432,7 +1583,7 @@ function minifyCSS(css) {
 }
 
 function getToolPath(toolId) {
-  return `/${encodeURIComponent(toolId)}`;
+  return ensureTrailingSlashPathname(`/${encodeURIComponent(toolId)}`);
 }
 
 function getLegacyToolPath(toolId) {
@@ -1441,7 +1592,7 @@ function getLegacyToolPath(toolId) {
 
 function getCategoryPath(categoryId) {
   return categoryId && categoryId !== 'all'
-    ? `/category/${encodeURIComponent(categoryId)}`
+    ? ensureTrailingSlashPathname(`/category/${encodeURIComponent(categoryId)}`)
     : '/';
 }
 
@@ -1450,11 +1601,11 @@ function getSoftwareCategory(categoryId) {
 }
 
 function getSoftwareToolPath(toolSlug) {
-  return `${SOFTWARE_HUB_PATH}/${encodeURIComponent(toolSlug)}`;
+  return ensureTrailingSlashPathname(`${SOFTWARE_HUB_PATH}${encodeURIComponent(toolSlug)}`);
 }
 
 function getSoftwareArticlePath(toolSlug, articleSlug) {
-  return `${getSoftwareToolPath(toolSlug)}/${encodeURIComponent(articleSlug)}`;
+  return ensureTrailingSlashPathname(`${getSoftwareToolPath(toolSlug)}${encodeURIComponent(articleSlug)}`);
 }
 
 function getSoftwareCluster(toolSlug) {
@@ -1556,21 +1707,16 @@ function getCategoryFaqItems(category, categoryTools) {
 function getCategoryMeta(category, tools) {
   const categoryTools = getCategoryTools(tools, category.id);
   const count = categoryTools.length;
-  const featuredTitleTools = getFeaturedToolNames(categoryTools, 2);
   const featuredTools = getFeaturedToolNames(categoryTools, 3);
   const narrativeName = getCategoryNarrativeName(category);
-  const defaultDescription = featuredTools
-    ? `Use ${count} free ${narrativeName} on Tooliest, including ${featuredTools}. Browser-based, fast, private, and no signup required. Explore the category now.`
-    : `Use ${count} free ${narrativeName} on Tooliest. Browser-based, fast, private, and no signup required. Explore the category now.`;
+  const defaultDescription = `${count} browser-based ${narrativeName} for fast, private work in one tab on Tooliest.`;
   const defaultIntro = featuredTools
     ? `Browse Tooliest's ${narrativeName} and launch every tool instantly in your browser with clear privacy guidance for local and AI-assisted workflows. Popular picks include ${featuredTools}.`
     : `Browse Tooliest's ${narrativeName} and launch every tool instantly in your browser with clear privacy guidance for local and AI-assisted workflows.`;
   const defaultTopToolsIntro = `These are some of the most useful ${narrativeName} on Tooliest when you want fast results without extra tabs, accounts, or uploads:`;
   const defaultBenefitsIntro = `Tooliest's ${narrativeName} are designed for quick, practical work. You can launch a tool instantly, finish the task in one browser tab, and rely on the page guidance to explain whether the workflow stays local or uses a managed provider.`;
 
-  const pdfDescription = featuredTools
-    ? `Use ${count} free PDF tools on Tooliest to merge, split, compress, convert, protect, and export documents in your browser. Popular picks include ${featuredTools}. No signup required.`
-    : `Use ${count} free PDF tools on Tooliest to merge, split, compress, convert, protect, and export documents in your browser. No signup required.`;
+  const pdfDescription = `${count} browser-based PDF tools for merging, splitting, converting, and protecting documents on Tooliest.`;
   const pdfIntro = featuredTools
     ? `Browse Tooliest's PDF tools for document merging, splitting, conversion, protection, and text extraction. Popular picks include ${featuredTools}, and every workflow stays in your browser for better privacy.`
     : `Browse Tooliest's PDF tools for document merging, splitting, conversion, protection, and text extraction. Every workflow stays in your browser for better privacy.`;
@@ -1578,9 +1724,9 @@ function getCategoryMeta(category, tools) {
     category,
     tools: categoryTools,
     count,
-    title: featuredTitleTools
-      ? `Free ${category.name} Online - ${featuredTitleTools} | Tooliest`
-      : `Free ${category.name} Online | Tooliest`,
+    title: category.id === 'pdf'
+      ? 'PDF Tools - Merge, Split, Convert | Tooliest'
+      : `${category.name} Tools - Browser Workflows | Tooliest`,
     description: category.id === 'pdf' ? pdfDescription : defaultDescription,
     intro: category.id === 'pdf' ? pdfIntro : defaultIntro,
     topToolsIntro: category.id === 'pdf'
@@ -1652,11 +1798,11 @@ function renderNavbar() {
 
       <div class="nav-links" id="nav-links">
         <a href="/" class="active">Home</a>
-        <a href="/category/text">Text</a>
-        <a href="/category/seo">SEO</a>
-        <a href="/category/ai">AI Tools</a>
-        <a href="/category/pdf">PDF</a>
-        <a href="/category/developer">Dev</a>
+        <a href="/category/text/">Text</a>
+        <a href="/category/seo/">SEO</a>
+        <a href="/category/ai/">AI Tools</a>
+        <a href="/category/pdf/">PDF</a>
+        <a href="/category/developer/">Dev</a>
         <a href="/guides/">Guides</a>
         <a href="${STATIC_PAGE_PATHS.about}">About</a>
         <a href="#" id="nav-install-btn" style="color:var(--accent-primary);font-weight:600;">Install App</a>
@@ -1822,8 +1968,6 @@ function renderPageShell({
   <meta name="twitter:image" content="${escapeAttr(ogImageUrl)}">
   <meta name="twitter:image:alt" content="${escapeAttr(ogImageAlt)}">
   <link rel="canonical" href="${escapeAttr(canonicalUrl)}">
-  <link rel="alternate" hreflang="en" href="${escapeAttr(canonicalUrl)}">
-  <link rel="alternate" hreflang="x-default" href="https://tooliest.com/">
   <link rel="icon" href="${BRAND_ICON_PATHS.svg}" type="image/svg+xml">
   <link rel="icon" href="${BRAND_ICON_PATHS.png48}" sizes="48x48" type="image/png">
   <link rel="shortcut icon" href="${BRAND_ICON_PATHS.shortcut}" type="image/x-icon">
@@ -1998,7 +2142,7 @@ function resolveRelatedLinkCard(link, tools, categories) {
     : (link.badge || (link.comingSoon ? 'Coming Soon' : 'Related Tool'));
 
   return {
-    href: link.href || (linkedTool ? getToolPath(linkedTool.id) : ''),
+    href: normalizeInternalPageHref(link.href || (linkedTool ? getToolPath(linkedTool.id) : '')),
     title: link.title || linkedTool?.name || 'Related Tool',
     description: link.description || linkedTool?.description || '',
     icon: link.icon || linkedTool?.icon || '↗',
@@ -2280,7 +2424,7 @@ function renderToolPage(tool, tools, categories) {
       url: canonicalUrl,
       description,
       applicationCategory: 'UtilityApplication',
-      operatingSystem: 'Any',
+      operatingSystem: 'Web',
       dateModified: toolLastModified,
       browserRequirements: 'Requires a JavaScript-enabled modern web browser',
       featureList: tool.tags.join(', '),
@@ -2468,7 +2612,7 @@ function renderGuideToolLinks(guide) {
   }
   return `<section class="tool-content-section">
       <h2>Related Tooliest Tools</h2>
-      <ul>${guide.toolLinks.map((item) => `<li><a href="${escapeAttr(item.href)}"><strong>${escapeHtml(item.label)}</strong></a> - ${escapeHtml(item.description)}</li>`).join('')}</ul>
+      <ul>${guide.toolLinks.map((item) => `<li><a href="${escapeAttr(normalizeInternalPageHref(item.href))}"><strong>${escapeHtml(item.label)}</strong></a> - ${escapeHtml(item.description)}</li>`).join('')}</ul>
     </section>`;
 }
 
@@ -2573,8 +2717,8 @@ function renderGuidesHubPage() {
   </main>`;
 
   return renderPageShell({
-    title: 'Guides and Tutorials | Tooliest Editorial Guides and Workflow Advice',
-    description: `Browse ${GUIDE_LIBRARY.length} Tooliest editorial guides covering browser-based workflows, SEO publishing, developer basics, and practical business tasks.`,
+    title: 'Guides and Tutorials | Tooliest',
+    description: `Browse ${GUIDE_LIBRARY.length} Tooliest guides covering browser workflows, SEO, developer basics, and practical business tasks.`,
     canonicalPath: '/guides/',
     structuredData,
     mainContent,
@@ -2585,12 +2729,16 @@ function renderGuidesHubPage() {
 }
 
 function renderGuideArticlePage(guide) {
+  const normalizedGuideContentHtml = normalizeInternalLinksHtml(guide.contentHtml);
+  const guideHeading = getGuideHeading(guide);
+  const guideSeoTitle = getGuideSeoTitle(guide);
+  const guideMetaDescription = getGuideMetaDescription(guide);
   const structuredData = [
     {
       '@context': 'https://schema.org',
       '@type': 'Article',
-      headline: guide.title,
-      description: guide.description,
+      headline: guideHeading,
+      description: guideMetaDescription,
       author: { '@type': 'Person', name: 'Anurag' },
       publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
       datePublished: guide.published,
@@ -2603,7 +2751,7 @@ function renderGuideArticlePage(guide) {
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: getAbsoluteUrl('/') },
         { '@type': 'ListItem', position: 2, name: 'Guides', item: getAbsoluteUrl('/guides/') },
-        { '@type': 'ListItem', position: 3, name: guide.title, item: getAbsoluteUrl(getGuideAbsolutePath(guide)) },
+        { '@type': 'ListItem', position: 3, name: guideHeading, item: getAbsoluteUrl(getGuideAbsolutePath(guide)) },
       ],
     },
   ];
@@ -2631,15 +2779,15 @@ function renderGuideArticlePage(guide) {
           <span class="separator">&rsaquo;</span>
           <a href="/guides/">Guides</a>
           <span class="separator">&rsaquo;</span>
-          <span>${escapeHtml(guide.title)}</span>
+          <span>${escapeHtml(guideHeading)}</span>
         </div>
-        <h1 style="margin:0">${escapeHtml(guide.title)}</h1>
+        <h1 style="margin:0">${escapeHtml(guideHeading)}</h1>
         <p>${escapeHtml(guide.description)}</p>
         <p class="tool-last-updated">By Anurag &middot; Published ${escapeHtml(formatDisplayDate(guide.published))} &middot; Updated ${escapeHtml(formatDisplayDate(guide.updated || guide.published))} &middot; ~${escapeHtml(String(guide.readMinutes || 8))} min read</p>
       </div>
       <div class="tool-content-sections">
         <section class="tool-content-section guide-article-copy">
-          ${guide.contentHtml}
+          ${normalizedGuideContentHtml}
         </section>
         <section class="tool-content-section">
           <h2>About the Author</h2>
@@ -2653,8 +2801,8 @@ function renderGuideArticlePage(guide) {
   </main>`;
 
   return renderPageShell({
-    title: `${guide.title} | Tooliest Guide`,
-    description: guide.description,
+    title: guideSeoTitle,
+    description: guideMetaDescription,
     canonicalPath: getGuideAbsolutePath(guide),
     structuredData,
     mainContent,
@@ -2744,7 +2892,7 @@ function renderSoftwareHubPage() {
           <span class="separator">&rsaquo;</span>
           <span>SEO Software Guides</span>
         </div>
-        <h1 style="margin:0">SEO Software Guides and Content Clusters</h1>
+        <h1 style="margin:0">SEO Software Guides</h1>
         <p>Tooliest now includes a dedicated content hub for SEO software buyers. We started with full clusters for Semrush, Ahrefs, and Screaming Frog, then mapped the next wave of guides across all-in-one suites, content optimization platforms, technical SEO tools, and keyword research products.</p>
         <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">These pages are designed to answer real decision questions like "Which tool is worth the money?", "What is best for small teams?", and "What should I buy for a specific workflow?" in a more useful, less robotic way.</p>
       </div>
@@ -2775,8 +2923,8 @@ function renderSoftwareHubPage() {
   </main>`;
 
   return renderPageShell({
-    title: 'SEO Software Guides, Comparisons, and Content Clusters | Tooliest',
-    description: 'Browse Tooliest SEO software guides covering Semrush, Ahrefs, Screaming Frog, and a roadmap of high-intent content clusters for SEO buyers.',
+    title: 'SEO Software Guides | Tooliest',
+    description: 'Compare SEO platforms, buyer use cases, and workflow tradeoffs across Tooliest software guides.',
     canonicalPath: SOFTWARE_HUB_PATH,
     structuredData,
     mainContent,
@@ -2789,6 +2937,9 @@ function renderSoftwareHubPage() {
 function renderSoftwarePillarPage(cluster) {
   const category = getSoftwareCategory(cluster.category);
   const softwareLastModified = getSoftwareContentLastModifiedDate();
+  const clusterHeading = getSoftwareClusterHeading(cluster);
+  const clusterSeoTitle = getSoftwareClusterSeoTitle(cluster);
+  const clusterMetaDescription = getSoftwareClusterMetaDescription(cluster);
   const comparisonCards = renderSoftwareGuideCards(cluster.comparisons, (comparison) => `<article class="guide-card">
       <span class="guide-card-eyebrow">Comparison article</span>
       <h3><a href="${getSoftwareArticlePath(cluster.slug, comparison.slug)}">${escapeHtml(comparison.title)}</a></h3>
@@ -2811,8 +2962,8 @@ function renderSoftwarePillarPage(cluster) {
     {
       '@context': 'https://schema.org',
       '@type': 'Article',
-      headline: `${cluster.name} review and buying guide`,
-      description: cluster.summary,
+      headline: clusterHeading,
+      description: clusterMetaDescription,
         author: { '@type': 'Organization', name: 'Tooliest' },
         publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
         datePublished: softwareLastModified,
@@ -2840,7 +2991,7 @@ function renderSoftwarePillarPage(cluster) {
           <span class="separator">&rsaquo;</span>
           <span>${escapeHtml(cluster.name)}</span>
         </div>
-        <h1 style="margin:0">${escapeHtml(cluster.name)} review: who it is really for, where it wins, and what to read next</h1>
+        <h1 style="margin:0">${escapeHtml(clusterHeading)}</h1>
         <p>${escapeHtml(cluster.hook)}</p>
         <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Category: ${escapeHtml(category.name)} &middot; Best for: ${escapeHtml(cluster.bestFor)}</p>
       </div>
@@ -2903,8 +3054,8 @@ function renderSoftwarePillarPage(cluster) {
   </main>`;
 
   return renderPageShell({
-    title: `${cluster.name} Review, Alternatives, and Use Cases | Tooliest`,
-    description: cluster.summary,
+    title: clusterSeoTitle,
+    description: clusterMetaDescription,
     canonicalPath: getSoftwareToolPath(cluster.slug),
     structuredData,
     mainContent,
@@ -2916,12 +3067,15 @@ function renderSoftwarePillarPage(cluster) {
 
 function renderSoftwareComparisonPage(cluster, comparison) {
   const softwareLastModified = getSoftwareContentLastModifiedDate();
+  const comparisonHeading = getSoftwareComparisonHeading(cluster, comparison);
+  const comparisonSeoTitle = getSoftwareComparisonSeoTitle(cluster, comparison);
+  const comparisonMetaDescription = getSoftwareComparisonMetaDescription(cluster, comparison);
   const structuredData = [
     {
       '@context': 'https://schema.org',
       '@type': 'Article',
-      headline: comparison.title,
-      description: comparison.hook,
+      headline: comparisonHeading,
+      description: comparisonMetaDescription,
         author: { '@type': 'Organization', name: 'Tooliest' },
         publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
         datePublished: softwareLastModified,
@@ -2950,9 +3104,9 @@ function renderSoftwareComparisonPage(cluster, comparison) {
           <span class="separator">&rsaquo;</span>
           <a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a>
           <span class="separator">&rsaquo;</span>
-          <span>${escapeHtml(comparison.title)}</span>
+          <span>${escapeHtml(comparisonHeading)}</span>
         </div>
-        <h1 style="margin:0">${escapeHtml(comparison.title)}</h1>
+        <h1 style="margin:0">${escapeHtml(comparisonHeading)}</h1>
         <p>${escapeHtml(comparison.hook)}</p>
         <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Search intent: ${escapeHtml(comparison.targetQuery)}</p>
       </div>
@@ -2988,8 +3142,8 @@ function renderSoftwareComparisonPage(cluster, comparison) {
   </main>`;
 
   return renderPageShell({
-    title: `${comparison.title} | Tooliest`,
-    description: comparison.takeaway,
+    title: comparisonSeoTitle,
+    description: comparisonMetaDescription,
     canonicalPath: getSoftwareArticlePath(cluster.slug, comparison.slug),
     structuredData,
     mainContent,
@@ -3001,12 +3155,15 @@ function renderSoftwareComparisonPage(cluster, comparison) {
 
 function renderSoftwareUseCasePage(cluster, useCase) {
   const softwareLastModified = getSoftwareContentLastModifiedDate();
+  const useCaseHeading = getSoftwareUseCaseHeading(cluster, useCase);
+  const useCaseSeoTitle = getSoftwareUseCaseSeoTitle(cluster, useCase);
+  const useCaseMetaDescription = getSoftwareUseCaseMetaDescription(cluster, useCase);
   const structuredData = [
     {
       '@context': 'https://schema.org',
       '@type': 'Article',
-      headline: useCase.title,
-      description: useCase.hook,
+      headline: useCaseHeading,
+      description: useCaseMetaDescription,
         author: { '@type': 'Organization', name: 'Tooliest' },
         publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
         datePublished: softwareLastModified,
@@ -3020,7 +3177,7 @@ function renderSoftwareUseCasePage(cluster, useCase) {
         { '@type': 'ListItem', position: 1, name: 'Home', item: getAbsoluteUrl('/') },
         { '@type': 'ListItem', position: 2, name: 'SEO Software Guides', item: getAbsoluteUrl(SOFTWARE_HUB_PATH) },
         { '@type': 'ListItem', position: 3, name: cluster.name, item: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)) },
-        { '@type': 'ListItem', position: 4, name: useCase.title, item: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)) },
+        { '@type': 'ListItem', position: 4, name: useCaseHeading, item: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)) },
       ],
     },
   ];
@@ -3035,9 +3192,9 @@ function renderSoftwareUseCasePage(cluster, useCase) {
           <span class="separator">&rsaquo;</span>
           <a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a>
           <span class="separator">&rsaquo;</span>
-          <span>${escapeHtml(useCase.title)}</span>
+          <span>${escapeHtml(useCaseHeading)}</span>
         </div>
-        <h1 style="margin:0">${escapeHtml(useCase.title)}</h1>
+        <h1 style="margin:0">${escapeHtml(useCaseHeading)}</h1>
         <p>${escapeHtml(useCase.hook)}</p>
         <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Audience focus: ${escapeHtml(useCase.audience)} &middot; Search intent: ${escapeHtml(useCase.targetQuery)}</p>
       </div>
@@ -3068,8 +3225,8 @@ function renderSoftwareUseCasePage(cluster, useCase) {
   </main>`;
 
   return renderPageShell({
-    title: `${useCase.title} | Tooliest`,
-    description: useCase.hook,
+    title: useCaseSeoTitle,
+    description: useCaseMetaDescription,
     canonicalPath: getSoftwareArticlePath(cluster.slug, useCase.slug),
     structuredData,
     mainContent,
@@ -3243,6 +3400,10 @@ function renderRedirectsFile(tools, categories) {
     '',
     '# Canonical URL cleanup',
     '/index.html    /    301!',
+    ...Object.entries(STATIC_PAGE_PATHS).map(([key, cleanPath]) => {
+      const sourceFile = STATIC_PAGE_SOURCE_FILES[key];
+      return `/${sourceFile}    ${cleanPath}    301!`;
+    }),
     '',
     '# Legacy tool URLs',
     '/tool/*    /:splat    301!',
@@ -3261,7 +3422,10 @@ function renderRedirectsFile(tools, categories) {
 function renderHeadersFile(tools, categories) {
   const htmlPageCacheRule = '  Cache-Control: public, max-age=0, must-revalidate';
   const cleanStaticPageHeaders = Object.values(STATIC_PAGE_PATHS)
-    .flatMap((cleanPath) => [cleanPath, htmlPageCacheRule, '', `${cleanPath}.html`, htmlPageCacheRule, '']);
+    .flatMap((cleanPath) => {
+      const filePath = `${cleanPath.replace(/\/$/, '')}.html`;
+      return [cleanPath, htmlPageCacheRule, '', filePath, htmlPageCacheRule, ''];
+    });
   const categoryHeaders = getRenderableCategories(categories)
     .flatMap((category) => [getCategoryPath(category.id), htmlPageCacheRule, '']);
   const toolHeaders = tools
@@ -3300,9 +3464,9 @@ function renderHeadersFile(tools, categories) {
   return [
     '/*',
     '  # Security Headers - applied to all routes',
+    '  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload',
     '  X-Frame-Options: SAMEORIGIN',
     '  X-Content-Type-Options: nosniff',
-    '  X-XSS-Protection: 1; mode=block',
     '  Referrer-Policy: strict-origin-when-cross-origin',
     '  Permissions-Policy: geolocation=(), microphone=(), camera=()',
     '',
@@ -3738,7 +3902,7 @@ function writeHomePage(tools, categories) {
         description: `${tools.length}+ free online tools for developers, designers, writers, and marketers. AI-powered features included.`,
         dateModified: siteLastModified,
       applicationCategory: 'UtilityApplication',
-      operatingSystem: 'Any',
+      operatingSystem: 'Web',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     },
     {

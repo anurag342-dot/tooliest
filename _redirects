@@ -4,6 +4,11 @@ https://www.tooliest.com/*    https://tooliest.com/:splat    301!
 
 # Canonical URL cleanup
 /index.html    /    301!
+/about.html    /about/    301!
+/contact.html    /contact/    301!
+/privacy.html    /privacy/    301!
+/terms.html    /terms/    301!
+/disclaimer.html    /disclaimer/    301!
 
 # Legacy tool URLs
 /tool/*    /:splat    301!

@@ -177,10 +177,10 @@ const TOOLS = [
         '@type': 'SoftwareApplication',
         name: 'Tooliest Typing Speed Test',
         applicationCategory: 'UtilitiesApplication',
-        operatingSystem: 'Any',
+        operatingSystem: 'Web',
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         description: 'Private browser-based typing speed test with WPM tracking, local personal bests, and zero keystroke uploads.',
-        url: 'https://tooliest.com/typing-speed-test'
+        url: 'https://tooliest.com/typing-speed-test/'
       }
     ],
     meta: { title: 'Free Typing Speed Test - WPM Test, No Keylogger | Tooliest', desc: 'Test your typing speed and accuracy in WPM. Your keystrokes never leave your device - the only typing test that is genuinely private. Track your personal best offline with no account needed.' }
@@ -951,10 +951,10 @@ const TOOLS = [
         '@type': 'SoftwareApplication',
         name: 'Tooliest Signature Maker',
         applicationCategory: 'BusinessApplication',
-        operatingSystem: 'Any (web browser)',
+        operatingSystem: 'Web',
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         description: 'Free browser-based signature maker for drawing, typing, or cleaning up signatures as transparent PNG or SVG files.',
-        url: 'https://tooliest.com/signature-maker'
+        url: 'https://tooliest.com/signature-maker/'
       }
     ],
     meta: { title: 'Free Online Signature Maker - Draw & Download PNG | Tooliest', desc: 'Create a handwritten digital signature for free. Draw with mouse or finger, choose a signature style, and download as transparent PNG. No signup, no upload, your signature stays on your device.' }
@@ -1174,7 +1174,7 @@ const TOOLS = [
     whyUse: ['Convert Markdown to clean HTML for CMS and blog publishing', 'Live preview shows formatted output as you type', 'Handles headings, lists, code blocks, tables, and links'],
     whoUses: 'Technical writers, developers writing README files, bloggers using static site generators, and content teams managing documentation.',
     faq: [
-      { q: 'What is Markdown?', a: 'Markdown is a lightweight markup language that uses plain text formatting symbols to add structure — for example, **bold** becomes <strong>bold</strong>, and # Heading 1 becomes <h1>. It is widely used for GitHub READMEs, documentation, and blog posts.' }
+      { q: 'What is Markdown?', a: 'Markdown is a lightweight markup language that uses plain-text formatting symbols to add structure. It is widely used for GitHub READMEs, documentation, and blog posts.' }
     ],
     meta: { title: 'Markdown to HTML Converter - Convert MD Free | Tooliest', desc: 'Convert Markdown to HTML code online. Live preview with syntax highlighting.' }
   },
@@ -1786,7 +1786,7 @@ const TOOLS = [
         '@type': 'SoftwareApplication',
         name: 'Tooliest Code Screenshot Generator',
         applicationCategory: 'DeveloperApplication',
-        operatingSystem: 'Any (web browser)',
+        operatingSystem: 'Web',
         offers: {
           '@type': 'Offer',
           price: '0',
@@ -1804,7 +1804,7 @@ const TOOLS = [
           'Social media size presets',
         ],
         description: 'Browser-based code screenshot generator. Create beautiful, syntax-highlighted code images for sharing on social media, blogs, and documentation. Fully client-side - your code never leaves your device.',
-        url: 'https://tooliest.com/code-screenshot',
+        url: 'https://tooliest.com/code-screenshot/',
         creator: {
           '@type': 'Organization',
           name: 'Tooliest',
@@ -1998,10 +1998,10 @@ const TOOLS = [
         '@type': 'SoftwareApplication',
         name: 'Tooliest Invoice Generator',
         applicationCategory: 'BusinessApplication',
-        operatingSystem: 'Any (web browser)',
+        operatingSystem: 'Web',
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         description: 'Free browser-based invoice generator. Create professional PDF invoices with logo, line items, tax, and discount. No signup required.',
-        url: 'https://tooliest.com/invoice-generator'
+        url: 'https://tooliest.com/invoice-generator/'
       }
     ],
     meta: { title: 'Free Invoice Generator — Create & Download Invoices Instantly | Tooliest', desc: 'Generate professional invoices in seconds. Add your logo, line items, tax rates, and custom notes. Download as PDF instantly. 100% free, no signup, works offline.' }
@@ -2078,10 +2078,10 @@ const TOOLS = [
         '@type': 'SoftwareApplication',
         name: 'Tooliest Email Signature Generator',
         applicationCategory: 'BusinessApplication',
-        operatingSystem: 'Any (web browser)',
+        operatingSystem: 'Web',
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         description: 'Free browser-based email signature generator. Create professional HTML signatures for Gmail, Outlook, and Apple Mail. No signup required.',
-        url: 'https://tooliest.com/email-signature-generator'
+        url: 'https://tooliest.com/email-signature-generator/'
       }
     ],
     meta: { title: 'Free Email Signature Generator - Copy HTML for Gmail & Outlook | Tooliest', desc: 'Create a professional HTML email signature in 60 seconds. Pick a template, fill in your details, preview live, and copy the HTML to paste directly into Gmail, Outlook, or Apple Mail. Free, no signup.' }
@@ -3594,6 +3594,47 @@ function buildTooliestMetaSupport(tool) {
   }
 }
 
+const TOOLIEST_META_TITLE_OVERRIDES = {
+  'audio-converter': 'Audio Converter - MP3, WAV, OGG | Tooliest',
+  'base64-encoder': 'Base64 Encoder - Encode and Decode | Tooliest',
+  'case-converter': 'Text Case Converter - Upper, Lower, Title | Tooliest',
+  'character-counter': 'Character Counter - Social and SEO Limits | Tooliest',
+  'code-screenshot': 'Code Screenshot Generator - PNG and SVG | Tooliest',
+  'color-blindness-sim': 'Color Blindness Simulator | Tooliest',
+  'css-animation-generator': 'CSS Animation Generator | Tooliest',
+  'email-signature-generator': 'Email Signature Generator - Gmail and Outlook | Tooliest',
+  'gradient-generator': 'Gradient Generator - CSS Backgrounds | Tooliest',
+  'image-converter': 'Image Format Converter - PNG, WebP, AVIF | Tooliest',
+  'image-exif-stripper': 'EXIF Metadata Stripper | Tooliest',
+  'inflation-calculator': 'Inflation Calculator - Buying Power | Tooliest',
+  'invoice-generator': 'Invoice Generator - Fast PDF Billing | Tooliest',
+  'json-formatter': 'JSON Formatter - Pretty Print and Beautify | Tooliest',
+  'loan-mortgage-analyzer': 'Loan and Mortgage Analyzer | Tooliest',
+  'palette-generator': 'Palette Generator - Color Schemes | Tooliest',
+  'password-security-suite': 'Password Generator and Checker | Tooliest',
+  'percentage-calculator': 'Percentage Calculator - Change and Discounts | Tooliest',
+  'retirement-calculator': 'Retirement Calculator - Savings Projections | Tooliest',
+  'signature-maker': 'Signature Maker - Draw and Download | Tooliest',
+  'sip-calculator': 'SIP Calculator - Investment Growth | Tooliest',
+  'temperature-converter': 'Temperature Converter - C, F, and K | Tooliest',
+  'url-encoder': 'URL Encoder and Decoder | Tooliest',
+  'word-counter': 'Word Counter - Words, Characters, Read Time | Tooliest',
+};
+
+function buildTooliestMetaTitle(tool) {
+  const overrideTitle = TOOLIEST_META_TITLE_OVERRIDES[tool.id] || getTooliestSeoOverride(tool).metaTitle;
+  if (overrideTitle) {
+    return truncateTooliestText(overrideTitle, 60);
+  }
+
+  const existing = tool.meta && typeof tool.meta.title === 'string' ? tool.meta.title.trim() : '';
+  if (existing && existing.length <= 60) {
+    return existing;
+  }
+
+  return truncateTooliestText(`${tool.name} | Tooliest`, 60);
+}
+
 function buildTooliestMetaDescription(tool) {
   const override = getTooliestSeoOverride(tool).metaDesc;
   if (override) return truncateTooliestText(override, 155);
@@ -4180,6 +4221,7 @@ normalizeTooliestText(TOOLS);
 TOOLS.forEach((tool) => {
   const override = getTooliestSeoOverride(tool);
   tool.meta = tool.meta || {};
+  tool.meta.title = buildTooliestMetaTitle(tool);
   tool.meta.desc = buildTooliestMetaDescription(tool);
   tool.lastReviewed = TOOLIEST_REVIEWED_DATE;
   tool.lastReviewedLabel = TOOLIEST_REVIEWED_LABEL;

@@ -36,7 +36,7 @@ const TOOLIEST_WHATS_NEW = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260501-40c79446';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260501-f8a790f8';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -492,14 +492,24 @@ const App = {
     return '/';
   },
 
+  ensureTrailingSlashPath(path) {
+    if (!path || path === '/') return '/';
+    const match = String(path).match(/^([^?#]+)([?#].*)?$/);
+    const basePath = match ? match[1] : String(path);
+    const suffix = match && match[2] ? match[2] : '';
+    if (!basePath || basePath === '/') return '/';
+    if (/\.[a-z0-9]+$/i.test(basePath)) return path;
+    return `${basePath.endsWith('/') ? basePath : `${basePath}/`}${suffix}`;
+  },
+
   getCategoryPath(categoryId) {
     return categoryId && categoryId !== 'all'
-      ? `/category/${encodeURIComponent(categoryId)}`
+      ? this.ensureTrailingSlashPath(`/category/${encodeURIComponent(categoryId)}`)
       : this.getHomePath();
   },
 
   getToolPath(toolId) {
-    return `/${encodeURIComponent(toolId)}`;
+    return this.ensureTrailingSlashPath(`/${encodeURIComponent(toolId)}`);
   },
 
   getSearchPath(query) {

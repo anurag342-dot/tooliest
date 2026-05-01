@@ -1,13 +1,13 @@
 /*
   # Security Headers - applied to all routes
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
-  X-XSS-Protection: 1; mode=block
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
 
   # Content Security Policy
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src-elem 'self' 'unsafe-inline' blob: https://www.googletagmanager.com https://static.cloudflareinsights.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; frame-src 'self' https://www.googletagmanager.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://static.cloudflareinsights.com https://esm.sh https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https: blob:; font-src 'self' data: https:; connect-src 'self' https:; frame-src 'self' https:; worker-src 'self' blob: https:; object-src 'none'; base-uri 'self'; form-action 'self'
 
 # Static assets - aggressive caching
 /css/*
@@ -58,391 +58,391 @@
   Cache-Control: public, max-age=0, must-revalidate
   X-Robots-Tag: noindex, follow
 
-/about
+/about/
   Cache-Control: public, max-age=0, must-revalidate
 
 /about.html
   Cache-Control: public, max-age=0, must-revalidate
 
-/contact
+/contact/
   Cache-Control: public, max-age=0, must-revalidate
 
 /contact.html
   Cache-Control: public, max-age=0, must-revalidate
 
-/privacy
+/privacy/
   Cache-Control: public, max-age=0, must-revalidate
 
 /privacy.html
   Cache-Control: public, max-age=0, must-revalidate
 
-/terms
+/terms/
   Cache-Control: public, max-age=0, must-revalidate
 
 /terms.html
   Cache-Control: public, max-age=0, must-revalidate
 
-/disclaimer
+/disclaimer/
   Cache-Control: public, max-age=0, must-revalidate
 
 /disclaimer.html
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/text
+/category/text/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/seo
+/category/seo/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/css
+/category/css/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/color
+/category/color/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/image
+/category/image/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/pdf
+/category/pdf/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/json
+/category/json/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/html
+/category/html/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/javascript
+/category/javascript/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/converter
+/category/converter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/encoding
+/category/encoding/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/finance
+/category/finance/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/math
+/category/math/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/social
+/category/social/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/privacy
+/category/privacy/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/ai
+/category/ai/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/developer
+/category/developer/
   Cache-Control: public, max-age=0, must-revalidate
 
-/word-counter
+/word-counter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/typing-speed-test
+/typing-speed-test/
   Cache-Control: public, max-age=0, must-revalidate
 
-/character-counter
+/character-counter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/case-converter
+/case-converter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/lorem-ipsum
+/lorem-ipsum/
   Cache-Control: public, max-age=0, must-revalidate
 
-/text-reverser
+/text-reverser/
   Cache-Control: public, max-age=0, must-revalidate
 
-/remove-duplicates
+/remove-duplicates/
   Cache-Control: public, max-age=0, must-revalidate
 
-/slug-generator
+/slug-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/string-encoder
+/string-encoder/
   Cache-Control: public, max-age=0, must-revalidate
 
-/meta-tag-generator
+/meta-tag-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/sitemap-generator
+/sitemap-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/robots-txt-generator
+/robots-txt-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/og-preview
+/og-preview/
   Cache-Control: public, max-age=0, must-revalidate
 
-/schema-generator
+/schema-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/keyword-density
+/keyword-density/
   Cache-Control: public, max-age=0, must-revalidate
 
-/css-minifier
+/css-minifier/
   Cache-Control: public, max-age=0, must-revalidate
 
-/css-beautifier
+/css-beautifier/
   Cache-Control: public, max-age=0, must-revalidate
 
-/gradient-generator
+/gradient-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/box-shadow-generator
+/box-shadow-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/flexbox-playground
+/flexbox-playground/
   Cache-Control: public, max-age=0, must-revalidate
 
-/css-animation-generator
+/css-animation-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/color-picker
+/color-picker/
   Cache-Control: public, max-age=0, must-revalidate
 
-/palette-generator
+/palette-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/contrast-checker
+/contrast-checker/
   Cache-Control: public, max-age=0, must-revalidate
 
-/hex-to-rgb
+/hex-to-rgb/
   Cache-Control: public, max-age=0, must-revalidate
 
-/color-blindness-sim
+/color-blindness-sim/
   Cache-Control: public, max-age=0, must-revalidate
 
-/image-compressor
+/image-compressor/
   Cache-Control: public, max-age=0, must-revalidate
 
-/image-resizer
+/image-resizer/
   Cache-Control: public, max-age=0, must-revalidate
 
-/image-cropper
+/image-cropper/
   Cache-Control: public, max-age=0, must-revalidate
 
-/image-to-base64
+/image-to-base64/
   Cache-Control: public, max-age=0, must-revalidate
 
-/base64-to-image
+/base64-to-image/
   Cache-Control: public, max-age=0, must-revalidate
 
-/image-converter
+/image-converter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/qr-code-generator
+/qr-code-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-merger
+/pdf-merger/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-splitter
+/pdf-splitter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-compressor
+/pdf-compressor/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-rotate
+/pdf-rotate/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-reorder
+/pdf-reorder/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-extract
+/pdf-extract/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-delete-pages
+/pdf-delete-pages/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-watermark
+/pdf-watermark/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-page-numbers
+/pdf-page-numbers/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-protect
+/pdf-protect/
   Cache-Control: public, max-age=0, must-revalidate
 
-/signature-maker
+/signature-maker/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-to-images
+/pdf-to-images/
   Cache-Control: public, max-age=0, must-revalidate
 
-/images-to-pdf
+/images-to-pdf/
   Cache-Control: public, max-age=0, must-revalidate
 
-/text-to-pdf
+/text-to-pdf/
   Cache-Control: public, max-age=0, must-revalidate
 
-/pdf-to-text
+/pdf-to-text/
   Cache-Control: public, max-age=0, must-revalidate
 
-/json-formatter
+/json-formatter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/json-validator
+/json-validator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/json-to-csv
+/json-to-csv/
   Cache-Control: public, max-age=0, must-revalidate
 
-/csv-to-json
+/csv-to-json/
   Cache-Control: public, max-age=0, must-revalidate
 
-/json-minifier
+/json-minifier/
   Cache-Control: public, max-age=0, must-revalidate
 
-/html-minifier
+/html-minifier/
   Cache-Control: public, max-age=0, must-revalidate
 
-/html-beautifier
+/html-beautifier/
   Cache-Control: public, max-age=0, must-revalidate
 
-/html-entity-encoder
+/html-entity-encoder/
   Cache-Control: public, max-age=0, must-revalidate
 
-/html-table-generator
+/html-table-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/markdown-to-html
+/markdown-to-html/
   Cache-Control: public, max-age=0, must-revalidate
 
-/js-minifier
+/js-minifier/
   Cache-Control: public, max-age=0, must-revalidate
 
-/js-beautifier
+/js-beautifier/
   Cache-Control: public, max-age=0, must-revalidate
 
-/regex-tester
+/regex-tester/
   Cache-Control: public, max-age=0, must-revalidate
 
-/js-obfuscator
+/js-obfuscator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/unit-converter
+/unit-converter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/temperature-converter
+/temperature-converter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/number-base-converter
+/number-base-converter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/timezone-converter
+/timezone-converter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/base64-encoder
+/base64-encoder/
   Cache-Control: public, max-age=0, must-revalidate
 
-/url-encoder
+/url-encoder/
   Cache-Control: public, max-age=0, must-revalidate
 
-/jwt-decoder
+/jwt-decoder/
   Cache-Control: public, max-age=0, must-revalidate
 
-/hash-generator
+/hash-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/percentage-calculator
+/percentage-calculator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/age-calculator
+/age-calculator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/bmi-calculator
+/bmi-calculator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/tip-calculator
+/tip-calculator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/twitter-counter
+/twitter-counter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/instagram-caption
+/instagram-caption/
   Cache-Control: public, max-age=0, must-revalidate
 
-/hashtag-generator
+/hashtag-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/youtube-thumbnail
+/youtube-thumbnail/
   Cache-Control: public, max-age=0, must-revalidate
 
-/password-security-suite
+/password-security-suite/
   Cache-Control: public, max-age=0, must-revalidate
 
-/uuid-generator
+/uuid-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/fake-data-generator
+/fake-data-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/image-exif-stripper
+/image-exif-stripper/
   Cache-Control: public, max-age=0, must-revalidate
 
-/ai-text-summarizer
+/ai-text-summarizer/
   Cache-Control: public, max-age=0, must-revalidate
 
-/ai-paraphraser
+/ai-paraphraser/
   Cache-Control: public, max-age=0, must-revalidate
 
-/ai-email-writer
+/ai-email-writer/
   Cache-Control: public, max-age=0, must-revalidate
 
-/ai-blog-ideas
+/ai-blog-ideas/
   Cache-Control: public, max-age=0, must-revalidate
 
-/ai-meta-writer
+/ai-meta-writer/
   Cache-Control: public, max-age=0, must-revalidate
 
-/cron-parser
+/cron-parser/
   Cache-Control: public, max-age=0, must-revalidate
 
-/diff-checker
+/diff-checker/
   Cache-Control: public, max-age=0, must-revalidate
 
-/sql-formatter
+/sql-formatter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/chmod-calculator
+/chmod-calculator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/code-screenshot
+/code-screenshot/
   Cache-Control: public, max-age=0, must-revalidate
 
-/loan-mortgage-analyzer
+/loan-mortgage-analyzer/
   Cache-Control: public, max-age=0, must-revalidate
 
-/compound-interest
+/compound-interest/
   Cache-Control: public, max-age=0, must-revalidate
 
-/sip-calculator
+/sip-calculator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/retirement-calculator
+/retirement-calculator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/roi-calculator
+/roi-calculator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/debt-payoff
+/debt-payoff/
   Cache-Control: public, max-age=0, must-revalidate
 
-/invoice-generator
+/invoice-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/email-signature-generator
+/email-signature-generator/
   Cache-Control: public, max-age=0, must-revalidate
 
-/audio-converter
+/audio-converter/
   Cache-Control: public, max-age=0, must-revalidate
 
-/inflation-calculator
+/inflation-calculator/
   Cache-Control: public, max-age=0, must-revalidate
 
 /guides/
@@ -493,70 +493,70 @@
 /guides/javascript-minification-vs-obfuscation/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software
+/software/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/semrush
+/software/semrush/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/semrush/vs-ahrefs
+/software/semrush/vs-ahrefs/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/semrush/vs-se-ranking
+/software/semrush/vs-se-ranking/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/semrush/vs-similarweb
+/software/semrush/vs-similarweb/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/semrush/for-agencies
+/software/semrush/for-agencies/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/semrush/for-content-planning
+/software/semrush/for-content-planning/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/semrush/for-local-seo
+/software/semrush/for-local-seo/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/screaming-frog
+/software/screaming-frog/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/screaming-frog/vs-sitebulb
+/software/screaming-frog/vs-sitebulb/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/screaming-frog/vs-semrush-site-audit
+/software/screaming-frog/vs-semrush-site-audit/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/screaming-frog/vs-ahrefs-site-audit
+/software/screaming-frog/vs-ahrefs-site-audit/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/screaming-frog/for-broken-links
+/software/screaming-frog/for-broken-links/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/screaming-frog/for-site-migrations
+/software/screaming-frog/for-site-migrations/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/screaming-frog/for-metadata-and-canonicals
+/software/screaming-frog/for-metadata-and-canonicals/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/ahrefs
+/software/ahrefs/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/ahrefs/vs-semrush
+/software/ahrefs/vs-semrush/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/ahrefs/vs-moz-pro
+/software/ahrefs/vs-moz-pro/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/ahrefs/vs-mangools
+/software/ahrefs/vs-mangools/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/ahrefs/for-beginners
+/software/ahrefs/for-beginners/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/ahrefs/for-low-competition-keywords
+/software/ahrefs/for-low-competition-keywords/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/ahrefs/for-saas-seo
+/software/ahrefs/for-saas-seo/
   Cache-Control: public, max-age=0, must-revalidate
 
 /tool/*

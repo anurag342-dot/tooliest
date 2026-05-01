@@ -679,7 +679,7 @@ Object.assign(ToolRenderers.renderers, {
       }
 
       const fieldConfig = {
-        url: { label: 'Website URL', placeholder: 'https://tooliest.com/tools/qr-code-generator', tag: 'input', type: 'url' },
+        url: { label: 'Website URL', placeholder: 'https://tooliest.com/qr-code-generator/', tag: 'input', type: 'url' },
         text: { label: 'Text to Encode', placeholder: 'Type any text, code, or short message', tag: 'textarea' },
         email: { label: 'Email Address', placeholder: 'hello@example.com', tag: 'input', type: 'email' },
         phone: { label: 'Phone Number', placeholder: '+1 555 123 4567', tag: 'input', type: 'tel' },
