@@ -3,33 +3,129 @@
   <channel>
     <title>Tooliest Guides &amp; Tutorials</title>
     <link>https://tooliest.com/guides/</link>
-    <description>In-depth guides on image optimization, CSS performance, PDF workflows, and more from Tooliest.</description>
+    <description>Practical Tooliest guides covering browser workflows, SEO publishing, developer basics, and business tasks.</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 30 Apr 2026 12:00:00 +0545</lastBuildDate>
+    <lastBuildDate>Fri, 01 May 2026 06:00:00 GMT</lastBuildDate>
     <atom:link href="https://tooliest.com/guides/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
       <title>How to Optimize Images for Web Without Losing Quality</title>
       <link>https://tooliest.com/guides/optimize-images-for-web/</link>
-      <description>Learn how to compress, resize, and convert images for faster page loads without visible quality loss. Covers format selection, compression sweet spots, EXIF stripping, and responsive images with srcset.</description>
+      <description>Learn how to compress, resize, and convert images for faster page loads without visible quality loss. A practical guide covering formats, dimensions, metadata, and responsive delivery.</description>
       <author>tooliestinternet@gmail.com (Anurag)</author>
-      <pubDate>Tue, 29 Apr 2026 12:00:00 +0545</pubDate>
+      <pubDate>Wed, 29 Apr 2026 06:00:00 GMT</pubDate>
       <guid isPermaLink="true">https://tooliest.com/guides/optimize-images-for-web/</guid>
     </item>
     <item>
       <title>CSS Minification: How It Works, Why It Matters, and When to Use It</title>
       <link>https://tooliest.com/guides/css-minification-performance/</link>
-      <description>Understand what CSS minification removes, how it compares to GZIP compression, when not to minify, and how to integrate it into your build pipeline.</description>
+      <description>Understand what CSS minification removes, how it compares to compression, and where it fits in a modern frontend workflow.</description>
       <author>tooliestinternet@gmail.com (Anurag)</author>
-      <pubDate>Tue, 29 Apr 2026 12:00:00 +0545</pubDate>
+      <pubDate>Wed, 29 Apr 2026 06:00:00 GMT</pubDate>
       <guid isPermaLink="true">https://tooliest.com/guides/css-minification-performance/</guid>
     </item>
     <item>
       <title>PDF Workflow Guide: Merge, Split, Compress, and Protect PDFs in the Browser</title>
       <link>https://tooliest.com/guides/pdf-workflow-guide/</link>
-      <description>A complete guide to working with PDFs in the browser. Learn when to merge, split, compress, watermark, and password-protect PDFs without uploading files to external servers.</description>
+      <description>A practical guide to browser-based PDF work, from combining files to reducing size and protecting sensitive documents.</description>
       <author>tooliestinternet@gmail.com (Anurag)</author>
-      <pubDate>Tue, 29 Apr 2026 12:00:00 +0545</pubDate>
+      <pubDate>Wed, 29 Apr 2026 06:00:00 GMT</pubDate>
       <guid isPermaLink="true">https://tooliest.com/guides/pdf-workflow-guide/</guid>
+    </item>
+    <item>
+      <title>The Complete Guide to JSON: Format, Validate, and Convert</title>
+      <link>https://tooliest.com/guides/json-format-validate-convert/</link>
+      <description>Understand how JSON works, how to spot invalid syntax fast, and when to convert it into CSV or other formats for real work.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/json-format-validate-convert/</guid>
+    </item>
+    <item>
+      <title>Password Security in 2026: How to Create Uncrackable Passwords</title>
+      <link>https://tooliest.com/guides/password-security-2026/</link>
+      <description>A practical password guide covering length, randomness, passphrases, reuse risks, and how to build safer everyday login habits.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/password-security-2026/</guid>
+    </item>
+    <item>
+      <title>Understanding Color Theory: A Developer’s Guide to Palettes</title>
+      <link>https://tooliest.com/guides/color-theory-for-developers/</link>
+      <description>A practical guide to hue, contrast, palette building, and UI color decisions for developers who need design judgment without design jargon.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/color-theory-for-developers/</guid>
+    </item>
+    <item>
+      <title>How to Write Meta Tags That Actually Improve Your Rankings</title>
+      <link>https://tooliest.com/guides/meta-tags-that-improve-rankings/</link>
+      <description>A practical guide to title tags, meta descriptions, canonicals, Open Graph, and structured metadata that supports stronger SEO execution.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/meta-tags-that-improve-rankings/</guid>
+    </item>
+    <item>
+      <title>Regex for Beginners: 10 Patterns Every Developer Should Know</title>
+      <link>https://tooliest.com/guides/regex-patterns-for-beginners/</link>
+      <description>Learn the regex patterns developers reach for most often and how to test them safely before they end up in production.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/regex-patterns-for-beginners/</guid>
+    </item>
+    <item>
+      <title>What Is Base64 Encoding and When Should You Use It?</title>
+      <link>https://tooliest.com/guides/what-is-base64-encoding/</link>
+      <description>Learn what Base64 encoding actually does, what it is good for, and the tradeoffs you should understand before using it everywhere.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/what-is-base64-encoding/</guid>
+    </item>
+    <item>
+      <title>Compound Interest Explained: The Math Behind Your Money Growing</title>
+      <link>https://tooliest.com/guides/compound-interest-explained/</link>
+      <description>A plain-English guide to compounding, contribution schedules, time horizons, and why consistent saving matters more than people expect.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/compound-interest-explained/</guid>
+    </item>
+    <item>
+      <title>How to Structure URLs for SEO: Slugs, Paths, and Best Practices</title>
+      <link>https://tooliest.com/guides/seo-friendly-url-structure/</link>
+      <description>A practical guide to clean URL design, slug choices, path depth, redirects, and avoiding structures that confuse both users and search engines.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/seo-friendly-url-structure/</guid>
+    </item>
+    <item>
+      <title>CSS Box Model Explained: Margins, Padding, Shadows, and Flexbox</title>
+      <link>https://tooliest.com/guides/css-box-model-explained/</link>
+      <description>A practical guide to the CSS box model for developers who want cleaner spacing, fewer layout surprises, and more reliable component structure.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/css-box-model-explained/</guid>
+    </item>
+    <item>
+      <title>How Word Count Affects SEO Rankings: Data and Best Practices</title>
+      <link>https://tooliest.com/guides/word-count-and-seo-rankings/</link>
+      <description>A practical guide to word count, search intent, content depth, and why longer articles only help when they earn their length.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/word-count-and-seo-rankings/</guid>
+    </item>
+    <item>
+      <title>QR Codes in Business: Use Cases, Design Tips, and Best Practices</title>
+      <link>https://tooliest.com/guides/qr-codes-for-business/</link>
+      <description>Learn how businesses actually use QR codes well, what design mistakes hurt scan rates, and how to build codes that stay practical.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/qr-codes-for-business/</guid>
+    </item>
+    <item>
+      <title>JavaScript Minification vs Obfuscation: When to Use Each</title>
+      <link>https://tooliest.com/guides/javascript-minification-vs-obfuscation/</link>
+      <description>Understand the difference between minifying JavaScript for performance and obfuscating it for deterrence, plus when each approach makes sense.</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
+      <guid isPermaLink="true">https://tooliest.com/guides/javascript-minification-vs-obfuscation/</guid>
     </item>
   </channel>
 </rss>

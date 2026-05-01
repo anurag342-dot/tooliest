@@ -3,6 +3,7 @@ const path = require('path');
 const vm = require('vm');
 const { minify } = require('terser');
 const crypto = require('crypto');
+const { GUIDE_GROUPS, GUIDE_LIBRARY } = require('./content/guides');
 
 function getBuildEnv(name, fallback) {
   const value = process.env[name];
@@ -38,6 +39,7 @@ function computeAssetVersion() {
     'js/renderers-invoice.js',
     'js/email-sig-renderer.js',
     'js/signature-maker-renderer.js',
+    'content/guides.js',
   ];
   const hash = crypto.createHash('sha1');
 
@@ -119,7 +121,9 @@ const ROOT_STATIC_FILE_PATHS = [
   '/sitemap-main.xml',
   '/sitemap-tools.xml',
   '/sitemap-categories.xml',
+  '/sitemap-guides.xml',
   '/sitemap-software.xml',
+  '/feed.xml',
   '/sw.js',
   `/${BUNDLE_OUTPUT_FILE}`,
   '/favicon.svg',
@@ -139,6 +143,7 @@ const RESERVED_ROOT_SEGMENTS = new Set([
   'privacy',
   'terms',
   'disclaimer',
+  'guides',
   'software',
   'category',
   'search',
@@ -149,6 +154,7 @@ const RESERVED_ROOT_SEGMENTS = new Set([
   'sitemap-main.xml',
   'sitemap-tools.xml',
   'sitemap-categories.xml',
+  'sitemap-guides.xml',
   'sitemap-software.xml',
   `${INDEXNOW_KEY}.txt`,
   'indexnow-key.txt',
@@ -169,6 +175,7 @@ const RESERVED_ROOT_SEGMENTS = new Set([
   'icon-512.png',
   'icon-maskable-512.png',
   'social-card.jpg',
+  'feed.xml',
 ]);
 
 const CORE_BUNDLE_FILES = [
@@ -926,11 +933,38 @@ function getStaticPageLastModifiedDate(sourceFile) {
 }
 
 function getSiteLastModifiedDate() {
-  return getSourceModifiedDate(['js/app.js', 'js/tools.js']);
+  return getSourceModifiedDate(['build.js', 'js/app.js', 'js/tools.js', 'content/guides.js']);
 }
 
 function getSoftwareContentLastModifiedDate() {
   return getSourceModifiedDate(['build.js']);
+}
+
+function getGuideContentLastModifiedDate() {
+  return getSourceModifiedDate(['build.js', 'content/guides.js']);
+}
+
+function formatDisplayDate(isoDate) {
+  const [year, month, day] = String(isoDate || BUILD_DATE).split('-').map((value) => Number(value));
+  if (!year || !month || !day) {
+    return BUILD_DATE;
+  }
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+function formatRssDate(isoDate) {
+  const [year, month, day] = String(isoDate || BUILD_DATE).split('-').map((value) => Number(value));
+  const safeDate = year && month && day ? new Date(Date.UTC(year, month - 1, day, 6, 0, 0)) : new Date(`${BUILD_DATE}T06:00:00Z`);
+  return safeDate.toUTCString();
+}
+
+function getGuideAbsolutePath(guide) {
+  return `/guides/${guide.slug}/`;
 }
 
 function escapeXml(value = '') {
@@ -1481,6 +1515,14 @@ function getCategoryFaqItems(category, categoryTools) {
         q: 'Which PDF tools are the best starting point for everyday document work?',
         a: 'PDF Merger, PDF Splitter, PDF Compressor, PDF Password Protect, and Images to PDF cover the jobs people usually need first: combining files, splitting page ranges, shrinking exports, securing documents, and packaging images into share-ready PDFs.',
       },
+      {
+        q: 'Can I use Tooliest PDF tools on mobile devices?',
+        a: 'Yes. Most Tooliest PDF workflows run in modern mobile browsers as well as desktop browsers, although very large documents may still feel easier to handle on a desktop device with more memory and screen space.',
+      },
+      {
+        q: 'Should I compress a PDF before or after editing it?',
+        a: 'Usually after. Finish the merge, split, reorder, or page cleanup work first, then compress the final export so you do not repeat file-size reduction work on intermediate versions.',
+      },
     ];
   }
   const examples = featuredNames
@@ -1499,6 +1541,14 @@ function getCategoryFaqItems(category, categoryTools) {
     {
       q: `Do Tooliest's ${narrativeName} upload my data?`,
       a: `No. Tooliest processes your input locally in the browser whenever possible, so text, files, and settings stay on your device instead of being sent to a server.`,
+    },
+    {
+      q: `Can I use Tooliest's ${narrativeName} on mobile?`,
+      a: `Yes. Tooliest's ${narrativeName} work in modern desktop and mobile browsers, which makes them useful for quick edits, checks, and conversions when you are away from a larger workstation.`,
+    },
+    {
+      q: `How do I choose the right Tooliest ${narrativeName}?`,
+      a: `Start with the job you need to finish, not the name of the tool. Tooliest groups related ${narrativeName} together so you can begin with the most direct tool first, then move to adjacent tools only if the workflow needs a second step.`,
     },
   ];
 }
@@ -1715,7 +1765,19 @@ function renderCookieBanner() {
   </div>`;
 }
 
-function renderPageShell({ title, description, canonicalPath, structuredData, mainContent, keywords, ogImagePath = '/social-card.jpg', ogImageAlt = 'Tooliest preview of free browser-based online tools', robots = 'index, follow' }) {
+function renderPageShell({
+  title,
+  description,
+  canonicalPath,
+  structuredData,
+  mainContent,
+  keywords,
+  ogImagePath = '/social-card.jpg',
+  ogImageAlt = 'Tooliest preview of free browser-based online tools',
+  robots = 'index, follow',
+  metaAuthor = 'Tooliest',
+  ogType = 'website',
+}) {
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
   const ogImageUrl = /^https?:\/\//.test(ogImagePath) ? ogImagePath : getAbsoluteUrl(ogImagePath);
   const pageKeywords = keywords || 'free online tools, browser tools, tooliest';
@@ -1737,7 +1799,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeAttr(description)}">
-  <meta name="author" content="Tooliest">
+  <meta name="author" content="${escapeAttr(metaAuthor)}">
   <meta name="robots" content="${escapeAttr(robots)}">
   <meta name="googlebot" content="${escapeAttr(googlebotRobots)}">
   <meta name="theme-color" content="#8b5cf6">
@@ -1746,7 +1808,7 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
   <meta name="color-scheme" content="dark light">
   ${THEME_BOOTSTRAP_INLINE}
   <link rel="manifest" href="/manifest.json">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="${escapeAttr(ogType)}">
   <meta property="og:title" content="${escapeAttr(title)}">
   <meta property="og:description" content="${escapeAttr(description)}">
   <meta property="og:url" content="${escapeAttr(canonicalUrl)}">
@@ -2121,6 +2183,20 @@ function renderCategoryPage(category, tools, categories) {
         <li>Use the same workflows on desktop and mobile browsers</li>
       </ul>
     </section>`;
+  const howTheseToolsWorkHtml = `<section class="tool-content-section">
+      <h2>How These ${escapeHtml(category.name)} Work</h2>
+      <p>Tooliest organizes ${narrativeName} around short, practical jobs instead of giant multi-step dashboards. That means the page usually guides you toward one immediate action, then points to the next related tool only if the workflow actually needs another step.</p>
+      <p>For most categories, the browser handles the processing directly on your device. If a workflow uses an AI model or another managed provider, Tooliest calls that out clearly so users can judge privacy and accuracy expectations before relying on the output.</p>
+    </section>`;
+  const tipsHtml = `<section class="tool-content-section">
+      <h2>Tips for Getting the Most From ${escapeHtml(category.name)}</h2>
+      <ul>
+        <li>Start with the most direct tool for the job instead of opening multiple tabs at once.</li>
+        <li>Review the page guidance before exporting or publishing results, especially on AI-assisted or estimate-based workflows.</li>
+        <li>Use related categories when the task crosses disciplines, such as SEO plus text editing or PDF plus privacy cleanup.</li>
+        <li>Open the <a href="/guides/">Guides hub</a> when you need the reasoning behind a workflow, not only the output itself.</li>
+      </ul>
+    </section>`;
 
   const relatedCatsHtml = relatedCats.length
     ? `<section class="tool-content-section">
@@ -2153,6 +2229,8 @@ function renderCategoryPage(category, tools, categories) {
       <div class="tool-content-sections" style="margin-top:32px">
         ${topToolsHtml}
         ${benefitsHtml}
+        ${howTheseToolsWorkHtml}
+        ${tipsHtml}
         ${relatedCatsHtml}
         ${faqHtml}
       </div>
@@ -2298,6 +2376,16 @@ function renderToolPage(tool, tools, categories) {
           <p>${responsibleUseCopy} Read the <a href="${STATIC_PAGE_PATHS.disclaimer}" class="tool-proof-link">Tooliest disclaimer</a> if the output affects financial, legal, academic, medical, or client-facing work.</p>
         </div>
       </div>`;
+  const toolAuthorBioHtml = `<section class="tool-content-section" style="margin-top:24px">
+        <h2>About the Author</h2>
+        <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+          <div style="width:48px;height:48px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0">A</div>
+          <div style="flex:1;min-width:240px">
+            <p style="margin:0 0 6px;color:var(--text-primary);font-weight:700">Written by Anurag</p>
+            <p style="margin:0;color:var(--text-secondary)">Anurag is the founder of Tooliest and reviews the site's browser tools, AI-assisted workflows, and editorial guidance for practical accuracy, privacy notes, and real-world usefulness. <a href="${STATIC_PAGE_PATHS.about}">Learn more about Tooliest</a>.</p>
+          </div>
+        </div>
+      </section>`;
 
   const mainContent = `<main class="main-content" id="main-content">
     <div class="tool-page">
@@ -2325,6 +2413,7 @@ function renderToolPage(tool, tools, categories) {
       </div>
       ${toolProofHtml}
       ${renderToolContentSections(tool, categories)}
+      ${toolAuthorBioHtml}
       ${renderStaticAdSpace('tool-bottom')}
       ${renderRelatedTools(tool, tools, categories)}
     </div>
@@ -2339,6 +2428,242 @@ function renderToolPage(tool, tools, categories) {
     keywords: toolKeywords,
     ogImagePath: tool.ogImage || '/social-card.jpg',
     ogImageAlt: tool.ogImageAlt || `${tool.name} preview card on Tooliest`,
+  });
+}
+
+function getGuideGroup(groupId) {
+  return GUIDE_GROUPS.find((group) => group.id === groupId) || null;
+}
+
+function getSoftwareEditorialPageCount() {
+  return 1 + SOFTWARE_CLUSTERS.reduce((total, cluster) => total + 1 + cluster.comparisons.length + cluster.useCases.length, 0);
+}
+
+function renderGuideCardGrid(items, mapItem) {
+  return `<div class="guide-card-grid">${items.map((item) => mapItem(item)).join('')}</div>`;
+}
+
+function renderGuideCards(guides) {
+  return renderGuideCardGrid(guides, (guide) => `<article class="guide-card">
+      <span class="guide-card-eyebrow">${escapeHtml(getGuideGroup(guide.group)?.name || 'Guide')}</span>
+      <h3><a href="${getGuideAbsolutePath(guide)}">${escapeHtml(guide.title)}</a></h3>
+      <p>${escapeHtml(guide.teaser)}</p>
+      <p class="guide-card-meta">By Anurag &middot; ${escapeHtml(formatDisplayDate(guide.updated || guide.published))} &middot; ~${escapeHtml(String(guide.readMinutes || 8))} min read</p>
+      <div class="tool-card-tags">${(guide.tags || []).slice(0, 3).map((tag) => `<span class="tool-tag">${escapeHtml(tag)}</span>`).join('')}</div>
+    </article>`);
+}
+
+function renderGuideFaqSection(guide) {
+  if (!Array.isArray(guide.faqs) || !guide.faqs.length) {
+    return '';
+  }
+  return `<section class="tool-content-section">
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-list">${guide.faqs.map((item) => `<details class="faq-item"><summary>${escapeHtml(item.q)}</summary><p>${escapeHtml(item.a)}</p></details>`).join('')}</div>
+    </section>`;
+}
+
+function renderGuideToolLinks(guide) {
+  if (!Array.isArray(guide.toolLinks) || !guide.toolLinks.length) {
+    return '';
+  }
+  return `<section class="tool-content-section">
+      <h2>Related Tooliest Tools</h2>
+      <ul>${guide.toolLinks.map((item) => `<li><a href="${escapeAttr(item.href)}"><strong>${escapeHtml(item.label)}</strong></a> - ${escapeHtml(item.description)}</li>`).join('')}</ul>
+    </section>`;
+}
+
+function renderGuidesHubPage() {
+  const guideLastModified = getGuideContentLastModifiedDate();
+  const softwarePageCount = getSoftwareEditorialPageCount();
+  const groupedSections = GUIDE_GROUPS.map((group) => {
+    const guides = GUIDE_LIBRARY.filter((guide) => guide.group === group.id);
+    if (!guides.length) {
+      return '';
+    }
+
+    return `<section class="tool-content-section">
+        <h2>${escapeHtml(group.name)}</h2>
+        <p>${escapeHtml(group.description)}</p>
+        ${renderGuideCards(guides)}
+      </section>`;
+  }).join('');
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Tooliest Guides and Tutorials',
+      url: getAbsoluteUrl('/guides/'),
+      description: 'Editorial guides on browser-based workflows, web performance, document handling, frontend basics, and SEO publishing decisions.',
+      dateModified: guideLastModified,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: getAbsoluteUrl('/') },
+        { '@type': 'ListItem', position: 2, name: 'Guides', item: getAbsoluteUrl('/guides/') },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Tooliest editorial guides',
+      itemListElement: GUIDE_LIBRARY.map((guide, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: getAbsoluteUrl(getGuideAbsolutePath(guide)),
+        name: guide.title,
+      })),
+    },
+  ];
+
+  const mainContent = `<main class="main-content" id="main-content">
+    <section class="tool-page">
+      <div class="tool-page-header">
+        <div class="tool-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">&rsaquo;</span>
+          <span>Guides</span>
+        </div>
+        <h1 style="margin:0">Guides and Tutorials</h1>
+        <p>Tooliest publishes practical editorial content for people who want more than a widget. These guides explain the workflows, tradeoffs, and publishing decisions behind the tools so readers can finish the job with context, not just output.</p>
+        <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Last updated: ${escapeHtml(formatDisplayDate(guideLastModified))} &middot; Reviewed and maintained by Anurag</p>
+      </div>
+      <div class="hero-trust-strip" aria-label="Tooliest editorial trust signals">
+        <span class="trust-badge">102+ browser tools</span>
+        <span class="trust-badge">${GUIDE_LIBRARY.length} editorial guides</span>
+        <span class="trust-badge">${softwarePageCount} SEO software pages</span>
+        <span class="trust-badge">Reviewed by Anurag</span>
+        <span class="trust-badge">Listed on CodeTrendy</span>
+        <span class="trust-badge">Open on GitHub</span>
+      </div>
+      <div class="tool-content-sections" style="margin-top:32px">
+        <section class="tool-content-section">
+          <h2>What You Will Find Here</h2>
+          <p>Tooliest now pairs its browser-based tools with a fuller editorial layer. Some guides teach hands-on browser workflows like image optimization, PDF cleanup, or QR-code usage. Others explain SEO, frontend, data, or finance concepts that make the tools more useful in real work.</p>
+          <ul>
+            <li>Original how-to content tied directly to Tooliest tools and workflow jobs</li>
+            <li>Decision-oriented explanations that cover tradeoffs, not just step lists</li>
+            <li>Clear policy, privacy, and disclaimer links for AI-assisted or estimate-based workflows</li>
+          </ul>
+        </section>
+        ${groupedSections}
+        <section class="tool-content-section">
+          <h2>Software Reviews and Buying Guides</h2>
+          <p>Tooliest also publishes an SEO software hub for buyers evaluating platforms such as Semrush, Ahrefs, and Screaming Frog. Those pages complement the free browser tools by covering real purchase and workflow questions rather than only utility tasks.</p>
+          ${renderGuideCardGrid([
+            { title: 'SEO Software Guides Hub', href: SOFTWARE_HUB_PATH, description: 'Browse the full software content hub covering pillar pages, comparisons, and use-case articles.' },
+            { title: 'Semrush Guides', href: '/software/semrush/', description: 'Decision-oriented guides for agencies, content planning, local SEO, and side-by-side comparisons.' },
+            { title: 'Ahrefs Guides', href: '/software/ahrefs/', description: 'Explore beginner workflows, SaaS SEO questions, and comparisons against alternative platforms.' },
+            { title: 'Screaming Frog Guides', href: '/software/screaming-frog/', description: 'Read migration, crawl, metadata, and site-audit guidance for technical SEO teams.' },
+          ], (item) => `<article class="guide-card">
+              <span class="guide-card-eyebrow">Software editorial</span>
+              <h3><a href="${escapeAttr(item.href)}">${escapeHtml(item.title)}</a></h3>
+              <p>${escapeHtml(item.description)}</p>
+            </article>`)}
+        </section>
+        <section class="tool-content-section">
+          <h2>How Tooliest Publishes Editorial Content</h2>
+          <p>Every guide is written around a real user job, then connected to the tools that help carry it out. That means the content is meant to explain why a workflow works, what to watch out for, and where browser-based tools help most. It is not meant to pad pages with generic filler.</p>
+          <p>If a guide touches AI output, calculators, or sensitive workflows, Tooliest links readers back to the <a href="${STATIC_PAGE_PATHS.privacy}">privacy policy</a> and <a href="${STATIC_PAGE_PATHS.disclaimer}">site disclaimer</a> so the limits are as visible as the benefits. You can also <a href="${STATIC_PAGE_PATHS.contact}">contact Tooliest</a> if a page needs a correction.</p>
+        </section>
+      </div>
+    </section>
+  </main>`;
+
+  return renderPageShell({
+    title: 'Guides and Tutorials | Tooliest Editorial Guides and Workflow Advice',
+    description: `Browse ${GUIDE_LIBRARY.length} Tooliest editorial guides covering browser-based workflows, SEO publishing, developer basics, and practical business tasks.`,
+    canonicalPath: '/guides/',
+    structuredData,
+    mainContent,
+    keywords: 'tooliest guides, browser workflow guides, seo tutorials, developer guides, practical web tutorials',
+    ogImagePath: '/og/site/guides.svg',
+    ogImageAlt: 'Tooliest guides hub preview card',
+  });
+}
+
+function renderGuideArticlePage(guide) {
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: guide.title,
+      description: guide.description,
+      author: { '@type': 'Person', name: 'Anurag' },
+      publisher: { '@type': 'Organization', name: 'Tooliest', logo: { '@type': 'ImageObject', url: getAbsoluteUrl('/icon-512.png') } },
+      datePublished: guide.published,
+      dateModified: guide.updated || guide.published,
+      mainEntityOfPage: getAbsoluteUrl(getGuideAbsolutePath(guide)),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: getAbsoluteUrl('/') },
+        { '@type': 'ListItem', position: 2, name: 'Guides', item: getAbsoluteUrl('/guides/') },
+        { '@type': 'ListItem', position: 3, name: guide.title, item: getAbsoluteUrl(getGuideAbsolutePath(guide)) },
+      ],
+    },
+  ];
+
+  if (Array.isArray(guide.faqs) && guide.faqs.length) {
+    structuredData.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: guide.faqs.map((item) => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.a,
+        },
+      })),
+    });
+  }
+
+  const mainContent = `<main class="main-content" id="main-content">
+    <section class="tool-page">
+      <div class="tool-page-header">
+        <div class="tool-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">&rsaquo;</span>
+          <a href="/guides/">Guides</a>
+          <span class="separator">&rsaquo;</span>
+          <span>${escapeHtml(guide.title)}</span>
+        </div>
+        <h1 style="margin:0">${escapeHtml(guide.title)}</h1>
+        <p>${escapeHtml(guide.description)}</p>
+        <p class="tool-last-updated">By Anurag &middot; Published ${escapeHtml(formatDisplayDate(guide.published))} &middot; Updated ${escapeHtml(formatDisplayDate(guide.updated || guide.published))} &middot; ~${escapeHtml(String(guide.readMinutes || 8))} min read</p>
+      </div>
+      <div class="tool-content-sections">
+        <section class="tool-content-section guide-article-copy">
+          ${guide.contentHtml}
+        </section>
+        <section class="tool-content-section">
+          <h2>About the Author</h2>
+          <p><strong>Anurag</strong> is the founder of Tooliest and reviews the site's browser tools, AI-assisted workflows, and editorial guides with a focus on privacy, practical clarity, and real-world usefulness.</p>
+          <p>Want the site-level context behind this guide? Visit <a href="${STATIC_PAGE_PATHS.about}">About Tooliest</a>, review the <a href="${STATIC_PAGE_PATHS.privacy}">privacy policy</a>, or read the <a href="${STATIC_PAGE_PATHS.disclaimer}">site disclaimer</a> before relying on output for sensitive work.</p>
+        </section>
+        ${renderGuideFaqSection(guide)}
+        ${renderGuideToolLinks(guide)}
+      </div>
+    </section>
+  </main>`;
+
+  return renderPageShell({
+    title: `${guide.title} | Tooliest Guide`,
+    description: guide.description,
+    canonicalPath: getGuideAbsolutePath(guide),
+    structuredData,
+    mainContent,
+    keywords: `${guide.tags.join(', ')}, tooliest guide, browser-based workflow guide`,
+    ogImagePath: '/og/site/guides.svg',
+    ogImageAlt: `${guide.title} guide preview card`,
+    metaAuthor: 'Anurag',
+    ogType: 'article',
   });
 }
 
@@ -2855,6 +3180,62 @@ function writeSoftwareContentPages() {
   });
 }
 
+function writeGuidesContentPages() {
+  console.log('Generating guides hub and guide articles...');
+  const guidesDir = path.join(__dirname, 'guides');
+  fs.mkdirSync(guidesDir, { recursive: true });
+  fs.writeFileSync(path.join(guidesDir, 'index.html'), renderGuidesHubPage());
+
+  GUIDE_LIBRARY.forEach((guide) => {
+    const outputDir = path.join(guidesDir, guide.slug);
+    fs.mkdirSync(outputDir, { recursive: true });
+    fs.writeFileSync(path.join(outputDir, 'index.html'), renderGuideArticlePage(guide));
+  });
+
+  const feedItems = GUIDE_LIBRARY.map((guide) => `    <item>
+      <title>${escapeXml(guide.title)}</title>
+      <link>${escapeXml(getAbsoluteUrl(getGuideAbsolutePath(guide)))}</link>
+      <description>${escapeXml(guide.description)}</description>
+      <author>tooliestinternet@gmail.com (Anurag)</author>
+      <pubDate>${escapeXml(formatRssDate(guide.published))}</pubDate>
+      <guid isPermaLink="true">${escapeXml(getAbsoluteUrl(getGuideAbsolutePath(guide)))}</guid>
+    </item>`).join('\n');
+
+  const guidesFeed = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tooliest Guides &amp; Tutorials</title>
+    <link>https://tooliest.com/guides/</link>
+    <description>Practical Tooliest guides covering browser workflows, SEO publishing, developer basics, and business tasks.</description>
+    <language>en-us</language>
+    <lastBuildDate>${escapeXml(formatRssDate(getGuideContentLastModifiedDate()))}</lastBuildDate>
+    <atom:link href="https://tooliest.com/guides/feed.xml" rel="self" type="application/rss+xml"/>
+${feedItems}
+  </channel>
+</rss>
+`;
+
+  fs.writeFileSync(path.join(guidesDir, 'feed.xml'), guidesFeed);
+  fs.writeFileSync(path.join(__dirname, 'feed.xml'), guidesFeed);
+
+  const guideSitemapEntries = [
+    {
+      loc: getAbsoluteUrl('/guides/'),
+      priority: '0.7',
+      changefreq: 'weekly',
+      lastmod: getGuideContentLastModifiedDate(),
+    },
+    ...GUIDE_LIBRARY.map((guide) => ({
+      loc: getAbsoluteUrl(getGuideAbsolutePath(guide)),
+      priority: '0.8',
+      changefreq: 'monthly',
+      lastmod: guide.updated || guide.published,
+    })),
+  ];
+
+  writeSitemapUrlFile('sitemap-guides.xml', guideSitemapEntries);
+}
+
 function renderRedirectsFile(tools, categories) {
   return [
     '# Canonical host redirects',
@@ -2904,6 +3285,16 @@ function renderHeadersFile(tools, categories) {
         htmlPageCacheRule,
         '',
       ]),
+    ]),
+  ];
+  const guideHeaders = [
+    '/guides/',
+    htmlPageCacheRule,
+    '',
+    ...GUIDE_LIBRARY.flatMap((guide) => [
+      getGuideAbsolutePath(guide),
+      htmlPageCacheRule,
+      '',
     ]),
   ];
 
@@ -2971,6 +3362,7 @@ function renderHeadersFile(tools, categories) {
     ...cleanStaticPageHeaders,
     ...categoryHeaders,
     ...toolHeaders,
+    ...guideHeaders,
     ...softwareHeaders,
     '/tool/*',
     htmlPageCacheRule,
@@ -2994,9 +3386,17 @@ function renderHeadersFile(tools, categories) {
     '  Cache-Control: public, max-age=86400',
     '  Content-Type: application/xml',
     '',
+    '/sitemap-guides.xml',
+    '  Cache-Control: public, max-age=86400',
+    '  Content-Type: application/xml',
+    '',
     '/sitemap-software.xml',
     '  Cache-Control: public, max-age=86400',
     '  Content-Type: application/xml',
+    '',
+    '/feed.xml',
+    '  Cache-Control: public, max-age=86400',
+    '  Content-Type: application/rss+xml; charset=utf-8',
     '',
     '/robots.txt',
     '  Cache-Control: public, max-age=86400',
@@ -3083,10 +3483,6 @@ function writeSitemap(tools, categories) {
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.3', changefreq: 'yearly', lastmod: getStaticPageLastModifiedDate('terms.html') },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.disclaimer), priority: '0.5', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('disclaimer.html') },
     { loc: getAbsoluteUrl('/sitemap.html'), priority: '0.4', changefreq: 'monthly', lastmod: getSourceModifiedDate(['build.js', 'js/tools.js']) },
-    { loc: getAbsoluteUrl('/guides/'), priority: '0.7', changefreq: 'weekly', lastmod: getSiteLastModifiedDate() },
-    { loc: getAbsoluteUrl('/guides/optimize-images-for-web/'), priority: '0.8', changefreq: 'monthly', lastmod: getSiteLastModifiedDate() },
-    { loc: getAbsoluteUrl('/guides/css-minification-performance/'), priority: '0.8', changefreq: 'monthly', lastmod: getSiteLastModifiedDate() },
-    { loc: getAbsoluteUrl('/guides/pdf-workflow-guide/'), priority: '0.8', changefreq: 'monthly', lastmod: getSiteLastModifiedDate() },
   ];
 
   const categoryPages = getRenderableCategories(categories).map((category) => ({
@@ -3136,25 +3532,18 @@ function writeSitemap(tools, categories) {
     writeSitemapUrlFile('sitemap-main.xml', staticPages),
     writeSitemapUrlFile('sitemap-tools.xml', toolPages),
     writeSitemapUrlFile('sitemap-categories.xml', categoryPages),
+    { loc: getAbsoluteUrl('/sitemap-guides.xml'), lastmod: getGuideContentLastModifiedDate() },
     writeSitemapUrlFile('sitemap-software.xml', softwarePages),
   ];
-
-  // Add guides sitemap if it exists
-  const guidesSitemapPath = path.join(__dirname, 'sitemap-guides.xml');
-  if (fs.existsSync(guidesSitemapPath)) {
-    sitemapFiles.push({ loc: getAbsoluteUrl('/sitemap-guides.xml'), lastmod: getSiteLastModifiedDate() });
-  }
-
-  // Copy feed.xml to root for discoverability
-  const guidesFeedSrc = path.join(__dirname, 'guides', 'feed.xml');
-  if (fs.existsSync(guidesFeedSrc)) {
-    fs.copyFileSync(guidesFeedSrc, path.join(__dirname, 'feed.xml'));
-  }
 
   const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapFiles.map((entry) => `  <sitemap>\n    <loc>${escapeXml(entry.loc)}</loc>\n    <lastmod>${escapeXml(entry.lastmod)}</lastmod>\n  </sitemap>`).join('\n')}\n</sitemapindex>\n`;
   fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), sitemapIndex);
 
-  return [...staticPages, ...categoryPages, ...toolPages, ...softwarePages].map((entry) => entry.loc);
+  const guidePages = [
+    { loc: getAbsoluteUrl('/guides/') },
+    ...GUIDE_LIBRARY.map((guide) => ({ loc: getAbsoluteUrl(getGuideAbsolutePath(guide)) })),
+  ];
+  return [...staticPages, ...guidePages, ...categoryPages, ...toolPages, ...softwarePages].map((entry) => entry.loc);
 }
 
 function writeHtmlSitemap(tools, categories) {
@@ -3183,12 +3572,8 @@ function writeHtmlSitemap(tools, categories) {
       <ul>${SOFTWARE_CLUSTERS.map((cluster) => `<li><a href="${getSoftwareToolPath(cluster.slug)}">${escapeHtml(cluster.name)}</a> - ${escapeHtml(cluster.summary)}</li>`).join('')}</ul>
     </div>`;
   const guidesBlock = `<div class="sitemap-category">
-      <h2><a href="/guides/">📚 Guides &amp; Tutorials</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(3 articles)</span></h2>
-      <ul>
-        <li><a href="/guides/optimize-images-for-web/">How to Optimize Images for Web Without Losing Quality</a> &mdash; Compress, resize, convert images for faster page loads. Covers formats, dimensions, and srcset.</li>
-        <li><a href="/guides/css-minification-performance/">CSS Minification: How It Works, Why It Matters</a> &mdash; Understand minification vs GZIP, when not to minify, and build pipeline integration.</li>
-        <li><a href="/guides/pdf-workflow-guide/">PDF Workflow Guide: Merge, Split, Compress, Protect</a> &mdash; Handle all common PDF tasks in the browser with privacy-first tools.</li>
-      </ul>
+      <h2><a href="/guides/">Guides &amp; Tutorials</a> <span style="color:var(--text-tertiary);font-size:0.85rem;font-weight:400">(${GUIDE_LIBRARY.length} articles)</span></h2>
+      <ul>${GUIDE_LIBRARY.map((guide) => `<li><a href="${getGuideAbsolutePath(guide)}">${escapeHtml(guide.title)}</a> &mdash; ${escapeHtml(guide.teaser)}</li>`).join('')}</ul>
     </div>`;
   const categoryBlocks = renderableCategories.map(cat => {
     const catTools = getCategoryTools(tools, cat.id);
@@ -3207,7 +3592,7 @@ function writeHtmlSitemap(tools, categories) {
           <span>All Tools</span>
         </div>
         <h1 style="margin:0">All Tooliest Tools</h1>
-        <p>Browse every free online tool on Tooliest, organized by category. ${tools.length} tools across ${renderableCategories.length} categories, plus software guides and company pages.</p>
+        <p>Browse every free online tool on Tooliest, organized by category. ${tools.length} tools across ${renderableCategories.length} categories, plus ${GUIDE_LIBRARY.length} editorial guides, SEO software buying pages, and company policies.</p>
       </div>
       <div class="tool-content-sections">
         ${staticBlock}
@@ -3275,26 +3660,34 @@ function writeHomePage(tools, categories) {
         <div class="related-tools-grid">${quickStartCardsHtml}</div>
       </div>
     </section>`;
-  const softwareGuideCount = SOFTWARE_CLUSTERS.reduce((total, cluster) => total + 1 + cluster.comparisons.length + cluster.useCases.length, 0);
-  const practicalGuideCount = 3;
+  const softwareGuideCount = getSoftwareEditorialPageCount();
+  const practicalGuideCount = GUIDE_LIBRARY.length;
   const editorialCount = softwareGuideCount + practicalGuideCount;
   const editorialHubHtml = `<section class="tools-section" aria-labelledby="learn-with-tooliest-heading">
       <div class="tool-content-sections">
         <section class="tool-content-section">
           <h2 id="learn-with-tooliest-heading">Guides, Reviews, and Buying Advice</h2>
           <p>Tooliest now pairs its browser-based tools with more than ${editorialCount} original tutorials, software comparisons, and workflow guides so visitors can understand the why behind the tool as well as the click path.</p>
+          <div class="hero-trust-strip" aria-label="Editorial trust signals">
+            <span class="trust-badge">102+ browser tools</span>
+            <span class="trust-badge">${practicalGuideCount} editorial guides</span>
+            <span class="trust-badge">${softwareGuideCount} SEO software pages</span>
+            <span class="trust-badge">Reviewed by Anurag</span>
+            <span class="trust-badge">Listed on CodeTrendy</span>
+            <span class="trust-badge">Open on GitHub</span>
+          </div>
         </section>
         <div class="guide-card-grid">
           <article class="guide-card">
             <span class="guide-card-eyebrow">Tutorial hub</span>
             <h3><a href="/guides/">Practical Guides &amp; Tutorials</a></h3>
-            <p>Start with Tooliest tutorials for image optimization, CSS cleanup, PDF workflows, and other privacy-first browser tasks.</p>
+            <p>Start with ${practicalGuideCount} Tooliest guides covering image optimization, CSS cleanup, JSON workflows, metadata, finance math, QR-code use cases, and privacy-first browser tasks.</p>
             <div class="guide-card-actions"><a href="/guides/">Browse tutorials</a></div>
           </article>
           <article class="guide-card">
             <span class="guide-card-eyebrow">Buying advice</span>
             <h3><a href="${SOFTWARE_HUB_PATH}">SEO Software Guides</a></h3>
-            <p>Read published Semrush, Ahrefs, and Screaming Frog clusters, plus workflow comparisons designed for real software buyers.</p>
+            <p>Read ${softwareGuideCount} published SEO software pages across Semrush, Ahrefs, Screaming Frog, and related comparison or use-case workflows for real software buyers.</p>
             <div class="guide-card-actions"><a href="${SOFTWARE_HUB_PATH}">See software content</a></div>
           </article>
           <article class="guide-card">
@@ -3451,6 +3844,7 @@ async function build() {
   writeRoutingFiles(tools, categories);
   write404Page();
   writeCleanStaticPages();
+  writeGuidesContentPages();
   writeHomePage(tools, categories);
   writeToolPages(tools, categories);
   writeCategoryPages(tools, categories);

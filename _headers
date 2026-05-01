@@ -445,6 +445,54 @@
 /inflation-calculator
   Cache-Control: public, max-age=0, must-revalidate
 
+/guides/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/optimize-images-for-web/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/css-minification-performance/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/pdf-workflow-guide/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/json-format-validate-convert/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/password-security-2026/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/color-theory-for-developers/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/meta-tags-that-improve-rankings/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/regex-patterns-for-beginners/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/what-is-base64-encoding/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/compound-interest-explained/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/seo-friendly-url-structure/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/css-box-model-explained/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/word-count-and-seo-rankings/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/qr-codes-for-business/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/guides/javascript-minification-vs-obfuscation/
+  Cache-Control: public, max-age=0, must-revalidate
+
 /software
   Cache-Control: public, max-age=0, must-revalidate
 
@@ -533,9 +581,17 @@
   Cache-Control: public, max-age=86400
   Content-Type: application/xml
 
+/sitemap-guides.xml
+  Cache-Control: public, max-age=86400
+  Content-Type: application/xml
+
 /sitemap-software.xml
   Cache-Control: public, max-age=86400
   Content-Type: application/xml
+
+/feed.xml
+  Cache-Control: public, max-age=86400
+  Content-Type: application/rss+xml; charset=utf-8
 
 /robots.txt
   Cache-Control: public, max-age=86400

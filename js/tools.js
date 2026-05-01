@@ -3010,6 +3010,309 @@ const TOOLIEST_SEO_OVERRIDES = {
   },
 };
 
+const TOOLIEST_EDITORIAL_ENHANCEMENTS = {
+  'word-counter': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Word Counter vs Character Counter',
+        body: [
+          'Use a word counter when the job is content depth, readability, article length, or assignment requirements. Use a character counter when the job is platform limits such as title tags, social bios, ad copy, or interface fields with hard caps.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Should I optimize for word count or topic coverage?', a: 'Topic coverage matters more. Word count is useful as a diagnostic, but pages perform better when the content actually answers the user intent instead of padding toward an arbitrary length target.' },
+      { q: 'Why does reading time matter for content planning?', a: 'Reading time helps teams judge whether a page feels quick, moderate, or long-form. That can influence how the piece is packaged in search, newsletters, or internal editorial planning.' },
+    ],
+  },
+  'typing-speed-test': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Common Typing-Test Mistakes',
+        body: [
+          'The biggest mistake is chasing raw speed before accuracy is stable. Another is training on unnatural prompts that do not resemble the typing you do at work. Clean progress usually comes from consistent short sessions, realistic text, and reviewing repeated error patterns.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Is it better to practice words, sentences, or code?', a: 'Practice the mode that best matches your real work. Writers often benefit from sentences, while developers may improve faster with code or symbol-heavy prompts that reflect actual keyboard habits.' },
+      { q: 'Why do my WPM numbers vary so much from test to test?', a: 'Prompt difficulty, punctuation density, fatigue, keyboard familiarity, and whether you prioritize speed or accuracy can all shift your score meaningfully between runs.' },
+    ],
+  },
+  'character-counter': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Platform Limits That Matter Most',
+        body: [
+          'Character limits matter anywhere the interface truncates or rejects copy: title tags, meta descriptions, social bios, ad fields, button labels, and app UI strings. Counting before you publish is much faster than fixing clipped copy after the preview breaks.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Should I count spaces in metadata and social copy?', a: 'Usually yes, because many platforms count the entire string including spaces. Tooliest shows both totals so you can match the target platform more accurately.' },
+      { q: 'Why is character count important for UX writing?', a: 'Short interface copy has to fit the container cleanly. A character counter helps product teams avoid overflow, truncation, and awkward microcopy that breaks smaller screens.' },
+    ],
+  },
+  'case-converter': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'When Not to Trust a Blind Case Conversion',
+        body: [
+          'Blind conversion can create awkward results for acronyms, brand names, file paths, or intentionally stylized copy. It is worth doing a quick review after conversion if the text includes product names, API labels, or headings that depend on exact capitalization.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Why do acronyms sometimes look wrong after case conversion?', a: 'Because converters often apply general casing rules rather than knowing which terms should stay fully capitalized. Review text with abbreviations or brand names before publishing it.' },
+      { q: 'Is case conversion useful for code naming too?', a: 'Yes. It can help turn plain language into camelCase, snake_case, or kebab-case faster when you are drafting variable names, CSS classes, or content slugs.' },
+    ],
+  },
+  'slug-generator': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Slug Checklist Before You Publish',
+        body: [
+          'A strong slug is short, readable, and stable. Keep the main topic clear, avoid date clutter unless it truly matters, and do not rewrite slugs casually after publishing unless you are prepared to manage redirects carefully.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Should stop words always be removed from slugs?', a: 'Not always. Removing filler can help, but the slug should still read naturally enough that a human can understand it quickly.' },
+      { q: 'Is it worth rewriting an old slug for a slightly better keyword?', a: 'Usually only when the old slug is genuinely poor. Constant slug changes create redirect work and can introduce unnecessary SEO or analytics confusion.' },
+    ],
+  },
+  'meta-tag-generator': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Metadata Validation Checklist',
+        body: [
+          'Before shipping a page, confirm the title matches the real page angle, the description explains the value honestly, the canonical points to the preferred URL, and social preview tags use the same core message instead of a mismatched headline.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Why do search engines sometimes rewrite my title or description?', a: 'They may rewrite snippets when the supplied metadata seems vague, repetitive, or less relevant than visible on-page content. Stronger alignment between page content and metadata reduces that risk.' },
+      { q: 'Should every page have unique title and description tags?', a: 'Yes. Shared templates are fine as a structure, but the actual title and description should reflect the specific purpose of the page instead of sounding cloned.' },
+    ],
+  },
+  'schema-generator': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Schema Markup Implementation Mistakes',
+        body: [
+          'The most common schema problems are not syntax problems. They are content problems: using the wrong schema type, marking up content that is not actually present on the page, or publishing structured data that conflicts with the visible page details.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Does adding schema guarantee rich results?', a: 'No. Schema helps search engines understand the page better, but eligibility and display still depend on content quality, search intent, and search-engine decisions.' },
+      { q: 'Should structured data match the visible page exactly?', a: 'Yes. Markup should reflect what users can actually see on the page, including names, dates, ratings, or FAQs. Mismatches can undermine trust and eligibility.' },
+    ],
+  },
+  'keyword-density': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'When Keyword Density Becomes a Problem',
+        body: [
+          'Density becomes unhelpful when the exact phrase appears so often that a human reader notices the repetition. If the copy sounds forced, the issue is usually bigger than the percentage itself: the content is probably over-optimized and under-edited.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Should I chase a specific keyword density number?', a: 'No. Use density as a clue, not a target. Search visibility usually improves more from complete topic coverage and natural language than from hitting a rigid percentage.' },
+      { q: 'Can density checks help with content refreshes?', a: 'Yes. They can reveal when a refreshed page lost its main topic focus or when edits accidentally introduced repetitive phrasing that now sounds unnatural.' },
+    ],
+  },
+  'json-formatter': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Common JSON Cleanup Mistakes',
+        body: [
+          'The usual JSON problems are small but destructive: trailing commas, smart quotes, mixed tabs and pasted markup, or comments copied from JavaScript. Validating before formatting is often the fastest way to stop chasing the wrong error.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Should I validate JSON before converting it to CSV?', a: 'Yes. If the structure is invalid, downstream conversion will usually fail or produce misleading output because the parser never had a stable input shape to begin with.' },
+      { q: 'Why is pretty-printing useful if the API already accepts minified JSON?', a: 'Readable JSON is much easier to debug, review, and discuss with teammates. Minified JSON is better for transport, but formatted JSON is better for humans.' },
+    ],
+  },
+  'regex-tester': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Regex Testing Checklist',
+        body: [
+          'Test the obvious matches, then test the ugly edge cases: extra spaces, mixed case, punctuation, empty strings, and examples that should not match at all. Regex quality improves when you validate the failures, not only the successes.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Why should I test strings that are supposed to fail?', a: 'Because overmatching is one of the easiest ways for regex to create silent bugs. A pattern that only works on ideal inputs is rarely ready for production.' },
+      { q: 'Are regex patterns portable across all languages?', a: 'Not perfectly. Many engines are similar, but support for lookbehind, Unicode handling, and named groups can differ enough that testing in the target environment still matters.' },
+    ],
+  },
+  'ai-text-summarizer': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'When Not to Use a Summary as the Final Output',
+        body: [
+          'Summaries are useful for triage, handoff notes, and quick understanding. They are not a replacement for reading the source when the details affect contracts, compliance, research claims, legal language, or decisions that need exact nuance.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Why can a summary miss something important even when it sounds accurate?', a: 'Because summarization compresses detail by definition. A clean high-level result can still omit caveats, exceptions, or small facts that matter to the final decision.' },
+      { q: 'Should I summarize before or after editing long source text?', a: 'It depends on the job. Summarizing first can help you find the main ideas quickly, while summarizing a cleaned-up draft can give you a better final handoff or publish-ready abstract.' },
+    ],
+  },
+  'ai-paraphraser': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Common Rewrite Mistakes',
+        body: [
+          'The biggest paraphrasing mistakes are changing meaning subtly, smoothing away important qualifiers, or rewriting technical language so heavily that precision is lost. A good paraphrase sounds fresh while staying faithful to the source idea.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'How do I know if a paraphrase changed the meaning too much?', a: 'Compare the claims, numbers, tone, and scope against the source. If the rewrite makes the statement stronger, softer, narrower, or broader without intent, it probably needs manual correction.' },
+      { q: 'Is a paraphraser good for polishing rough notes?', a: 'Yes, as a starting point. It can help with clarity and phrasing, but important notes still need a final human pass for accuracy and context.' },
+    ],
+  },
+  'ai-email-writer': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Email Output Review Checklist',
+        body: [
+          'Before sending an AI-drafted email, check the tone, names, dates, promises, and implied commitments. Small errors in a client-facing message often cause more damage than a rough draft that simply needed two minutes of human revision.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Should I use an AI-generated email without editing it?', a: 'Usually no. AI drafts are strong starting points, but names, dates, promises, and tone should still be checked by a person before the message is sent.' },
+      { q: 'What kind of email prompts produce better drafts?', a: 'Prompts that include audience, context, desired tone, and the outcome you want usually produce more useful drafts than vague requests such as "write a professional email".' },
+    ],
+  },
+  'ai-blog-ideas': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'How to Judge Whether an Idea Is Worth Publishing',
+        body: [
+          'A good blog idea is not only interesting. It should match a real audience problem, fit your actual expertise, and offer enough differentiation that the finished post will not read like a generic search-results remix.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'How many generated ideas should I actually use?', a: 'Treat the list as raw material, not a mandate. It is usually better to choose a few ideas with strong audience fit than to publish every generated option mechanically.' },
+      { q: 'Can AI blog ideas help with topic clusters?', a: 'Yes. They are useful for brainstorming subtopics and follow-up angles, especially when you already know the main pillar topic but need clearer supporting article directions.' },
+    ],
+  },
+  'ai-meta-writer': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'What to Review Before Using AI Metadata',
+        body: [
+          'AI can draft a strong starting point, but final metadata should still be checked for factual accuracy, brand tone, character fit, and whether the snippet actually matches the visible page content instead of promising something broader.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Why does a meta description that sounds good still perform badly?', a: 'Because the snippet may be vague, misaligned with intent, or disconnected from the rest of the page. Good phrasing helps, but relevance and specificity still decide whether users click.' },
+      { q: 'Should AI write my final title tag too?', a: 'It can help generate options, but final titles usually benefit from a human editor who understands the topic, SERP competition, and how the page fits the broader site structure.' },
+    ],
+  },
+  'invoice-generator': {
+    faqLimit: 7,
+    customSections: [
+      {
+        heading: 'Before You Send an Invoice',
+        body: [
+          'Double-check line items, payment terms, tax handling, due dates, and contact details before exporting the final invoice. Small inconsistencies can slow payment more than people expect, especially when a client’s finance team has to reconcile the document manually.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'What details make an invoice look more professional?', a: 'Clear item descriptions, issue and due dates, payment terms, tax clarity, business details, and a clean total section all help the invoice feel ready for real bookkeeping instead of like a rough template.' },
+      { q: 'Should I send invoice PDFs or editable documents?', a: 'PDF is usually the safer final format because it preserves layout and reduces accidental edits, especially when the client is forwarding the document through multiple systems.' },
+    ],
+  },
+  'qr-code-generator': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'QR Code Deployment Mistakes',
+        body: [
+          'The most common failures are low-contrast designs, codes printed too small, unclear calls to action, or landing pages that are slow and not mobile-friendly. A QR code succeeds only when the full scan-to-destination experience holds up.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Should I test a QR code on more than one phone?', a: 'Yes. Testing on multiple devices helps catch contrast, size, or destination issues before the code is printed or distributed widely.' },
+      { q: 'Can I change a QR-code destination later?', a: 'Only if the QR code points to a redirectable URL or a system you control. If it points straight to a fixed final URL, changing the destination later is much harder.' },
+    ],
+  },
+  'image-compressor': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Format Tradeoffs to Check Before Export',
+        body: [
+          'Compression is only one decision. You should also ask whether the chosen format fits the job. A photographic asset, a transparent UI image, and a flat-color illustration often deserve different export choices even when the file-size goal is similar.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Why do some images look worse than others at the same compression setting?', a: 'Because compression interacts with texture, gradients, edges, and noise differently. A setting that works well for one image may be too aggressive for another.' },
+      { q: 'Should I resize or compress first for web publishing?', a: 'Resize first when the original is larger than the intended layout. Removing unused pixels before compression usually produces better savings and cleaner results.' },
+    ],
+  },
+  'pdf-merger': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Privacy Workflow for Sensitive Documents',
+        body: [
+          'When the PDF contains contracts, IDs, invoices, or internal notes, do the merge locally, verify the page order, and only then share the exported file through the channel you actually trust. Structural document work is often safer when it stays inside a browser-first workflow.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'What should I check after merging PDFs?', a: 'Confirm the page order, missing pages, duplicate pages, orientation, and whether any signatures or form fields survived the merge the way you expected.' },
+      { q: 'Should I compress a PDF before or after merging it?', a: 'Usually after. Finish the structure first, then compress the final combined document so you do not redo size reduction work multiple times.' },
+    ],
+  },
+  'compound-interest': {
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'What This Estimate Leaves Out',
+        body: [
+          'Compound-growth projections simplify the real world. Taxes, fees, inflation, irregular contributions, changing return rates, and emotional investor behavior can all shift the result materially. The calculator is strongest when used for scenario comparison rather than prediction certainty.',
+        ],
+      },
+    ],
+    faqExtras: [
+      { q: 'Why should I compare multiple return assumptions?', a: 'Because projections are sensitive to the assumed rate. Looking at conservative, moderate, and optimistic scenarios helps prevent overconfidence in a single neat growth curve.' },
+      { q: 'Does inflation matter even if the ending balance looks large?', a: 'Yes. A future balance can look impressive in nominal terms while buying much less in real terms, which is why pairing growth estimates with inflation thinking is important.' },
+    ],
+  },
+};
+
 
 const TOOLIEST_CATEGORY_AUDIENCES = {
   text: 'Writers, editors, students, marketers, and documentation teams handling everyday text workflows.',
@@ -3050,7 +3353,16 @@ function truncateTooliestText(value = '', limit = 155) {
 }
 
 function getTooliestSeoOverride(tool) {
-  return TOOLIEST_SEO_OVERRIDES[tool.id] || {};
+  const baseOverride = TOOLIEST_SEO_OVERRIDES[tool.id] || {};
+  const editorialOverride = TOOLIEST_EDITORIAL_ENHANCEMENTS[tool.id] || {};
+  return {
+    ...baseOverride,
+    ...editorialOverride,
+    contentHighlights: [...(baseOverride.contentHighlights || []), ...(editorialOverride.contentHighlights || [])],
+    faqExtras: [...(baseOverride.faqExtras || []), ...(editorialOverride.faqExtras || [])],
+    customSections: [...(baseOverride.customSections || []), ...(editorialOverride.customSections || [])],
+    referenceLinks: [...(baseOverride.referenceLinks || []), ...(editorialOverride.referenceLinks || [])],
+  };
 }
 
 function getTooliestPrimaryTopic(tool) {
@@ -3879,11 +4191,12 @@ TOOLS.forEach((tool) => {
     ? tool.relatedCategoryIds
     : (TOOLIEST_HOME_CATEGORY_RELATIONS[tool.category] || []);
   tool.aeoSnippet = override.aeoSnippet || tool.aeoSnippet || null;
+  tool.faqLimit = Math.max(tool.faqLimit || 4, override.faqLimit || 4);
   tool.contentHighlights = mergeTooliestList(tool.contentHighlights, [...buildTooliestContentHighlights(tool), ...(override.contentHighlights || [])], 3);
-  tool.customSections = mergeTooliestSections(tool.customSections, buildTooliestCustomSections(tool), 3);
+  tool.customSections = mergeTooliestSections(tool.customSections, [...buildTooliestCustomSections(tool), ...(override.customSections || [])], 3);
   tool.methodology = buildTooliestMethodology(tool);
   tool.accuracyDisclaimer = buildTooliestAccuracyDisclaimer(tool);
-  tool.referenceLinks = buildTooliestReferenceLinks(tool);
+  tool.referenceLinks = [...buildTooliestReferenceLinks(tool), ...(override.referenceLinks || [])];
   tool.ogImage = override.ogImage || `/og/tools/${tool.id}.svg`;
   tool.ogImageAlt = override.ogImageAlt || `${tool.name} social preview card from Tooliest`;
 

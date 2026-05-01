@@ -401,6 +401,23 @@ function loadToolRegistry() {
   };
 }
 
+function mergeFaqEntries(primaryFaq, secondaryFaq) {
+  const merged = [];
+  const seen = new Set();
+  [...primaryFaq, ...secondaryFaq].forEach((item) => {
+    if (!item || typeof item.q !== 'string' || typeof item.a !== 'string') {
+      return;
+    }
+    const key = item.q.trim().toLowerCase();
+    if (!key || seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    merged.push(item);
+  });
+  return merged;
+}
+
 function applyPdfOverrides(tools) {
   tools.forEach((tool) => {
     const override = PDF_OVERRIDES[tool.id];
@@ -411,11 +428,18 @@ function applyPdfOverrides(tools) {
     if (override.summaryHeading) tool.summaryHeading = override.summaryHeading;
     if (override.howToHeading) tool.howToHeading = override.howToHeading;
     if (override.howToSteps) tool.howToSteps = override.howToSteps;
-    if (override.faq) tool.faq = override.faq;
+    if (override.faq) {
+      const baseFaq = Array.isArray(tool.faq) ? tool.faq : [];
+      tool.faq = baseFaq.length >= override.faq.length
+        ? baseFaq
+        : mergeFaqEntries(baseFaq, override.faq);
+    }
     tool.meta = tool.meta || {};
     if (override.metaTitle) tool.meta.title = override.metaTitle;
     if (override.metaDesc) tool.meta.desc = override.metaDesc;
-    tool.reviewedBy = 'Maintained by the Tooliest team';
+    tool.reviewedBy = tool.reviewedBy || 'Reviewed by Anurag, founder of Tooliest';
+    tool.authorName = tool.authorName || 'Anurag';
+    tool.authorBio = tool.authorBio || 'Anurag is the founder of Tooliest and reviews the site\'s browser-based tools, PDF workflows, and editorial guidance for practical accuracy, privacy notes, and real-world usefulness.';
   });
 }
 
@@ -551,6 +575,7 @@ function renderToolContentSections(tool, categories) {
   const faq = Array.isArray(tool.faq) ? tool.faq : [];
   const references = Array.isArray(tool.referenceLinks) ? tool.referenceLinks : [];
   const relatedCategories = getRelatedCategories(tool, categories);
+  const customSections = Array.isArray(tool.customSections) ? tool.customSections : [];
 
   const snippetHtml = tool.aeoSnippet
     ? `<section class="tool-content-section">
@@ -565,6 +590,16 @@ function renderToolContentSections(tool, categories) {
       <div>${tool.methodology}</div>
       ${tool.accuracyDisclaimer ? `<p class="tool-accuracy-disclaimer">${escapeHtml(tool.accuracyDisclaimer)}</p>` : ''}
     </section>`
+    : '';
+
+  const customSectionsHtml = customSections.length
+    ? customSections.map((section) => {
+      const paragraphs = Array.isArray(section.body) ? section.body : [section.body];
+      return `<section class="tool-content-section">
+      <h2>${escapeHtml(section.heading || '')}</h2>
+      ${paragraphs.filter(Boolean).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}
+    </section>`;
+    }).join('')
     : '';
 
   const highlightsHtml = highlights.length
@@ -617,6 +652,18 @@ function renderToolContentSections(tool, categories) {
     </section>`
     : '';
 
+  const authorName = tool.authorName || 'Anurag';
+  const authorBio = tool.authorBio || 'Anurag is the founder of Tooliest and reviews the site\'s browser-based tools, PDF workflows, and editorial guidance for practical accuracy, privacy notes, and real-world usefulness.';
+  const authorBioHtml = `<section class="tool-content-section tool-author-bio" aria-label="Author bio">
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+        <div style="width:48px;height:48px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0">A</div>
+        <div style="flex:1;min-width:240px">
+          <p style="margin:0 0 6px;color:var(--text-primary);font-weight:700">Written by ${escapeHtml(authorName)}</p>
+          <p style="margin:0;color:var(--text-secondary)">${escapeHtml(authorBio)} <a href="/about">Learn more about Tooliest</a>.</p>
+        </div>
+      </div>
+    </section>`;
+
   return `<article class="tool-article">
     <div class="tool-content-sections">
       <section class="tool-content-section">
@@ -624,6 +671,7 @@ function renderToolContentSections(tool, categories) {
         <p>${escapeHtml(tool.description)}</p>
         ${tool.education ? `<div class="tool-education-copy">${tool.education}</div>` : ''}
       </section>
+      ${customSectionsHtml}
       ${snippetHtml}
       ${methodologyHtml}
       ${highlightsHtml}
@@ -633,6 +681,7 @@ function renderToolContentSections(tool, categories) {
       ${faqHtml}
       ${relatedCategoriesHtml}
       ${referencesHtml}
+      ${authorBioHtml}
     </div>
   </article>`;
 }
@@ -822,7 +871,8 @@ function renderPage(tool, categories, tools, originalHtml) {
   const ogImageUrl = ogImage.startsWith('http') ? ogImage : getAbsoluteUrl(ogImage);
   const reviewedDate = tool.lastReviewed || BUILD_DATE;
   const reviewedLabel = tool.lastReviewedLabel || tool.lastReviewed || BUILD_DATE;
-  const reviewedBy = tool.reviewedBy || 'Maintained by the Tooliest team';
+  const reviewedBy = tool.reviewedBy || 'Reviewed by Anurag, founder of Tooliest';
+  const metaAuthor = tool.authorName || 'Anurag';
 
   return repairTextArtifacts(`<!DOCTYPE html>
 <html lang="en">
@@ -834,7 +884,7 @@ function renderPage(tool, categories, tools, originalHtml) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeAttr(description)}">
-  <meta name="author" content="Tooliest">
+  <meta name="author" content="${escapeAttr(metaAuthor)}">
   <meta name="robots" content="index, follow">
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="theme-color" content="#8b5cf6">
