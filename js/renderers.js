@@ -89,7 +89,7 @@ const ToolRenderers = {
       return;
     }
 
-    const version = typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '20260430-ecbf297f';
+    const version = typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '20260501-ecbf297f';
     const chunkPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       // [TOOLIEST AUDIT] Lazy-load non-core renderer chunks so the first render ships a much smaller JS payload.

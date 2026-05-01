@@ -33,9 +33,9 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="/css/styles3.min.css?v=20260430-ecbf297f">
-  <script>window.__TOOLIEST_ASSET_VERSION='20260430-ecbf297f';</script>
-  <script src="/js/consent.js?v=20260430-ecbf297f" defer></script>
+  <link rel="stylesheet" href="/css/styles3.min.css?v=20260501-ecbf297f">
+  <script>window.__TOOLIEST_ASSET_VERSION='20260501-ecbf297f';</script>
+  <script src="/js/consent.js?v=20260501-ecbf297f" defer></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -119,7 +119,7 @@
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
       <a class="nav-logo" href="/" id="nav-logo">
-        <div class="logo-icon">�a�</div>
+        <div class="logo-icon">&#9889;</div>
         <div class="logo-text"><span>Tooliest</span></div>
       </a>
       <div class="nav-links" id="nav-links">
@@ -127,7 +127,7 @@
         <a href="/about">About</a>
         <a href="/contact">Contact</a>
       </div>
-      <button class="mobile-menu-btn" id="mobile-menu-btn" type="button" aria-label="Open navigation menu" aria-expanded="false">�0</button>
+      <button class="mobile-menu-btn" id="mobile-menu-btn" type="button" aria-label="Open navigation menu" aria-expanded="false">&#9776;</button>
     </div>
   </nav>
 
@@ -135,12 +135,12 @@
     <div class="legal-page">
       <div class="breadcrumb">
         <a href="/">Home</a>
-        <span>:</span>
+        <span>&rsaquo;</span>
         <span>Disclaimer</span>
       </div>
 
       <h1>Disclaimer</h1>
-      <p class="legal-meta">Last updated: April 30, 2026 &nbsp;�&nbsp; Effective date: April 30, 2026</p>
+      <p class="legal-meta">Last updated: April 30, 2026 &nbsp;&middot;&nbsp; Effective date: April 30, 2026</p>
 
       <div class="legal-highlight">
         <p><strong>Short version:</strong> Tooliest is built to be useful and careful, but tool output, AI drafts, calculators, guides, and comparisons are provided for general informational use only. You are responsible for reviewing results before you rely on them.</p>
@@ -189,7 +189,7 @@
   <footer class="site-footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <p class="footer-brand-title">�a� <span>Tooliest</span></p>
+        <p class="footer-brand-title">&#9889; <span>Tooliest</span></p>
         <p>Free browser-based tools and practical guides for developers, designers, writers, and marketers. Most tools run locally on your device, and AI-assisted workflows are labeled clearly.</p>
         <a class="footer-verification-link" href="https://codetrendy.com" target="_blank" rel="noopener noreferrer" aria-label="Tooliest is listed on CodeTrendy">
           <span class="footer-verification-label">Listed on CodeTrendy</span>
@@ -217,14 +217,14 @@
         </ul>
       </div>
     </div>
-    <p class="adsense-disclosure">Tooliest is free to use &mdash; most tools run locally in your browser, and AI-assisted tools are clearly labeled when they use external model providers. <a href="/privacy">Read our privacy policy</a> and <a href="/disclaimer">disclaimer</a></p>
+    <p class="adsense-disclosure">Tooliest is free to use &mdash; most tools run locally in your browser, and AI-assisted tools are clearly labeled when they use external model providers. <a href="/privacy">Read our privacy policy</a> and <a href="/disclaimer">review the site disclaimer</a>.</p>
     <div class="footer-bottom">
-      <span>&copy; 2026 Tooliest.com � All tools are free to use.</span>
+      <span>&copy; 2026 Tooliest.com &mdash; All tools are free to use.</span>
       <span>
-        <a href="/privacy" style="color:inherit;opacity:0.7;">Privacy</a> &nbsp;�&nbsp;
-        <a href="/terms" style="color:inherit;opacity:0.7;">Terms</a> &nbsp;�&nbsp;
-        <a href="/disclaimer" style="color:inherit;opacity:0.7;">Disclaimer</a> &nbsp;�&nbsp;
-        <a href="/contact" style="color:inherit;opacity:0.7;">Contact</a> &nbsp;�&nbsp;
+        <a href="/privacy" style="color:inherit;opacity:0.7;">Privacy</a> &nbsp;&middot;&nbsp;
+        <a href="/terms" style="color:inherit;opacity:0.7;">Terms</a> &nbsp;&middot;&nbsp;
+        <a href="/disclaimer" style="color:inherit;opacity:0.7;">Disclaimer</a> &nbsp;&middot;&nbsp;
+        <a href="/contact" style="color:inherit;opacity:0.7;">Contact</a> &nbsp;&middot;&nbsp;
         <button onclick="TooliestConsent && TooliestConsent.reset()" style="background:none;border:none;color:inherit;opacity:0.7;cursor:pointer;font-size:inherit;padding:0;font-family:inherit;">Manage Cookies</button>
       </span>
     </div>
@@ -232,14 +232,14 @@
 
   <div id="cookie-banner" role="dialog" aria-label="Cookie consent" aria-live="polite">
     <div class="cookie-inner">
-      <div class="cookie-icon">�x��</div>
+      <div class="cookie-icon">&#127850;</div>
       <div class="cookie-text">
         <strong>We use browser storage and optional cookies to keep Tooliest free</strong>
         <p>Tooliest uses browser storage to remember your privacy choices on this device. If you accept non-essential tracking, Google may also use cookies for analytics and ads. <a href="/privacy">Learn more in our Privacy Policy.</a></p>
       </div>
       <div class="cookie-actions">
         <button id="cookie-reject-btn">Reject Non-Essential</button>
-        <button id="cookie-accept-btn">Accept All Cookies �S</button>
+        <button id="cookie-accept-btn">Accept All Cookies &#10003;</button>
       </div>
     </div>
   </div>
@@ -256,7 +256,7 @@
       navLinks?.classList.toggle('mobile-open');
       const isOpen = navLinks?.classList.contains('mobile-open');
       document.body.classList.toggle('nav-menu-open', Boolean(isOpen));
-      mobileMenuBtn.textContent = isOpen ? '�S"' : '�0';
+      mobileMenuBtn.innerHTML = isOpen ? '&#10005;' : '&#9776;';
       mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
 
@@ -264,7 +264,7 @@
       if (navLinks?.classList.contains('mobile-open') && !navLinks.contains(e.target) && e.target !== mobileMenuBtn) {
         navLinks.classList.remove('mobile-open');
         document.body.classList.remove('nav-menu-open');
-        mobileMenuBtn.textContent = '�0';
+        mobileMenuBtn.innerHTML = '&#9776;';
         mobileMenuBtn.setAttribute('aria-expanded', 'false');
       }
     });
