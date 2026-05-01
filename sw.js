@@ -1,10 +1,6 @@
-const ASSET_VERSION = '20260501-5669d706';
+const ASSET_VERSION = '20260501-40c79446';
 // [TOOLIEST AUDIT] Tie the offline cache name to the asset version so old release caches are purged automatically.
 const CACHE_NAME = `tooliest-${ASSET_VERSION}-offline`;
-const GOOGLE_FONTS_STYLESHEETS = [
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin',
-  'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Inconsolata:wght@400;700&family=IBM+Plex+Mono:wght@400;700&display=swap',
-];
 const EXTERNAL_TOOL_MODULES = [
   'https://cdn.jsdelivr.net/npm/jspdf@3.0.2/+esm',
   'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm',
@@ -15,6 +11,12 @@ const EXTERNAL_TOOL_MODULES = [
   'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dockerfile.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
 ];
+const CACHEABLE_CROSS_ORIGIN_HOSTS = new Set([
+  'cdn.jsdelivr.net',
+  'cdnjs.cloudflare.com',
+  'esm.sh',
+  'unpkg.com',
+]);
 const TOOL_ROUTES = [
   '/word-counter',
   '/character-counter',
@@ -164,32 +166,6 @@ const URLS_TO_CACHE = [
   '/icon-maskable-512.png',
 ];
 
-async function warmGoogleFontsCache(cache) {
-  await Promise.all(GOOGLE_FONTS_STYLESHEETS.map(async (stylesheetUrl) => {
-    try {
-      const response = await fetch(stylesheetUrl, { mode: 'cors' });
-      if (!response.ok) return;
-
-      await cache.put(stylesheetUrl, response.clone());
-      const cssText = await response.text();
-      const fontUrls = cssText.match(/https:\/\/fonts\.gstatic\.com\/[^)"'\s]+/g) || [];
-
-      await Promise.all(fontUrls.map(async (fontUrl) => {
-        try {
-          const fontResponse = await fetch(fontUrl, { mode: 'cors' });
-          if (fontResponse.ok || fontResponse.type === 'opaque') {
-            await cache.put(fontUrl, fontResponse);
-          }
-        } catch (error) {
-          console.warn('[Service Worker] Failed to warm font cache:', fontUrl, error);
-        }
-      }));
-    } catch (error) {
-      console.warn('[Service Worker] Failed to cache Google Fonts stylesheet.', stylesheetUrl, error);
-    }
-  }));
-}
-
 async function warmExternalToolModules(cache) {
   await Promise.all(EXTERNAL_TOOL_MODULES.map(async (moduleUrl) => {
     try {
@@ -209,7 +185,6 @@ self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     await cache.addAll(URLS_TO_CACHE);
-    await warmGoogleFontsCache(cache);
     await warmExternalToolModules(cache);
   })());
 });
@@ -237,6 +212,16 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const requestUrl = new URL(event.request.url);
+  if (requestUrl.protocol !== 'http:' && requestUrl.protocol !== 'https:') {
+    return;
+  }
+
+  const isSameOrigin = requestUrl.origin === self.location.origin;
+  const isCacheableCrossOrigin = CACHEABLE_CROSS_ORIGIN_HOSTS.has(requestUrl.host);
+  if (!isSameOrigin && !isCacheableCrossOrigin) {
+    return;
+  }
+
   const legacyToolMatch = requestUrl.pathname.match(/^\/tool\/([^/]+)\/?$/);
   if (event.request.mode === 'navigate' && legacyToolMatch) {
     requestUrl.pathname = `/${legacyToolMatch[1]}`;

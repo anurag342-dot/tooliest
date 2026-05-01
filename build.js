@@ -1830,7 +1830,6 @@ function renderPageShell({
   <link rel="apple-touch-icon" href="${BRAND_ICON_PATHS.appleTouch}" sizes="180x180">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="${FONT_URL}" as="style">
   <style>${CRITICAL_CSS}</style>
   <link rel="stylesheet" href="${FONT_URL}" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="${FONT_URL}"></noscript>
