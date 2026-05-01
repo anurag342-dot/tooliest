@@ -2025,6 +2025,10 @@ function getStaticHomeFeaturedTools(tools) {
   return [...preferredTools, ...fallbackTools].slice(0, 9);
 }
 
+function getStaticHomeInitialGridTools(tools, limit = 14) {
+  return tools.slice(0, limit);
+}
+
 function getRelatedCategories(categoryId, categories) {
   const relations = {
     text: ['seo', 'html', 'developer'],
@@ -3253,13 +3257,24 @@ function writeHomePage(tools, categories) {
   const allCategory = categories.find((category) => category.id === 'all');
   const homepageCategories = allCategory ? [allCategory, ...renderableCategories] : renderableCategories;
   const featuredTools = getStaticHomeFeaturedTools(tools);
+  const initialGridTools = getStaticHomeInitialGridTools(tools);
   const siteLastModified = getSiteLastModifiedDate();
 
   const categoryTabsHtml = homepageCategories.map(cat =>
     `<a href="${getCategoryPath(cat.id)}" class="category-tab${cat.id === 'all' ? ' active' : ''}" data-category="${cat.id}" aria-current="${cat.id === 'all' ? 'page' : 'false'}">${escapeHtml(cat.icon || '')} ${escapeHtml(cat.name)} <span class="tab-count">${cat.count}</span></a>`
   ).join('');
 
-  const toolCardsHtml = featuredTools.map(tool => renderStaticToolCard(tool, categories)).join('');
+  const quickStartCardsHtml = featuredTools.slice(0, 6).map(tool => renderStaticToolCard(tool, categories)).join('');
+  const toolCardsHtml = initialGridTools.map(tool => renderStaticToolCard(tool, categories)).join('');
+  const quickStartHtml = `<section class="tools-section tools-section-condensed" aria-labelledby="start-here-heading">
+      <div class="section-shell">
+        <div class="section-heading">
+          <h2 id="start-here-heading">Start Here</h2>
+          <p>New to Tooliest? Start with the fastest, most useful tools before diving into the full directory.</p>
+        </div>
+        <div class="related-tools-grid">${quickStartCardsHtml}</div>
+      </div>
+    </section>`;
   const softwareGuideCount = SOFTWARE_CLUSTERS.reduce((total, cluster) => total + 1 + cluster.comparisons.length + cluster.useCases.length, 0);
   const practicalGuideCount = 3;
   const editorialCount = softwareGuideCount + practicalGuideCount;
@@ -3389,6 +3404,7 @@ function writeHomePage(tools, categories) {
           <span class="trust-badge">No Account Friction</span>
         </div>
       </section>
+    ${quickStartHtml}
     <section class="categories-section">
       <div class="category-tabs" id="category-tabs">${categoryTabsHtml}</div>
       <p class="category-scroll-indicator" id="category-scroll-indicator" aria-hidden="true">Swipe to see more categories &rarr;</p>
