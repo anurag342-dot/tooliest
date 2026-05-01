@@ -3,10 +3,10 @@
 // Browser-based tools across multiple categories
 // ============================================
 
-const TOOLIEST_MOJIBAKE_PATTERN = /(?:Ã.|Â.|â.|ðŸ|ï¸|Å|œ)/;
+const TOOLIEST_MOJIBAKE_PATTERN = /(?:[\u00C3\u00C2\u00C5].|[\u00E2\u00F0\u00EF][\x80-\xBF]{1,})/;
 
 function countTooliestMojibake(value = '') {
-  return (String(value).match(/[ÃÂâðïÅœ]/g) || []).length;
+  return (String(value).match(/[\u00C3\u00C2\u00C5\u00E2\u00F0\u00EF]/g) || []).length;
 }
 
 function repairTooliestMojibakeString(value = '') {

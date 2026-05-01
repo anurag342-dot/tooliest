@@ -800,11 +800,11 @@ function normalizeSourcePath(relativePath) {
   return String(relativePath || '').replace(/^\/+/, '').replace(/\//g, path.sep);
 }
 
-const MOJIBAKE_PATTERN = /(?:Ã.|Â.|â.|ðŸ|ï¸|Å|œ)/;
-const MOJIBAKE_SEGMENT_PATTERN = /[ÃÂâðïÅœ][^<>\s"'`)]*/g;
+const MOJIBAKE_PATTERN = /(?:[\u00C3\u00C2\u00C5].|[\u00E2\u00F0\u00EF][\x80-\xBF]{1,})/;
+const MOJIBAKE_SEGMENT_PATTERN = /(?:[\u00C3\u00C2\u00C5][^<>\s"'\`)]*|[\u00E2\u00F0\u00EF][\x80-\xBF]{1,})/g;
 
 function countMojibakeCharacters(value = '') {
-  return (String(value).match(/[ÃÂâðïÅœ]/g) || []).length;
+  return (String(value).match(/[\u00C3\u00C2\u00C5\u00E2\u00F0\u00EF]/g) || []).length;
 }
 
 function repairMojibakeText(value = '') {
@@ -1797,9 +1797,10 @@ function renderPageShell({ title, description, canonicalPath, structuredData, ma
 
 function renderStaticToolCard(tool, categories) {
   const categoryName = categories.find(category => category.id === tool.category)?.name || '';
+  const toolIcon = escapeHtml(tool.icon || '');
   return `<a class="tool-card tool-card-link" href="${getToolPath(tool.id)}" aria-label="Open ${escapeAttr(tool.name)} tool">
     <div class="tool-card-header">
-      <div class="tool-card-icon">${tool.icon}</div>
+      <div class="tool-card-icon">${toolIcon}</div>
       <div class="tool-card-info">
         <h3>${escapeHtml(tool.name)}</h3>
         <div style="display:flex; align-items:center; gap:8px;">
@@ -3249,11 +3250,13 @@ function writeHtmlSitemap(tools, categories) {
 function writeHomePage(tools, categories) {
   console.log('Generating pre-rendered index.html...');
   const renderableCategories = getRenderableCategories(categories);
+  const allCategory = categories.find((category) => category.id === 'all');
+  const homepageCategories = allCategory ? [allCategory, ...renderableCategories] : renderableCategories;
   const featuredTools = getStaticHomeFeaturedTools(tools);
   const siteLastModified = getSiteLastModifiedDate();
 
-  const categoryTabsHtml = renderableCategories.map(cat =>
-    `<a href="${getCategoryPath(cat.id)}" class="category-tab${cat.id === 'all' ? ' active' : ''}" data-category="${cat.id}" aria-current="${cat.id === 'all' ? 'page' : 'false'}">${cat.icon} ${escapeHtml(cat.name)} <span class="tab-count">${cat.count}</span></a>`
+  const categoryTabsHtml = homepageCategories.map(cat =>
+    `<a href="${getCategoryPath(cat.id)}" class="category-tab${cat.id === 'all' ? ' active' : ''}" data-category="${cat.id}" aria-current="${cat.id === 'all' ? 'page' : 'false'}">${escapeHtml(cat.icon || '')} ${escapeHtml(cat.name)} <span class="tab-count">${cat.count}</span></a>`
   ).join('');
 
   const toolCardsHtml = featuredTools.map(tool => renderStaticToolCard(tool, categories)).join('');
