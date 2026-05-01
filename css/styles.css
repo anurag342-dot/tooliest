@@ -577,8 +577,12 @@ a:hover {
 }
 
 img {
-  max-width: 100%;
   display: block;
+  max-width: 100%;
+}
+
+img[width][height] {
+  height: auto;
 }
 
 /* === Scrollbar === */
@@ -2175,6 +2179,12 @@ input[type="range"]::-webkit-slider-thumb:hover {
   justify-content: center;
 }
 
+.adsbygoogle {
+  display: block;
+  width: 100%;
+  min-height: 90px;
+}
+
 /* === Related Tools === */
 .related-tools {
   margin-top: 48px;
@@ -2371,8 +2381,9 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .footer-verification-link img {
   display: block;
+  width: 320px;
   height: 54px;
-  width: auto;
+  aspect-ratio: 320 / 54;
   max-width: 100%;
   border-radius: 10px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
@@ -3776,4 +3787,3 @@ body.embed-mode.standalone-tool-embed {
   line-height: 1.7;
   font-size: 0.95rem;
 }
-

@@ -257,11 +257,11 @@ const CSS_BUNDLE_PATH = `/css/styles3.min.css?v=${ASSET_VERSION}`;
 const BUNDLE_PATH = `/bundle.min.js?v=${ASSET_VERSION}`;
 const CONSENT_PATH = `/js/consent.js?v=${ASSET_VERSION}`;
 
-const LEGACY_TOOL_PATH_REDIRECT_INLINE = `<script>(function(){var match=window.location.pathname.match(/^\\/tool\\/([^/]+)\\/?$/);if(!match)return;var target='/' + match[1] + (window.location.search||'') + (window.location.hash||'');window.location.replace(target);})();</script>`;
-const CONSENT_DEFAULTS_INLINE = `<script>window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>`;
-const GOOGLE_TAG_SNIPPET = `<script>(function(){var loaded=false;function boot(){if(loaded)return;loaded=true;var s=document.createElement('script');s.src='https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_ID}';s.async=true;document.head.appendChild(s);window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('js',new Date());window.gtag('config','${GOOGLE_TAG_ID}');}window.addEventListener('load',function(){if('requestIdleCallback' in window){requestIdleCallback(boot,{timeout:4000});return;}setTimeout(boot,2500);});})();</script>`;
-const THEME_BOOTSTRAP_INLINE = `<script>try{const savedTheme=localStorage.getItem('tooliest_theme');if(savedTheme==='light'||savedTheme==='dark'){document.documentElement.setAttribute('data-theme',savedTheme);}}catch(_){}</script>`;
-const ADSENSE_SCRIPT_TAG = `<script>(function(){var loaded=false;function boot(){if(loaded)return;loaded=true;var s=document.createElement('script');s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}';s.async=true;s.crossOrigin='anonymous';document.head.appendChild(s);}window.addEventListener('load',function(){if('requestIdleCallback' in window){requestIdleCallback(boot,{timeout:4500});return;}setTimeout(boot,3200);});})();</script>`;
+const LEGACY_TOOL_PATH_REDIRECT_INLINE = `<script data-cfasync="false">(function(){var match=window.location.pathname.match(/^\\/tool\\/([^/]+)\\/?$/);if(!match)return;var target='/' + match[1] + (window.location.search||'') + (window.location.hash||'');window.location.replace(target);})();</script>`;
+const CONSENT_DEFAULTS_INLINE = `<script data-cfasync="false">window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};window.gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:2000});</script>`;
+const GOOGLE_TAG_SNIPPET = `<script data-cfasync="false">(function(w,d,id){var booted=false;function loadTag(){if(booted)return;booted=true;var s=d.createElement('script');s.src='https://www.googletagmanager.com/gtag/js?id='+id;s.async=true;s.fetchPriority='low';s.referrerPolicy='strict-origin-when-cross-origin';s.setAttribute('data-cfasync','false');d.head.appendChild(s);w.dataLayer=w.dataLayer||[];w.gtag=w.gtag||function(){w.dataLayer.push(arguments)};w.gtag('js',new Date());w.gtag('config',id);}function schedule(){if('requestIdleCallback' in w){w.requestIdleCallback(loadTag,{timeout:5000});return;}w.setTimeout(loadTag,3200);}function onReady(){w.setTimeout(schedule,1200);}if(d.readyState==='complete'){onReady();return;}w.addEventListener('load',onReady,{once:true});})(window,document,'${GOOGLE_TAG_ID}');</script>`;
+const THEME_BOOTSTRAP_INLINE = `<script data-cfasync="false">try{const savedTheme=localStorage.getItem('tooliest_theme');if(savedTheme==='light'||savedTheme==='dark'){document.documentElement.setAttribute('data-theme',savedTheme);}}catch(_){}</script>`;
+const ADSENSE_SCRIPT_TAG = `<script data-cfasync="false">(function(w,d,url){var booted=false;function loadAds(){if(booted)return;booted=true;var s=d.createElement('script');s.src=url;s.async=true;s.crossOrigin='anonymous';s.fetchPriority='low';s.setAttribute('data-cfasync','false');d.head.appendChild(s);}function schedule(){if('requestIdleCallback' in w){w.requestIdleCallback(loadAds,{timeout:5500});return;}w.setTimeout(loadAds,3600);}w.addEventListener('load',function(){w.setTimeout(schedule,1400);},{once:true});})(window,document,'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}');</script>`;
 
 function escapeHtml(value) {
   return String(value)
@@ -919,10 +919,10 @@ function renderPage(tool, categories, tools, originalHtml) {
   ${styleBlocks}
   <link rel="stylesheet" href="${FONT_URL}" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="${FONT_URL}"></noscript>
-  <link rel="preload" href="${CSS_BUNDLE_PATH}" as="style" fetchpriority="high">
-  <link rel="stylesheet" href="${CSS_BUNDLE_PATH}">
-  <script>window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}';</script>
-  <script src="${CONSENT_PATH}" defer></script>
+  <link rel="preload" href="${CSS_BUNDLE_PATH}" as="style" fetchpriority="high" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="${CSS_BUNDLE_PATH}"></noscript>
+  <script data-cfasync="false">window.__TOOLIEST_ASSET_VERSION='${ASSET_VERSION}';</script>
+  <script src="${CONSENT_PATH}" defer data-cfasync="false"></script>
   <!-- AdSense script removed for compliance: re-enable after approval -->
   <!-- ${ADSENSE_SCRIPT_TAG} -->
   ${buildStructuredData(tool, categories)}
@@ -957,7 +957,7 @@ function renderPage(tool, categories, tools, originalHtml) {
   ${renderCookieBanner()}
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-  <script src="${BUNDLE_PATH}" defer></script>
+  <script src="${BUNDLE_PATH}" defer data-cfasync="false"></script>
   ${trailingScripts}
 </body>
 </html>`);
