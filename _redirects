@@ -10,6 +10,18 @@ https://www.tooliest.com/*    https://tooliest.com/:splat    301!
 /terms.html    /terms/    301!
 /disclaimer.html    /disclaimer/    301!
 
+# SEO fix: category/privacy canonical conflict - renamed to privacy-tools
+/category/privacy/    /category/privacy-tools/    301!
+/category/privacy     /category/privacy-tools/    301!
+
+# SEO fix: mirrored software comparison redirect
+/software/ahrefs/vs-semrush/    /software/semrush/vs-ahrefs/    301!
+/software/ahrefs/vs-semrush     /software/semrush/vs-ahrefs/    301!
+
+# SEO fix: year-based guide slug to evergreen
+/guides/password-security-2026/    /guides/password-security-best-practices/    301!
+/guides/password-security-2026     /guides/password-security-best-practices/    301!
+
 # Legacy tool URLs
 /tool/*    /:splat    301!
 

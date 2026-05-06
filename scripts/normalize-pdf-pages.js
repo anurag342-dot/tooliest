@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
@@ -501,7 +501,7 @@ function renderFooter() {
         <ul>
           <li><a href="/category/pdf/">PDF Tools</a></li>
           <li><a href="/category/image/">Image Tools</a></li>
-          <li><a href="/category/privacy/">Privacy Tools</a></li>
+          <li><a href="/category/privacy-tools/">Privacy Tools</a></li>
           <li><a href="/category/converter/">Converters</a></li>
           <li><a href="/category/text/">Text Tools</a></li>
           <li><a href="/software/">SEO Software Guides</a></li>

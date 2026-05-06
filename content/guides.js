@@ -1,4 +1,4 @@
-const GUIDE_GROUPS = [
+﻿const GUIDE_GROUPS = [
   {
     id: 'workflow',
     name: 'Practical Workflow Guides',
@@ -238,7 +238,7 @@ const GUIDE_LIBRARY = [
     ],
   },
   {
-    slug: 'password-security-2026',
+    slug: 'password-security-best-practices',
     group: 'security-business',
     title: 'Password Security in 2026: How to Create Uncrackable Passwords',
     description: 'A practical password guide covering length, randomness, passphrases, reuse risks, and how to build safer everyday login habits.',

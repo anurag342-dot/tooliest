@@ -96,12 +96,7 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  <url>
-    <loc>https://tooliest.com/software/ahrefs/vs-semrush/</loc>
-    <lastmod>2026-05-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.62</priority>
-  </url>
+
   <url>
     <loc>https://tooliest.com/software/ahrefs/vs-moz-pro/</loc>
     <lastmod>2026-05-01</lastmod>

@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { minify } = require('terser');
@@ -1012,7 +1012,7 @@ const GUIDE_SEO_OVERRIDES = {
   'json-format-validate-convert': {
     seoTitle: 'JSON Guide - Format, Validate, Convert | Tooliest',
   },
-  'password-security-2026': {
+  'password-security-best-practices': {
     seoTitle: 'Password Security in 2026 | Tooliest',
   },
   'color-theory-for-developers': {

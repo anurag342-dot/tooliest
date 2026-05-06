@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tooliest Guides &amp; Tutorials</title>
@@ -41,11 +41,11 @@
     </item>
     <item>
       <title>Password Security in 2026: How to Create Uncrackable Passwords</title>
-      <link>https://tooliest.com/guides/password-security-2026/</link>
+      <link>https://tooliest.com/guides/password-security-best-practices/</link>
       <description>A practical password guide covering length, randomness, passphrases, reuse risks, and how to build safer everyday login habits.</description>
       <author>tooliestinternet@gmail.com (Anurag)</author>
       <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
-      <guid isPermaLink="true">https://tooliest.com/guides/password-security-2026/</guid>
+      <guid isPermaLink="true">https://tooliest.com/guides/password-security-best-practices/</guid>
     </item>
     <item>
       <title>Understanding Color Theory: A Developer’s Guide to Palettes</title>
