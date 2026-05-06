@@ -66,6 +66,7 @@
 
 /contact/
   Cache-Control: public, max-age=0, must-revalidate
+  X-Robots-Tag: noindex, follow
 
 /contact.html
   Cache-Control: public, max-age=0, must-revalidate
@@ -84,6 +85,7 @@
 
 /disclaimer/
   Cache-Control: public, max-age=0, must-revalidate
+  X-Robots-Tag: noindex, follow
 
 /disclaimer.html
   Cache-Control: public, max-age=0, must-revalidate
@@ -130,7 +132,7 @@
 /category/social/
   Cache-Control: public, max-age=0, must-revalidate
 
-/category/privacy/
+/category/privacy-tools/
   Cache-Control: public, max-age=0, must-revalidate
 
 /category/ai/
@@ -460,7 +462,7 @@
 /guides/json-format-validate-convert/
   Cache-Control: public, max-age=0, must-revalidate
 
-/guides/password-security-2026/
+/guides/password-security-best-practices/
   Cache-Control: public, max-age=0, must-revalidate
 
 /guides/color-theory-for-developers/
@@ -541,8 +543,6 @@
 /software/ahrefs/
   Cache-Control: public, max-age=0, must-revalidate
 
-/software/ahrefs/vs-semrush/
-  Cache-Control: public, max-age=0, must-revalidate
 
 /software/ahrefs/vs-moz-pro/
   Cache-Control: public, max-age=0, must-revalidate
@@ -564,6 +564,7 @@
 
 /sitemap.html
   Cache-Control: public, max-age=0, must-revalidate
+  X-Robots-Tag: noindex, nofollow
 
 /sitemap.xml
   Cache-Control: public, max-age=86400

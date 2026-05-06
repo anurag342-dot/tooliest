@@ -22,7 +22,8 @@ https://www.tooliest.com/*    https://tooliest.com/:splat    301!
 /guides/password-security-2026/    /guides/password-security-best-practices/    301!
 /guides/password-security-2026     /guides/password-security-best-practices/    301!
 
-# Legacy tool URLs
+# Legacy /tool/ prefix — pre-2025 URL structure. GSC will clear
+# these after Googlebot re-crawls the canonical tool URLs.
 /tool/*    /:splat    301!
 
 # Search routes stay on the SPA shell.
