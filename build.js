@@ -1,4 +1,4 @@
-﻿const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { minify } = require('terser');
@@ -39,6 +39,10 @@ function computeAssetVersion() {
     'js/renderers-invoice.js',
     'js/email-sig-renderer.js',
     'js/signature-maker-renderer.js',
+    'tools/_shared/rateLimit.js',
+    'tools/resume-builder/index.html',
+    'tools/resume-builder/style.css',
+    'tools/resume-builder/script.js',
     'content/guides.js',
   ];
   const hash = crypto.createHash('sha1');
@@ -683,6 +687,60 @@ SOFTWARE_CLUSTERS.push({
   ],
 });
 
+const SOFTWARE_COMPARISON_PAIR_OVERRIDES = {
+  'ahrefs::semrush': 'semrush::ahrefs',
+};
+
+function getSoftwareComparisonIdentity(clusterSlug, comparison) {
+  return {
+    pairKey: [clusterSlug, comparison.competitorSlug].sort().join('::'),
+    token: `${clusterSlug}::${comparison.competitorSlug}`,
+    path: getSoftwareArticlePath(clusterSlug, comparison.slug),
+  };
+}
+
+function getMirroredSoftwareComparisonRedirectMap() {
+  const redirectMap = new Map();
+  const comparisonsByToken = new Map();
+
+  SOFTWARE_CLUSTERS.forEach((cluster) => {
+    cluster.comparisons.forEach((comparison) => {
+      const identity = getSoftwareComparisonIdentity(cluster.slug, comparison);
+      comparisonsByToken.set(identity.token, identity);
+    });
+  });
+
+  const processedPairs = new Set();
+  comparisonsByToken.forEach((identity) => {
+    const [clusterSlug, competitorSlug] = identity.token.split('::');
+    const mirrorToken = `${competitorSlug}::${clusterSlug}`;
+    const mirrorIdentity = comparisonsByToken.get(mirrorToken);
+    if (!mirrorIdentity || processedPairs.has(identity.pairKey)) {
+      return;
+    }
+
+    processedPairs.add(identity.pairKey);
+    const canonicalToken = SOFTWARE_COMPARISON_PAIR_OVERRIDES[identity.pairKey]
+      || [identity.token, mirrorToken].sort((left, right) => left.localeCompare(right))[0];
+    const canonicalIdentity = comparisonsByToken.get(canonicalToken);
+    const mirroredIdentity = canonicalToken === identity.token ? mirrorIdentity : identity;
+
+    if (canonicalIdentity && mirroredIdentity && canonicalIdentity.path !== mirroredIdentity.path) {
+      redirectMap.set(mirroredIdentity.path, canonicalIdentity.path);
+    }
+  });
+
+  return redirectMap;
+}
+
+function getRenderableSoftwareComparisons(cluster) {
+  const mirroredRedirects = getMirroredSoftwareComparisonRedirectMap();
+  return cluster.comparisons.filter((comparison) => {
+    const currentPath = getSoftwareArticlePath(cluster.slug, comparison.slug);
+    return !mirroredRedirects.has(currentPath);
+  });
+}
+
 function escapeHtml(value = '') {
   return repairMojibakeSegments(String(value))
     .replace(/&/g, '&amp;')
@@ -1013,7 +1071,7 @@ const GUIDE_SEO_OVERRIDES = {
     seoTitle: 'JSON Guide - Format, Validate, Convert | Tooliest',
   },
   'password-security-best-practices': {
-    seoTitle: 'Password Security in 2026 | Tooliest',
+    seoTitle: 'Password Security Best Practices | Tooliest',
   },
   'color-theory-for-developers': {
     seoTitle: 'Color Theory for Developers | Tooliest',
@@ -1720,14 +1778,23 @@ function getCategoryMeta(category, tools) {
   const pdfIntro = featuredTools
     ? `Browse Tooliest's PDF tools for document merging, splitting, conversion, protection, and text extraction. Popular picks include ${featuredTools}, and every workflow stays in your browser for better privacy.`
     : `Browse Tooliest's PDF tools for document merging, splitting, conversion, protection, and text extraction. Every workflow stays in your browser for better privacy.`;
+  const privacyToolsDescription = featuredTools
+    ? `${count} privacy tools for passwords, EXIF cleanup, UUIDs, and realistic test data on Tooliest. Popular picks include ${featuredTools}.`
+    : `${count} privacy tools for passwords, EXIF cleanup, UUIDs, and realistic test data on Tooliest.`;
   return {
     category,
     tools: categoryTools,
     count,
     title: category.id === 'pdf'
       ? 'PDF Tools - Merge, Split, Convert | Tooliest'
-      : `${category.name} Tools - Browser Workflows | Tooliest`,
-    description: category.id === 'pdf' ? pdfDescription : defaultDescription,
+      : category.id === 'privacy-tools'
+        ? 'Privacy Tools - Passwords, EXIF, UUIDs | Tooliest'
+        : `${category.name} Tools - Browser Workflows | Tooliest`,
+    description: category.id === 'pdf'
+      ? pdfDescription
+      : category.id === 'privacy-tools'
+        ? privacyToolsDescription
+        : defaultDescription,
     intro: category.id === 'pdf' ? pdfIntro : defaultIntro,
     topToolsIntro: category.id === 'pdf'
       ? 'These PDF tools handle the document tasks people usually need first: merging files, splitting pages, compressing exports, securing documents, and converting between PDFs, images, and text.'
@@ -2241,16 +2308,16 @@ function getRelatedCategories(categoryId, categories) {
     css: ['color', 'html', 'image'],
     color: ['css', 'image', 'ai'],
     image: ['color', 'css', 'converter'],
-    pdf: ['image', 'privacy', 'converter'],
+    pdf: ['image', 'privacy-tools', 'converter'],
     json: ['html', 'javascript', 'developer'],
     html: ['css', 'json', 'javascript'],
     javascript: ['html', 'json', 'developer'],
     converter: ['encoding', 'math', 'image'],
-    encoding: ['converter', 'privacy', 'developer'],
+    encoding: ['converter', 'privacy-tools', 'developer'],
     finance: ['math', 'converter'],
     math: ['finance', 'converter'],
     social: ['seo', 'ai', 'text'],
-    privacy: ['encoding', 'developer'],
+    'privacy-tools': ['encoding', 'developer'],
     ai: ['text', 'seo', 'social'],
     developer: ['javascript', 'json', 'encoding'],
   };
@@ -2579,7 +2646,7 @@ function getGuideGroup(groupId) {
 }
 
 function getSoftwareEditorialPageCount() {
-  return 1 + SOFTWARE_CLUSTERS.reduce((total, cluster) => total + 1 + cluster.comparisons.length + cluster.useCases.length, 0);
+  return 1 + SOFTWARE_CLUSTERS.reduce((total, cluster) => total + 1 + getRenderableSoftwareComparisons(cluster).length + cluster.useCases.length, 0);
 }
 
 function renderGuideCardGrid(items, mapItem) {
@@ -2616,7 +2683,7 @@ function renderGuideToolLinks(guide) {
     </section>`;
 }
 
-function renderGuidesHubPage() {
+function renderGuidesHubPage(tools) {
   const guideLastModified = getGuideContentLastModifiedDate();
   const softwarePageCount = getSoftwareEditorialPageCount();
   const groupedSections = GUIDE_GROUPS.map((group) => {
@@ -2675,7 +2742,7 @@ function renderGuidesHubPage() {
         <p style="margin-top:12px;color:var(--text-tertiary);font-size:0.92rem">Last updated: ${escapeHtml(formatDisplayDate(guideLastModified))} &middot; Reviewed and maintained by Anurag</p>
       </div>
       <div class="hero-trust-strip" aria-label="Tooliest editorial trust signals">
-        <span class="trust-badge">102+ browser tools</span>
+        <span class="trust-badge">${tools.length}+ browser tools</span>
         <span class="trust-badge">${GUIDE_LIBRARY.length} editorial guides</span>
         <span class="trust-badge">${softwarePageCount} SEO software pages</span>
         <span class="trust-badge">Reviewed by Anurag</span>
@@ -2940,7 +3007,8 @@ function renderSoftwarePillarPage(cluster) {
   const clusterHeading = getSoftwareClusterHeading(cluster);
   const clusterSeoTitle = getSoftwareClusterSeoTitle(cluster);
   const clusterMetaDescription = getSoftwareClusterMetaDescription(cluster);
-  const comparisonCards = renderSoftwareGuideCards(cluster.comparisons, (comparison) => `<article class="guide-card">
+  const renderableComparisons = getRenderableSoftwareComparisons(cluster);
+  const comparisonCards = renderSoftwareGuideCards(renderableComparisons, (comparison) => `<article class="guide-card">
       <span class="guide-card-eyebrow">Comparison article</span>
       <h3><a href="${getSoftwareArticlePath(cluster.slug, comparison.slug)}">${escapeHtml(comparison.title)}</a></h3>
       <p>${escapeHtml(comparison.hook)}</p>
@@ -3214,7 +3282,7 @@ function renderSoftwareUseCasePage(cluster, useCase) {
         </section>
         <section class="tool-content-section">
           <h2>Related decision pages</h2>
-          ${renderSoftwareGuideCards(cluster.comparisons.slice(0, 2), (comparison) => `<article class="guide-card">
+          ${renderSoftwareGuideCards(getRenderableSoftwareComparisons(cluster).slice(0, 2), (comparison) => `<article class="guide-card">
             <span class="guide-card-eyebrow">Comparison article</span>
             <h3><a href="${getSoftwareArticlePath(cluster.slug, comparison.slug)}">${escapeHtml(comparison.title)}</a></h3>
             <p>${escapeHtml(comparison.hook)}</p>
@@ -3322,7 +3390,7 @@ function writeSoftwareContentPages() {
     fs.mkdirSync(clusterDir, { recursive: true });
     fs.writeFileSync(path.join(clusterDir, 'index.html'), renderSoftwarePillarPage(cluster));
 
-    cluster.comparisons.forEach((comparison) => {
+    getRenderableSoftwareComparisons(cluster).forEach((comparison) => {
       const articleDir = path.join(clusterDir, comparison.slug);
       fs.mkdirSync(articleDir, { recursive: true });
       fs.writeFileSync(path.join(articleDir, 'index.html'), renderSoftwareComparisonPage(cluster, comparison));
@@ -3336,11 +3404,11 @@ function writeSoftwareContentPages() {
   });
 }
 
-function writeGuidesContentPages() {
+function writeGuidesContentPages(tools) {
   console.log('Generating guides hub and guide articles...');
   const guidesDir = path.join(__dirname, 'guides');
   fs.mkdirSync(guidesDir, { recursive: true });
-  fs.writeFileSync(path.join(guidesDir, 'index.html'), renderGuidesHubPage());
+  fs.writeFileSync(path.join(guidesDir, 'index.html'), renderGuidesHubPage(tools));
 
   GUIDE_LIBRARY.forEach((guide) => {
     const outputDir = path.join(guidesDir, guide.slug);
@@ -3383,7 +3451,7 @@ ${feedItems}
     },
     ...GUIDE_LIBRARY.map((guide) => ({
       loc: getAbsoluteUrl(getGuideAbsolutePath(guide)),
-      priority: '0.8',
+      priority: '0.65',
       changefreq: 'monthly',
       lastmod: guide.updated || guide.published,
     })),
@@ -3393,6 +3461,17 @@ ${feedItems}
 }
 
 function renderRedirectsFile(tools, categories) {
+  const createDirectoryRedirectRules = (sourcePath, targetPath) => {
+    const normalizedSource = sourcePath.replace(/\/+$/, '');
+    const normalizedTarget = ensureTrailingSlashPathname(targetPath.replace(/\/+$/, ''));
+    return Array.from(new Set([
+      `${normalizedSource}    ${normalizedTarget}    301!`,
+      `${ensureTrailingSlashPathname(normalizedSource)}    ${normalizedTarget}    301!`,
+    ]));
+  };
+  const mirroredComparisonRedirects = Array.from(getMirroredSoftwareComparisonRedirectMap().entries())
+    .flatMap(([sourcePath, targetPath]) => createDirectoryRedirectRules(sourcePath, targetPath));
+
   return [
     '# Canonical host redirects',
     'http://www.tooliest.com/*    https://tooliest.com/:splat    301!',
@@ -3404,6 +3483,9 @@ function renderRedirectsFile(tools, categories) {
       const sourceFile = STATIC_PAGE_SOURCE_FILES[key];
       return `/${sourceFile}    ${cleanPath}    301!`;
     }),
+    ...createDirectoryRedirectRules('/category/privacy/', '/category/privacy-tools/'),
+    ...createDirectoryRedirectRules('/guides/password-security-2026/', '/guides/password-security-best-practices/'),
+    ...mirroredComparisonRedirects,
     '',
     '# Legacy tool URLs',
     '/tool/*    /:splat    301!',
@@ -3421,10 +3503,22 @@ function renderRedirectsFile(tools, categories) {
 
 function renderHeadersFile(tools, categories) {
   const htmlPageCacheRule = '  Cache-Control: public, max-age=0, must-revalidate';
-  const cleanStaticPageHeaders = Object.values(STATIC_PAGE_PATHS)
-    .flatMap((cleanPath) => {
+  const cleanStaticPageHeaders = Object.entries(STATIC_PAGE_PATHS)
+    .flatMap(([key, cleanPath]) => {
       const filePath = `${cleanPath.replace(/\/$/, '')}.html`;
-      return [cleanPath, htmlPageCacheRule, '', filePath, htmlPageCacheRule, ''];
+      const robotsHeader = ['contact', 'disclaimer'].includes(key)
+        ? ['  X-Robots-Tag: noindex, follow']
+        : [];
+      return [
+        cleanPath,
+        htmlPageCacheRule,
+        ...robotsHeader,
+        '',
+        filePath,
+        htmlPageCacheRule,
+        ...robotsHeader,
+        '',
+      ];
     });
   const categoryHeaders = getRenderableCategories(categories)
     .flatMap((category) => [getCategoryPath(category.id), htmlPageCacheRule, '']);
@@ -3438,7 +3532,7 @@ function renderHeadersFile(tools, categories) {
       getSoftwareToolPath(cluster.slug),
       htmlPageCacheRule,
       '',
-      ...cluster.comparisons.flatMap((comparison) => [
+      ...getRenderableSoftwareComparisons(cluster).flatMap((comparison) => [
         getSoftwareArticlePath(cluster.slug, comparison.slug),
         htmlPageCacheRule,
         '',
@@ -3532,6 +3626,7 @@ function renderHeadersFile(tools, categories) {
     '',
     '/sitemap.html',
     htmlPageCacheRule,
+    '  X-Robots-Tag: noindex, follow',
     '',
     '/sitemap.xml',
     '  Cache-Control: public, max-age=86400',
@@ -3641,11 +3736,8 @@ function writeSitemap(tools, categories) {
   const staticPages = [
     { loc: getAbsoluteUrl('/'), priority: '1.0', changefreq: 'weekly', lastmod: getSiteLastModifiedDate() },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.about), priority: '0.7', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('about.html') },
-    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.contact), priority: '0.5', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('contact.html') },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.privacy), priority: '0.3', changefreq: 'yearly', lastmod: getStaticPageLastModifiedDate('privacy.html') },
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.3', changefreq: 'yearly', lastmod: getStaticPageLastModifiedDate('terms.html') },
-    { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.disclaimer), priority: '0.5', changefreq: 'monthly', lastmod: getStaticPageLastModifiedDate('disclaimer.html') },
-    { loc: getAbsoluteUrl('/sitemap.html'), priority: '0.4', changefreq: 'monthly', lastmod: getSourceModifiedDate(['build.js', 'js/tools.js']) },
   ];
 
   const categoryPages = getRenderableCategories(categories).map((category) => ({
@@ -3657,7 +3749,7 @@ function writeSitemap(tools, categories) {
 
   const toolPages = tools.map((tool) => ({
     loc: getAbsoluteUrl(getToolPath(tool.id)),
-    priority: '0.75',
+    priority: '0.8',
     changefreq: 'weekly',
     lastmod: getToolLastModifiedDate(tool),
   }));
@@ -3676,7 +3768,7 @@ function writeSitemap(tools, categories) {
         changefreq: 'monthly',
         lastmod: getSoftwareContentLastModifiedDate(),
       },
-      ...cluster.comparisons.map((comparison) => ({
+      ...getRenderableSoftwareComparisons(cluster).map((comparison) => ({
         loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, comparison.slug)),
         priority: '0.62',
         changefreq: 'monthly',
@@ -3794,6 +3886,7 @@ function writeHtmlSitemap(tools, categories) {
     keywords: 'all tools, free online tools, tooliest sitemap, tool directory, browser tools',
     ogImagePath: '/og/site/home.svg',
     ogImageAlt: 'Tooliest sitemap preview showing the full tool directory',
+    robots: 'noindex, follow',
   });
 
   fs.writeFileSync(path.join(__dirname, 'sitemap.html'), html);
@@ -3832,7 +3925,7 @@ function writeHomePage(tools, categories) {
           <h2 id="learn-with-tooliest-heading">Guides, Reviews, and Buying Advice</h2>
           <p>Tooliest now pairs its browser-based tools with more than ${editorialCount} original tutorials, software comparisons, and workflow guides so visitors can understand the why behind the tool as well as the click path.</p>
           <div class="hero-trust-strip" aria-label="Editorial trust signals">
-            <span class="trust-badge">102+ browser tools</span>
+            <span class="trust-badge">${tools.length}+ browser tools</span>
             <span class="trust-badge">${practicalGuideCount} editorial guides</span>
             <span class="trust-badge">${softwareGuideCount} SEO software pages</span>
             <span class="trust-badge">Reviewed by Anurag</span>
@@ -4001,13 +4094,18 @@ async function build() {
   await bundleJavascript();
   minifyCSSFile();
   removeDirectoryIfExists('tool');
+  removeDirectoryIfExists(path.join('category', 'privacy'));
+  removeDirectoryIfExists(path.join('guides', 'password-security-2026'));
+  Array.from(getMirroredSoftwareComparisonRedirectMap().keys()).forEach((legacyPath) => {
+    removeDirectoryIfExists(legacyPath.replace(/^\/+/, '').replace(/\/$/, ''));
+  });
   syncStaticPageAssetVersions(tools);
   writeOgAssets(tools, categories);
   writeIndexNowKeyFiles();
   writeRoutingFiles(tools, categories);
   write404Page();
   writeCleanStaticPages();
-  writeGuidesContentPages();
+  writeGuidesContentPages(tools);
   writeHomePage(tools, categories);
   writeToolPages(tools, categories);
   writeCategoryPages(tools, categories);

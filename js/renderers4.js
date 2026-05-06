@@ -934,14 +934,96 @@ Object.assign(ToolRenderers.renderers, {
 
 // ===== AI HELPER SYSTEM =====
 
-const _AI_PROXY_PATH = '/api/ai-proxy';
 const _AI_INPUT_LIMIT = 5000;
 const _AI_CALL_STATE = { showError: null, showResult: null, setLoading: null };
+let _AI_SHARED_MODULE_PROMISE = null;
+let _AI_SHARED_STYLES_READY = false;
 
 function _setAIHandlerState(handlers) {
   _AI_CALL_STATE.showError = typeof handlers?.showError === 'function' ? handlers.showError : null;
   _AI_CALL_STATE.showResult = typeof handlers?.showResult === 'function' ? handlers.showResult : null;
   _AI_CALL_STATE.setLoading = typeof handlers?.setLoading === 'function' ? handlers.setLoading : null;
+}
+
+function _getAIAssetVersion() {
+  return typeof TOOLIEST_ASSET_VERSION === 'string' ? TOOLIEST_ASSET_VERSION : '20260506-seoai';
+}
+
+function _ensureAISharedStyles() {
+  if (_AI_SHARED_STYLES_READY || document.getElementById('tooliest-ai-shared-styles')) {
+    _AI_SHARED_STYLES_READY = true;
+    return;
+  }
+
+  const style = document.createElement('style');
+  style.id = 'tooliest-ai-shared-styles';
+  style.textContent = `
+    .quota-bar{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .quota-label{font-size:.82rem;color:var(--text-tertiary)}
+    .quota-track{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+    .quota-fill{height:100%;border-radius:999px;transition:width .2s ease}
+    .ai-inline-note{font-size:.82rem;color:var(--text-tertiary);margin-top:10px}
+  `;
+  document.head.appendChild(style);
+  _AI_SHARED_STYLES_READY = true;
+}
+
+async function _loadSharedAIClient() {
+  if (!_AI_SHARED_MODULE_PROMISE) {
+    _AI_SHARED_MODULE_PROMISE = import(`/tools/_shared/rateLimit.js?v=${encodeURIComponent(_getAIAssetVersion())}`);
+  }
+  return _AI_SHARED_MODULE_PROMISE;
+}
+
+function _buildLegacyAIRequest(tool, input, options = {}) {
+  switch (tool) {
+    case 'summarizer':
+      return {
+        tool,
+        systemPrompt: `You summarize text clearly and faithfully.\nLength mode: ${options.length || 'medium'}.\nRules:\n- short = 1-2 sentences max\n- medium = one concise paragraph\n- detailed = 5-7 bullet points starting with •\nReturn only the summary with no preamble.`,
+        userContent: input,
+        maxTokens: options.length === 'detailed' ? 900 : 500,
+        temperature: 0.35,
+      };
+    case 'paraphraser':
+      return {
+        tool,
+        systemPrompt: `You rewrite text in a ${options.style || 'standard'} style.\nRules:\n- Preserve the original meaning exactly\n- Change wording and sentence structure meaningfully\n- Do not add or remove facts\nReturn only the paraphrased text.`,
+        userContent: input,
+        maxTokens: 900,
+        temperature: 0.65,
+      };
+    case 'email':
+      return {
+        tool,
+        systemPrompt: `You write complete professional emails.\nTone: ${options.tone || 'professional'}\nEmail type: ${options.type || 'reply'}\nReturn exactly:\nSubject: [subject]\n\n[email body]\n\n[sign-off],\n[Your Name]\nNo explanation outside the email.`,
+        userContent: input,
+        maxTokens: 900,
+        temperature: 0.6,
+      };
+    case 'blog':
+      return {
+        tool,
+        systemPrompt: `You generate ${options.count || 5} blog ideas.\nFormat: ${options.format === 'titles-with-outline' ? 'For each idea, include 3 bullet sub-points.' : 'Return a numbered list with one title per line.'}\nRules:\n- Make them specific and SEO-friendly\n- Start directly with 1.\n- No intro or outro text.`,
+        userContent: input,
+        maxTokens: options.format === 'titles-with-outline' ? 1200 : 700,
+        temperature: 0.85,
+      };
+    case 'metadesc':
+      return {
+        tool,
+        systemPrompt: `You write SEO meta descriptions.\nRules:\n- Strictly stay under ${options.maxChars || 155} characters\n- Tone: ${options.tone || 'engaging'}\n- Include a subtle call to action\n- Do not start with "Discover", "Learn", or "Are you looking"\n- No quotation marks in the description\nAfter the description, add a new line with: Chars: X`,
+        userContent: input,
+        maxTokens: 220,
+        temperature: 0.55,
+      };
+    default:
+      return {
+        tool,
+        systemPrompt: 'Return a clean plain-text result with no preamble.',
+        userContent: input,
+      };
+  }
 }
 
 async function callAI(tool, input, options = {}) {
@@ -955,31 +1037,26 @@ async function callAI(tool, input, options = {}) {
 
   setLoading(true);
   try {
-    const response = await fetch(_AI_PROXY_PATH, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tool, input: trimmed, options }),
-    });
-
-    let errorMessage = '';
-    if (!response.ok) {
-      try {
-        const errorData = await response.clone().json();
-        errorMessage = typeof errorData?.error === 'string' ? errorData.error : '';
-      } catch (_) {}
+    const shared = await _loadSharedAIClient();
+    const request = _buildLegacyAIRequest(tool, trimmed, options);
+    const result = await shared.callAI(request);
+    showResult(result.text);
+    return result;
+  } catch (error) {
+    const message = String(error && error.message ? error.message : error || '');
+    if (/Daily limit reached/i.test(message)) {
+      showError('Daily limit reached. Resets at midnight. ⚡');
+      return null;
     }
-
-    if (response.status === 429) { showError(errorMessage || 'Too many requests. Please wait a few minutes and try again.'); return null; }
-    if (response.status === 413) { showError(errorMessage || 'Input is too long. Please shorten it and try again.'); return null; }
-    if (response.status === 403) { showError(errorMessage || 'Request blocked. Please refresh the page and try again.'); return null; }
-    if (!response.ok) { showError(errorMessage || 'Something went wrong. Please try again shortly.'); return null; }
-
-    const data = await response.json();
-    if (data.success) { showResult(data.result); return data.result; }
-    showError(data.error || 'AI could not process this. Please rephrase and try again.');
-    return null;
-  } catch (_) {
-    showError(!navigator.onLine ? 'You appear to be offline. Check your connection.' : 'Could not reach the AI service. Please try again in a moment.');
+    if (/busy/i.test(message) || /60 seconds/i.test(message)) {
+      showError('Our AI is busy right now. Try again in 60 seconds.');
+      return null;
+    }
+    if (/empty response|unreadable response|Request failed/i.test(message)) {
+      showError('AI returned an unexpected response. Please retry.');
+      return null;
+    }
+    showError(!navigator.onLine ? 'Connection issue. Check your internet and try again.' : message || 'Could not reach the AI service. Please try again in a moment.');
     return null;
   } finally {
     setLoading(false);
@@ -1031,8 +1108,10 @@ function _createAIWorkspaceBindings(container, options = {}) {
   const outputText = container.querySelector(options.outputTextSelector || '#tool-output-text');
   const copyButton = container.querySelector(options.copySelector || '#copy-btn');
   const error = container.querySelector(options.errorSelector || '#tool-error');
+  const quotaMount = container.querySelector(options.quotaSelector || '[data-ai-quota]');
   const placeholderText = options.placeholderText || 'Your AI output will appear here.';
-  const originalLabel = button ? button.textContent.trim() : 'Generate';
+  const baseLabel = options.buttonLabel || (button ? button.textContent.trim() : 'Generate');
+  let idleLabel = baseLabel;
 
   if (copyButton && outputText) {
     copyButton.addEventListener('click', () => copyToClipboard(outputText.textContent || '', copyButton));
@@ -1055,56 +1134,107 @@ function _createAIWorkspaceBindings(container, options = {}) {
     if (outputText) outputText.textContent = placeholderText;
     if (copyButton && output) { copyButton.classList.add('hidden'); output.appendChild(copyButton); }
   };
+  const setIdleLabel = (label) => {
+    idleLabel = label || baseLabel;
+    if (button) {
+      button.textContent = idleLabel;
+    }
+  };
   const setLoading = (isLoading) => {
     if (!button) return;
     button.disabled = isLoading;
     button.setAttribute('aria-busy', String(isLoading));
     button.textContent = '';
-    if (isLoading) { button.append('Generating... '); button.appendChild(_createAISpinner()); }
-    else { button.textContent = originalLabel; }
+    if (isLoading) { button.append((options.loadingLabel || 'Generating...') + ' '); button.appendChild(_createAISpinner()); }
+    else { button.textContent = idleLabel; }
   };
 
   resetOutput();
   hideError();
-  return { button, output, outputText, showError, showResult, resetOutput, setLoading };
+  setIdleLabel(baseLabel);
+  return { button, output, outputText, quotaMount, baseLabel, setIdleLabel, showError, showResult, resetOutput, setLoading };
+}
+
+async function _syncAIQuota(bindings, tool, baseLabel) {
+  if (!bindings) return;
+  _ensureAISharedStyles();
+  const shared = await _loadSharedAIClient();
+  const remaining = shared.getRemaining(tool);
+  if (bindings.quotaMount) {
+    shared.renderQuota(tool, bindings.quotaMount);
+  }
+  bindings.setIdleLabel(shared.getQuotaButtonLabel(baseLabel || bindings.baseLabel || 'Generate', tool));
+  if (bindings.button) {
+    bindings.button.disabled = remaining <= 0;
+    bindings.button.setAttribute('aria-disabled', String(remaining <= 0));
+  }
+}
+
+function _ensureExternalToolStylesheet(href, id) {
+  if (document.getElementById(id)) return;
+  const link = document.createElement('link');
+  link.id = id;
+  link.rel = 'stylesheet';
+  link.href = href;
+  document.head.appendChild(link);
+}
+
+async function _mountResumeBuilderTool(container) {
+  const version = encodeURIComponent(_getAIAssetVersion());
+  _ensureExternalToolStylesheet(`/tools/resume-builder/style.css?v=${version}`, 'tooliest-resume-builder-styles');
+  const response = await fetch(`/tools/resume-builder/index.html?v=${version}`, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error('Could not load the resume builder workspace.');
+  }
+  const html = await response.text();
+  container.innerHTML = html;
+  const module = await import(`/tools/resume-builder/script.js?v=${version}`);
+  if (typeof module.initResumeBuilderTool !== 'function') {
+    throw new Error('Resume builder script did not expose an initializer.');
+  }
+  await module.initResumeBuilderTool(container);
 }
 
 // ===== REAL AI TOOLS =====
 Object.assign(ToolRenderers.renderers, {
 
   'ai-text-summarizer'(c) {
-    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Paste text to summarize</label><textarea id="tool-input" rows="10" placeholder="Paste a long article or text here..."></textarea><div id="as-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Summary Length</label><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-secondary" data-value="short">Short</button><button type="button" class="btn btn-secondary" data-value="medium">Medium</button><button type="button" class="btn btn-secondary" data-value="detailed">Detailed</button></div></div><button class="btn btn-primary mb-4" type="button">&#10024; Summarize with AI</button><div id="tool-error" class="hidden" style="margin:-4px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Summary</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><div id="tool-output-text">Your summary will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
+    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Paste text to summarize</label><textarea id="tool-input" rows="10" placeholder="Paste a long article or text here..."></textarea><div id="as-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Summary Length</label><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-secondary" data-value="short">Short</button><button type="button" class="btn btn-secondary" data-value="medium">Medium</button><button type="button" class="btn btn-secondary" data-value="detailed">Detailed</button></div></div><button class="btn btn-primary mb-4" type="button">&#10024; Summarize with AI</button><div data-ai-quota></div><div id="tool-error" class="hidden" style="margin:12px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Summary</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><div id="tool-output-text">Your summary will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
     const input = c.querySelector('#tool-input');
-    const bindings = _createAIWorkspaceBindings(c, { placeholderText: 'Your summary will appear here.' });
+    const bindings = _createAIWorkspaceBindings(c, { placeholderText: 'Your summary will appear here.', buttonLabel: 'Summarize with AI', loadingLabel: 'Summarizing...', quotaSelector: '[data-ai-quota]' });
     const getLength = _bindAIChoiceButtons(Array.from(c.querySelectorAll('[data-value]')), 'medium');
     _bindAICharCounter(input, c.querySelector('#as-char-count'));
-    bindings.button.addEventListener('click', () => {
+    _syncAIQuota(bindings, 'summarizer', 'Summarize with AI').catch(() => {});
+    bindings.button.addEventListener('click', async () => {
       _setAIHandlerState(bindings);
       bindings.resetOutput();
-      callAI('summarizer', input.value, { length: getLength() });
+      await callAI('summarizer', input.value, { length: getLength() });
+      await _syncAIQuota(bindings, 'summarizer', 'Summarize with AI');
     });
   },
 
   'ai-paraphraser'(c) {
-    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Enter text to paraphrase</label><textarea id="tool-input" rows="6" placeholder="Enter text here..."></textarea><div id="ap-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Style</label><select id="ap-style"><option value="standard">Standard</option><option value="formal">Formal</option><option value="casual">Casual</option><option value="creative">Creative</option><option value="simple">Simple</option></select></div><button class="btn btn-primary mb-4" type="button">&#128260; Paraphrase with AI</button><div id="tool-error" class="hidden" style="margin:-4px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Paraphrased Text</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><div id="tool-output-text">Your paraphrased text will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
+    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Enter text to paraphrase</label><textarea id="tool-input" rows="6" placeholder="Enter text here..."></textarea><div id="ap-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Style</label><select id="ap-style"><option value="standard">Standard</option><option value="formal">Formal</option><option value="casual">Casual</option><option value="creative">Creative</option><option value="simple">Simple</option></select></div><button class="btn btn-primary mb-4" type="button">&#128260; Paraphrase with AI</button><div data-ai-quota></div><div id="tool-error" class="hidden" style="margin:12px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Paraphrased Text</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><div id="tool-output-text">Your paraphrased text will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
     const input = c.querySelector('#tool-input');
     const style = c.querySelector('#ap-style');
-    const bindings = _createAIWorkspaceBindings(c, { placeholderText: 'Your paraphrased text will appear here.' });
+    const bindings = _createAIWorkspaceBindings(c, { placeholderText: 'Your paraphrased text will appear here.', buttonLabel: 'Paraphrase with AI', loadingLabel: 'Paraphrasing...', quotaSelector: '[data-ai-quota]' });
     _bindAICharCounter(input, c.querySelector('#ap-char-count'));
-    bindings.button.addEventListener('click', () => {
+    _syncAIQuota(bindings, 'paraphraser', 'Paraphrase with AI').catch(() => {});
+    bindings.button.addEventListener('click', async () => {
       _setAIHandlerState(bindings);
       bindings.resetOutput();
-      callAI('paraphraser', input.value, { style: style.value });
+      await callAI('paraphraser', input.value, { style: style.value });
+      await _syncAIQuota(bindings, 'paraphraser', 'Paraphrase with AI');
     });
   },
 
   'ai-email-writer'(c) {
-    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Email Type</label><select id="ae-type"><option value="reply">Reply</option><option value="cold-outreach">Cold Outreach</option><option value="follow-up">Follow-up</option><option value="complaint">Complaint</option><option value="thank-you">Thank You</option></select></div><div class="input-group"><label>Recipient Name</label><input type="text" id="ae-recipient" placeholder="John Smith"></div><div class="input-group"><label>Tone</label><select id="ae-tone"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="assertive">Assertive</option><option value="apologetic">Apologetic</option><option value="persuasive">Persuasive</option></select></div><div class="input-group"><label>Details / Context</label><input type="text" id="ae-details" placeholder="Brief context..."><div id="ae-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><button class="btn btn-primary mb-4" type="button">&#9993; Generate Email</button><div id="tool-error" class="hidden" style="margin:-4px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Generated Email</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><div id="tool-output-text">Your AI email will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
+    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Email Type</label><select id="ae-type"><option value="reply">Reply</option><option value="cold-outreach">Cold Outreach</option><option value="follow-up">Follow-up</option><option value="complaint">Complaint</option><option value="thank-you">Thank You</option></select></div><div class="input-group"><label>Recipient Name</label><input type="text" id="ae-recipient" placeholder="John Smith"></div><div class="input-group"><label>Tone</label><select id="ae-tone"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="assertive">Assertive</option><option value="apologetic">Apologetic</option><option value="persuasive">Persuasive</option></select></div><div class="input-group"><label>Details / Context</label><input type="text" id="ae-details" placeholder="Brief context..."><div id="ae-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><button class="btn btn-primary mb-4" type="button">&#9993; Generate Email</button><div data-ai-quota></div><div id="tool-error" class="hidden" style="margin:12px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Generated Email</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="tool-output" style="white-space:pre-wrap"><div id="tool-output-text">Your AI email will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
     const type = c.querySelector('#ae-type');
     const recipient = c.querySelector('#ae-recipient');
     const tone = c.querySelector('#ae-tone');
     const details = c.querySelector('#ae-details');
-    const bindings = _createAIWorkspaceBindings(c, { placeholderText: 'Your AI email will appear here.' });
+    const bindings = _createAIWorkspaceBindings(c, { placeholderText: 'Your AI email will appear here.', buttonLabel: 'Generate Email', loadingLabel: 'Drafting email...', quotaSelector: '[data-ai-quota]' });
     const buildInput = () => {
       const parts = [];
       if (recipient.value.trim()) parts.push(`Recipient: ${recipient.value.trim()}`);
@@ -1112,34 +1242,38 @@ Object.assign(ToolRenderers.renderers, {
       return parts.join('\n');
     };
     _bindAICharCounter([recipient, details], c.querySelector('#ae-char-count'), buildInput);
-    bindings.button.addEventListener('click', () => {
+    _syncAIQuota(bindings, 'email', 'Generate Email').catch(() => {});
+    bindings.button.addEventListener('click', async () => {
       _setAIHandlerState(bindings);
       bindings.resetOutput();
-      callAI('email', buildInput(), { tone: tone.value, type: type.value });
+      await callAI('email', buildInput(), { tone: tone.value, type: type.value });
+      await _syncAIQuota(bindings, 'email', 'Generate Email');
     });
   },
 
   'ai-blog-ideas'(c) {
-    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Topic or Keyword</label><input type="text" id="bi-topic" placeholder="artificial intelligence, fitness, cooking..."><div id="bi-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Number of Ideas</label><div style="display:flex;gap:8px;flex-wrap:wrap" data-choice="count"><button type="button" class="btn btn-secondary" data-value="3">3</button><button type="button" class="btn btn-secondary" data-value="5">5</button><button type="button" class="btn btn-secondary" data-value="10">10</button></div></div><div class="input-group"><label>Format</label><div style="display:flex;gap:8px;flex-wrap:wrap" data-choice="format"><button type="button" class="btn btn-secondary" data-value="titles-only">Titles Only</button><button type="button" class="btn btn-secondary" data-value="titles-with-outline">Titles + Outline</button></div></div><button class="btn btn-primary mb-4" type="button">&#128161; Generate Ideas</button><div id="tool-error" class="hidden" style="margin:-4px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Generated Ideas</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="bi-results" style="white-space:pre-wrap"><div id="tool-output-text">Your blog ideas will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
+    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Topic or Keyword</label><input type="text" id="bi-topic" placeholder="artificial intelligence, fitness, cooking..."><div id="bi-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Number of Ideas</label><div style="display:flex;gap:8px;flex-wrap:wrap" data-choice="count"><button type="button" class="btn btn-secondary" data-value="3">3</button><button type="button" class="btn btn-secondary" data-value="5">5</button><button type="button" class="btn btn-secondary" data-value="10">10</button></div></div><div class="input-group"><label>Format</label><div style="display:flex;gap:8px;flex-wrap:wrap" data-choice="format"><button type="button" class="btn btn-secondary" data-value="titles-only">Titles Only</button><button type="button" class="btn btn-secondary" data-value="titles-with-outline">Titles + Outline</button></div></div><button class="btn btn-primary mb-4" type="button">&#128161; Generate Ideas</button><div data-ai-quota></div><div id="tool-error" class="hidden" style="margin:12px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Generated Ideas</label><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div><div class="output-area empty" id="bi-results" style="white-space:pre-wrap"><div id="tool-output-text">Your blog ideas will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
     const topic = c.querySelector('#bi-topic');
-    const bindings = _createAIWorkspaceBindings(c, { outputSelector: '#bi-results', placeholderText: 'Your blog ideas will appear here.' });
+    const bindings = _createAIWorkspaceBindings(c, { outputSelector: '#bi-results', placeholderText: 'Your blog ideas will appear here.', buttonLabel: 'Generate Ideas', loadingLabel: 'Generating ideas...', quotaSelector: '[data-ai-quota]' });
     const getCount = _bindAIChoiceButtons(Array.from(c.querySelectorAll('[data-choice="count"] [data-value]')), '5');
     const getFormat = _bindAIChoiceButtons(Array.from(c.querySelectorAll('[data-choice="format"] [data-value]')), 'titles-only');
     _bindAICharCounter(topic, c.querySelector('#bi-char-count'));
-    bindings.button.addEventListener('click', () => {
+    _syncAIQuota(bindings, 'blog', 'Generate Ideas').catch(() => {});
+    bindings.button.addEventListener('click', async () => {
       _setAIHandlerState(bindings);
       bindings.resetOutput();
-      callAI('blog', topic.value, { count: Number(getCount()), format: getFormat() });
+      await callAI('blog', topic.value, { count: Number(getCount()), format: getFormat() });
+      await _syncAIQuota(bindings, 'blog', 'Generate Ideas');
     });
   },
 
   'ai-meta-writer'(c) {
-    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Page Title</label><input type="text" id="am-title" placeholder="My Blog Post Title"></div><div class="input-group"><label>Target Keyword (optional)</label><input type="text" id="am-keyword" placeholder="seo tools"><div id="am-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Tone</label><select id="am-tone"><option value="neutral">Neutral</option><option value="engaging" selected>Engaging</option><option value="urgent">Urgent</option><option value="curious">Curious</option></select></div><div class="input-group"><label>Max Characters</label><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-secondary" data-value="150">150</button><button type="button" class="btn btn-secondary" data-value="155">155</button><button type="button" class="btn btn-secondary" data-value="160">160</button></div></div><button class="btn btn-primary mb-4" type="button">&#10024; Generate Meta Description</button><div id="tool-error" class="hidden" style="margin:-4px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Meta Description</label><div style="display:flex;align-items:center;gap:12px"><span id="am-output-count" style="font-size:0.78rem;color:var(--text-tertiary)">Output: 0 / 155 chars</span><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div></div><div class="output-area empty" id="am-results" style="white-space:pre-wrap"><div id="tool-output-text">Your meta description will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
+    c.innerHTML=`<div class="tool-workspace-body"><div class="input-group"><label>Page Title</label><input type="text" id="am-title" placeholder="My Blog Post Title"></div><div class="input-group"><label>Target Keyword (optional)</label><input type="text" id="am-keyword" placeholder="seo tools"><div id="am-char-count" style="font-size:0.8rem;color:var(--text-tertiary);margin-top:8px">0 / 5000 characters</div></div><div class="input-group"><label>Tone</label><select id="am-tone"><option value="neutral">Neutral</option><option value="engaging" selected>Engaging</option><option value="urgent">Urgent</option><option value="curious">Curious</option></select></div><div class="input-group"><label>Max Characters</label><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-secondary" data-value="150">150</button><button type="button" class="btn btn-secondary" data-value="155">155</button><button type="button" class="btn btn-secondary" data-value="160">160</button></div></div><button class="btn btn-primary mb-4" type="button">&#10024; Generate Meta Description</button><div data-ai-quota></div><div id="tool-error" class="hidden" style="margin:12px 0 16px;padding:12px;border:1px solid rgba(244,63,94,0.35);border-radius:var(--radius-md);background:rgba(244,63,94,0.08);color:#fda4af"></div><div class="input-group"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><label style="margin:0">Meta Description</label><div style="display:flex;align-items:center;gap:12px"><span id="am-output-count" style="font-size:0.78rem;color:var(--text-tertiary)">Output: 0 / 155 chars</span><span style="font-size:0.78rem;color:var(--text-tertiary)">Powered by AI</span></div></div><div class="output-area empty" id="am-results" style="white-space:pre-wrap"><div id="tool-output-text">Your meta description will appear here.</div><button class="copy-btn hidden" id="copy-btn" type="button">Copy</button></div></div></div>`;
     const title = c.querySelector('#am-title');
     const keyword = c.querySelector('#am-keyword');
     const tone = c.querySelector('#am-tone');
     const outputCount = c.querySelector('#am-output-count');
-    const bindings = _createAIWorkspaceBindings(c, { outputSelector: '#am-results', placeholderText: 'Your meta description will appear here.' });
+    const bindings = _createAIWorkspaceBindings(c, { outputSelector: '#am-results', placeholderText: 'Your meta description will appear here.', buttonLabel: 'Generate Meta Description', loadingLabel: 'Writing metadata...', quotaSelector: '[data-ai-quota]' });
     const buildInput = () => {
       const parts = [];
       if (title.value.trim()) parts.push(`Page title: ${title.value.trim()}`);
@@ -1166,13 +1300,27 @@ Object.assign(ToolRenderers.renderers, {
     };
     _bindAICharCounter([title, keyword], c.querySelector('#am-char-count'), buildInput);
     renderOutputCount('155');
-    bindings.button.addEventListener('click', () => {
+    _syncAIQuota(bindings, 'metadesc', 'Generate Meta Description').catch(() => {});
+    bindings.button.addEventListener('click', async () => {
       _setAIHandlerState(bindings);
       lastCount = 0;
       bindings.resetOutput();
       renderOutputCount();
-      callAI('metadesc', buildInput(), { tone: tone.value, maxChars: Number(getMaxChars()) });
+      await callAI('metadesc', buildInput(), { tone: tone.value, maxChars: Number(getMaxChars()) });
+      await _syncAIQuota(bindings, 'metadesc', 'Generate Meta Description');
     });
   },
 
+  'resume-builder'(c) {
+    c.innerHTML = `<div class="tool-workspace-body"><p style="color:var(--text-secondary);margin-bottom:8px">Loading the resume builder workspace...</p><p style="color:var(--text-tertiary);font-size:0.9rem">Preparing ATS analysis, guided resume steps, and quota controls.</p></div>`;
+    (async () => {
+      try {
+        await _mountResumeBuilderTool(c);
+      } catch (error) {
+        ToolRenderers.renderErrorState(c, error, 'resume-builder');
+      }
+    })();
+  },
+
 });
+

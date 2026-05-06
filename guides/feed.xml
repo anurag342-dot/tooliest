@@ -1,11 +1,11 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tooliest Guides &amp; Tutorials</title>
     <link>https://tooliest.com/guides/</link>
     <description>Practical Tooliest guides covering browser workflows, SEO publishing, developer basics, and business tasks.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 03 May 2026 06:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 06 May 2026 06:00:00 GMT</lastBuildDate>
     <atom:link href="https://tooliest.com/guides/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
       <title>How to Optimize Images for Web Without Losing Quality</title>
@@ -40,7 +40,7 @@
       <guid isPermaLink="true">https://tooliest.com/guides/json-format-validate-convert/</guid>
     </item>
     <item>
-      <title>Password Security in 2026: How to Create Uncrackable Passwords</title>
+      <title>Password Security Best Practices: How to Create Strong Passwords</title>
       <link>https://tooliest.com/guides/password-security-best-practices/</link>
       <description>A practical password guide covering length, randomness, passphrases, reuse risks, and how to build safer everyday login habits.</description>
       <author>tooliestinternet@gmail.com (Anurag)</author>

@@ -29,7 +29,6 @@ pids
 
 # Editor & IDE Directories
 .vscode/*
-!.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
@@ -66,9 +65,10 @@ web_modules/
 
 # Environment Variables
 .env
+.env.local
+.env.*.local
 .env.test
 .env.production
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -85,3 +85,6 @@ create_project.ps1
 populate_project.ps1
 
 .dev.vars
+.dev.vars.local
+.wrangler/
+wrangler.toml.bak

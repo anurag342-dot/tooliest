@@ -3,6 +3,7 @@
 // ============================================
 
 const TOOLIEST_WHATS_NEW = [
+  { version: '3.22', date: '2026-05-06', items: ['Launched the AI Resume Builder & ATS Score Checker with guided resume steps, ATS analysis, and plain-text export that stays inside the normal Tooliest tool shell', 'Moved AI requests behind a hardened Cloudflare Pages proxy, added shared daily quota UI across the live AI tools, and kept provider keys out of browser code', 'Finished the sitemap and canonical cleanup pass by normalizing category and guide slugs, removing low-value utility pages from XML sitemaps, and tightening noindex handling for crawl-budget pages'] },
   { version: '3.21', date: '2026-04-30', items: ['Added a standalone disclaimer page plus clearer privacy, terms, and contact copy so policy pages read like a real publisher site instead of a placeholder setup', 'Expanded tool pages with reviewed-by founder context, deeper supporting sections, and stronger editorial navigation into guides, software comparisons, and the full tool directory', 'Tightened homepage and category trust language so pages accurately explain when workflows stay local and when AI-assisted tools use managed provider requests'] },
   { version: '3.20', date: '2026-04-30', items: ['Removed the repeated release-history sections from tool pages so the educational content stays cleaner and easier to scan', 'Removed the About page release-history block and kept product updates in one shared What&apos;s New panel instead of duplicating them across the site', 'Refreshed the What&apos;s New feed and navigation label so the latest updates stay easy to find without cluttering normal tool pages'] },
   { version: '3.19', date: '2026-04-29', items: ['Launched the Guides &amp; Tutorials section with three in-depth editorial articles on image optimization, CSS minification, and PDF workflows', 'Added unique educational content, HowTo steps, and FAQ extras to 17 tool pages including all minifiers, beautifiers, counters, and image tools', 'Improved site identity with founder info, GitHub link in navigation and footer, and honest privacy-first disclosure across all pages', 'Added Guides navigation link, homepage guides section, RSS feed, and sitemap entries for better discoverability'] },
@@ -36,7 +37,7 @@ const TOOLIEST_WHATS_NEW = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260503-5c0d8a3b';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260507-c4b9c985';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -668,13 +669,22 @@ const App = {
     const pdfIntro = featuredNames
       ? `Browse Tooliest's PDF tools for document merging, splitting, conversion, protection, and text extraction. Popular picks include ${featuredNames}, and every workflow stays in your browser for better privacy.`
       : `Browse Tooliest's PDF tools for document merging, splitting, conversion, protection, and text extraction. Every workflow stays in your browser for better privacy.`;
+    const privacyToolsDescription = featuredNames
+      ? `Use ${count} privacy tools on Tooliest for passwords, EXIF cleanup, UUIDs, and realistic test data. Popular picks include ${featuredNames}.`
+      : `Use ${count} privacy tools on Tooliest for passwords, EXIF cleanup, UUIDs, and realistic test data.`;
 
     return {
       category,
       tools,
       count,
-      title: `Free ${category.name} Online | Tooliest`,
-      description: categoryId === 'pdf' ? pdfDescription : defaultDescription,
+      title: categoryId === 'privacy-tools'
+        ? 'Privacy Tools - Passwords, EXIF, UUIDs | Tooliest'
+        : `Free ${category.name} Online | Tooliest`,
+      description: categoryId === 'pdf'
+        ? pdfDescription
+        : categoryId === 'privacy-tools'
+          ? privacyToolsDescription
+          : defaultDescription,
       intro: categoryId === 'pdf' ? pdfIntro : defaultIntro,
       topToolsIntro: categoryId === 'pdf'
         ? 'These PDF tools handle the document tasks people usually need first: merging files, splitting pages, compressing exports, securing documents, and converting between PDFs, images, and text.'
@@ -744,16 +754,16 @@ const App = {
       css: ['color', 'html', 'image'],
       color: ['css', 'image', 'ai'],
       image: ['color', 'css', 'converter'],
-      pdf: ['image', 'privacy', 'converter'],
+      pdf: ['image', 'privacy-tools', 'converter'],
       json: ['html', 'javascript', 'developer'],
       html: ['css', 'json', 'javascript'],
       javascript: ['html', 'json', 'developer'],
       converter: ['encoding', 'math', 'image'],
-      encoding: ['converter', 'privacy', 'developer'],
+      encoding: ['converter', 'privacy-tools', 'developer'],
       finance: ['math', 'converter'],
       math: ['finance', 'converter'],
       social: ['seo', 'ai', 'text'],
-      privacy: ['encoding', 'developer'],
+      'privacy-tools': ['encoding', 'developer'],
       ai: ['text', 'seo', 'social'],
       developer: ['javascript', 'json', 'encoding'],
     };

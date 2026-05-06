@@ -1,0 +1,312 @@
+<div class="resume-tool" data-resume-tool>
+  <div class="resume-toast-stack" id="resume-toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="resume-tabs" role="tablist" aria-label="Resume tool modes">
+    <button
+      type="button"
+      class="resume-tab is-active"
+      id="resume-tab-ats"
+      role="tab"
+      aria-selected="true"
+      aria-controls="resume-panel-ats"
+      data-tab-target="ats"
+      aria-label="Open ATS Analyzer tab"
+    >&#128202; ATS Analyzer</button>
+    <button
+      type="button"
+      class="resume-tab"
+      id="resume-tab-builder"
+      role="tab"
+      aria-selected="false"
+      aria-controls="resume-panel-builder"
+      data-tab-target="builder"
+      tabindex="-1"
+      aria-label="Open Resume Builder tab"
+    >&#9997;&#65039; Resume Builder</button>
+  </div>
+
+  <section
+    class="resume-panel is-active"
+    id="resume-panel-ats"
+    role="tabpanel"
+    aria-labelledby="resume-tab-ats"
+    data-panel="ats"
+  >
+    <div class="resume-card">
+      <div class="resume-card-head">
+        <div>
+          <p class="resume-eyebrow">ATS score and fit check</p>
+          <h2>Analyze your resume against a target role</h2>
+        </div>
+        <p class="resume-meta">Plain text only. No uploads.</p>
+      </div>
+
+      <div class="resume-field">
+        <label for="resume-ats-resume">Resume text</label>
+        <textarea id="resume-ats-resume" maxlength="5000" placeholder="Paste your resume text here..." aria-label="Resume text" rows="12"></textarea>
+        <div class="resume-counter-row">
+          <span id="resume-ats-resume-count">0 / 5000 chars</span>
+          <span id="resume-ats-resume-warn" class="resume-soft-warn hidden">Approaching the limit</span>
+        </div>
+      </div>
+
+      <div class="resume-field">
+        <label for="resume-ats-job">Job description</label>
+        <textarea id="resume-ats-job" maxlength="3000" placeholder="Paste the job description to match against (optional but recommended)" aria-label="Job description" rows="6"></textarea>
+        <div class="resume-counter-row">
+          <span id="resume-ats-job-count">0 / 3000 chars</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-primary resume-primary-btn" id="resume-ats-submit" aria-label="Analyze resume">Analyze Resume</button>
+      <div class="resume-quota-wrap" data-resume-quota="shared"></div>
+      <div class="resume-inline-banner hidden" id="resume-ats-banner"></div>
+
+      <div class="resume-loading hidden" id="resume-ats-loading" aria-live="polite">
+        <div class="resume-skeleton-grid">
+          <div class="resume-skeleton-card"></div>
+          <div class="resume-skeleton-card"></div>
+          <div class="resume-skeleton-card"></div>
+          <div class="resume-skeleton-card"></div>
+        </div>
+        <p class="resume-status-text" id="resume-ats-status">Scanning for ATS keywords...</p>
+      </div>
+
+      <div class="resume-results hidden" id="resume-ats-results">
+        <div class="resume-results-grid">
+          <section class="resume-card resume-score-card fade-item" id="resume-score-card">
+            <div class="resume-card-head compact">
+              <div>
+                <p class="resume-eyebrow">Overall ATS fit</p>
+                <h3>Score</h3>
+              </div>
+              <p class="resume-meta" id="resume-score-label">Needs Work</p>
+            </div>
+            <div id="resume-score-gauge"></div>
+          </section>
+
+          <section class="resume-card fade-item">
+            <div class="resume-card-head compact">
+              <div>
+                <p class="resume-eyebrow">Keyword coverage</p>
+                <h3>Match grid</h3>
+              </div>
+            </div>
+            <div class="resume-keyword-grid">
+              <div>
+                <h4>&#9989; Keywords Found</h4>
+                <div class="resume-pill-list" id="resume-keywords-found"></div>
+              </div>
+              <div>
+                <h4>&#10060; Keywords Missing</h4>
+                <div class="resume-pill-list" id="resume-keywords-missing"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="resume-card fade-item">
+          <div class="resume-card-head compact">
+            <div>
+              <p class="resume-eyebrow">Section completeness</p>
+              <h3>Resume section analysis</h3>
+            </div>
+          </div>
+          <div class="resume-table-wrap">
+            <table class="resume-analysis-table">
+              <thead>
+                <tr>
+                  <th>Section</th>
+                  <th>Status</th>
+                  <th>Tip</th>
+                </tr>
+              </thead>
+              <tbody id="resume-section-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="resume-card fade-item">
+          <div class="resume-card-head compact">
+            <div>
+              <p class="resume-eyebrow">Priority actions</p>
+              <h3>Improvement suggestions</h3>
+            </div>
+          </div>
+          <div class="resume-suggestion-list" id="resume-suggestions"></div>
+        </section>
+
+        <section class="resume-card fade-item">
+          <div class="resume-card-head compact">
+            <div>
+              <p class="resume-eyebrow">Export the analysis</p>
+              <h3>Copy or download the report</h3>
+            </div>
+          </div>
+          <div class="resume-action-row">
+            <button type="button" class="btn btn-secondary" id="resume-copy-report" aria-label="Copy full ATS report">&#128203; Copy Full Report</button>
+            <button type="button" class="btn btn-secondary" id="resume-download-report" aria-label="Download ATS report">&#11015;&#65039; Download Report</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section
+    class="resume-panel"
+    id="resume-panel-builder"
+    role="tabpanel"
+    aria-labelledby="resume-tab-builder"
+    data-panel="builder"
+    hidden
+  >
+    <div class="resume-card">
+      <div class="resume-card-head">
+        <div>
+          <p class="resume-eyebrow">Guided builder</p>
+          <h2>Create an ATS-friendly plain-text resume</h2>
+        </div>
+        <p class="resume-meta">5 steps · shared daily quota</p>
+      </div>
+
+      <div class="resume-progress" aria-label="Resume builder progress">
+        <div class="resume-progress-step is-active" data-step-dot="1"><span>1</span><small>Personal</small></div>
+        <div class="resume-progress-step" data-step-dot="2"><span>2</span><small>Experience</small></div>
+        <div class="resume-progress-step" data-step-dot="3"><span>3</span><small>Education</small></div>
+        <div class="resume-progress-step" data-step-dot="4"><span>4</span><small>Skills</small></div>
+        <div class="resume-progress-step" data-step-dot="5"><span>5</span><small>Review</small></div>
+      </div>
+
+      <div class="resume-step-panels">
+        <section class="resume-step-panel is-active" data-step-panel="1">
+          <div class="resume-form-grid two-col">
+            <div class="resume-field">
+              <label for="rb-name">Full name</label>
+              <input id="rb-name" type="text" aria-label="Full name">
+            </div>
+            <div class="resume-field">
+              <label for="rb-email">Email</label>
+              <input id="rb-email" type="email" aria-label="Email address">
+            </div>
+            <div class="resume-field">
+              <label for="rb-phone">Phone</label>
+              <input id="rb-phone" type="text" aria-label="Phone number">
+            </div>
+            <div class="resume-field">
+              <label for="rb-linkedin">LinkedIn URL</label>
+              <input id="rb-linkedin" type="url" aria-label="LinkedIn URL">
+            </div>
+            <div class="resume-field">
+              <label for="rb-location">City / Country</label>
+              <input id="rb-location" type="text" aria-label="City and country">
+            </div>
+            <div class="resume-field">
+              <label for="rb-portfolio">Portfolio URL (optional)</label>
+              <input id="rb-portfolio" type="url" aria-label="Portfolio URL">
+            </div>
+          </div>
+        </section>
+
+        <section class="resume-step-panel" data-step-panel="2" hidden>
+          <div id="rb-experience-list" class="resume-stack"></div>
+          <div class="resume-action-row">
+            <button type="button" class="btn btn-secondary" id="rb-add-experience" aria-label="Add work experience">Add Experience</button>
+          </div>
+        </section>
+
+        <section class="resume-step-panel" data-step-panel="3" hidden>
+          <div class="resume-form-grid two-col">
+            <div class="resume-field">
+              <label for="rb-degree">Degree</label>
+              <input id="rb-degree" type="text" aria-label="Degree">
+            </div>
+            <div class="resume-field">
+              <label for="rb-institution">Institution</label>
+              <input id="rb-institution" type="text" aria-label="Institution">
+            </div>
+            <div class="resume-field">
+              <label for="rb-year">Year</label>
+              <input id="rb-year" type="text" aria-label="Graduation year">
+            </div>
+            <div class="resume-field">
+              <label for="rb-gpa">GPA (optional)</label>
+              <input id="rb-gpa" type="text" aria-label="GPA">
+            </div>
+          </div>
+          <div class="resume-field">
+            <label for="rb-courses">Relevant courses (comma-separated)</label>
+            <input id="rb-courses" type="text" aria-label="Relevant courses">
+            <div class="resume-pill-preview" id="rb-course-pills"></div>
+          </div>
+        </section>
+
+        <section class="resume-step-panel" data-step-panel="4" hidden>
+          <div class="resume-field">
+            <label for="rb-skills">Skills and keywords (comma-separated)</label>
+            <textarea id="rb-skills" rows="5" aria-label="Skills and keywords"></textarea>
+            <div class="resume-pill-preview" id="rb-skill-pills"></div>
+          </div>
+          <div class="resume-field">
+            <label for="rb-target-role">Target job title</label>
+            <input id="rb-target-role" type="text" aria-label="Target job title">
+          </div>
+          <div class="resume-stack" id="rb-certification-list"></div>
+          <div class="resume-action-row">
+            <button type="button" class="btn btn-secondary" id="rb-add-certification" aria-label="Add certification">Add Certification</button>
+          </div>
+        </section>
+
+        <section class="resume-step-panel" data-step-panel="5" hidden>
+          <div class="resume-card inset">
+            <div class="resume-card-head compact">
+              <div>
+                <p class="resume-eyebrow">Review</p>
+                <h3>Check the details before generation</h3>
+              </div>
+            </div>
+            <div id="rb-review-summary" class="resume-review-summary"></div>
+          </div>
+
+          <div class="resume-action-row wide">
+            <button type="button" class="btn btn-primary resume-primary-btn" id="rb-generate" aria-label="Generate resume">&#9889; Generate Resume</button>
+          </div>
+          <div class="resume-quota-wrap" data-resume-quota="shared-builder"></div>
+          <div class="resume-inline-banner hidden" id="rb-banner"></div>
+
+          <div class="resume-loading hidden" id="rb-loading" aria-live="polite">
+            <div class="resume-skeleton-grid">
+              <div class="resume-skeleton-card tall"></div>
+              <div class="resume-skeleton-card tall"></div>
+            </div>
+            <p class="resume-status-text" id="rb-status">Preparing your resume draft...</p>
+          </div>
+
+          <div class="resume-preview-wrap hidden" id="rb-preview-wrap">
+            <div class="resume-preview-head">
+              <div>
+                <p class="resume-eyebrow">Generated draft</p>
+                <h3>ATS-safe plain-text resume</h3>
+              </div>
+              <div class="resume-preview-meta">
+                <span id="rb-preview-count">0 chars</span>
+                <span id="rb-ats-note">ATS note pending</span>
+              </div>
+            </div>
+            <div class="resume-preview-panel" id="rb-preview-panel">
+              <pre id="rb-preview-text"></pre>
+            </div>
+            <div class="resume-action-row">
+              <button type="button" class="btn btn-secondary" id="rb-copy" aria-label="Copy generated resume">&#128203; Copy as Text</button>
+              <button type="button" class="btn btn-secondary" id="rb-download" aria-label="Download generated resume">&#11015;&#65039; Download as TXT</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="resume-step-nav">
+        <button type="button" class="btn btn-secondary" id="rb-prev" aria-label="Previous step">Previous</button>
+        <button type="button" class="btn btn-primary" id="rb-next" aria-label="Next step">Next</button>
+      </div>
+    </div>
+  </section>
+</div>

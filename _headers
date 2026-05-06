@@ -70,6 +70,7 @@
 
 /contact.html
   Cache-Control: public, max-age=0, must-revalidate
+  X-Robots-Tag: noindex, follow
 
 /privacy/
   Cache-Control: public, max-age=0, must-revalidate
@@ -89,6 +90,7 @@
 
 /disclaimer.html
   Cache-Control: public, max-age=0, must-revalidate
+  X-Robots-Tag: noindex, follow
 
 /category/text/
   Cache-Control: public, max-age=0, must-revalidate
@@ -402,6 +404,9 @@
 /ai-meta-writer/
   Cache-Control: public, max-age=0, must-revalidate
 
+/resume-builder/
+  Cache-Control: public, max-age=0, must-revalidate
+
 /cron-parser/
   Cache-Control: public, max-age=0, must-revalidate
 
@@ -543,7 +548,6 @@
 /software/ahrefs/
   Cache-Control: public, max-age=0, must-revalidate
 
-
 /software/ahrefs/vs-moz-pro/
   Cache-Control: public, max-age=0, must-revalidate
 
@@ -564,7 +568,7 @@
 
 /sitemap.html
   Cache-Control: public, max-age=0, must-revalidate
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 
 /sitemap.xml
   Cache-Control: public, max-age=86400

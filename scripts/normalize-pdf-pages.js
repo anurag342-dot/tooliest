@@ -518,7 +518,7 @@ function renderFooter() {
         </ul>
       </div>
     </div>
-    <p class="adsense-disclosure">Tooliest is free to use &mdash; every tool runs privately in your browser with no data collection. <a href="/privacy/">Read our privacy policy</a></p>
+    <p class="adsense-disclosure">Tooliest is free to use &mdash; most tools run locally in your browser, and AI-assisted tools are clearly labeled when they use external model providers. <a href="/privacy/">Read our privacy policy</a> and <a href="/disclaimer/">review the site disclaimer</a>.</p>
     <div class="footer-bottom">
       <span>&copy; 2026 Tooliest.com - All tools are free and run in your browser.</span>
       <span>

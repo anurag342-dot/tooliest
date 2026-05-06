@@ -240,10 +240,10 @@ const GUIDE_LIBRARY = [
   {
     slug: 'password-security-best-practices',
     group: 'security-business',
-    title: 'Password Security in 2026: How to Create Uncrackable Passwords',
+    title: 'Password Security Best Practices: How to Create Strong Passwords',
     description: 'A practical password guide covering length, randomness, passphrases, reuse risks, and how to build safer everyday login habits.',
-    socialDescription: 'Learn what actually makes a password strong in 2026 and how to build safer login habits without overcomplicating them.',
-    teaser: 'Learn what actually makes a password strong in 2026, why reuse stays dangerous, and how to choose between random passwords and passphrases.',
+    socialDescription: 'Learn what actually makes a password strong and how to build safer login habits without overcomplicating them.',
+    teaser: 'Learn what actually makes a password strong, why reuse stays dangerous, and how to choose between random passwords and passphrases.',
     published: '2026-05-01',
     updated: '2026-05-01',
     readMinutes: 8,
