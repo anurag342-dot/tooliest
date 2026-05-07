@@ -1045,7 +1045,7 @@ async function callAI(tool, input, options = {}) {
   } catch (error) {
     const message = String(error && error.message ? error.message : error || '');
     if (/Daily limit reached/i.test(message)) {
-      showError('Daily limit reached. Resets at midnight. ⚡');
+      showError('Daily limit reached — 15 uses per tool per day. Resets at midnight. ⚡');
       return null;
     }
     if (/busy/i.test(message) || /60 seconds/i.test(message)) {
@@ -1117,10 +1117,19 @@ function _createAIWorkspaceBindings(container, options = {}) {
     copyButton.addEventListener('click', () => copyToClipboard(outputText.textContent || '', copyButton));
   }
 
-  const hideError = () => { if (error) { error.classList.add('hidden'); error.textContent = ''; } };
+  const hideError = () => {
+    if (error) {
+      error.classList.add('hidden');
+      error.textContent = '';
+    }
+  };
   const showError = (msg) => {
     hideError();
-    if (error) { error.textContent = msg; error.classList.remove('hidden'); }
+    if (error) {
+      error.textContent = msg;
+      error.style.cssText = 'margin:12px 0 16px;padding:12px 16px;border-left:3px solid #ef4444;border-radius:6px;background:#1a0a0a;color:#fca5a5';
+      error.classList.remove('hidden');
+    }
     else if (typeof App !== 'undefined') App.toast(msg, 'error');
   };
   const showResult = (text) => {
@@ -1159,15 +1168,10 @@ async function _syncAIQuota(bindings, tool, baseLabel) {
   if (!bindings) return;
   _ensureAISharedStyles();
   const shared = await _loadSharedAIClient();
-  const remaining = shared.getRemaining(tool);
   if (bindings.quotaMount) {
     shared.renderQuota(tool, bindings.quotaMount);
   }
   bindings.setIdleLabel(shared.getQuotaButtonLabel(baseLabel || bindings.baseLabel || 'Generate', tool));
-  if (bindings.button) {
-    bindings.button.disabled = remaining <= 0;
-    bindings.button.setAttribute('aria-disabled', String(remaining <= 0));
-  }
 }
 
 function _ensureExternalToolStylesheet(href, id) {
@@ -1323,4 +1327,3 @@ Object.assign(ToolRenderers.renderers, {
   },
 
 });
-

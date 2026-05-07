@@ -84,7 +84,10 @@ tmp/
 create_project.ps1
 populate_project.ps1
 
+# Cloudflare local dev secrets
 .dev.vars
 .dev.vars.local
+
+# Wrangler local artifacts
 .wrangler/
 wrangler.toml.bak

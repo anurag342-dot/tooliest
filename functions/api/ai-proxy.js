@@ -4,9 +4,6 @@ const MAX_MESSAGE_CHARS = 20000;
 const MAX_TOKENS_DEFAULT = 2048;
 const MAX_TOKENS_LIMIT = 4096;
 const DEFAULT_TEMPERATURE = 0.7;
-const BURST_LIMIT = 12;
-const BURST_WINDOW_MS = 10 * 60 * 1000;
-const DAILY_LIMIT = 60;
 const PER_TOOL_DAILY_LIMIT = 15;
 
 const CHAINS = {
@@ -26,9 +23,6 @@ const CHAINS = {
   'flashcard-generator': ['qwen/qwen3-next-80b-a3b-instruct:free', 'nvidia/nemotron-3-super-120b-a12b:free', 'openai/gpt-oss-120b:free'],
   'bio-generator': ['openai/gpt-oss-120b:free', 'minimax/minimax-m2.5:free', 'meta-llama/llama-3.3-70b-instruct:free'],
 };
-
-const burstStore = new Map();
-const dailyStore = new Map();
 
 function isLocalOrigin(origin) {
   return /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/i.test(origin);
@@ -68,55 +62,40 @@ function corsHeaders(origin) {
   return headers;
 }
 
-function json(data, status = 200, origin = DEFAULT_ALLOWED_ORIGIN) {
+function json(data, status = 200, options = {}) {
+  const { origin = DEFAULT_ALLOWED_ORIGIN, headers: extraHeaders = {} } = options;
   return new Response(JSON.stringify(data), {
     status,
-    headers: corsHeaders(origin),
+    headers: {
+      ...corsHeaders(origin),
+      ...extraHeaders,
+    },
   });
 }
 
-function getClientIp(request) {
-  const forwarded = request.headers.get('CF-Connecting-IP')
-    || request.headers.get('X-Forwarded-For')
-    || '';
-  return String(forwarded).split(',')[0].trim() || 'unknown';
+function getClientIP(request) {
+  return (
+    request.headers.get('CF-Connecting-IP')
+    || request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim()
+    || 'unknown'
+  );
 }
 
-function getDailyKey(ip) {
-  return `${new Date().toISOString().slice(0, 10)}::${ip}`;
-}
-
-function getToolDailyKey(ip, tool) {
-  return `${getDailyKey(ip)}::${tool}`;
-}
-
-function consumeServerRateLimit(ip, tool) {
-  const now = Date.now();
-  const burstState = burstStore.get(ip);
-  if (!burstState || (now - burstState.windowStart) >= BURST_WINDOW_MS) {
-    burstStore.set(ip, { count: 1, windowStart: now });
-  } else {
-    burstState.count += 1;
-    if (burstState.count > BURST_LIMIT) {
-      return { ok: false, error: 'Too many requests from this device. Please wait a few minutes and try again.' };
+async function checkIPLimit(env, ip, tool) {
+  try {
+    const key = `rl:${ip}:${tool}:${new Date().toDateString()}`;
+    const current = parseInt((await env.TOOLIEST_KV.get(key)) || '0', 10);
+    if (current >= PER_TOOL_DAILY_LIMIT) {
+      return { allowed: false, remaining: 0 };
     }
+    await env.TOOLIEST_KV.put(key, String(current + 1), {
+      expirationTtl: 86400,
+    });
+    return { allowed: true, remaining: PER_TOOL_DAILY_LIMIT - (current + 1) };
+  } catch (error) {
+    console.error('KV rate limit error:', error?.message || 'Unknown error');
+    return { allowed: true, remaining: -1 };
   }
-
-  const dailyKey = getDailyKey(ip);
-  const dailyCount = dailyStore.get(dailyKey) || 0;
-  if (dailyCount >= DAILY_LIMIT) {
-    return { ok: false, error: 'Daily AI quota reached for this device. Please try again tomorrow.' };
-  }
-
-  const toolDailyKey = getToolDailyKey(ip, tool);
-  const toolDailyCount = dailyStore.get(toolDailyKey) || 0;
-  if (toolDailyCount >= PER_TOOL_DAILY_LIMIT) {
-    return { ok: false, error: 'Daily limit reached for this AI tool. Please try again tomorrow.' };
-  }
-  dailyStore.set(dailyKey, dailyCount + 1);
-  dailyStore.set(toolDailyKey, toolDailyCount + 1);
-
-  return { ok: true };
 }
 
 function sanitizeMessages(messages) {
@@ -154,6 +133,16 @@ function clampTemperature(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return DEFAULT_TEMPERATURE;
   return Math.min(1.2, Math.max(0, parsed));
+}
+
+function buildRateLimitHeaders(remaining) {
+  if (!Number.isFinite(remaining) || remaining < 0) {
+    return {};
+  }
+  return {
+    'X-RateLimit-Limit': String(PER_TOOL_DAILY_LIMIT),
+    'X-RateLimit-Remaining': String(Math.max(0, remaining)),
+  };
 }
 
 async function tryModel(model, messages, maxTokens, temperature, apiKey) {
@@ -198,7 +187,10 @@ async function tryModel(model, messages, maxTokens, temperature, apiKey) {
 export async function onRequestOptions(context) {
   const allowedOrigin = getAllowedOrigin(context.request, context.env);
   if (!allowedOrigin && getRequestOrigin(context.request)) {
-    return new Response(null, { status: 403 });
+    return new Response(null, {
+      status: 403,
+      headers: corsHeaders(DEFAULT_ALLOWED_ORIGIN),
+    });
   }
   return new Response(null, {
     status: 204,
@@ -208,15 +200,16 @@ export async function onRequestOptions(context) {
 
 export async function onRequestPost({ request, env }) {
   const allowedOrigin = getAllowedOrigin(request, env);
+  const responseOrigin = allowedOrigin || DEFAULT_ALLOWED_ORIGIN;
   if (!allowedOrigin && getRequestOrigin(request)) {
-    return json({ error: 'Origin not allowed.' }, 403, DEFAULT_ALLOWED_ORIGIN);
+    return json({ error: 'Origin not allowed.' }, 403, { origin: DEFAULT_ALLOWED_ORIGIN });
   }
 
   let body;
   try {
     body = await request.json();
   } catch (_) {
-    return json({ error: 'Invalid JSON.' }, 400, allowedOrigin || DEFAULT_ALLOWED_ORIGIN);
+    return json({ error: 'Invalid JSON.' }, 400, { origin: responseOrigin });
   }
 
   const tool = typeof body?.tool === 'string' ? body.tool.trim() : '';
@@ -224,20 +217,33 @@ export async function onRequestPost({ request, env }) {
   const chain = CHAINS[tool];
 
   if (!tool || !chain) {
-    return json({ error: `Unknown tool: ${tool || 'unknown'}` }, 400, allowedOrigin || DEFAULT_ALLOWED_ORIGIN);
+    return json({ error: `Unknown tool: ${tool || 'unknown'}` }, 400, { origin: responseOrigin });
   }
   if (!messages) {
-    return json({ error: 'Required: messages (1-8 non-empty chat messages).' }, 400, allowedOrigin || DEFAULT_ALLOWED_ORIGIN);
+    return json({ error: 'Required: messages (1-8 non-empty chat messages).' }, 400, { origin: responseOrigin });
   }
 
-  const rateLimitResult = consumeServerRateLimit(getClientIp(request), tool);
-  if (!rateLimitResult.ok) {
-    return json({ error: rateLimitResult.error }, 429, allowedOrigin || DEFAULT_ALLOWED_ORIGIN);
+  const ip = getClientIP(request);
+  const { allowed, remaining } = await checkIPLimit(env, ip, tool);
+  const rateLimitHeaders = buildRateLimitHeaders(remaining);
+
+  if (!allowed) {
+    return json({
+      error: 'Daily limit reached',
+      message: 'You have used all 15 free requests today for this tool. Resets at midnight. ⚡',
+      reset_at: 'midnight (your local time)',
+    }, 429, {
+      origin: responseOrigin,
+      headers: rateLimitHeaders,
+    });
   }
 
   const apiKey = env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return json({ error: 'Service unavailable - configuration error.' }, 503, allowedOrigin || DEFAULT_ALLOWED_ORIGIN);
+    return json({ error: 'Service unavailable - configuration error.' }, 503, {
+      origin: responseOrigin,
+      headers: rateLimitHeaders,
+    });
   }
 
   const maxTokens = clampMaxTokens(body?.max_tokens);
@@ -248,13 +254,19 @@ export async function onRequestPost({ request, env }) {
   const modelsToTry = chain.filter((model) => !requestedSkipModels.includes(model));
 
   if (!modelsToTry.length) {
-    return json({ error: 'No eligible models remain for this request.' }, 503, allowedOrigin || DEFAULT_ALLOWED_ORIGIN);
+    return json({ error: 'No eligible models remain for this request.' }, 503, {
+      origin: responseOrigin,
+      headers: rateLimitHeaders,
+    });
   }
 
   for (const model of modelsToTry) {
     try {
       const result = await tryModel(model, messages, maxTokens, temperature, apiKey);
-      return json(result, 200, allowedOrigin || DEFAULT_ALLOWED_ORIGIN);
+      return json(result, 200, {
+        origin: responseOrigin,
+        headers: rateLimitHeaders,
+      });
     } catch (error) {
       const retryable = error?.retryable || error?.code === 429 || (Number.isInteger(error?.code) && error.code >= 500);
       if (!retryable) {
@@ -263,5 +275,8 @@ export async function onRequestPost({ request, env }) {
     }
   }
 
-  return json({ error: 'All models are busy. Please wait 60 seconds and retry.' }, 503, allowedOrigin || DEFAULT_ALLOWED_ORIGIN);
+  return json({ error: 'All models are busy. Please wait 60 seconds and retry.' }, 503, {
+    origin: responseOrigin,
+    headers: rateLimitHeaders,
+  });
 }

@@ -1,3 +1,8 @@
+// NOTE: localStorage here is UI-only (quota bar display).
+// Real enforcement is server-side via Cloudflare KV in ai-proxy.js.
+// A user clearing localStorage can still see wrong counts in the bar
+// but the server will correctly block them at 15 requests.
+
 const MAX_PER_DAY = 15;
 
 function storageKey(tool) {
@@ -38,10 +43,11 @@ function writeQuotaState(tool, count) {
   }
 }
 
-function refund(tool) {
-  const state = readQuotaState(tool);
-  if (state.count <= 0) return;
-  writeQuotaState(tool, state.count - 1);
+function syncQuotaFromRemaining(tool, remaining) {
+  if (!Number.isFinite(remaining)) return false;
+  const normalizedRemaining = Math.max(0, Math.min(MAX_PER_DAY, Math.round(remaining)));
+  writeQuotaState(tool, MAX_PER_DAY - normalizedRemaining);
+  return true;
 }
 
 function extractContentText(content) {
@@ -64,12 +70,8 @@ export function getRemaining(tool) {
 }
 
 export function consume(tool) {
-  const remaining = getRemaining(tool);
-  if (remaining <= 0) {
-    return false;
-  }
   const state = readQuotaState(tool);
-  writeQuotaState(tool, state.count + 1);
+  writeQuotaState(tool, Math.min(MAX_PER_DAY, state.count + 1));
   return true;
 }
 
@@ -115,50 +117,54 @@ export async function callAI({
   chargeQuota = true,
   skipModels = [],
 }) {
-  if (chargeQuota && !consume(tool)) {
-    throw new Error(`Daily limit reached (${MAX_PER_DAY} uses/day). Resets at midnight. ⚡`);
-  }
+  const requestBody = {
+    tool,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userContent },
+    ],
+    max_tokens: maxTokens,
+    temperature,
+    skip_models: Array.isArray(skipModels) ? skipModels : [],
+  };
 
-  let response;
-  try {
-    response = await fetch('/api/ai-proxy', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tool,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userContent },
-        ],
-        max_tokens: maxTokens,
-        temperature,
-        skip_models: Array.isArray(skipModels) ? skipModels : [],
-      }),
-    });
-  } catch (error) {
-    if (chargeQuota) refund(tool);
-    throw error;
-  }
+  const response = await fetch('/api/ai-proxy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody),
+  });
 
   let data = null;
   try {
     data = await response.json();
   } catch (_) {
-    if (chargeQuota) refund(tool);
     if (!response.ok) {
       throw new Error('Request failed. Please retry.');
     }
     throw new Error('The AI returned an unreadable response. Please retry.');
   }
 
+  if (chargeQuota) {
+    const remainingHeader = Number(response.headers.get('X-RateLimit-Remaining'));
+    const synced = syncQuotaFromRemaining(tool, remainingHeader);
+    if (!synced && response.ok) {
+      consume(tool);
+    }
+    if (!synced && response.status === 429) {
+      syncQuotaFromRemaining(tool, 0);
+    }
+  }
+
+  if (response.status === 429) {
+    throw new Error(data?.message || 'Daily limit reached — 15 uses per tool per day. Resets at midnight. ⚡');
+  }
+
   if (!response.ok) {
-    if (chargeQuota) refund(tool);
     throw new Error(data?.error || 'Request failed. Please retry.');
   }
 
   const text = extractContentText(data?.choices?.[0]?.message?.content);
   if (!text) {
-    if (chargeQuota) refund(tool);
     throw new Error('The AI returned an empty response. Please retry.');
   }
 

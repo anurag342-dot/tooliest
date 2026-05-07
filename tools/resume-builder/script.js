@@ -1,4 +1,4 @@
-import { callAI, renderQuota, getQuotaButtonLabel, getRemaining } from '../_shared/rateLimit.js';
+import { callAI, renderQuota, getQuotaButtonLabel } from '../_shared/rateLimit.js';
 
 const TOOL_KEY = 'resume-builder';
 const ATS_STATUS_MESSAGES = [
@@ -659,9 +659,6 @@ export async function initResumeBuilderTool(container) {
     renderQuota(TOOL_KEY, builderQuotaMount);
     atsButton.textContent = getQuotaButtonLabel(atsBaseLabel, TOOL_KEY);
     generateButton.textContent = `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`;
-    const exhausted = getRemaining(TOOL_KEY) <= 0;
-    if (!atsBusy) atsButton.disabled = exhausted;
-    if (!builderBusy) generateButton.disabled = exhausted;
   }
 
   function renderPillPreview(containerNode, values) {
@@ -978,8 +975,8 @@ export async function initResumeBuilderTool(container) {
     } catch (error) {
       const message = String(error?.message || error || '');
       if (/Daily limit reached/i.test(message)) {
-        setBanner(atsBanner, 'Daily limit reached. Resets at midnight. \u26A1');
-        showToast(toastStack, 'Daily limit reached. Resets at midnight. \u26A1', 'error');
+        setBanner(atsBanner, 'Daily limit reached \u2014 15 uses per tool per day. Resets at midnight. \u26A1');
+        showToast(toastStack, 'Daily limit reached \u2014 15 uses per tool per day. Resets at midnight. \u26A1', 'error');
       } else if (/busy|60 seconds/i.test(message)) {
         setBanner(atsBanner, 'Our AI is busy right now. Try again in 60 seconds.', 'error', runAtsAnalysis);
       } else if (/unexpected format/i.test(message)) {
@@ -1034,8 +1031,8 @@ export async function initResumeBuilderTool(container) {
     } catch (error) {
       const message = String(error?.message || error || '');
       if (/Daily limit reached/i.test(message)) {
-        setBanner(builderBanner, 'Daily limit reached. Resets at midnight. \u26A1');
-        showToast(toastStack, 'Daily limit reached. Resets at midnight. \u26A1', 'error');
+        setBanner(builderBanner, 'Daily limit reached \u2014 15 uses per tool per day. Resets at midnight. \u26A1');
+        showToast(toastStack, 'Daily limit reached \u2014 15 uses per tool per day. Resets at midnight. \u26A1', 'error');
       } else if (/busy|60 seconds/i.test(message)) {
         setBanner(builderBanner, 'Our AI is busy right now. Try again in 60 seconds.', 'error', runResumeBuilder);
       } else if (/connection|network/i.test(message) || !navigator.onLine) {

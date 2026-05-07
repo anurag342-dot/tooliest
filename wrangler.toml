@@ -4,3 +4,7 @@ pages_build_output_dir = "."
 
 [vars]
 ENVIRONMENT = "production"
+
+[[kv_namespaces]]
+binding = "TOOLIEST_KV"
+id = "3ae4cbc48f6b42088ce95fcdb8ed2048"
