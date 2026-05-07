@@ -551,6 +551,7 @@ function configureTabs(root) {
       const active = panel.dataset.panel === target;
       panel.classList.toggle('is-active', active);
       panel.hidden = !active;
+      panel.setAttribute('aria-hidden', String(!active));
     });
   };
 
@@ -566,6 +567,11 @@ function configureTabs(root) {
       activate(tabs[nextIndex].dataset.tabTarget);
     });
   });
+
+  const initialTab = tabs.find((tab) => tab.classList.contains('is-active'))?.dataset.tabTarget
+    || tabs[0]?.dataset.tabTarget
+    || 'ats';
+  activate(initialTab);
 }
 
 export async function initResumeBuilderTool(container) {
@@ -635,6 +641,19 @@ export async function initResumeBuilderTool(container) {
   let atsBusy = false;
   let builderBusy = false;
 
+  function syncExportButtons() {
+    const hasReport = Boolean(state.lastReport);
+    const hasResume = Boolean(state.generatedResume);
+    copyReportButton.disabled = !hasReport;
+    downloadReportButton.disabled = !hasReport;
+    copyResumeButton.disabled = !hasResume;
+    downloadResumeButton.disabled = !hasResume;
+    copyReportButton.setAttribute('aria-disabled', String(!hasReport));
+    downloadReportButton.setAttribute('aria-disabled', String(!hasReport));
+    copyResumeButton.setAttribute('aria-disabled', String(!hasResume));
+    downloadResumeButton.setAttribute('aria-disabled', String(!hasResume));
+  }
+
   function updateQuotaUi() {
     renderQuota(TOOL_KEY, atsQuotaMount);
     renderQuota(TOOL_KEY, builderQuotaMount);
@@ -657,18 +676,40 @@ export async function initResumeBuilderTool(container) {
     clearNode(mount);
 
     const personalCard = createNode('div', 'resume-review-item');
-    personalCard.append(
-      createNode('h4', '', 'Personal Info'),
-      createNode('p', '', `${state.personal.name || 'No name yet'} | ${state.personal.email || 'No email yet'} | ${state.personal.phone || 'No phone yet'}`),
-      createNode('p', '', `${state.personal.linkedin || 'No LinkedIn'} | ${state.personal.location || 'No location'} | ${state.personal.portfolio || 'No portfolio URL'}`),
-    );
+    personalCard.appendChild(createNode('h4', '', 'Personal Info'));
+    const personalList = createNode('div', 'resume-review-list');
+    [
+      ['Name', state.personal.name || 'No name yet'],
+      ['Email', state.personal.email || 'No email yet'],
+      ['Phone', state.personal.phone || 'No phone yet'],
+      ['LinkedIn', state.personal.linkedin || 'No LinkedIn URL'],
+      ['Location', state.personal.location || 'No location yet'],
+      ['Portfolio', state.personal.portfolio || 'No portfolio URL'],
+    ].forEach(([label, value]) => {
+      const row = createNode('div', 'resume-review-row');
+      row.append(createNode('span', 'resume-review-key', label), createNode('span', 'resume-review-value', value));
+      personalList.appendChild(row);
+    });
+    personalCard.appendChild(personalList);
 
     const experienceCard = createNode('div', 'resume-review-item');
     experienceCard.appendChild(createNode('h4', '', 'Work Experience'));
     const experienceList = createNode('ul');
-    state.experiences.forEach((experience) => {
-      experienceList.appendChild(createNode('li', '', `${formatExperienceBlock(experience)} - ${experience.duration || 'Duration not set'}`));
-    });
+    const filledExperiences = state.experiences.filter((experience) => [
+      experience.jobTitle,
+      experience.company,
+      experience.duration,
+      experience.achievement1,
+      experience.achievement2,
+      experience.achievement3,
+    ].some((value) => String(value || '').trim()));
+    if (!filledExperiences.length) {
+      experienceList.appendChild(createNode('li', '', 'No work experience added yet.'));
+    } else {
+      filledExperiences.forEach((experience) => {
+        experienceList.appendChild(createNode('li', '', `${formatExperienceBlock(experience)} - ${experience.duration || 'Duration not set'}`));
+      });
+    }
     experienceCard.appendChild(experienceList);
 
     const educationCard = createNode('div', 'resume-review-item');
@@ -823,23 +864,38 @@ export async function initResumeBuilderTool(container) {
 
   function setStep(step) {
     state.currentStep = Math.min(5, Math.max(1, step));
+    let activePanel = null;
     root.querySelectorAll('[data-step-panel]').forEach((panel) => {
       const active = Number(panel.getAttribute('data-step-panel')) === state.currentStep;
       panel.classList.toggle('is-active', active);
       panel.hidden = !active;
+      panel.setAttribute('aria-hidden', String(!active));
+      if (active) activePanel = panel;
     });
     root.querySelectorAll('[data-step-dot]').forEach((dot) => {
       const dotStep = Number(dot.getAttribute('data-step-dot'));
       dot.classList.toggle('is-active', dotStep === state.currentStep);
       dot.classList.toggle('is-complete', dotStep < state.currentStep);
+      dot.setAttribute('aria-current', dotStep === state.currentStep ? 'step' : 'false');
     });
 
     const prev = qs(root, '#rb-prev');
     const next = qs(root, '#rb-next');
     prev.disabled = state.currentStep === 1;
+    prev.setAttribute('aria-disabled', String(state.currentStep === 1));
     prev.hidden = false;
     next.hidden = state.currentStep === 5;
+    next.setAttribute('aria-hidden', String(state.currentStep === 5));
+    next.textContent = state.currentStep === 4 ? 'Review & Generate' : 'Next';
     renderReviewSummary();
+
+    if (activePanel) {
+      const focusTarget = activePanel.querySelector('input, textarea, select, button:not([disabled])');
+      if (focusTarget && state.currentStep !== 5) {
+        window.requestAnimationFrame(() => focusTarget.focus({ preventScroll: true }));
+      }
+      window.requestAnimationFrame(() => activePanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+    }
   }
 
   function validateCurrentStep() {
@@ -875,6 +931,8 @@ export async function initResumeBuilderTool(container) {
     }
 
     atsBusy = true;
+    state.lastReport = null;
+    syncExportButtons();
     updateQuotaUi();
     atsResults.classList.add('hidden');
     setBanner(atsBanner);
@@ -914,6 +972,7 @@ export async function initResumeBuilderTool(container) {
 
       const report = sanitizeAnalysisPayload(parsed);
       state.lastReport = report;
+      syncExportButtons();
       renderAnalysisResults(report);
       setBanner(atsBanner, 'Analysis complete. Review missing keywords and high-priority fixes before you apply.', 'success');
     } catch (error) {
@@ -947,6 +1006,8 @@ export async function initResumeBuilderTool(container) {
     }
 
     builderBusy = true;
+    state.generatedResume = '';
+    syncExportButtons();
     updateQuotaUi();
     setBanner(builderBanner);
     previewWrap.classList.add('hidden');
@@ -968,6 +1029,7 @@ export async function initResumeBuilderTool(container) {
       previewCount.textContent = `${state.generatedResume.length} chars`;
       previewNote.textContent = deriveResumeNote(state.generatedResume, state);
       previewWrap.classList.remove('hidden');
+      syncExportButtons();
       setBanner(builderBanner, 'Resume draft ready. Review every metric, date, and claim before you use it.', 'success');
     } catch (error) {
       const message = String(error?.message || error || '');
@@ -1046,5 +1108,6 @@ export async function initResumeBuilderTool(container) {
   renderCertificationList();
   renderBuilderDerivedViews();
   setStep(1);
+  syncExportButtons();
   updateQuotaUi();
 }

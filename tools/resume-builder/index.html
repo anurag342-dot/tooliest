@@ -11,7 +11,7 @@
       aria-controls="resume-panel-ats"
       data-tab-target="ats"
       aria-label="Open ATS Analyzer tab"
-    >&#128202; ATS Analyzer</button>
+    ><span class="resume-tab-icon" aria-hidden="true">&#128202;</span><span class="resume-tab-label">ATS Analyzer</span></button>
     <button
       type="button"
       class="resume-tab"
@@ -22,7 +22,7 @@
       data-tab-target="builder"
       tabindex="-1"
       aria-label="Open Resume Builder tab"
-    >&#9997;&#65039; Resume Builder</button>
+    ><span class="resume-tab-icon" aria-hidden="true">&#9997;&#65039;</span><span class="resume-tab-label">Resume Builder</span></button>
   </div>
 
   <section
@@ -144,8 +144,8 @@
             </div>
           </div>
           <div class="resume-action-row">
-            <button type="button" class="btn btn-secondary" id="resume-copy-report" aria-label="Copy full ATS report">&#128203; Copy Full Report</button>
-            <button type="button" class="btn btn-secondary" id="resume-download-report" aria-label="Download ATS report">&#11015;&#65039; Download Report</button>
+            <button type="button" class="btn btn-secondary" id="resume-copy-report" aria-label="Copy full ATS report" disabled>&#128203; Copy Full Report</button>
+            <button type="button" class="btn btn-secondary" id="resume-download-report" aria-label="Download ATS report" disabled>&#11015;&#65039; Download Report</button>
           </div>
         </section>
       </div>
@@ -296,8 +296,8 @@
               <pre id="rb-preview-text"></pre>
             </div>
             <div class="resume-action-row">
-              <button type="button" class="btn btn-secondary" id="rb-copy" aria-label="Copy generated resume">&#128203; Copy as Text</button>
-              <button type="button" class="btn btn-secondary" id="rb-download" aria-label="Download generated resume">&#11015;&#65039; Download as TXT</button>
+              <button type="button" class="btn btn-secondary" id="rb-copy" aria-label="Copy generated resume" disabled>&#128203; Copy as Text</button>
+              <button type="button" class="btn btn-secondary" id="rb-download" aria-label="Download generated resume" disabled>&#11015;&#65039; Download as TXT</button>
             </div>
           </div>
         </section>
