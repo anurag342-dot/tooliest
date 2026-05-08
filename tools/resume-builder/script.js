@@ -35,7 +35,10 @@ const SCORE_META = [
 ];
 const STORAGE_KEY = 'tooliest_resume_draft_v1';
 const AUTOSAVE_DELAY = 1200;
-const DOCX_CDN = 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.min.js';
+const DOCX_CDN_URLS = [
+  'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js',
+  'https://unpkg.com/docx@8.5.0/build/index.umd.js',
+];
 let resumeExportState = null;
 let resumeExportToastStack = null;
 let docxLoaded = false;
@@ -803,18 +806,37 @@ async function loadDocx() {
     docxLoaded = true;
     return;
   }
-  await new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = DOCX_CDN;
-    script.async = true;
-    script.crossOrigin = 'anonymous';
-    script.onload = () => {
+
+  let lastError = null;
+  for (const url of DOCX_CDN_URLS) {
+    try {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.async = true;
+        script.crossOrigin = 'anonymous';
+        script.onload = () => {
+          if (window.docx?.Document && window.docx?.Packer) {
+            resolve();
+            return;
+          }
+          script.remove();
+          reject(new Error('docx global unavailable after load'));
+        };
+        script.onerror = () => {
+          script.remove();
+          reject(new Error(`docx CDN load failed: ${url}`));
+        };
+        document.head.appendChild(script);
+      });
       docxLoaded = true;
-      resolve();
-    };
-    script.onerror = () => reject(new Error('docx CDN load failed'));
-    document.head.appendChild(script);
-  });
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error('docx CDN load failed');
 }
 
 function getDocxFileName() {
