@@ -441,6 +441,23 @@ function setResumeExportReady(isReady) {
   }
 }
 
+function normalizePdfText(value) {
+  return String(value || '')
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015]/g, '-')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .trim();
+}
+
+function compactUrl(value) {
+  return normalizePdfText(value)
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .replace(/\/$/, '');
+}
+
 async function loadJsPDF() {
   if (jsPDFLoaded || window.jspdf) {
     jsPDFLoaded = true;
@@ -479,8 +496,8 @@ async function downloadResumePDF() {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    const marginX = 58;
-    const marginY = 58;
+    const marginX = 54;
+    const marginY = 54;
     const contentW = pageW - (marginX * 2);
     let y = marginY;
 
@@ -491,6 +508,12 @@ async function downloadResumePDF() {
       }
     }
 
+    function writeCenteredLines(lines, options = {}) {
+      lines.filter(Boolean).forEach((line) => {
+        writeText(line, { align: 'center', ...options });
+      });
+    }
+
     function writeText(str, {
       size = 10,
       style = 'normal',
@@ -499,11 +522,12 @@ async function downloadResumePDF() {
       leading = 1.38,
       rgb = [0, 0, 0],
     } = {}) {
-      if (!str || !String(str).trim()) return;
+      const safeText = normalizePdfText(str);
+      if (!safeText) return;
       doc.setFont('times', style);
       doc.setFontSize(size);
       doc.setTextColor(...rgb);
-      const lines = doc.splitTextToSize(String(str).trim(), contentW - indent);
+      const lines = doc.splitTextToSize(safeText, contentW - indent);
       lines.forEach((line) => {
         checkPage(size * leading);
         const x = align === 'center' ? pageW / 2 : marginX + indent;
@@ -512,44 +536,89 @@ async function downloadResumePDF() {
       });
     }
 
+    function writeBullet(str) {
+      const safeText = normalizePdfText(str);
+      if (!safeText) return;
+      doc.setFont('times', 'normal');
+      doc.setFontSize(9.6);
+      doc.setTextColor(0, 0, 0);
+      const bulletX = marginX + 11;
+      const textX = marginX + 24;
+      const maxW = contentW - 24;
+      const lines = doc.splitTextToSize(safeText, maxW);
+      lines.forEach((line, index) => {
+        checkPage(13);
+        if (index === 0) {
+          doc.text('\u2022', bulletX, y);
+        }
+        doc.text(line, textX, y);
+        y += 13;
+      });
+    }
+
     function sectionHeader(title) {
-      y += 10;
+      y += 9;
       checkPage(26);
       doc.setFont('times', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(0, 0, 0);
-      doc.text(String(title || '').toUpperCase(), marginX, y);
-      y += 5;
+      doc.text(normalizePdfText(title).toUpperCase(), marginX, y);
+      y += 4;
       doc.setDrawColor(0, 0, 0);
       doc.setLineWidth(0.75);
       doc.line(marginX, y, pageW - marginX, y);
-      y += 9;
+      y += 8;
+    }
+
+    function writeSectionLine(line, index, sectionTitle) {
+      const safeText = normalizePdfText(line);
+      if (!safeText) return;
+      const title = normalizePdfText(sectionTitle).toLowerCase();
+      const shouldEmphasizeLead = /experience|employment|project|education/.test(title);
+      const isDateLine = /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|\d{4}|present)\b/i.test(safeText)
+        && safeText.length < 80;
+      const isLeadLine = shouldEmphasizeLead
+        && (index === 0 || (/^[A-Z0-9\s/&.,()'-]+$/.test(safeText) && safeText.length < 95));
+      if (isLeadLine) {
+        writeText(safeText, { size: 10.2, style: 'bold', leading: 1.22 });
+        return;
+      }
+      if (isDateLine) {
+        writeText(safeText, { size: 9.4, style: 'italic', leading: 1.25 });
+        return;
+      }
+      writeText(safeText, { size: 9.7, leading: 1.32 });
     }
 
     const parsed = parseResumeText(state.generatedResume);
     const name = parsed.name || state.personal?.name || 'Your Name';
-    const contact = parsed.contact || [
+    const primaryContact = [
       state.personal?.email,
       state.personal?.phone,
       state.personal?.location,
-      state.personal?.linkedin,
-      state.personal?.portfolio,
-    ].filter(Boolean).join('  |  ');
+    ].map(normalizePdfText).filter(Boolean).join('  |  ');
+    const linkContact = [
+      compactUrl(state.personal?.linkedin),
+      compactUrl(state.personal?.portfolio),
+    ].filter(Boolean);
 
-    writeText(name.toUpperCase(), { size: 18, style: 'bold', align: 'center', leading: 1.2 });
-    y += 3;
-    writeText(contact, { size: 9.5, align: 'center', leading: 1.3 });
+    writeText(name.toUpperCase(), { size: 17, style: 'bold', align: 'center', leading: 1.15 });
+    y += 4;
+    writeCenteredLines([primaryContact, ...linkContact], { size: 9.1, leading: 1.22 });
     y += 10;
 
     parsed.sections.forEach((section) => {
+      if (!section.lines.length) return;
       sectionHeader(section.title);
+      let bodyLineIndex = 0;
       section.lines.forEach((line) => {
         if (line.startsWith('\u2022') || line.startsWith('-')) {
           const bullet = line.replace(/^[\u2022-]\s*/, '');
-          writeText(`\u2022  ${bullet}`, { size: 10, indent: 14, leading: 1.38 });
+          writeBullet(bullet);
           return;
         }
-        writeText(line, { size: 10, leading: 1.38 });
+        writeSectionLine(line, bodyLineIndex, section.title);
+        bodyLineIndex += 1;
       });
     });
 
