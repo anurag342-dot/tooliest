@@ -473,6 +473,10 @@ function getRenderableResumeSections(sections, state) {
   ];
 }
 
+function normalizeResumeBulletText(line) {
+  return String(line || '').trim().replace(/^(?:[\u2022-]\s*)+/, '').trim();
+}
+
 function renderFormattedPreview(resumeText) {
   const container = document.getElementById('rb-preview-pane');
   if (!container) return;
@@ -509,7 +513,7 @@ function renderFormattedPreview(resumeText) {
     for (const line of section.lines) {
       if (isResumeDividerLine(line)) continue;
       if (line.startsWith('\u2022') || line.startsWith('-')) {
-        const text = line.replace(/^[\u2022-]\s*/, '');
+        const text = normalizeResumeBulletText(line);
         html += `<p class="rb-resume-bullet">\u2022 ${escapeHtml(text)}</p>`;
       } else {
         html += `<p class="rb-resume-line">${escapeHtml(line)}</p>`;
@@ -921,9 +925,9 @@ function createDocxSectionHeader(title) {
 }
 
 function createDocxBullet(text) {
-  return createDocxParagraph(`\u2022 ${text}`, {
+  return createDocxParagraph(`\u2022 ${normalizeResumeBulletText(text)}`, {
     size: 22,
-    indent: { left: 360, hanging: 360 },
+    indent: { left: 432, hanging: 216 },
   });
 }
 
@@ -954,81 +958,21 @@ function buildDocxChildren(state) {
     children.push(createDocxParagraph(contact, { size: 20, align: 'center', after: 240 }));
   }
 
-  if (String(state.summary || '').trim()) {
-    children.push(createDocxSectionHeader('Professional Summary'));
-    children.push(createDocxParagraph(state.summary.trim()));
-  }
-
-  const experiences = (state.experiences || []).filter((experience) => [
-    experience.jobTitle,
-    experience.company,
-    experience.duration,
-    experience.achievement1,
-    experience.achievement2,
-    experience.achievement3,
-  ].some((value) => String(value || '').trim()));
-  if (experiences.length) {
-    children.push(createDocxSectionHeader('Work Experience'));
-    experiences.forEach((experience) => {
-      const meta = [experience.company, experience.duration].filter(Boolean).join(' | ');
-      children.push(createDocxMixedLine([
-        { text: experience.jobTitle || 'Role', bold: true },
-        { text: meta ? ` - ${meta}` : '' },
-      ]));
-      [experience.achievement1, experience.achievement2, experience.achievement3]
-        .filter((item) => String(item || '').trim())
-        .forEach((item) => children.push(createDocxBullet(item.trim())));
+  const parsed = parseResumeText(state.generatedResume || '');
+  const sections = getRenderableResumeSections(parsed.sections, state);
+  sections.forEach((section) => {
+    const lines = (section.lines || []).filter((line) => String(line || '').trim() && !isResumeDividerLine(line));
+    if (!lines.length) return;
+    children.push(createDocxSectionHeader(section.title));
+    lines.forEach((line) => {
+      const trimmed = String(line || '').trim();
+      if (trimmed.startsWith('\u2022') || trimmed.startsWith('-')) {
+        children.push(createDocxBullet(trimmed));
+        return;
+      }
+      children.push(createDocxParagraph(trimmed));
     });
-  }
-
-  const projects = getFilledProjects(state);
-  if (projects.length) {
-    children.push(createDocxSectionHeader('Projects'));
-    projects.forEach((project) => {
-      children.push(createDocxMixedLine([
-        { text: project.name || 'Project', bold: true },
-        { text: project.link ? ` - ${project.link}` : '' },
-      ]));
-      if (String(project.technologies || '').trim()) {
-        children.push(createDocxParagraph(`Technologies: ${project.technologies}`));
-      }
-      if (String(project.description || '').trim()) {
-        children.push(createDocxBullet(project.description.trim()));
-      }
-    });
-  }
-
-  const educations = getFilledEducations(state);
-  if (educations.length) {
-    children.push(createDocxSectionHeader('Education'));
-    educations.forEach((education) => {
-      const meta = [
-        education.year,
-        education.gpa ? `GPA: ${education.gpa}` : '',
-      ].filter(Boolean).join(' | ');
-      children.push(createDocxMixedLine([
-        { text: education.degree || 'Education', bold: true },
-        { text: meta ? ` - ${meta}` : '' },
-      ]));
-      if (String(education.institution || '').trim()) {
-        children.push(createDocxParagraph(education.institution, { italic: true }));
-      }
-      if (String(education.courses || '').trim()) {
-        children.push(createDocxParagraph(`Relevant courses: ${education.courses}`));
-      }
-    });
-  }
-
-  if (String(state.skills || '').trim()) {
-    children.push(createDocxSectionHeader('Skills'));
-    children.push(createDocxParagraph(state.skills.trim()));
-  }
-
-  const certifications = (state.certifications || []).filter((certification) => String(certification || '').trim());
-  if (certifications.length) {
-    children.push(createDocxSectionHeader('Certifications'));
-    certifications.forEach((certification) => children.push(createDocxBullet(certification.trim())));
-  }
+  });
 
   return children;
 }
