@@ -127,17 +127,17 @@ No markdown fences, no commentary, just the raw JSON array.`;
 
 const IMPROVE_SKILLS_PROMPT = `You are an expert resume writer and recruiter. You will receive a
 target job role and a comma-separated list of skills. Your job is to:
-- Organize the skills into logical groups (Technical Skills,
-  Soft Skills, Tools & Platforms, etc.) if there are 8+ skills
-- If fewer than 8 skills, return them as a single improved list
+- Return a clean, ATS-friendly, comma-separated skills list
+- Keep only skills that are already present or clearly implied by the user's input
 - Remove vague or weak entries (e.g., "good communicator", "team player"
   as standalone skills - these belong in the summary)
-- Add no more than 3 highly relevant skills the user likely has
-  given their role, clearly marked with [?] so the user can verify
+- Do NOT add guessed skills, placeholders, brackets, [?] markers, or verification notes
+- Merge duplicates and near-duplicates
+- Put the strongest target-role keywords first
 - Use industry-standard terminology and casing (e.g., "JavaScript"
   not "javascript", "REST API" not "rest api")
-- Return ONLY the improved skills text (comma-separated or grouped),
-  no labels, no commentary, no markdown`;
+- Use comma separators only; do not use semicolons, bullets, headings, or grouped labels
+- Return ONLY the improved skills text, no commentary, no markdown`;
 
 function qs(root, selector) {
   return root.querySelector(selector);
@@ -171,6 +171,28 @@ function parseCommaList(value) {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function normalizeSkillsText(value) {
+  const seen = new Set();
+  return String(value || '')
+    .replace(/```(?:text)?|```/gi, '')
+    .replace(/\[\?\]/g, '')
+    .replace(/\[(?:verify|verification needed|suggested)\]/gi, '')
+    .replace(/\b(?:Technical Skills|Soft Skills|Tools & Platforms|Tools|Platforms|Programming Languages|Data Skills)\s*:/gi, '')
+    .split(/[,;\n]+/)
+    .map((item) => item
+      .replace(/^\s*(?:[-*]|\u2022)\s*/, '')
+      .replace(/\s+/g, ' ')
+      .trim())
+    .filter((item) => {
+      if (!item) return false;
+      const key = item.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .join(', ');
 }
 
 function createSpinner(label) {
@@ -1659,7 +1681,13 @@ export async function initResumeBuilderTool(container) {
 
   function updateCreditsDisplay() {
     if (!creditsBar || !creditsRemaining || !creditsLabel) return;
-    const remaining = getRemaining(TOOL_KEY);
+    let remaining = 15;
+    try {
+      remaining = getRemaining(TOOL_KEY);
+    } catch (error) {
+      console.warn('[Resume Builder] Could not read AI credits:', error);
+    }
+    if (!Number.isFinite(remaining)) remaining = 15;
     creditsBar.classList.toggle('rb-credits-bar--empty', remaining === 0);
     creditsBar.classList.toggle('rb-credits-bar--low', remaining > 0 && remaining <= 3);
 
@@ -2274,14 +2302,14 @@ export async function initResumeBuilderTool(container) {
         maxTokens: 300,
         temperature: 0.3,
       });
-      const improved = getAIResultText(result);
+      const improved = normalizeSkillsText(getAIResultText(result));
       if (!improved) throw new Error('The AI returned an empty skills response.');
 
       if (input) input.value = improved;
       state.skills = improved;
       renderBuilderDerivedViews();
       debouncedSave();
-      showToast(toastStack, 'Skills optimized! Review the suggestions - items marked [?] need your verification.', 'info');
+      showToast(toastStack, 'Skills optimized! Review the cleaned keyword list above.', 'success');
     } catch (error) {
       console.error('[Resume Builder] Skills improvement failed:', error);
       showToast(toastStack, 'Improvement failed. Check your AI credits or try again.', 'error');
@@ -2568,6 +2596,8 @@ export async function initResumeBuilderTool(container) {
   setStep(1);
   syncExportButtons();
   updateQuotaUi();
+  window.requestAnimationFrame(updateQuotaUi);
+  window.setTimeout(updateQuotaUi, 250);
   if (wasRestored) {
     window.setTimeout(() => {
       showToast(toastStack, 'Draft restored - your previous work has been loaded.', 'info');
