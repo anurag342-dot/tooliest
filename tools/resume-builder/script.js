@@ -368,6 +368,38 @@ function isResumeDividerLine(line) {
     && /^[-_=\u2010\u2011\u2012\u2013\u2014\u2015\u2212\u2500\u2501\u2550]+$/.test(compact);
 }
 
+const RESUME_SECTION_TITLES = new Map([
+  ['SUMMARY', 'PROFESSIONAL SUMMARY'],
+  ['OBJECTIVE', 'PROFESSIONAL SUMMARY'],
+  ['PROFILE', 'PROFESSIONAL SUMMARY'],
+  ['PROFESSIONAL PROFILE', 'PROFESSIONAL SUMMARY'],
+  ['PROFESSIONAL SUMMARY', 'PROFESSIONAL SUMMARY'],
+  ['EXPERIENCE', 'WORK EXPERIENCE'],
+  ['WORK EXPERIENCE', 'WORK EXPERIENCE'],
+  ['PROFESSIONAL EXPERIENCE', 'WORK EXPERIENCE'],
+  ['EMPLOYMENT HISTORY', 'WORK EXPERIENCE'],
+  ['PROJECTS', 'PROJECTS'],
+  ['ADDITIONAL PROJECTS', 'ADDITIONAL PROJECTS'],
+  ['EDUCATION', 'EDUCATION'],
+  ['RELEVANT COURSES', 'RELEVANT COURSES'],
+  ['SKILLS', 'SKILLS'],
+  ['TECHNICAL SKILLS', 'SKILLS'],
+  ['CERTIFICATIONS', 'CERTIFICATIONS'],
+  ['CERTIFICATES', 'CERTIFICATIONS'],
+  ['ADDITIONAL EXPERIENCE', 'ADDITIONAL EXPERIENCE'],
+  ['PROFESSIONAL AFFILIATIONS', 'PROFESSIONAL AFFILIATIONS'],
+  ['INTERESTS', 'INTERESTS'],
+]);
+
+function getResumeSectionTitle(line) {
+  const normalized = String(line || '')
+    .trim()
+    .replace(/:$/, '')
+    .replace(/\s+/g, ' ')
+    .toUpperCase();
+  return RESUME_SECTION_TITLES.get(normalized) || null;
+}
+
 function parseResumeText(resumeText) {
   const lines = resumeText.split('\n').map((line) => line.trimEnd());
   const sections = [];
@@ -377,14 +409,12 @@ function parseResumeText(resumeText) {
 
   for (let i = 0; i < lines.length; i += 1) {
     const trimmed = lines[i].trim();
-    const looksLikeSection = trimmed.length > 2
-      && trimmed === trimmed.toUpperCase()
-      && !isResumeDividerLine(trimmed);
+    const sectionTitle = getResumeSectionTitle(trimmed);
 
     if (!headerParsed) {
-      if (looksLikeSection && i > 1) {
+      if (sectionTitle && i > 1) {
         headerParsed = true;
-        currentSection = { title: trimmed, lines: [] };
+        currentSection = { title: sectionTitle, lines: [] };
         sections.push(currentSection);
       } else if (trimmed && !isResumeDividerLine(trimmed)) {
         headerLines.push(trimmed);
@@ -392,8 +422,8 @@ function parseResumeText(resumeText) {
       continue;
     }
 
-    if (looksLikeSection) {
-      currentSection = { title: trimmed, lines: [] };
+    if (sectionTitle) {
+      currentSection = { title: sectionTitle, lines: [] };
       sections.push(currentSection);
     } else if (currentSection && trimmed && !isResumeDividerLine(trimmed)) {
       currentSection.lines.push(trimmed);
@@ -424,12 +454,7 @@ function normalizeGeneratedResumeIdentity(resumeText, state) {
 
   const lines = String(resumeText).split('\n');
   const isDivider = isResumeDividerLine;
-  const isKnownSectionTitle = (line) => /^(SUMMARY|OBJECTIVE|PROFILE|PROFESSIONAL SUMMARY|EDUCATION|RELEVANT COURSES|SKILLS|CERTIFICATIONS|EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|PROJECTS|ADDITIONAL PROJECTS|ADDITIONAL EXPERIENCE|PROFESSIONAL AFFILIATIONS|INTERESTS)$/i
-    .test(String(line || '').trim());
-  const isSectionHeader = (line) => {
-    const trimmed = String(line || '').trim();
-    return trimmed.length > 2 && trimmed === trimmed.toUpperCase() && !isDivider(trimmed);
-  };
+  const isKnownSectionTitle = (line) => Boolean(getResumeSectionTitle(line));
   const firstContentIndex = lines.findIndex((line) => String(line || '').trim() && !isDivider(line));
 
   if (firstContentIndex === -1) {
@@ -451,7 +476,7 @@ function normalizeGeneratedResumeIdentity(resumeText, state) {
       break;
     }
 
-    if (secondContentIndex === -1 || isSectionHeader(lines[secondContentIndex])) {
+    if (secondContentIndex === -1 || isKnownSectionTitle(lines[secondContentIndex])) {
       lines.splice(firstContentIndex + 1, 0, contact);
     } else {
       lines[secondContentIndex] = contact;
