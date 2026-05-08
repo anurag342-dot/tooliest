@@ -178,6 +178,12 @@
         <div class="resume-progress-step" data-step-dot="5"><span>5</span><small>Review</small></div>
       </div>
 
+      <div class="rb-credits-bar" id="rb-credits-bar" aria-live="polite">
+        <span class="rb-credits-bar__icon" aria-hidden="true">&#9889;</span>
+        <span id="rb-credits-remaining">--</span>
+        <span class="rb-credits-bar__label"> AI credits remaining today</span>
+      </div>
+
       <div class="resume-step-panels">
         <section class="resume-step-panel is-active" data-step-panel="1">
           <div class="resume-form-grid two-col">
@@ -213,6 +219,18 @@
               rows="4"
               aria-label="Professional summary"
               placeholder="Add a short 2-3 sentence professional profile. Leave blank if you want AI to draft it."></textarea>
+            <div class="rb-section-ai-actions">
+              <button
+                type="button"
+                id="rb-btn-improve-summary"
+                class="rb-improve-btn"
+                aria-label="Improve summary with AI">
+                <span class="rb-improve-btn__icon" aria-hidden="true">&#10022;</span>
+                <span class="rb-improve-btn__label">Improve with AI</span>
+                <span class="rb-improve-btn__spinner" aria-hidden="true" hidden></span>
+              </button>
+              <span class="rb-improve-btn__hint">Uses 1 AI credit</span>
+            </div>
           </div>
         </section>
 
@@ -234,6 +252,18 @@
           <div class="resume-field">
             <label for="rb-skills">Skills and keywords (comma-separated)</label>
             <textarea id="rb-skills" rows="5" aria-label="Skills and keywords"></textarea>
+            <div class="rb-section-ai-actions">
+              <button
+                type="button"
+                id="rb-btn-improve-skills"
+                class="rb-improve-btn"
+                aria-label="Optimize skills with AI">
+                <span class="rb-improve-btn__icon" aria-hidden="true">&#10022;</span>
+                <span class="rb-improve-btn__label">Optimize Skills</span>
+                <span class="rb-improve-btn__spinner" aria-hidden="true" hidden></span>
+              </button>
+              <span class="rb-improve-btn__hint">Uses 1 AI credit</span>
+            </div>
             <div class="resume-pill-preview" id="rb-skill-pills"></div>
           </div>
           <div class="resume-field">

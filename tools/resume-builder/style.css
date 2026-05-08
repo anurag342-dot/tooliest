@@ -1139,3 +1139,110 @@
 #rb-btn-clear-draft:hover {
   color: var(--color-text-primary, rgba(226, 232, 240, 0.85));
 }
+
+/* AI improve buttons */
+.rb-section-ai-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rb-section-ai-actions--card {
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.07));
+}
+
+.rb-improve-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.15));
+  background: transparent;
+  color: var(--color-text-secondary, rgba(226, 232, 240, 0.75));
+  transition: border-color 0.18s, color 0.18s, background 0.18s, opacity 0.18s;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.rb-improve-btn:hover:not(:disabled) {
+  border-color: #818cf8;
+  color: #a5b4fc;
+  background: rgba(129, 140, 248, 0.08);
+}
+
+.rb-improve-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.rb-improve-btn:disabled,
+.rb-improve-btn--loading {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.rb-improve-btn__icon {
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+.rb-improve-btn__spinner {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: rb-spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+.rb-improve-btn__hint {
+  font-size: 0.68rem;
+  color: var(--color-text-secondary, rgba(226, 232, 240, 0.38));
+  white-space: nowrap;
+}
+
+/* Credits bar */
+.rb-credits-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.73rem;
+  color: var(--color-text-secondary, rgba(226, 232, 240, 0.5));
+  margin-bottom: 0.9rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  user-select: none;
+}
+
+.rb-credits-bar__icon {
+  font-size: 0.78rem;
+}
+
+.rb-credits-bar--low {
+  color: #fb923c;
+  border-color: rgba(251, 146, 60, 0.2);
+  background: rgba(251, 146, 60, 0.05);
+}
+
+.rb-credits-bar--empty {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+  background: rgba(248, 113, 113, 0.05);
+}
+
+.rb-credits-bar--empty ~ * .rb-improve-btn,
+.rb-credits-bar--empty ~ .rb-improve-btn {
+  /* Disabled through updateCreditsDisplay() so dynamic cards stay in sync. */
+}

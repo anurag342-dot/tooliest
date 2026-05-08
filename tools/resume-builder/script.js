@@ -1,4 +1,9 @@
-import { callAI, renderQuota, getQuotaButtonLabel } from '../_shared/rateLimit.js';
+import {
+  callAI,
+  renderQuota,
+  getQuotaButtonLabel,
+  getRemaining,
+} from '../_shared/rateLimit.js';
 
 const TOOL_KEY = 'resume-builder';
 const ATS_STATUS_MESSAGES = [
@@ -91,6 +96,49 @@ Format rules:
 - ATS-safe formatting: no tables, no columns, no graphics references
 Output ONLY the resume text. No explanations, no commentary.`;
 
+// Per-section improvement prompts
+const IMPROVE_SUMMARY_PROMPT = `You are an expert resume writer. Rewrite the provided Professional
+Summary to be more compelling, concise, and tailored to the target
+role. Rules:
+- Length: exactly 2-3 sentences, no more
+- Start with a strong professional identity statement
+- Include the target role/title naturally
+- Mention the most relevant skills or experience level
+- Use active, confident language - no passive voice
+- Do NOT invent credentials, years of experience, or companies
+- Do NOT add placeholders or brackets
+- Return ONLY the improved summary text, no labels, no commentary`;
+
+const IMPROVE_BULLETS_PROMPT = `You are an expert resume writer specializing in achievement-based
+bullet points. You will receive a job title, company name, and up
+to 3 existing bullet points. Rewrite each bullet to:
+- Start with a powerful action verb (Led, Built, Increased, Reduced,
+  Designed, Launched, Managed, Delivered, Optimized, Implemented,
+  Streamlined, Developed, Coordinated, Automated, Negotiated)
+- Be concise: maximum 20 words per bullet
+- Follow the CAR format where possible: Context -> Action -> Result
+- If a metric exists in the original bullet, preserve it exactly
+- If no metric exists, insert [ADD YOUR METRIC] as a placeholder
+- Do NOT invent companies, projects, tools, or technologies
+- Do NOT add bullets beyond the ones provided
+Return ONLY a JSON array of strings, one improved bullet per element.
+Example: ["Led migration of...", "Reduced costs by..."]
+No markdown fences, no commentary, just the raw JSON array.`;
+
+const IMPROVE_SKILLS_PROMPT = `You are an expert resume writer and recruiter. You will receive a
+target job role and a comma-separated list of skills. Your job is to:
+- Organize the skills into logical groups (Technical Skills,
+  Soft Skills, Tools & Platforms, etc.) if there are 8+ skills
+- If fewer than 8 skills, return them as a single improved list
+- Remove vague or weak entries (e.g., "good communicator", "team player"
+  as standalone skills - these belong in the summary)
+- Add no more than 3 highly relevant skills the user likely has
+  given their role, clearly marked with [?] so the user can verify
+- Use industry-standard terminology and casing (e.g., "JavaScript"
+  not "javascript", "REST API" not "rest api")
+- Return ONLY the improved skills text (comma-separated or grouped),
+  no labels, no commentary, no markdown`;
+
 function qs(root, selector) {
   return root.querySelector(selector);
 }
@@ -145,6 +193,60 @@ function setButtonLoading(button, isLoading, idleLabel, loadingLabel) {
     return;
   }
   button.textContent = idleLabel;
+}
+
+function setImproveBtnLoading(btn, isLoading) {
+  if (!btn) return;
+  const label = btn.querySelector('.rb-improve-btn__label');
+  const spinner = btn.querySelector('.rb-improve-btn__spinner');
+  if (isLoading) {
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    btn.classList.add('rb-improve-btn--loading');
+    if (label) label.textContent = 'Improving...';
+    if (spinner) spinner.hidden = false;
+  } else {
+    btn.disabled = false;
+    btn.setAttribute('aria-busy', 'false');
+    btn.classList.remove('rb-improve-btn--loading');
+    if (label) {
+      label.textContent = btn.dataset.originalLabel || 'Improve with AI';
+    }
+    if (spinner) spinner.hidden = true;
+  }
+}
+
+function cacheImproveButtonLabel(btn, fallback = 'Improve with AI') {
+  if (!btn) return;
+  if (!btn.dataset.originalLabel) {
+    btn.dataset.originalLabel = btn.querySelector('.rb-improve-btn__label')?.textContent || fallback;
+  }
+}
+
+function getAIResultText(result) {
+  return String(result?.content || result?.text || '').trim();
+}
+
+function parseImprovedBulletResponse(text) {
+  const cleaned = String(text || '').replace(/```(?:json)?|```/gi, '').trim();
+  if (!cleaned) return [];
+
+  try {
+    const parsed = JSON.parse(cleaned);
+    if (Array.isArray(parsed)) {
+      return parsed.map((item) => String(item || '').trim()).filter(Boolean);
+    }
+  } catch (_) {
+    // Fall back to line parsing below.
+  }
+
+  return cleaned
+    .split(/\r?\n/)
+    .map((line) => line
+      .replace(/^\s*(?:\d+[.)]|[-*]|\u2022)\s*/, '')
+      .replace(/^["']|["']$/g, '')
+      .trim())
+    .filter(Boolean);
 }
 
 function showToast(stack, message, type = 'error') {
@@ -1501,6 +1603,12 @@ export async function initResumeBuilderTool(container) {
   const docxButton = qs(root, '#rb-btn-download-docx');
   const printButton = qs(root, '#rb-btn-print');
   const clearDraftButton = qs(root, '#rb-btn-clear-draft');
+  const improveSummaryButton = qs(root, '#rb-btn-improve-summary');
+  const improveSkillsButton = qs(root, '#rb-btn-improve-skills');
+  const experienceContainer = qs(root, '#rb-experience-list');
+  const creditsBar = qs(root, '#rb-credits-bar');
+  const creditsRemaining = qs(root, '#rb-credits-remaining');
+  const creditsLabel = qs(root, '.rb-credits-bar__label');
 
   const state = {
     currentStep: 1,
@@ -1549,11 +1657,33 @@ export async function initResumeBuilderTool(container) {
     setResumeExportReady(hasResume);
   }
 
+  function updateCreditsDisplay() {
+    if (!creditsBar || !creditsRemaining || !creditsLabel) return;
+    const remaining = getRemaining(TOOL_KEY);
+    creditsBar.classList.toggle('rb-credits-bar--empty', remaining === 0);
+    creditsBar.classList.toggle('rb-credits-bar--low', remaining > 0 && remaining <= 3);
+
+    if (remaining === 0) {
+      creditsRemaining.textContent = '0';
+      creditsLabel.textContent = ' - AI features paused until tomorrow';
+    } else {
+      creditsRemaining.textContent = String(remaining);
+      creditsLabel.textContent = ' AI credits remaining today';
+    }
+
+    root.querySelectorAll('.rb-improve-btn').forEach((button) => {
+      if (button.classList.contains('rb-improve-btn--loading')) return;
+      button.disabled = remaining === 0;
+      button.setAttribute('aria-disabled', String(remaining === 0));
+    });
+  }
+
   function updateQuotaUi() {
     renderQuota(TOOL_KEY, atsQuotaMount);
     renderQuota(TOOL_KEY, builderQuotaMount);
     atsButton.textContent = getQuotaButtonLabel(atsBaseLabel, TOOL_KEY);
     generateButton.textContent = `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`;
+    updateCreditsDisplay();
   }
 
   function renderPillPreview(containerNode, values) {
@@ -1716,7 +1846,8 @@ export async function initResumeBuilderTool(container) {
     const mount = qs(root, '#rb-experience-list');
     clearNode(mount);
     state.experiences.forEach((experience, index) => {
-      const card = createNode('div', 'resume-subcard');
+      const card = createNode('div', 'resume-subcard rb-experience-card');
+      card.dataset.experienceIndex = String(index);
       const head = createNode('div', 'resume-subcard-head');
       const title = createNode('strong', '', `Experience ${index + 1}`);
       const remove = createNode('button', 'resume-remove-btn', 'Remove');
@@ -1744,6 +1875,7 @@ export async function initResumeBuilderTool(container) {
         const input = document.createElement('input');
         input.type = 'text';
         input.value = experience[key];
+        input.dataset.experienceField = key;
         input.setAttribute('aria-label', `${labelText} for experience ${index + 1}`);
         input.addEventListener('input', () => {
           experience[key] = input.value;
@@ -1761,6 +1893,7 @@ export async function initResumeBuilderTool(container) {
         const input = document.createElement('textarea');
         input.rows = 2;
         input.value = experience[key];
+        input.dataset.experienceField = key;
         input.setAttribute('aria-label', `Key achievement ${achievementIndex + 1} for experience ${index + 1}`);
         input.addEventListener('input', () => {
           experience[key] = input.value;
@@ -1771,8 +1904,21 @@ export async function initResumeBuilderTool(container) {
         card.appendChild(field);
       });
 
+      const improveActions = createNode('div', 'rb-section-ai-actions rb-section-ai-actions--card');
+      const improveButton = createNode('button', 'rb-improve-btn rb-improve-bullets-btn');
+      improveButton.type = 'button';
+      improveButton.dataset.experienceIndex = String(index);
+      improveButton.setAttribute('aria-label', 'Improve bullet points with AI');
+      improveButton.innerHTML = `
+        <span class="rb-improve-btn__icon" aria-hidden="true">&#10022;</span>
+        <span class="rb-improve-btn__label">Improve Bullets</span>
+        <span class="rb-improve-btn__spinner" aria-hidden="true" hidden></span>`;
+      improveActions.append(improveButton, createNode('span', 'rb-improve-btn__hint', 'Uses 1 AI credit'));
+      card.appendChild(improveActions);
+
       mount.appendChild(card);
     });
+    updateCreditsDisplay();
   }
 
   function renderEducationList() {
@@ -1991,6 +2137,158 @@ export async function initResumeBuilderTool(container) {
     }
     setBanner(builderBanner);
     return true;
+  }
+
+  function getTargetRoleValue() {
+    const targetInput = qs(root, '#rb-target-role');
+    const targetRole = String(targetInput?.value || state.targetRole || '').trim();
+    state.targetRole = targetRole;
+    return targetRole || 'General professional role';
+  }
+
+  function readExperienceCardField(card, key, fallback = '') {
+    return String(card?.querySelector(`[data-experience-field="${key}"]`)?.value ?? fallback ?? '').trim();
+  }
+
+  function writeExperienceCardField(card, key, value) {
+    const input = card?.querySelector(`[data-experience-field="${key}"]`);
+    if (input) input.value = value || '';
+  }
+
+  async function improveSummaryWithAI() {
+    const input = qs(root, '#rb-summary');
+    const currentSummary = String(input?.value || state.summary || '').trim();
+
+    if (currentSummary.length < 10) {
+      showToast(toastStack, 'Please write a basic summary first, then AI can improve it.', 'info');
+      return;
+    }
+
+    const btn = improveSummaryButton;
+    cacheImproveButtonLabel(btn, 'Improve with AI');
+    setImproveBtnLoading(btn, true);
+
+    try {
+      const result = await callAI({
+        tool: TOOL_KEY,
+        systemPrompt: IMPROVE_SUMMARY_PROMPT,
+        userContent: `Target Role: ${getTargetRoleValue()}\n\nCurrent Summary:\n${currentSummary}`,
+        maxTokens: 350,
+        temperature: 0.4,
+      });
+      const improved = getAIResultText(result);
+      if (!improved) throw new Error('The AI returned an empty summary.');
+
+      if (input) input.value = improved;
+      state.summary = improved;
+      renderBuilderDerivedViews();
+      debouncedSave();
+      showToast(toastStack, 'Summary improved! Review the changes above.', 'success');
+    } catch (error) {
+      console.error('[Resume Builder] Summary improvement failed:', error);
+      showToast(toastStack, 'Improvement failed. Check your AI credits or try again.', 'error');
+    } finally {
+      setImproveBtnLoading(btn, false);
+      updateQuotaUi();
+    }
+  }
+
+  async function improveExperienceBulletsWithAI(experienceIndex, triggerButton = null) {
+    const experience = state.experiences[experienceIndex];
+    if (!experience) return;
+
+    const card = experienceContainer?.querySelector(`[data-experience-index="${experienceIndex}"]`);
+    const bullets = ['achievement1', 'achievement2', 'achievement3']
+      .map((key) => readExperienceCardField(card, key, experience[key]))
+      .filter(Boolean);
+    const totalWords = bullets.join(' ').split(/\s+/).filter(Boolean).length;
+
+    if (!bullets.length || totalWords < 3) {
+      showToast(toastStack, 'Add at least one achievement first, then AI can improve it.', 'info');
+      return;
+    }
+
+    const jobTitle = readExperienceCardField(card, 'jobTitle', experience.jobTitle);
+    const company = readExperienceCardField(card, 'company', experience.company);
+    const duration = readExperienceCardField(card, 'duration', experience.duration);
+    experience.jobTitle = jobTitle;
+    experience.company = company;
+    experience.duration = duration;
+
+    const btn = triggerButton || card?.querySelector('.rb-improve-bullets-btn');
+    cacheImproveButtonLabel(btn, 'Improve Bullets');
+    setImproveBtnLoading(btn, true);
+
+    try {
+      const result = await callAI({
+        tool: TOOL_KEY,
+        systemPrompt: IMPROVE_BULLETS_PROMPT,
+        userContent: `Job Title: ${jobTitle}\nCompany: ${company}\n\nCurrent Bullets:\n${bullets.map((bullet, index) => `${index + 1}. ${bullet}`).join('\n')}`,
+        maxTokens: 400,
+        temperature: 0.35,
+      });
+      const improvedBullets = parseImprovedBulletResponse(getAIResultText(result)).slice(0, 3);
+      if (!improvedBullets.length) throw new Error('The AI returned no usable bullets.');
+
+      const currentExperience = state.experiences[experienceIndex];
+      const currentCard = experienceContainer?.querySelector(`[data-experience-index="${experienceIndex}"]`);
+      if (currentExperience !== experience || !currentCard) {
+        throw new Error('This experience changed before the AI response completed.');
+      }
+
+      ['achievement1', 'achievement2', 'achievement3'].forEach((key, index) => {
+        const value = improvedBullets[index] || '';
+        writeExperienceCardField(currentCard, key, value);
+        experience[key] = value;
+      });
+      renderBuilderDerivedViews();
+      debouncedSave();
+      showToast(toastStack, 'Bullets improved! Review the changes above.', 'success');
+    } catch (error) {
+      console.error('[Resume Builder] Bullet improvement failed:', error);
+      showToast(toastStack, 'Improvement failed. Check your AI credits or try again.', 'error');
+    } finally {
+      setImproveBtnLoading(btn, false);
+      updateQuotaUi();
+    }
+  }
+
+  async function improveSkillsWithAI() {
+    const input = qs(root, '#rb-skills');
+    const currentSkills = String(input?.value || state.skills || '').trim();
+
+    if (currentSkills.length < 3) {
+      showToast(toastStack, 'Add some skills first, then AI can organize and enhance them.', 'info');
+      return;
+    }
+
+    const btn = improveSkillsButton;
+    cacheImproveButtonLabel(btn, 'Optimize Skills');
+    setImproveBtnLoading(btn, true);
+
+    try {
+      const result = await callAI({
+        tool: TOOL_KEY,
+        systemPrompt: IMPROVE_SKILLS_PROMPT,
+        userContent: `Target Role: ${getTargetRoleValue()}\n\nCurrent Skills:\n${currentSkills}`,
+        maxTokens: 300,
+        temperature: 0.3,
+      });
+      const improved = getAIResultText(result);
+      if (!improved) throw new Error('The AI returned an empty skills response.');
+
+      if (input) input.value = improved;
+      state.skills = improved;
+      renderBuilderDerivedViews();
+      debouncedSave();
+      showToast(toastStack, 'Skills optimized! Review the suggestions - items marked [?] need your verification.', 'info');
+    } catch (error) {
+      console.error('[Resume Builder] Skills improvement failed:', error);
+      showToast(toastStack, 'Improvement failed. Check your AI credits or try again.', 'error');
+    } finally {
+      setImproveBtnLoading(btn, false);
+      updateQuotaUi();
+    }
   }
 
   function renderAnalysisResults(report) {
@@ -2220,6 +2518,17 @@ export async function initResumeBuilderTool(container) {
 
   atsButton.addEventListener('click', runAtsAnalysis);
   generateButton.addEventListener('click', runResumeBuilder);
+  if (improveSummaryButton) improveSummaryButton.addEventListener('click', improveSummaryWithAI);
+  if (improveSkillsButton) improveSkillsButton.addEventListener('click', improveSkillsWithAI);
+  if (experienceContainer) {
+    experienceContainer.addEventListener('click', (event) => {
+      const btn = event.target.closest('.rb-improve-bullets-btn');
+      if (!btn || !experienceContainer.contains(btn)) return;
+      const index = Number.parseInt(btn.dataset.experienceIndex || '', 10);
+      if (!Number.isFinite(index)) return;
+      improveExperienceBulletsWithAI(index, btn);
+    });
+  }
   if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);
   if (docxButton) docxButton.addEventListener('click', downloadResumeDOCX);
   if (printButton) printButton.addEventListener('click', printResume);
