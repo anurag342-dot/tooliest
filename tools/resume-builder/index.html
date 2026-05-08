@@ -160,6 +160,7 @@
     data-panel="builder"
     hidden
   >
+    <div id="rb-autosave-indicator" class="rb-autosave-indicator" aria-live="polite"></div>
     <div class="resume-card">
       <div class="resume-card-head">
         <div>
@@ -293,7 +294,16 @@
               </div>
             </div>
             <div class="resume-preview-panel" id="rb-preview-panel">
-              <pre id="rb-preview-text"></pre>
+              <div
+                id="rb-preview-pane"
+                class="rb-preview-pane"
+                aria-label="Resume preview"
+                aria-live="polite">
+                <div class="rb-preview-empty">
+                  <div class="rb-preview-empty-icon" aria-hidden="true">&#128196;</div>
+                  <p>Your formatted resume will appear here after generation</p>
+                </div>
+              </div>
             </div>
             <div class="resume-action-row">
               <button type="button" class="btn btn-secondary" id="rb-copy" aria-label="Copy generated resume" disabled>&#128203; Copy as Text</button>

@@ -33,6 +33,8 @@ const SCORE_META = [
   { min: 41, label: 'Fair', color: '#f59e0b' },
   { min: 0, label: 'Needs Work', color: '#ef4444' },
 ];
+const STORAGE_KEY = 'tooliest_resume_draft_v1';
+const AUTOSAVE_DELAY = 1200;
 
 const ATS_SYSTEM_PROMPT = `You are an elite ATS (Applicant Tracking System) resume expert and HR consultant
 with 15 years of experience at Fortune 500 companies. Your task is to deeply
@@ -70,10 +72,10 @@ Format rules:
 - Contact info on second line, pipe-separated
 - Section headers in all caps on their own line, followed by a divider line of dashes
 - Bullet points use \u2022 character
-- Achievements must be quantified wherever possible (add realistic estimates if not given)
+- Achievements must be quantified wherever possible. If the user has not provided numbers, insert a [PLACEHOLDER — add your specific metric here] tag instead of fabricating numbers. Never invent percentages, dollar amounts, or statistics the user did not provide.
 - Tailor language to the target job title provided
 - Total length: 450-650 words for junior, 650-900 for senior
-- Use strong action verbs: spearheaded, architected, optimized, delivered, scaled, etc.
+- Use strong action verbs: Led, Built, Designed, Developed, Increased, Reduced, Managed, Launched, Delivered, Implemented, Optimized, Streamlined, Collaborated, Coordinated, Achieved
 - ATS-safe formatting: no tables, no columns, no graphics references
 Output ONLY the resume text. No explanations, no commentary.`;
 
@@ -195,6 +197,201 @@ async function copyText(text, toastRoot, successMessage) {
     fallback.remove();
   }
   showToast(toastRoot, successMessage, 'success');
+}
+
+// Persistence: Autosave & Restore
+function normalizeSavedExperience(experience = {}) {
+  const achievements = Array.isArray(experience.achievements) ? experience.achievements : [];
+  return {
+    jobTitle: String(experience.jobTitle ?? experience.title ?? ''),
+    company: String(experience.company ?? ''),
+    duration: String(experience.duration ?? ''),
+    achievement1: String(experience.achievement1 ?? achievements[0] ?? ''),
+    achievement2: String(experience.achievement2 ?? achievements[1] ?? ''),
+    achievement3: String(experience.achievement3 ?? achievements[2] ?? ''),
+  };
+}
+
+function serializeState(state) {
+  try {
+    return JSON.stringify({
+      version: 1,
+      savedAt: Date.now(),
+      state: {
+        personal: { ...state.personal },
+        targetRole: state.targetRole,
+        experiences: state.experiences.map(normalizeSavedExperience),
+        education: { ...state.education },
+        skills: state.skills,
+        certifications: [...state.certifications],
+      },
+    });
+  } catch (_) {
+    return null;
+  }
+}
+
+function saveToStorage(state) {
+  const serialized = serializeState(state);
+  if (!serialized) return;
+  try {
+    localStorage.setItem(STORAGE_KEY, serialized);
+    showSaveIndicator('saved');
+  } catch (error) {
+    // Autosave is a convenience layer; storage failures should never block the UI.
+    console.warn('Autosave failed:', error?.message || 'localStorage unavailable');
+    const indicator = document.getElementById('rb-autosave-indicator');
+    if (indicator) indicator.classList.remove('rb-autosave--visible');
+  }
+}
+
+function restoreFromStorage(state) {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!parsed || parsed.version !== 1 || !parsed.state) return false;
+
+    const saved = parsed.state;
+    if (saved.personal && typeof saved.personal === 'object') {
+      Object.assign(state.personal, saved.personal);
+    }
+    if (typeof saved.targetRole === 'string') {
+      state.targetRole = saved.targetRole;
+    } else if (typeof saved.targetJob === 'string') {
+      state.targetRole = saved.targetJob;
+    }
+    if (Array.isArray(saved.experiences) && saved.experiences.length > 0) {
+      state.experiences = saved.experiences.slice(0, 5).map(normalizeSavedExperience);
+    }
+    if (saved.education && typeof saved.education === 'object') {
+      Object.assign(state.education, saved.education);
+    }
+    if (typeof saved.skills === 'string') {
+      state.skills = saved.skills;
+    }
+    if (Array.isArray(saved.certifications)) {
+      state.certifications = saved.certifications.slice(0, 5).map((item) => String(item ?? ''));
+      if (!state.certifications.length) {
+        state.certifications = [createEmptyCertification()];
+      }
+    }
+
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function clearSavedDraft() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (_) {
+    // Ignore storage errors.
+  }
+}
+
+function showSaveIndicator(status) {
+  const indicator = document.getElementById('rb-autosave-indicator');
+  if (!indicator) return;
+  indicator.setAttribute('data-status', status);
+  const labels = {
+    saved: '\u2713 Draft saved',
+    saving: 'Saving...',
+    error: 'Save failed',
+  };
+  indicator.textContent = labels[status] || '';
+  indicator.classList.add('rb-autosave--visible');
+  if (status === 'saved') {
+    window.setTimeout(() => indicator.classList.remove('rb-autosave--visible'), 2800);
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function renderFormattedPreview(resumeText) {
+  const container = document.getElementById('rb-preview-pane');
+  if (!container) return;
+
+  if (!resumeText || !resumeText.trim()) {
+    container.innerHTML = `
+      <div class="rb-preview-empty">
+        <div class="rb-preview-empty-icon" aria-hidden="true">&#128196;</div>
+        <p>Your formatted resume will appear here after generation</p>
+      </div>`;
+    return;
+  }
+
+  const lines = resumeText.split('\n').map((line) => line.trimEnd());
+  const sections = [];
+  let currentSection = null;
+  const headerLines = [];
+  let headerParsed = false;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const trimmed = lines[i].trim();
+    const looksLikeSection = trimmed.length > 2
+      && trimmed === trimmed.toUpperCase()
+      && !/^[-\u2500\u2550=]{3,}$/.test(trimmed);
+
+    if (!headerParsed) {
+      if (looksLikeSection && i > 1) {
+        headerParsed = true;
+        currentSection = { title: trimmed, lines: [] };
+        sections.push(currentSection);
+      } else if (trimmed && !/^[-\u2500\u2550=]{3,}$/.test(trimmed)) {
+        headerLines.push(trimmed);
+      }
+      continue;
+    }
+
+    if (looksLikeSection) {
+      currentSection = { title: trimmed, lines: [] };
+      sections.push(currentSection);
+    } else if (currentSection && trimmed && !/^[-\u2500\u2550=]{3,}$/.test(trimmed)) {
+      currentSection.lines.push(trimmed);
+    }
+  }
+
+  const name = headerLines[0] || '';
+  const contact = headerLines.slice(1).filter(Boolean).join(' | ');
+  let html = '<div class="rb-resume-doc">';
+
+  html += `
+    <div class="rb-resume-header">
+      <h1 class="rb-resume-name">${escapeHtml(name)}</h1>
+      <p class="rb-resume-contact">${escapeHtml(contact)}</p>
+    </div>`;
+
+  for (const section of sections) {
+    html += `
+      <div class="rb-resume-section">
+        <h2 class="rb-resume-section-title">${escapeHtml(section.title)}</h2>
+        <div class="rb-resume-section-divider"></div>
+        <div class="rb-resume-section-body">`;
+
+    for (const line of section.lines) {
+      if (line.startsWith('\u2022') || line.startsWith('-')) {
+        const text = line.replace(/^[\u2022-]\s*/, '');
+        html += `<p class="rb-resume-bullet">\u2022 ${escapeHtml(text)}</p>`;
+      } else {
+        html += `<p class="rb-resume-line">${escapeHtml(line)}</p>`;
+      }
+    }
+
+    html += '</div></div>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
 }
 
 function parsePossiblyWrappedJson(text) {
@@ -604,7 +801,6 @@ export async function initResumeBuilderTool(container) {
   const builderLoading = qs(root, '#rb-loading');
   const builderStatus = qs(root, '#rb-status');
   const previewWrap = qs(root, '#rb-preview-wrap');
-  const previewText = qs(root, '#rb-preview-text');
   const previewCount = qs(root, '#rb-preview-count');
   const previewNote = qs(root, '#rb-ats-note');
   const generateButton = qs(root, '#rb-generate');
@@ -640,6 +836,11 @@ export async function initResumeBuilderTool(container) {
   const builderBaseLabel = 'Generate Resume';
   let atsBusy = false;
   let builderBusy = false;
+  const debouncedSave = debounce(() => {
+    showSaveIndicator('saving');
+    saveToStorage(state);
+  }, AUTOSAVE_DELAY);
+  const wasRestored = restoreFromStorage(state);
 
   function syncExportButtons() {
     const hasReport = Boolean(state.lastReport);
@@ -733,6 +934,31 @@ export async function initResumeBuilderTool(container) {
     renderReviewSummary();
   }
 
+  function populateFormFromState() {
+    [
+      ['#rb-name', state.personal.name],
+      ['#rb-email', state.personal.email],
+      ['#rb-phone', state.personal.phone],
+      ['#rb-linkedin', state.personal.linkedin],
+      ['#rb-location', state.personal.location],
+      ['#rb-portfolio', state.personal.portfolio],
+      ['#rb-degree', state.education.degree],
+      ['#rb-institution', state.education.institution],
+      ['#rb-year', state.education.year],
+      ['#rb-gpa', state.education.gpa],
+      ['#rb-courses', state.education.courses],
+      ['#rb-skills', state.skills],
+      ['#rb-target-role', state.targetRole],
+    ].forEach(([selector, value]) => {
+      const input = qs(root, selector);
+      if (input) input.value = value || '';
+    });
+
+    renderExperienceList();
+    renderCertificationList();
+    renderBuilderDerivedViews();
+  }
+
   function updateBuilderFieldBindings() {
     [
       ['#rb-name', ['personal', 'name']],
@@ -759,6 +985,7 @@ export async function initResumeBuilderTool(container) {
           state[path[0]][path[1]] = input.value;
         }
         renderBuilderDerivedViews();
+        debouncedSave();
       });
     });
   }
@@ -779,6 +1006,7 @@ export async function initResumeBuilderTool(container) {
         state.experiences.splice(index, 1);
         renderExperienceList();
         renderBuilderDerivedViews();
+        saveToStorage(state);
       });
       head.append(title, remove);
       card.appendChild(head);
@@ -798,6 +1026,7 @@ export async function initResumeBuilderTool(container) {
         input.addEventListener('input', () => {
           experience[key] = input.value;
           renderBuilderDerivedViews();
+          debouncedSave();
         });
         field.append(label, input);
         grid.appendChild(field);
@@ -814,6 +1043,7 @@ export async function initResumeBuilderTool(container) {
         input.addEventListener('input', () => {
           experience[key] = input.value;
           renderBuilderDerivedViews();
+          debouncedSave();
         });
         field.append(label, input);
         card.appendChild(field);
@@ -839,6 +1069,7 @@ export async function initResumeBuilderTool(container) {
         state.certifications.splice(index, 1);
         renderCertificationList();
         renderBuilderDerivedViews();
+        saveToStorage(state);
       });
       head.append(title, remove);
 
@@ -851,6 +1082,7 @@ export async function initResumeBuilderTool(container) {
       input.addEventListener('input', () => {
         state.certifications[index] = input.value;
         renderBuilderDerivedViews();
+        debouncedSave();
       });
       field.append(label, input);
 
@@ -1022,7 +1254,7 @@ export async function initResumeBuilderTool(container) {
       });
 
       state.generatedResume = result.text.trim();
-      previewText.textContent = state.generatedResume;
+      renderFormattedPreview(state.generatedResume);
       previewCount.textContent = `${state.generatedResume.length} chars`;
       previewNote.textContent = deriveResumeNote(state.generatedResume, state);
       previewWrap.classList.remove('hidden');
@@ -1057,6 +1289,7 @@ export async function initResumeBuilderTool(container) {
     state.experiences.push(createEmptyExperience());
     renderExperienceList();
     renderBuilderDerivedViews();
+    saveToStorage(state);
   });
 
   qs(root, '#rb-add-certification').addEventListener('click', () => {
@@ -1067,6 +1300,7 @@ export async function initResumeBuilderTool(container) {
     state.certifications.push(createEmptyCertification());
     renderCertificationList();
     renderBuilderDerivedViews();
+    saveToStorage(state);
   });
 
   qs(root, '#rb-prev').addEventListener('click', () => setStep(state.currentStep - 1));
@@ -1101,10 +1335,14 @@ export async function initResumeBuilderTool(container) {
   bindCounter(atsResume, atsResumeCount, 5000, atsWarn, 4500);
   bindCounter(atsJob, atsJobCount, 3000, null, 2500);
   updateBuilderFieldBindings();
-  renderExperienceList();
-  renderCertificationList();
-  renderBuilderDerivedViews();
+  populateFormFromState();
+  renderFormattedPreview(state.generatedResume);
   setStep(1);
   syncExportButtons();
   updateQuotaUi();
+  if (wasRestored) {
+    window.setTimeout(() => {
+      showToast(toastStack, 'Draft restored - your previous work has been loaded.', 'info');
+    }, 400);
+  }
 }
