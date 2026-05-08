@@ -35,6 +35,10 @@ const SCORE_META = [
 ];
 const STORAGE_KEY = 'tooliest_resume_draft_v1';
 const AUTOSAVE_DELAY = 1200;
+const JSPDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+let jsPDFLoaded = false;
+let resumeExportState = null;
+let resumeExportToastStack = null;
 
 const ATS_SYSTEM_PROMPT = `You are an elite ATS (Applicant Tracking System) resume expert and HR consultant
 with 15 years of experience at Fortune 500 companies. Your task is to deeply
@@ -73,6 +77,7 @@ Format rules:
 - Section headers in all caps on their own line, followed by a divider line of dashes
 - Bullet points use \u2022 character
 - Achievements must be quantified wherever possible. If the user has not provided numbers, insert a [PLACEHOLDER — add your specific metric here] tag instead of fabricating numbers. Never invent percentages, dollar amounts, or statistics the user did not provide.
+- If the user provides projects, include a PROJECTS section using only the provided project names, links, technologies, and details. Never invent project links, repositories, metrics, or outcomes.
 - Tailor language to the target job title provided
 - Total length: 450-650 words for junior, 650-900 for senior
 - Use strong action verbs: Led, Built, Designed, Developed, Increased, Reduced, Managed, Launched, Delivered, Implemented, Optimized, Streamlined, Collaborated, Coordinated, Achieved
@@ -212,6 +217,15 @@ function normalizeSavedExperience(experience = {}) {
   };
 }
 
+function normalizeSavedProject(project = {}) {
+  return {
+    name: String(project.name ?? project.title ?? ''),
+    link: String(project.link ?? project.url ?? ''),
+    technologies: String(project.technologies ?? project.tech ?? ''),
+    description: String(project.description ?? project.details ?? project.impact ?? ''),
+  };
+}
+
 function serializeState(state) {
   try {
     return JSON.stringify({
@@ -221,6 +235,7 @@ function serializeState(state) {
         personal: { ...state.personal },
         targetRole: state.targetRole,
         experiences: state.experiences.map(normalizeSavedExperience),
+        projects: (state.projects || []).map(normalizeSavedProject),
         education: { ...state.education },
         skills: state.skills,
         certifications: [...state.certifications],
@@ -263,6 +278,9 @@ function restoreFromStorage(state) {
     }
     if (Array.isArray(saved.experiences) && saved.experiences.length > 0) {
       state.experiences = saved.experiences.slice(0, 5).map(normalizeSavedExperience);
+    }
+    if (Array.isArray(saved.projects) && saved.projects.length > 0) {
+      state.projects = saved.projects.slice(0, 5).map(normalizeSavedProject);
     }
     if (saved.education && typeof saved.education === 'object') {
       Object.assign(state.education, saved.education);
@@ -317,19 +335,7 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-function renderFormattedPreview(resumeText) {
-  const container = document.getElementById('rb-preview-pane');
-  if (!container) return;
-
-  if (!resumeText || !resumeText.trim()) {
-    container.innerHTML = `
-      <div class="rb-preview-empty">
-        <div class="rb-preview-empty-icon" aria-hidden="true">&#128196;</div>
-        <p>Your formatted resume will appear here after generation</p>
-      </div>`;
-    return;
-  }
-
+function parseResumeText(resumeText) {
   const lines = resumeText.split('\n').map((line) => line.trimEnd());
   const sections = [];
   let currentSection = null;
@@ -363,6 +369,23 @@ function renderFormattedPreview(resumeText) {
 
   const name = headerLines[0] || '';
   const contact = headerLines.slice(1).filter(Boolean).join(' | ');
+  return { name, contact, sections };
+}
+
+function renderFormattedPreview(resumeText) {
+  const container = document.getElementById('rb-preview-pane');
+  if (!container) return;
+
+  if (!resumeText || !resumeText.trim()) {
+    container.innerHTML = `
+      <div class="rb-preview-empty">
+        <div class="rb-preview-empty-icon" aria-hidden="true">&#128196;</div>
+        <p>Your formatted resume will appear here after generation</p>
+      </div>`;
+    return;
+  }
+
+  const { name, contact, sections } = parseResumeText(resumeText);
   let html = '<div class="rb-resume-doc">';
 
   html += `
@@ -392,6 +415,186 @@ function renderFormattedPreview(resumeText) {
 
   html += '</div>';
   container.innerHTML = html;
+}
+
+// PDF Export
+function showExportToast(message, type = 'info') {
+  if (resumeExportToastStack) {
+    showToast(resumeExportToastStack, message, type);
+  }
+}
+
+function setResumeExportReady(isReady) {
+  const exportBar = document.getElementById('rb-export-bar');
+  const pdfBtn = document.getElementById('rb-btn-download-pdf');
+  const printBtn = document.getElementById('rb-btn-print');
+  if (exportBar) {
+    exportBar.toggleAttribute('hidden', !isReady);
+  }
+  if (pdfBtn) {
+    pdfBtn.disabled = !isReady;
+    pdfBtn.setAttribute('aria-disabled', String(!isReady));
+  }
+  if (printBtn) {
+    printBtn.disabled = !isReady;
+    printBtn.setAttribute('aria-disabled', String(!isReady));
+  }
+}
+
+async function loadJsPDF() {
+  if (jsPDFLoaded || window.jspdf) {
+    jsPDFLoaded = true;
+    return;
+  }
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = JSPDF_CDN;
+    script.async = true;
+    script.crossOrigin = 'anonymous';
+    script.onload = () => {
+      jsPDFLoaded = true;
+      resolve();
+    };
+    script.onerror = () => reject(new Error('jsPDF CDN load failed'));
+    document.head.appendChild(script);
+  });
+}
+
+async function downloadResumePDF() {
+  const state = resumeExportState;
+  const btn = document.getElementById('rb-btn-download-pdf');
+  if (!state?.generatedResume) {
+    showExportToast('Generate a resume before downloading the PDF.', 'error');
+    return;
+  }
+
+  if (btn) {
+    btn.classList.add('rb-export-btn--loading');
+    btn.setAttribute('aria-label', 'Generating PDF...');
+  }
+
+  try {
+    await loadJsPDF();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const marginX = 58;
+    const marginY = 58;
+    const contentW = pageW - (marginX * 2);
+    let y = marginY;
+
+    function checkPage(needed = 14) {
+      if (y + needed > pageH - marginY) {
+        doc.addPage();
+        y = marginY;
+      }
+    }
+
+    function writeText(str, {
+      size = 10,
+      style = 'normal',
+      align = 'left',
+      indent = 0,
+      leading = 1.38,
+      rgb = [0, 0, 0],
+    } = {}) {
+      if (!str || !String(str).trim()) return;
+      doc.setFont('times', style);
+      doc.setFontSize(size);
+      doc.setTextColor(...rgb);
+      const lines = doc.splitTextToSize(String(str).trim(), contentW - indent);
+      lines.forEach((line) => {
+        checkPage(size * leading);
+        const x = align === 'center' ? pageW / 2 : marginX + indent;
+        doc.text(line, x, y, align === 'center' ? { align: 'center' } : {});
+        y += size * leading;
+      });
+    }
+
+    function sectionHeader(title) {
+      y += 10;
+      checkPage(26);
+      doc.setFont('times', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      doc.text(String(title || '').toUpperCase(), marginX, y);
+      y += 5;
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.75);
+      doc.line(marginX, y, pageW - marginX, y);
+      y += 9;
+    }
+
+    const parsed = parseResumeText(state.generatedResume);
+    const name = parsed.name || state.personal?.name || 'Your Name';
+    const contact = parsed.contact || [
+      state.personal?.email,
+      state.personal?.phone,
+      state.personal?.location,
+      state.personal?.linkedin,
+      state.personal?.portfolio,
+    ].filter(Boolean).join('  |  ');
+
+    writeText(name.toUpperCase(), { size: 18, style: 'bold', align: 'center', leading: 1.2 });
+    y += 3;
+    writeText(contact, { size: 9.5, align: 'center', leading: 1.3 });
+    y += 10;
+
+    parsed.sections.forEach((section) => {
+      sectionHeader(section.title);
+      section.lines.forEach((line) => {
+        if (line.startsWith('\u2022') || line.startsWith('-')) {
+          const bullet = line.replace(/^[\u2022-]\s*/, '');
+          writeText(`\u2022  ${bullet}`, { size: 10, indent: 14, leading: 1.38 });
+          return;
+        }
+        writeText(line, { size: 10, leading: 1.38 });
+      });
+    });
+
+    const safeName = (state.personal?.name || 'resume')
+      .trim()
+      .replace(/[^a-zA-Z0-9\s_-]/g, '')
+      .replace(/\s+/g, '_')
+      .toLowerCase() || 'resume';
+    doc.save(`${safeName}_resume.pdf`);
+    showExportToast('PDF downloaded successfully!', 'success');
+  } catch (error) {
+    console.error('[PDF Export]', error);
+    showExportToast('PDF library failed to load. Use the Print button or check your internet connection.', 'error');
+  } finally {
+    if (btn) {
+      btn.classList.remove('rb-export-btn--loading');
+      btn.setAttribute('aria-label', 'Download resume as PDF');
+    }
+  }
+}
+
+function printResume() {
+  const state = resumeExportState;
+  if (!state?.generatedResume) {
+    showExportToast('Generate a resume before printing.', 'error');
+    return;
+  }
+
+  const originalTitle = document.title;
+  const safeName = (state.personal?.name || 'Resume').trim() || 'Resume';
+  let restored = false;
+  const restorePrintState = () => {
+    if (restored) return;
+    restored = true;
+    document.body.classList.remove('rb-printing');
+    document.title = originalTitle;
+  };
+
+  document.body.classList.add('rb-printing');
+  document.title = `${safeName} - Resume`;
+  window.addEventListener('afterprint', restorePrintState, { once: true });
+  window.setTimeout(() => {
+    window.print();
+    window.setTimeout(restorePrintState, 1000);
+  }, 50);
 }
 
 function parsePossiblyWrappedJson(text) {
@@ -663,9 +866,22 @@ function createEmptyCertification() {
   return '';
 }
 
+function createEmptyProject() {
+  return {
+    name: '',
+    link: '',
+    technologies: '',
+    description: '',
+  };
+}
+
 function formatExperienceBlock(experience) {
   const label = [experience.jobTitle, experience.company].filter(Boolean).join(' @ ');
   return label || 'Untitled experience';
+}
+
+function formatProjectBlock(project) {
+  return project.name || project.link || 'Untitled project';
 }
 
 function buildResumePrompt(state) {
@@ -695,6 +911,19 @@ function buildResumePrompt(state) {
     parts.push('');
   });
 
+  parts.push('PROJECTS:');
+  state.projects.forEach((project, index) => {
+    if (![project.name, project.link, project.technologies, project.description].some((value) => String(value || '').trim())) {
+      return;
+    }
+    parts.push(`Project ${index + 1}:`);
+    parts.push(`Name: ${project.name || ''}`);
+    parts.push(`Link: ${project.link || ''}`);
+    parts.push(`Technologies: ${project.technologies || ''}`);
+    parts.push(`Details: ${project.description || ''}`);
+    parts.push('');
+  });
+
   parts.push('EDUCATION:');
   parts.push(`Degree: ${state.education.degree || ''}`);
   parts.push(`Institution: ${state.education.institution || ''}`);
@@ -708,7 +937,7 @@ function buildResumePrompt(state) {
 }
 
 function deriveResumeNote(text, state) {
-  const sectionCount = ['EXPERIENCE', 'EDUCATION', 'SKILLS'].filter((label) => text.includes(label)).length;
+  const sectionCount = ['EXPERIENCE', 'PROJECTS', 'EDUCATION', 'SKILLS'].filter((label) => text.includes(label)).length;
   const experienceCount = state.experiences.filter((item) => item.jobTitle || item.company).length;
   if (text.length < 1400) {
     return 'ATS note: the draft looks short. Add more quantified detail before you apply.';
@@ -806,6 +1035,8 @@ export async function initResumeBuilderTool(container) {
   const generateButton = qs(root, '#rb-generate');
   const copyResumeButton = qs(root, '#rb-copy');
   const downloadResumeButton = qs(root, '#rb-download');
+  const pdfButton = qs(root, '#rb-btn-download-pdf');
+  const printButton = qs(root, '#rb-btn-print');
 
   const state = {
     currentStep: 1,
@@ -820,6 +1051,7 @@ export async function initResumeBuilderTool(container) {
       portfolio: '',
     },
     experiences: [createEmptyExperience()],
+    projects: [createEmptyProject()],
     education: {
       degree: '',
       institution: '',
@@ -841,6 +1073,8 @@ export async function initResumeBuilderTool(container) {
     saveToStorage(state);
   }, AUTOSAVE_DELAY);
   const wasRestored = restoreFromStorage(state);
+  resumeExportState = state;
+  resumeExportToastStack = toastStack;
 
   function syncExportButtons() {
     const hasReport = Boolean(state.lastReport);
@@ -853,6 +1087,7 @@ export async function initResumeBuilderTool(container) {
     downloadReportButton.setAttribute('aria-disabled', String(!hasReport));
     copyResumeButton.setAttribute('aria-disabled', String(!hasResume));
     downloadResumeButton.setAttribute('aria-disabled', String(!hasResume));
+    setResumeExportReady(hasResume);
   }
 
   function updateQuotaUi() {
@@ -910,6 +1145,25 @@ export async function initResumeBuilderTool(container) {
     }
     experienceCard.appendChild(experienceList);
 
+    const projectCard = createNode('div', 'resume-review-item');
+    projectCard.appendChild(createNode('h4', '', 'Projects'));
+    const projectList = createNode('ul');
+    const filledProjects = state.projects.filter((project) => [
+      project.name,
+      project.link,
+      project.technologies,
+      project.description,
+    ].some((value) => String(value || '').trim()));
+    if (!filledProjects.length) {
+      projectList.appendChild(createNode('li', '', 'No projects added yet.'));
+    } else {
+      filledProjects.forEach((project) => {
+        const meta = [project.technologies, project.link].filter(Boolean).join(' | ');
+        projectList.appendChild(createNode('li', '', `${formatProjectBlock(project)}${meta ? ` - ${meta}` : ''}`));
+      });
+    }
+    projectCard.appendChild(projectList);
+
     const educationCard = createNode('div', 'resume-review-item');
     educationCard.append(
       createNode('h4', '', 'Education'),
@@ -925,7 +1179,7 @@ export async function initResumeBuilderTool(container) {
       createNode('p', '', `Certifications: ${state.certifications.filter(Boolean).join(', ') || 'None added yet'}`),
     );
 
-    mount.append(personalCard, experienceCard, educationCard, skillsCard);
+    mount.append(personalCard, experienceCard, projectCard, educationCard, skillsCard);
   }
 
   function renderBuilderDerivedViews() {
@@ -955,6 +1209,7 @@ export async function initResumeBuilderTool(container) {
     });
 
     renderExperienceList();
+    renderProjectList();
     renderCertificationList();
     renderBuilderDerivedViews();
   }
@@ -1048,6 +1303,68 @@ export async function initResumeBuilderTool(container) {
         field.append(label, input);
         card.appendChild(field);
       });
+
+      mount.appendChild(card);
+    });
+  }
+
+  function renderProjectList() {
+    const mount = qs(root, '#rb-project-list');
+    clearNode(mount);
+    state.projects.forEach((project, index) => {
+      const card = createNode('div', 'resume-subcard');
+      const head = createNode('div', 'resume-subcard-head');
+      const title = createNode('strong', '', `Project ${index + 1}`);
+      const remove = createNode('button', 'resume-remove-btn', 'Remove');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `Remove project ${index + 1}`);
+      remove.disabled = state.projects.length === 1;
+      remove.addEventListener('click', () => {
+        if (state.projects.length === 1) return;
+        state.projects.splice(index, 1);
+        renderProjectList();
+        renderBuilderDerivedViews();
+        saveToStorage(state);
+      });
+      head.append(title, remove);
+      card.appendChild(head);
+
+      const grid = createNode('div', 'resume-form-grid two-col');
+      [
+        ['Project Name', 'name', 'text'],
+        ['Project Link', 'link', 'url'],
+        ['Technologies Used', 'technologies', 'text'],
+      ].forEach(([labelText, key, type]) => {
+        const field = createNode('div', 'resume-field');
+        const label = createNode('label', '', labelText);
+        const input = document.createElement('input');
+        input.type = type;
+        input.value = project[key];
+        input.setAttribute('aria-label', `${labelText} for project ${index + 1}`);
+        input.addEventListener('input', () => {
+          project[key] = input.value;
+          renderBuilderDerivedViews();
+          debouncedSave();
+        });
+        field.append(label, input);
+        grid.appendChild(field);
+      });
+      card.appendChild(grid);
+
+      const field = createNode('div', 'resume-field');
+      const label = createNode('label', '', 'Project details and impact');
+      const input = document.createElement('textarea');
+      input.rows = 3;
+      input.value = project.description;
+      input.setAttribute('aria-label', `Project details and impact for project ${index + 1}`);
+      input.placeholder = 'What did you build, who used it, and what result did it create? Add real metrics only if you know them.';
+      input.addEventListener('input', () => {
+        project.description = input.value;
+        renderBuilderDerivedViews();
+        debouncedSave();
+      });
+      field.append(label, input);
+      card.appendChild(field);
 
       mount.appendChild(card);
     });
@@ -1292,6 +1609,17 @@ export async function initResumeBuilderTool(container) {
     saveToStorage(state);
   });
 
+  qs(root, '#rb-add-project').addEventListener('click', () => {
+    if (state.projects.length >= 5) {
+      showToast(toastStack, 'You can add up to 5 project blocks.', 'info');
+      return;
+    }
+    state.projects.push(createEmptyProject());
+    renderProjectList();
+    renderBuilderDerivedViews();
+    saveToStorage(state);
+  });
+
   qs(root, '#rb-add-certification').addEventListener('click', () => {
     if (state.certifications.length >= 5) {
       showToast(toastStack, 'You can add up to 5 certifications.', 'info');
@@ -1311,6 +1639,8 @@ export async function initResumeBuilderTool(container) {
 
   atsButton.addEventListener('click', runAtsAnalysis);
   generateButton.addEventListener('click', runResumeBuilder);
+  if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);
+  if (printButton) printButton.addEventListener('click', printResume);
 
   copyReportButton.addEventListener('click', async () => {
     if (!state.lastReport) return;
