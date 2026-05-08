@@ -71,6 +71,7 @@ resume in clean plain text format (no HTML, no markdown headers, no emojis).
 
 Format rules:
 - Name on first line, all caps
+- The first line must use the candidate name exactly as provided by the user. Never abbreviate, rewrite, translate, correct, or alter the spelling of the name.
 - Contact info on second line, pipe-separated
 - Section headers in all caps on their own line, followed by a divider line of dashes
 - Bullet points use \u2022 character
@@ -370,6 +371,62 @@ function parseResumeText(resumeText) {
   return { name, contact, sections };
 }
 
+function getCanonicalResumeHeader(state) {
+  const personal = state?.personal || {};
+  const name = String(personal.name || '').trim();
+  const contact = [
+    personal.email,
+    personal.phone,
+    personal.location,
+    personal.linkedin,
+    personal.portfolio,
+  ].map((value) => String(value || '').trim()).filter(Boolean).join(' | ');
+  return { name, contact };
+}
+
+function normalizeGeneratedResumeIdentity(resumeText, state) {
+  const { name, contact } = getCanonicalResumeHeader(state);
+  if (!name || !resumeText) return resumeText;
+
+  const lines = String(resumeText).split('\n');
+  const isDivider = (line) => /^[-\u2500\u2550=]{3,}$/.test(String(line || '').trim());
+  const isKnownSectionTitle = (line) => /^(SUMMARY|OBJECTIVE|PROFILE|PROFESSIONAL SUMMARY|EDUCATION|RELEVANT COURSES|SKILLS|CERTIFICATIONS|EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|PROJECTS|ADDITIONAL PROJECTS|ADDITIONAL EXPERIENCE|PROFESSIONAL AFFILIATIONS|INTERESTS)$/i
+    .test(String(line || '').trim());
+  const isSectionHeader = (line) => {
+    const trimmed = String(line || '').trim();
+    return trimmed.length > 2 && trimmed === trimmed.toUpperCase() && !isDivider(trimmed);
+  };
+  const firstContentIndex = lines.findIndex((line) => String(line || '').trim() && !isDivider(line));
+
+  if (firstContentIndex === -1) {
+    return [name.toUpperCase(), contact].filter(Boolean).join('\n');
+  }
+
+  if (isKnownSectionTitle(lines[firstContentIndex])) {
+    lines.splice(firstContentIndex, 0, ...[name.toUpperCase(), contact].filter(Boolean));
+    return lines.join('\n');
+  }
+
+  lines[firstContentIndex] = name.toUpperCase();
+
+  if (contact) {
+    let secondContentIndex = -1;
+    for (let i = firstContentIndex + 1; i < lines.length; i += 1) {
+      if (!String(lines[i] || '').trim() || isDivider(lines[i])) continue;
+      secondContentIndex = i;
+      break;
+    }
+
+    if (secondContentIndex === -1 || isSectionHeader(lines[secondContentIndex])) {
+      lines.splice(firstContentIndex + 1, 0, contact);
+    } else {
+      lines[secondContentIndex] = contact;
+    }
+  }
+
+  return lines.join('\n');
+}
+
 function renderFormattedPreview(resumeText) {
   const container = document.getElementById('rb-preview-pane');
   if (!container) return;
@@ -383,13 +440,17 @@ function renderFormattedPreview(resumeText) {
     return;
   }
 
-  const { name, contact, sections } = parseResumeText(resumeText);
+  const { name, contact } = getCanonicalResumeHeader(resumeExportState);
+  const parsed = parseResumeText(resumeText);
+  const displayName = name || parsed.name;
+  const displayContact = contact || parsed.contact;
+  const { sections } = parsed;
   let html = '<div class="rb-resume-doc">';
 
   html += `
     <div class="rb-resume-header">
-      <h1 class="rb-resume-name">${escapeHtml(name)}</h1>
-      <p class="rb-resume-contact">${escapeHtml(contact)}</p>
+      <h1 class="rb-resume-name">${escapeHtml(displayName)}</h1>
+      <p class="rb-resume-contact">${escapeHtml(displayContact)}</p>
     </div>`;
 
   for (const section of sections) {
@@ -1667,7 +1728,7 @@ export async function initResumeBuilderTool(container) {
         temperature: 0.55,
       });
 
-      state.generatedResume = result.text.trim();
+      state.generatedResume = normalizeGeneratedResumeIdentity(result.text.trim(), state);
       renderFormattedPreview(state.generatedResume);
       previewCount.textContent = `${state.generatedResume.length} chars`;
       previewNote.textContent = deriveResumeNote(state.generatedResume, state);
