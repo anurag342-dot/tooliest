@@ -35,8 +35,6 @@ const SCORE_META = [
 ];
 const STORAGE_KEY = 'tooliest_resume_draft_v1';
 const AUTOSAVE_DELAY = 1200;
-const JSPDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-let jsPDFLoaded = false;
 let resumeExportState = null;
 let resumeExportToastStack = null;
 
@@ -441,229 +439,259 @@ function setResumeExportReady(isReady) {
   }
 }
 
-function normalizePdfText(value) {
-  return String(value || '')
-    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015]/g, '-')
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/\u00A0/g, ' ')
-    .replace(/[ \t]+/g, ' ')
-    .trim();
+let resumePrintFrame = null;
+
+function getResumeFileBaseName() {
+  return (resumeExportState?.personal?.name || 'resume')
+    .trim()
+    .replace(/[^a-zA-Z0-9\s_-]/g, '')
+    .replace(/\s+/g, '_')
+    .toLowerCase() || 'resume';
 }
 
-function compactUrl(value) {
-  return normalizePdfText(value)
-    .replace(/^https?:\/\//i, '')
-    .replace(/^www\./i, '')
-    .replace(/\/$/, '');
-}
+function getResumeDocumentHtml() {
+  const existingDoc = document.querySelector('#rb-preview-pane .rb-resume-doc');
+  if (existingDoc) return existingDoc.outerHTML;
 
-async function loadJsPDF() {
-  if (jsPDFLoaded || window.jspdf) {
-    jsPDFLoaded = true;
-    return;
+  if (resumeExportState?.generatedResume) {
+    renderFormattedPreview(resumeExportState.generatedResume);
+    return document.querySelector('#rb-preview-pane .rb-resume-doc')?.outerHTML || '';
   }
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = JSPDF_CDN;
-    script.async = true;
-    script.crossOrigin = 'anonymous';
-    script.onload = () => {
-      jsPDFLoaded = true;
-      resolve();
-    };
-    script.onerror = () => reject(new Error('jsPDF CDN load failed'));
-    document.head.appendChild(script);
+
+  return '';
+}
+
+function removeResumePrintFrame() {
+  if (resumePrintFrame?.parentNode) {
+    resumePrintFrame.parentNode.removeChild(resumePrintFrame);
+  }
+  resumePrintFrame = null;
+}
+
+function getResumePrintStyles() {
+  return `
+    @page {
+      size: letter portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 8.5in;
+      min-height: 11in;
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+    }
+
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .rb-resume-doc {
+      width: 8.5in;
+      max-width: none;
+      min-height: 11in;
+      margin: 0 auto;
+      padding: 0.75in 0.85in;
+      font-family: "Times New Roman", Georgia, serif;
+      font-size: 10.5pt;
+      line-height: 1.4;
+      color: #111111;
+      background: #ffffff;
+      box-shadow: none;
+      border-radius: 0;
+    }
+
+    .rb-resume-header {
+      text-align: center;
+      margin-bottom: 0.35in;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    .rb-resume-name {
+      margin: 0 0 0.1in;
+      font-family: "Times New Roman", Georgia, serif;
+      font-size: 18pt;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: 0.04em;
+      color: #111111;
+      text-transform: uppercase;
+    }
+
+    .rb-resume-contact {
+      margin: 0;
+      font-family: "Times New Roman", Georgia, serif;
+      font-size: 9.5pt;
+      line-height: 1.35;
+      color: #333333;
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+
+    .rb-resume-section {
+      margin-bottom: 0.2in;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .rb-resume-section-title {
+      margin: 0 0 2px;
+      font-family: "Times New Roman", Georgia, serif;
+      font-size: 11pt;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #111111;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    .rb-resume-section-divider {
+      margin-bottom: 0.06in;
+      border-top: 1.5px solid #111111;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    .rb-resume-section-body {
+      padding: 0;
+    }
+
+    .rb-resume-line,
+    .rb-resume-bullet {
+      margin-top: 0;
+      margin-bottom: 2px;
+      font-family: "Times New Roman", Georgia, serif;
+      font-size: 10.5pt;
+      line-height: 1.4;
+      color: #111111;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      orphans: 2;
+      widows: 2;
+    }
+
+    .rb-resume-bullet {
+      margin-left: 0.15in;
+      padding-left: 0.15in;
+      text-indent: -0.15in;
+    }
+
+    @media print {
+      html,
+      body,
+      .rb-resume-doc {
+        width: 8.5in;
+      }
+
+      .rb-resume-doc {
+        min-height: 11in;
+        margin: 0;
+      }
+    }
+  `;
+}
+
+function openResumePrintDialog(intent = 'print') {
+  if (!resumeExportState?.generatedResume) {
+    showExportToast(`Generate a resume before ${intent === 'pdf' ? 'saving as PDF' : 'printing'}.`, 'error');
+    return false;
+  }
+
+  const resumeHtml = getResumeDocumentHtml();
+  if (!resumeHtml) {
+    showExportToast('Generate a resume before exporting.', 'error');
+    return false;
+  }
+
+  removeResumePrintFrame();
+
+  const fileBaseName = `${getResumeFileBaseName()}_resume`;
+  const frame = document.createElement('iframe');
+  frame.id = 'rb-print-frame';
+  frame.title = 'Resume print export';
+  frame.setAttribute('aria-hidden', 'true');
+  Object.assign(frame.style, {
+    position: 'fixed',
+    right: '0',
+    bottom: '0',
+    width: '0',
+    height: '0',
+    border: '0',
+    opacity: '0',
+    pointerEvents: 'none',
   });
+
+  resumePrintFrame = frame;
+  document.body.appendChild(frame);
+
+  frame.onload = () => {
+    window.setTimeout(() => {
+      const printWindow = frame.contentWindow;
+      if (!printWindow) {
+        removeResumePrintFrame();
+        showExportToast('Could not open the print dialog. Please try again.', 'error');
+        return;
+      }
+
+      const cleanup = () => {
+        window.setTimeout(removeResumePrintFrame, 500);
+      };
+
+      printWindow.addEventListener('afterprint', cleanup, { once: true });
+      window.setTimeout(removeResumePrintFrame, 45000);
+      printWindow.focus();
+      printWindow.print();
+    }, 100);
+  };
+
+  frame.srcdoc = `<!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>${escapeHtml(fileBaseName)}</title>
+        <style>${getResumePrintStyles()}</style>
+      </head>
+      <body>${resumeHtml}</body>
+    </html>`;
+
+  return true;
 }
 
 async function downloadResumePDF() {
-  const state = resumeExportState;
   const btn = document.getElementById('rb-btn-download-pdf');
-  if (!state?.generatedResume) {
-    showExportToast('Generate a resume before downloading the PDF.', 'error');
-    return;
-  }
-
   if (btn) {
     btn.classList.add('rb-export-btn--loading');
-    btn.setAttribute('aria-label', 'Generating PDF...');
+    btn.setAttribute('aria-label', 'Open save as PDF dialog');
   }
 
   try {
-    await loadJsPDF();
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    const marginX = 54;
-    const marginY = 54;
-    const contentW = pageW - (marginX * 2);
-    let y = marginY;
-
-    function checkPage(needed = 14) {
-      if (y + needed > pageH - marginY) {
-        doc.addPage();
-        y = marginY;
-      }
+    const opened = openResumePrintDialog('pdf');
+    if (opened) {
+      showExportToast('Use Save as PDF in the print dialog for a preview-matched PDF.', 'info');
     }
-
-    function writeCenteredLines(lines, options = {}) {
-      lines.filter(Boolean).forEach((line) => {
-        writeText(line, { align: 'center', ...options });
-      });
-    }
-
-    function writeText(str, {
-      size = 10,
-      style = 'normal',
-      align = 'left',
-      indent = 0,
-      leading = 1.38,
-      rgb = [0, 0, 0],
-    } = {}) {
-      const safeText = normalizePdfText(str);
-      if (!safeText) return;
-      doc.setFont('times', style);
-      doc.setFontSize(size);
-      doc.setTextColor(...rgb);
-      const lines = doc.splitTextToSize(safeText, contentW - indent);
-      lines.forEach((line) => {
-        checkPage(size * leading);
-        const x = align === 'center' ? pageW / 2 : marginX + indent;
-        doc.text(line, x, y, align === 'center' ? { align: 'center' } : {});
-        y += size * leading;
-      });
-    }
-
-    function writeBullet(str) {
-      const safeText = normalizePdfText(str);
-      if (!safeText) return;
-      doc.setFont('times', 'normal');
-      doc.setFontSize(9.6);
-      doc.setTextColor(0, 0, 0);
-      const bulletX = marginX + 11;
-      const textX = marginX + 24;
-      const maxW = contentW - 24;
-      const lines = doc.splitTextToSize(safeText, maxW);
-      lines.forEach((line, index) => {
-        checkPage(13);
-        if (index === 0) {
-          doc.text('\u2022', bulletX, y);
-        }
-        doc.text(line, textX, y);
-        y += 13;
-      });
-    }
-
-    function sectionHeader(title) {
-      y += 9;
-      checkPage(26);
-      doc.setFont('times', 'bold');
-      doc.setFontSize(11);
-      doc.setTextColor(0, 0, 0);
-      doc.text(normalizePdfText(title).toUpperCase(), marginX, y);
-      y += 4;
-      doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(0.75);
-      doc.line(marginX, y, pageW - marginX, y);
-      y += 8;
-    }
-
-    function writeSectionLine(line, index, sectionTitle) {
-      const safeText = normalizePdfText(line);
-      if (!safeText) return;
-      const title = normalizePdfText(sectionTitle).toLowerCase();
-      const shouldEmphasizeLead = /experience|employment|project|education/.test(title);
-      const isDateLine = /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|\d{4}|present)\b/i.test(safeText)
-        && safeText.length < 80;
-      const isLeadLine = shouldEmphasizeLead
-        && (index === 0 || (/^[A-Z0-9\s/&.,()'-]+$/.test(safeText) && safeText.length < 95));
-      if (isLeadLine) {
-        writeText(safeText, { size: 10.2, style: 'bold', leading: 1.22 });
-        return;
-      }
-      if (isDateLine) {
-        writeText(safeText, { size: 9.4, style: 'italic', leading: 1.25 });
-        return;
-      }
-      writeText(safeText, { size: 9.7, leading: 1.32 });
-    }
-
-    const parsed = parseResumeText(state.generatedResume);
-    const name = parsed.name || state.personal?.name || 'Your Name';
-    const primaryContact = [
-      state.personal?.email,
-      state.personal?.phone,
-      state.personal?.location,
-    ].map(normalizePdfText).filter(Boolean).join('  |  ');
-    const linkContact = [
-      compactUrl(state.personal?.linkedin),
-      compactUrl(state.personal?.portfolio),
-    ].filter(Boolean);
-
-    writeText(name.toUpperCase(), { size: 17, style: 'bold', align: 'center', leading: 1.15 });
-    y += 4;
-    writeCenteredLines([primaryContact, ...linkContact], { size: 9.1, leading: 1.22 });
-    y += 10;
-
-    parsed.sections.forEach((section) => {
-      if (!section.lines.length) return;
-      sectionHeader(section.title);
-      let bodyLineIndex = 0;
-      section.lines.forEach((line) => {
-        if (line.startsWith('\u2022') || line.startsWith('-')) {
-          const bullet = line.replace(/^[\u2022-]\s*/, '');
-          writeBullet(bullet);
-          return;
-        }
-        writeSectionLine(line, bodyLineIndex, section.title);
-        bodyLineIndex += 1;
-      });
-    });
-
-    const safeName = (state.personal?.name || 'resume')
-      .trim()
-      .replace(/[^a-zA-Z0-9\s_-]/g, '')
-      .replace(/\s+/g, '_')
-      .toLowerCase() || 'resume';
-    doc.save(`${safeName}_resume.pdf`);
-    showExportToast('PDF downloaded successfully!', 'success');
-  } catch (error) {
-    console.error('[PDF Export]', error);
-    showExportToast('PDF library failed to load. Use the Print button or check your internet connection.', 'error');
   } finally {
-    if (btn) {
-      btn.classList.remove('rb-export-btn--loading');
-      btn.setAttribute('aria-label', 'Download resume as PDF');
-    }
+    window.setTimeout(() => {
+      if (btn) {
+        btn.classList.remove('rb-export-btn--loading');
+        btn.setAttribute('aria-label', 'Save resume as PDF');
+      }
+    }, 800);
   }
 }
 
 function printResume() {
-  const state = resumeExportState;
-  if (!state?.generatedResume) {
-    showExportToast('Generate a resume before printing.', 'error');
-    return;
-  }
-
-  const originalTitle = document.title;
-  const safeName = (state.personal?.name || 'Resume').trim() || 'Resume';
-  let restored = false;
-  const restorePrintState = () => {
-    if (restored) return;
-    restored = true;
-    document.body.classList.remove('rb-printing');
-    document.title = originalTitle;
-  };
-
-  document.body.classList.add('rb-printing');
-  document.title = `${safeName} - Resume`;
-  window.addEventListener('afterprint', restorePrintState, { once: true });
-  window.setTimeout(() => {
-    window.print();
-    window.setTimeout(restorePrintState, 1000);
-  }, 50);
+  openResumePrintDialog('print');
 }
 
 function parsePossiblyWrappedJson(text) {

@@ -867,28 +867,38 @@
 .rb-resume-contact {
   font-family: 'Times New Roman', Georgia, serif;
   font-size: 9.5pt;
+  line-height: 1.35;
   color: #333333;
   margin: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 /* Resume sections */
 .rb-resume-section {
   margin-bottom: 0.2in;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .rb-resume-section-title {
   font-family: 'Times New Roman', Georgia, serif;
   font-size: 11pt;
   font-weight: 700;
+  line-height: 1.2;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #111111;
   margin: 0 0 2px;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .rb-resume-section-divider {
   border-top: 1.5px solid #111111;
   margin-bottom: 0.06in;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .rb-resume-section-body {
@@ -914,7 +924,10 @@
 
 .rb-resume-doc p {
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
+  orphans: 2;
+  widows: 2;
 }
 
 @media (max-width: 900px) {
