@@ -206,6 +206,14 @@
               <input id="rb-portfolio" type="url" aria-label="Portfolio URL">
             </div>
           </div>
+          <div class="resume-field">
+            <label for="rb-summary">Professional summary (optional)</label>
+            <textarea
+              id="rb-summary"
+              rows="4"
+              aria-label="Professional summary"
+              placeholder="Add a short 2-3 sentence professional profile. Leave blank if you want AI to draft it."></textarea>
+          </div>
         </section>
 
         <section class="resume-step-panel" data-step-panel="2" hidden>
@@ -216,28 +224,9 @@
         </section>
 
         <section class="resume-step-panel" data-step-panel="3" hidden>
-          <div class="resume-form-grid two-col">
-            <div class="resume-field">
-              <label for="rb-degree">Degree</label>
-              <input id="rb-degree" type="text" aria-label="Degree">
-            </div>
-            <div class="resume-field">
-              <label for="rb-institution">Institution</label>
-              <input id="rb-institution" type="text" aria-label="Institution">
-            </div>
-            <div class="resume-field">
-              <label for="rb-year">Year</label>
-              <input id="rb-year" type="text" aria-label="Graduation year">
-            </div>
-            <div class="resume-field">
-              <label for="rb-gpa">GPA (optional)</label>
-              <input id="rb-gpa" type="text" aria-label="GPA">
-            </div>
-          </div>
-          <div class="resume-field">
-            <label for="rb-courses">Relevant courses (comma-separated)</label>
-            <input id="rb-courses" type="text" aria-label="Relevant courses">
-            <div class="resume-pill-preview" id="rb-course-pills"></div>
+          <div id="rb-education-list" class="resume-stack"></div>
+          <div class="resume-action-row">
+            <button type="button" class="btn btn-secondary" id="rb-add-education" aria-label="Add education">Add Education</button>
           </div>
         </section>
 
@@ -327,6 +316,23 @@
                   </button>
                   <button
                     type="button"
+                    id="rb-btn-download-docx"
+                    class="rb-export-btn rb-export-btn--secondary"
+                    aria-label="Download resume as DOCX"
+                    disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                      <path d="M14 2l6 6"/>
+                      <path d="M16 13H8"/>
+                      <path d="M16 17H8"/>
+                      <path d="M10 9H8"/>
+                    </svg>
+                    Download DOCX
+                  </button>
+                  <button
+                    type="button"
                     id="rb-btn-print"
                     class="rb-export-btn rb-export-btn--secondary"
                     aria-label="Print resume"
@@ -365,6 +371,7 @@
         <button type="button" class="btn btn-secondary" id="rb-prev" aria-label="Previous step">Previous</button>
         <button type="button" class="btn btn-primary" id="rb-next" aria-label="Next step">Next</button>
       </div>
+      <button type="button" id="rb-btn-clear-draft">Start fresh</button>
     </div>
   </section>
 </div>

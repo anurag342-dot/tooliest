@@ -1120,3 +1120,22 @@
     size: letter portrait;
   }
 }
+
+#rb-btn-clear-draft {
+  background: none;
+  border: none;
+  padding: 0.25rem 0;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, rgba(226, 232, 240, 0.45));
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+  display: block;
+  margin: 0.75rem auto 0;
+  text-align: center;
+}
+
+#rb-btn-clear-draft:hover {
+  color: var(--color-text-primary, rgba(226, 232, 240, 0.85));
+}

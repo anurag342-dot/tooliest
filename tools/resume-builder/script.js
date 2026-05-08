@@ -35,8 +35,10 @@ const SCORE_META = [
 ];
 const STORAGE_KEY = 'tooliest_resume_draft_v1';
 const AUTOSAVE_DELAY = 1200;
+const DOCX_CDN = 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.min.js';
 let resumeExportState = null;
 let resumeExportToastStack = null;
+let docxLoaded = false;
 
 const ATS_SYSTEM_PROMPT = `You are an elite ATS (Applicant Tracking System) resume expert and HR consultant
 with 15 years of experience at Fortune 500 companies. Your task is to deeply
@@ -73,10 +75,13 @@ Format rules:
 - Name on first line, all caps
 - The first line must use the candidate name exactly as provided by the user. Never abbreviate, rewrite, translate, correct, or alter the spelling of the name.
 - Contact info on second line, pipe-separated
+- After the contact header, write a PROFESSIONAL SUMMARY section (2-3 sentences) that is tailored to the target role, highlights the candidate's years of experience and strongest skills, and contains no invented claims. This section must appear before WORK EXPERIENCE in the output.
+- If the user provides a Professional Summary, preserve its facts and intent instead of replacing it with invented claims.
 - Section headers in all caps on their own line, followed by a divider line of dashes
 - Bullet points use \u2022 character
 - Achievements must be quantified wherever possible. If the user has not provided numbers, insert a [PLACEHOLDER — add your specific metric here] tag instead of fabricating numbers. Never invent percentages, dollar amounts, or statistics the user did not provide.
 - If the user provides projects, include a PROJECTS section using only the provided project names, links, technologies, and details. Never invent project links, repositories, metrics, or outcomes.
+- In the EDUCATION section, list all education entries provided by the user.
 - Tailor language to the target job title provided
 - Total length: 450-650 words for junior, 650-900 for senior
 - Use strong action verbs: Led, Built, Designed, Developed, Increased, Reduced, Managed, Launched, Delivered, Implemented, Optimized, Streamlined, Collaborated, Coordinated, Achieved
@@ -176,6 +181,10 @@ function setBanner(node, message = '', type = 'error', retryHandler = null) {
 
 function downloadText(filename, text) {
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  downloadBlob(filename, blob);
+}
+
+function downloadBlob(filename, blob) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -225,6 +234,16 @@ function normalizeSavedProject(project = {}) {
   };
 }
 
+function normalizeSavedEducation(education = {}) {
+  return {
+    degree: String(education.degree ?? ''),
+    institution: String(education.institution ?? ''),
+    year: String(education.year ?? ''),
+    gpa: String(education.gpa ?? ''),
+    courses: String(education.courses ?? ''),
+  };
+}
+
 function serializeState(state) {
   try {
     return JSON.stringify({
@@ -233,9 +252,10 @@ function serializeState(state) {
       state: {
         personal: { ...state.personal },
         targetRole: state.targetRole,
+        summary: state.summary,
         experiences: state.experiences.map(normalizeSavedExperience),
         projects: (state.projects || []).map(normalizeSavedProject),
-        education: { ...state.education },
+        educations: (state.educations || []).map(normalizeSavedEducation),
         skills: state.skills,
         certifications: [...state.certifications],
       },
@@ -275,14 +295,19 @@ function restoreFromStorage(state) {
     } else if (typeof saved.targetJob === 'string') {
       state.targetRole = saved.targetJob;
     }
+    if (typeof saved.summary === 'string') {
+      state.summary = saved.summary;
+    }
     if (Array.isArray(saved.experiences) && saved.experiences.length > 0) {
       state.experiences = saved.experiences.slice(0, 5).map(normalizeSavedExperience);
     }
     if (Array.isArray(saved.projects) && saved.projects.length > 0) {
       state.projects = saved.projects.slice(0, 5).map(normalizeSavedProject);
     }
-    if (saved.education && typeof saved.education === 'object') {
-      Object.assign(state.education, saved.education);
+    if (Array.isArray(saved.educations) && saved.educations.length > 0) {
+      state.educations = saved.educations.slice(0, 3).map(normalizeSavedEducation);
+    } else if (saved.education && typeof saved.education === 'object') {
+      state.educations = [normalizeSavedEducation(saved.education)];
     }
     if (typeof saved.skills === 'string') {
       state.skills = saved.skills;
@@ -427,6 +452,18 @@ function normalizeGeneratedResumeIdentity(resumeText, state) {
   return lines.join('\n');
 }
 
+function getRenderableResumeSections(sections, state) {
+  const summary = String(state?.summary || '').trim();
+  if (!summary) return sections;
+
+  const nonSummarySections = sections.filter((section) => !/^(SUMMARY|OBJECTIVE|PROFILE|PROFESSIONAL SUMMARY)$/i
+    .test(String(section.title || '').trim()));
+  return [
+    { title: 'PROFESSIONAL SUMMARY', lines: [summary] },
+    ...nonSummarySections,
+  ];
+}
+
 function renderFormattedPreview(resumeText) {
   const container = document.getElementById('rb-preview-pane');
   if (!container) return;
@@ -444,7 +481,7 @@ function renderFormattedPreview(resumeText) {
   const parsed = parseResumeText(resumeText);
   const displayName = name || parsed.name;
   const displayContact = contact || parsed.contact;
-  const { sections } = parsed;
+  const sections = getRenderableResumeSections(parsed.sections, resumeExportState);
   let html = '<div class="rb-resume-doc">';
 
   html += `
@@ -486,6 +523,7 @@ function showExportToast(message, type = 'info') {
 function setResumeExportReady(isReady) {
   const exportBar = document.getElementById('rb-export-bar');
   const pdfBtn = document.getElementById('rb-btn-download-pdf');
+  const docxBtn = document.getElementById('rb-btn-download-docx');
   const printBtn = document.getElementById('rb-btn-print');
   if (exportBar) {
     exportBar.toggleAttribute('hidden', !isReady);
@@ -493,6 +531,10 @@ function setResumeExportReady(isReady) {
   if (pdfBtn) {
     pdfBtn.disabled = !isReady;
     pdfBtn.setAttribute('aria-disabled', String(!isReady));
+  }
+  if (docxBtn) {
+    docxBtn.disabled = !isReady;
+    docxBtn.setAttribute('aria-disabled', String(!isReady));
   }
   if (printBtn) {
     printBtn.disabled = !isReady;
@@ -753,6 +795,255 @@ async function downloadResumePDF() {
 
 function printResume() {
   openResumePrintDialog('print');
+}
+
+// DOCX Export
+async function loadDocx() {
+  if (window.docx) {
+    docxLoaded = true;
+    return;
+  }
+  await new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = DOCX_CDN;
+    script.async = true;
+    script.crossOrigin = 'anonymous';
+    script.onload = () => {
+      docxLoaded = true;
+      resolve();
+    };
+    script.onerror = () => reject(new Error('docx CDN load failed'));
+    document.head.appendChild(script);
+  });
+}
+
+function getDocxFileName() {
+  return `${getResumeFileBaseName()}_resume.docx`;
+}
+
+function getFilledEducations(state) {
+  return (state.educations || []).filter((education) => [
+    education.degree,
+    education.institution,
+    education.year,
+    education.gpa,
+    education.courses,
+  ].some((value) => String(value || '').trim()));
+}
+
+function getFilledProjects(state) {
+  return (state.projects || []).filter((project) => [
+    project.name,
+    project.link,
+    project.technologies,
+    project.description,
+  ].some((value) => String(value || '').trim()));
+}
+
+function createDocxParagraph(text, options = {}) {
+  const { Paragraph, TextRun, AlignmentType } = window.docx;
+  const {
+    bold = false,
+    italic = false,
+    size = 22,
+    align = 'left',
+    after = 120,
+    before = 0,
+    indent = null,
+  } = options;
+  const alignment = align === 'center' ? AlignmentType.CENTER : AlignmentType.LEFT;
+  return new Paragraph({
+    alignment,
+    spacing: { before, after, line: 276 },
+    indent,
+    children: [
+      new TextRun({
+        text: String(text || ''),
+        font: 'Calibri',
+        size,
+        bold,
+        italics: italic,
+      }),
+    ],
+  });
+}
+
+function createDocxSectionHeader(title) {
+  const { Paragraph, TextRun, BorderStyle } = window.docx;
+  return new Paragraph({
+    spacing: { before: 180, after: 120, line: 276 },
+    border: {
+      bottom: {
+        style: BorderStyle.SINGLE,
+        size: 6,
+        color: '111111',
+        space: 1,
+      },
+    },
+    children: [
+      new TextRun({
+        text: String(title || '').toUpperCase(),
+        font: 'Calibri',
+        size: 24,
+        bold: true,
+      }),
+    ],
+  });
+}
+
+function createDocxBullet(text) {
+  return createDocxParagraph(`\u2022 ${text}`, {
+    size: 22,
+    indent: { left: 360, hanging: 360 },
+  });
+}
+
+function createDocxMixedLine(parts) {
+  const { Paragraph, TextRun } = window.docx;
+  return new Paragraph({
+    spacing: { after: 120, line: 276 },
+    children: parts.filter((part) => String(part.text || '').trim()).map((part) => new TextRun({
+      text: String(part.text || ''),
+      font: 'Calibri',
+      size: part.size || 22,
+      bold: Boolean(part.bold),
+      italics: Boolean(part.italic),
+    })),
+  });
+}
+
+function buildDocxChildren(state) {
+  const children = [];
+  const { name, contact } = getCanonicalResumeHeader(state);
+  children.push(createDocxParagraph((name || 'Your Name').toUpperCase(), {
+    bold: true,
+    size: 32,
+    align: 'center',
+    after: 80,
+  }));
+  if (contact) {
+    children.push(createDocxParagraph(contact, { size: 20, align: 'center', after: 240 }));
+  }
+
+  if (String(state.summary || '').trim()) {
+    children.push(createDocxSectionHeader('Professional Summary'));
+    children.push(createDocxParagraph(state.summary.trim()));
+  }
+
+  const experiences = (state.experiences || []).filter((experience) => [
+    experience.jobTitle,
+    experience.company,
+    experience.duration,
+    experience.achievement1,
+    experience.achievement2,
+    experience.achievement3,
+  ].some((value) => String(value || '').trim()));
+  if (experiences.length) {
+    children.push(createDocxSectionHeader('Work Experience'));
+    experiences.forEach((experience) => {
+      const meta = [experience.company, experience.duration].filter(Boolean).join(' | ');
+      children.push(createDocxMixedLine([
+        { text: experience.jobTitle || 'Role', bold: true },
+        { text: meta ? ` - ${meta}` : '' },
+      ]));
+      [experience.achievement1, experience.achievement2, experience.achievement3]
+        .filter((item) => String(item || '').trim())
+        .forEach((item) => children.push(createDocxBullet(item.trim())));
+    });
+  }
+
+  const projects = getFilledProjects(state);
+  if (projects.length) {
+    children.push(createDocxSectionHeader('Projects'));
+    projects.forEach((project) => {
+      children.push(createDocxMixedLine([
+        { text: project.name || 'Project', bold: true },
+        { text: project.link ? ` - ${project.link}` : '' },
+      ]));
+      if (String(project.technologies || '').trim()) {
+        children.push(createDocxParagraph(`Technologies: ${project.technologies}`));
+      }
+      if (String(project.description || '').trim()) {
+        children.push(createDocxBullet(project.description.trim()));
+      }
+    });
+  }
+
+  const educations = getFilledEducations(state);
+  if (educations.length) {
+    children.push(createDocxSectionHeader('Education'));
+    educations.forEach((education) => {
+      const meta = [
+        education.year,
+        education.gpa ? `GPA: ${education.gpa}` : '',
+      ].filter(Boolean).join(' | ');
+      children.push(createDocxMixedLine([
+        { text: education.degree || 'Education', bold: true },
+        { text: meta ? ` - ${meta}` : '' },
+      ]));
+      if (String(education.institution || '').trim()) {
+        children.push(createDocxParagraph(education.institution, { italic: true }));
+      }
+      if (String(education.courses || '').trim()) {
+        children.push(createDocxParagraph(`Relevant courses: ${education.courses}`));
+      }
+    });
+  }
+
+  if (String(state.skills || '').trim()) {
+    children.push(createDocxSectionHeader('Skills'));
+    children.push(createDocxParagraph(state.skills.trim()));
+  }
+
+  const certifications = (state.certifications || []).filter((certification) => String(certification || '').trim());
+  if (certifications.length) {
+    children.push(createDocxSectionHeader('Certifications'));
+    certifications.forEach((certification) => children.push(createDocxBullet(certification.trim())));
+  }
+
+  return children;
+}
+
+async function downloadResumeDOCX() {
+  const state = resumeExportState;
+  const btn = document.getElementById('rb-btn-download-docx');
+  if (!state?.generatedResume) {
+    showExportToast('Generate a resume before downloading the DOCX.', 'error');
+    return;
+  }
+
+  if (btn) {
+    btn.classList.add('rb-export-btn--loading');
+    btn.setAttribute('aria-label', 'Generating DOCX...');
+  }
+
+  try {
+    await loadDocx();
+    if (!window.docx) throw new Error('docx global unavailable');
+    const { Document, Packer } = window.docx;
+    const doc = new Document({
+      sections: [{
+        properties: {
+          page: {
+            size: { width: 12240, height: 15840 },
+            margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+          },
+        },
+        children: buildDocxChildren(state),
+      }],
+    });
+    const blob = await Packer.toBlob(doc);
+    downloadBlob(getDocxFileName(), blob);
+    showExportToast('DOCX downloaded successfully.', 'success');
+  } catch (error) {
+    console.error('[DOCX Export]', error);
+    showExportToast('DOCX export unavailable. Try saving as PDF or printing instead.', 'error');
+  } finally {
+    if (btn) {
+      btn.classList.remove('rb-export-btn--loading');
+      btn.setAttribute('aria-label', 'Download resume as DOCX');
+    }
+  }
 }
 
 function parsePossiblyWrappedJson(text) {
@@ -1020,6 +1311,16 @@ function createEmptyExperience() {
   };
 }
 
+function createEmptyEducation() {
+  return {
+    degree: '',
+    institution: '',
+    year: '',
+    gpa: '',
+    courses: '',
+  };
+}
+
 function createEmptyCertification() {
   return '';
 }
@@ -1052,6 +1353,7 @@ function buildResumePrompt(state) {
     `Portfolio: ${state.personal.portfolio || ''}`,
     '',
     `Target Job Title: ${state.targetRole || 'General professional role'}`,
+    `Professional Summary: ${state.summary || ''}`,
     '',
     'WORK EXPERIENCE:',
   ];
@@ -1083,12 +1385,15 @@ function buildResumePrompt(state) {
   });
 
   parts.push('EDUCATION:');
-  parts.push(`Degree: ${state.education.degree || ''}`);
-  parts.push(`Institution: ${state.education.institution || ''}`);
-  parts.push(`Year: ${state.education.year || ''}`);
-  parts.push(`GPA: ${state.education.gpa || ''}`);
-  parts.push(`Relevant Courses: ${parseCommaList(state.education.courses).join(', ')}`);
-  parts.push('');
+  (state.educations || []).forEach((education, index) => {
+    parts.push(`Education ${index + 1}:`);
+    parts.push(`Degree: ${education.degree || ''}`);
+    parts.push(`Institution: ${education.institution || ''}`);
+    parts.push(`Year: ${education.year || ''}`);
+    parts.push(`GPA: ${education.gpa || ''}`);
+    parts.push(`Relevant Courses: ${parseCommaList(education.courses).join(', ')}`);
+    parts.push('');
+  });
   parts.push(`Skills: ${parseCommaList(state.skills).join(', ')}`);
   parts.push(`Certifications: ${state.certifications.filter(Boolean).join(', ')}`);
   return parts.join('\n');
@@ -1194,7 +1499,9 @@ export async function initResumeBuilderTool(container) {
   const copyResumeButton = qs(root, '#rb-copy');
   const downloadResumeButton = qs(root, '#rb-download');
   const pdfButton = qs(root, '#rb-btn-download-pdf');
+  const docxButton = qs(root, '#rb-btn-download-docx');
   const printButton = qs(root, '#rb-btn-print');
+  const clearDraftButton = qs(root, '#rb-btn-clear-draft');
 
   const state = {
     currentStep: 1,
@@ -1208,15 +1515,10 @@ export async function initResumeBuilderTool(container) {
       location: '',
       portfolio: '',
     },
+    summary: '',
     experiences: [createEmptyExperience()],
     projects: [createEmptyProject()],
-    education: {
-      degree: '',
-      institution: '',
-      year: '',
-      gpa: '',
-      courses: '',
-    },
+    educations: [createEmptyEducation()],
     skills: '',
     targetRole: '',
     certifications: [createEmptyCertification()],
@@ -1283,6 +1585,12 @@ export async function initResumeBuilderTool(container) {
     });
     personalCard.appendChild(personalList);
 
+    const summaryCard = createNode('div', 'resume-review-item');
+    summaryCard.append(
+      createNode('h4', '', 'Professional Summary'),
+      createNode('p', '', state.summary || 'No summary added yet. AI will draft one if left blank.'),
+    );
+
     const experienceCard = createNode('div', 'resume-review-item');
     experienceCard.appendChild(createNode('h4', '', 'Work Experience'));
     const experienceList = createNode('ul');
@@ -1323,11 +1631,21 @@ export async function initResumeBuilderTool(container) {
     projectCard.appendChild(projectList);
 
     const educationCard = createNode('div', 'resume-review-item');
-    educationCard.append(
-      createNode('h4', '', 'Education'),
-      createNode('p', '', `${state.education.degree || 'No degree yet'} | ${state.education.institution || 'No institution yet'} | ${state.education.year || 'No year yet'}`),
-      createNode('p', '', `Courses: ${parseCommaList(state.education.courses).join(', ') || 'None added'}`),
-    );
+    educationCard.appendChild(createNode('h4', '', 'Education'));
+    const educationList = createNode('ul');
+    const filledEducations = getFilledEducations(state);
+    if (!filledEducations.length) {
+      educationList.appendChild(createNode('li', '', 'No education added yet.'));
+    } else {
+      filledEducations.forEach((education) => {
+        educationList.appendChild(createNode(
+          'li',
+          '',
+          `${education.degree || 'Education'} - ${education.institution || 'Institution not set'}${education.year ? ` | ${education.year}` : ''}`,
+        ));
+      });
+    }
+    educationCard.appendChild(educationList);
 
     const skillsCard = createNode('div', 'resume-review-item');
     skillsCard.append(
@@ -1337,11 +1655,10 @@ export async function initResumeBuilderTool(container) {
       createNode('p', '', `Certifications: ${state.certifications.filter(Boolean).join(', ') || 'None added yet'}`),
     );
 
-    mount.append(personalCard, experienceCard, projectCard, educationCard, skillsCard);
+    mount.append(personalCard, summaryCard, experienceCard, projectCard, educationCard, skillsCard);
   }
 
   function renderBuilderDerivedViews() {
-    renderPillPreview(qs(root, '#rb-course-pills'), parseCommaList(state.education.courses));
     renderPillPreview(qs(root, '#rb-skill-pills'), parseCommaList(state.skills));
     renderReviewSummary();
   }
@@ -1354,11 +1671,7 @@ export async function initResumeBuilderTool(container) {
       ['#rb-linkedin', state.personal.linkedin],
       ['#rb-location', state.personal.location],
       ['#rb-portfolio', state.personal.portfolio],
-      ['#rb-degree', state.education.degree],
-      ['#rb-institution', state.education.institution],
-      ['#rb-year', state.education.year],
-      ['#rb-gpa', state.education.gpa],
-      ['#rb-courses', state.education.courses],
+      ['#rb-summary', state.summary],
       ['#rb-skills', state.skills],
       ['#rb-target-role', state.targetRole],
     ].forEach(([selector, value]) => {
@@ -1367,6 +1680,7 @@ export async function initResumeBuilderTool(container) {
     });
 
     renderExperienceList();
+    renderEducationList();
     renderProjectList();
     renderCertificationList();
     renderBuilderDerivedViews();
@@ -1380,11 +1694,7 @@ export async function initResumeBuilderTool(container) {
       ['#rb-linkedin', ['personal', 'linkedin']],
       ['#rb-location', ['personal', 'location']],
       ['#rb-portfolio', ['personal', 'portfolio']],
-      ['#rb-degree', ['education', 'degree']],
-      ['#rb-institution', ['education', 'institution']],
-      ['#rb-year', ['education', 'year']],
-      ['#rb-gpa', ['education', 'gpa']],
-      ['#rb-courses', ['education', 'courses']],
+      ['#rb-summary', ['root', 'summary']],
       ['#rb-skills', ['root', 'skills']],
       ['#rb-target-role', ['root', 'targetRole']],
     ].forEach(([selector, path]) => {
@@ -1464,6 +1774,78 @@ export async function initResumeBuilderTool(container) {
 
       mount.appendChild(card);
     });
+  }
+
+  function renderEducationList() {
+    const mount = qs(root, '#rb-education-list');
+    clearNode(mount);
+    state.educations.forEach((education, index) => {
+      const card = createNode('div', 'resume-subcard');
+      const head = createNode('div', 'resume-subcard-head');
+      const title = createNode('strong', '', `Education ${index + 1}`);
+      const remove = createNode('button', 'resume-remove-btn', 'Remove');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `Remove education ${index + 1}`);
+      remove.disabled = state.educations.length === 1;
+      remove.addEventListener('click', () => {
+        if (state.educations.length === 1) return;
+        state.educations.splice(index, 1);
+        renderEducationList();
+        renderBuilderDerivedViews();
+        saveToStorage(state);
+      });
+      head.append(title, remove);
+      card.appendChild(head);
+
+      const grid = createNode('div', 'resume-form-grid two-col');
+      [
+        ['Degree', 'degree'],
+        ['Institution', 'institution'],
+        ['Year', 'year'],
+        ['GPA (optional)', 'gpa'],
+      ].forEach(([labelText, key]) => {
+        const field = createNode('div', 'resume-field');
+        const label = createNode('label', '', labelText);
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = education[key];
+        input.setAttribute('aria-label', `${labelText} for education ${index + 1}`);
+        input.addEventListener('input', () => {
+          education[key] = input.value;
+          renderBuilderDerivedViews();
+          debouncedSave();
+        });
+        field.append(label, input);
+        grid.appendChild(field);
+      });
+      card.appendChild(grid);
+
+      const field = createNode('div', 'resume-field');
+      const label = createNode('label', '', 'Relevant courses (comma-separated)');
+      const input = document.createElement('input');
+      const pills = createNode('div', 'resume-pill-preview');
+      input.type = 'text';
+      input.value = education.courses;
+      input.setAttribute('aria-label', `Relevant courses for education ${index + 1}`);
+      input.addEventListener('input', () => {
+        education.courses = input.value;
+        renderPillPreview(pills, parseCommaList(education.courses));
+        renderBuilderDerivedViews();
+        debouncedSave();
+      });
+      field.append(label, input, pills);
+      card.appendChild(field);
+      renderPillPreview(pills, parseCommaList(education.courses));
+
+      mount.appendChild(card);
+    });
+
+    const addEducationButton = qs(root, '#rb-add-education');
+    if (addEducationButton) {
+      const atLimit = state.educations.length >= 3;
+      addEducationButton.disabled = atLimit;
+      addEducationButton.setAttribute('aria-disabled', String(atLimit));
+    }
   }
 
   function renderProjectList() {
@@ -1756,6 +2138,37 @@ export async function initResumeBuilderTool(container) {
     }
   }
 
+  function resetBuilderState() {
+    state.currentStep = 1;
+    state.lastReport = null;
+    state.generatedResume = '';
+    state.personal = {
+      name: '',
+      email: '',
+      phone: '',
+      linkedin: '',
+      location: '',
+      portfolio: '',
+    };
+    state.summary = '';
+    state.experiences = [createEmptyExperience()];
+    state.educations = [createEmptyEducation()];
+    state.projects = [];
+    state.skills = '';
+    state.targetRole = '';
+    state.certifications = [createEmptyCertification()];
+    clearSavedDraft();
+    populateFormFromState();
+    previewWrap.classList.add('hidden');
+    previewCount.textContent = '0 chars';
+    previewNote.textContent = 'ATS note pending';
+    renderFormattedPreview('');
+    syncExportButtons();
+    setStep(1);
+    setBanner(builderBanner, 'Draft cleared. Start fresh whenever you are ready.', 'success');
+    showToast(toastStack, 'Draft cleared.', 'success');
+  }
+
   qs(root, '#rb-add-experience').addEventListener('click', () => {
     if (state.experiences.length >= 5) {
       showToast(toastStack, 'You can add up to 5 experience blocks.', 'info');
@@ -1763,6 +2176,17 @@ export async function initResumeBuilderTool(container) {
     }
     state.experiences.push(createEmptyExperience());
     renderExperienceList();
+    renderBuilderDerivedViews();
+    saveToStorage(state);
+  });
+
+  qs(root, '#rb-add-education').addEventListener('click', () => {
+    if (state.educations.length >= 3) {
+      showToast(toastStack, 'You can add up to 3 education entries.', 'info');
+      return;
+    }
+    state.educations.push(createEmptyEducation());
+    renderEducationList();
     renderBuilderDerivedViews();
     saveToStorage(state);
   });
@@ -1798,7 +2222,15 @@ export async function initResumeBuilderTool(container) {
   atsButton.addEventListener('click', runAtsAnalysis);
   generateButton.addEventListener('click', runResumeBuilder);
   if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);
+  if (docxButton) docxButton.addEventListener('click', downloadResumeDOCX);
   if (printButton) printButton.addEventListener('click', printResume);
+  if (clearDraftButton) {
+    clearDraftButton.addEventListener('click', () => {
+      const confirmed = window.confirm('Start fresh? This will clear all saved form data and cannot be undone.');
+      if (!confirmed) return;
+      resetBuilderState();
+    });
+  }
 
   copyReportButton.addEventListener('click', async () => {
     if (!state.lastReport) return;
