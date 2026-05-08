@@ -80,7 +80,7 @@ Format rules:
 - Contact info on second line, pipe-separated
 - After the contact header, write a PROFESSIONAL SUMMARY section (2-3 sentences) that is tailored to the target role, highlights the candidate's years of experience and strongest skills, and contains no invented claims. This section must appear before WORK EXPERIENCE in the output.
 - If the user provides a Professional Summary, preserve its facts and intent instead of replacing it with invented claims.
-- Section headers in all caps on their own line, followed by a divider line of dashes
+- Section headers in all caps on their own line. Do not write decorative divider lines (no dashes, underscores, or horizontal rules); the app renders section dividers automatically.
 - Bullet points use \u2022 character
 - Achievements must be quantified wherever possible. If the user has not provided numbers, insert a [PLACEHOLDER — add your specific metric here] tag instead of fabricating numbers. Never invent percentages, dollar amounts, or statistics the user did not provide.
 - If the user provides projects, include a PROJECTS section using only the provided project names, links, technologies, and details. Never invent project links, repositories, metrics, or outcomes.
@@ -362,6 +362,12 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
+function isResumeDividerLine(line) {
+  const compact = String(line || '').trim().replace(/\s+/g, '');
+  return compact.length >= 3
+    && /^[-_=\u2010\u2011\u2012\u2013\u2014\u2015\u2212\u2500\u2501\u2550]+$/.test(compact);
+}
+
 function parseResumeText(resumeText) {
   const lines = resumeText.split('\n').map((line) => line.trimEnd());
   const sections = [];
@@ -373,14 +379,14 @@ function parseResumeText(resumeText) {
     const trimmed = lines[i].trim();
     const looksLikeSection = trimmed.length > 2
       && trimmed === trimmed.toUpperCase()
-      && !/^[-\u2500\u2550=]{3,}$/.test(trimmed);
+      && !isResumeDividerLine(trimmed);
 
     if (!headerParsed) {
       if (looksLikeSection && i > 1) {
         headerParsed = true;
         currentSection = { title: trimmed, lines: [] };
         sections.push(currentSection);
-      } else if (trimmed && !/^[-\u2500\u2550=]{3,}$/.test(trimmed)) {
+      } else if (trimmed && !isResumeDividerLine(trimmed)) {
         headerLines.push(trimmed);
       }
       continue;
@@ -389,7 +395,7 @@ function parseResumeText(resumeText) {
     if (looksLikeSection) {
       currentSection = { title: trimmed, lines: [] };
       sections.push(currentSection);
-    } else if (currentSection && trimmed && !/^[-\u2500\u2550=]{3,}$/.test(trimmed)) {
+    } else if (currentSection && trimmed && !isResumeDividerLine(trimmed)) {
       currentSection.lines.push(trimmed);
     }
   }
@@ -417,7 +423,7 @@ function normalizeGeneratedResumeIdentity(resumeText, state) {
   if (!name || !resumeText) return resumeText;
 
   const lines = String(resumeText).split('\n');
-  const isDivider = (line) => /^[-\u2500\u2550=]{3,}$/.test(String(line || '').trim());
+  const isDivider = isResumeDividerLine;
   const isKnownSectionTitle = (line) => /^(SUMMARY|OBJECTIVE|PROFILE|PROFESSIONAL SUMMARY|EDUCATION|RELEVANT COURSES|SKILLS|CERTIFICATIONS|EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|PROJECTS|ADDITIONAL PROJECTS|ADDITIONAL EXPERIENCE|PROFESSIONAL AFFILIATIONS|INTERESTS)$/i
     .test(String(line || '').trim());
   const isSectionHeader = (line) => {
@@ -501,6 +507,7 @@ function renderFormattedPreview(resumeText) {
         <div class="rb-resume-section-body">`;
 
     for (const line of section.lines) {
+      if (isResumeDividerLine(line)) continue;
       if (line.startsWith('\u2022') || line.startsWith('-')) {
         const text = line.replace(/^[\u2022-]\s*/, '');
         html += `<p class="rb-resume-bullet">\u2022 ${escapeHtml(text)}</p>`;
