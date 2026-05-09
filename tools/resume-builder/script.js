@@ -47,6 +47,20 @@ const DOCX_CDN_URLS = [
 let resumeExportState = null;
 let resumeExportToastStack = null;
 let docxLoaded = false;
+let resumeTemplateState = null;
+let resumeTemplateRoot = null;
+let resumeTemplateSave = null;
+
+const RESUME_TEMPLATE_OPTIONS = ['classic', 'modern', 'compact'];
+const RESUME_TEMPLATE_CLASSES = {
+  classic: 'rb-tpl-classic',
+  modern: 'rb-tpl-modern',
+  compact: 'rb-tpl-compact',
+};
+
+function normalizeResumeTemplate(template) {
+  return RESUME_TEMPLATE_OPTIONS.includes(template) ? template : 'classic';
+}
 
 const ATS_SYSTEM_PROMPT = `You are an elite ATS (Applicant Tracking System) resume expert and HR consultant
 with 15 years of experience at Fortune 500 companies. Your task is to deeply
@@ -385,6 +399,7 @@ function serializeState(state) {
         educations: (state.educations || []).map(normalizeSavedEducation),
         skills: state.skills,
         certifications: [...state.certifications],
+        template: normalizeResumeTemplate(state.template),
       },
     });
   } catch (_) {
@@ -445,6 +460,7 @@ function restoreFromStorage(state) {
         state.certifications = [createEmptyCertification()];
       }
     }
+    state.template = normalizeResumeTemplate(saved.template);
 
     return true;
   } catch (_) {
@@ -573,6 +589,63 @@ function getCanonicalResumeHeader(state) {
   return { name, contact };
 }
 
+// Resume template system
+function getResumeContactParts(state, fallbackContact = '') {
+  const personal = state?.personal || {};
+  const parts = [
+    personal.email,
+    personal.phone,
+    personal.location,
+    personal.linkedin,
+    personal.portfolio,
+  ].map((value) => String(value || '').trim()).filter(Boolean);
+
+  if (parts.length) return parts;
+  return String(fallbackContact || '')
+    .split('|')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function renderContactParts(parts) {
+  return parts
+    .map((part) => `<span class="rb-resume-contact-item">${escapeHtml(part)}</span>`)
+    .join('<span class="rb-resume-contact-sep" aria-hidden="true"></span>');
+}
+
+function syncTemplatePicker(template) {
+  const root = resumeTemplateRoot || document;
+  root.querySelectorAll('[data-resume-template]').forEach((button) => {
+    const active = button.dataset.resumeTemplate === template;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function applyTemplate(templateName, options = {}) {
+  const template = normalizeResumeTemplate(templateName);
+  const shouldSave = options.persist !== false;
+
+  if (resumeTemplateState) {
+    resumeTemplateState.template = template;
+  }
+
+  const root = resumeTemplateRoot || document;
+  const doc = root.querySelector('#rb-preview-pane .rb-resume-doc') || document.querySelector('#rb-preview-pane .rb-resume-doc');
+  if (doc) {
+    Object.values(RESUME_TEMPLATE_CLASSES).forEach((className) => doc.classList.remove(className));
+    doc.classList.add(RESUME_TEMPLATE_CLASSES[template]);
+  }
+
+  syncTemplatePicker(template);
+
+  if (shouldSave && typeof resumeTemplateSave === 'function') {
+    resumeTemplateSave();
+  }
+
+  return template;
+}
+
 function normalizeGeneratedResumeIdentity(resumeText, state) {
   const { name, contact } = getCanonicalResumeHeader(state);
   if (!name || !resumeText) return resumeText;
@@ -637,20 +710,21 @@ function renderFormattedPreview(resumeText) {
         <div class="rb-preview-empty-icon" aria-hidden="true">&#128196;</div>
         <p>Your formatted resume will appear here after generation</p>
       </div>`;
+    applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
     return;
   }
 
   const { name, contact } = getCanonicalResumeHeader(resumeExportState);
   const parsed = parseResumeText(resumeText);
   const displayName = name || parsed.name;
-  const displayContact = contact || parsed.contact;
+  const contactParts = getResumeContactParts(resumeExportState, contact || parsed.contact);
   const sections = getRenderableResumeSections(parsed.sections, resumeExportState);
   let html = '<div class="rb-resume-doc">';
 
   html += `
     <div class="rb-resume-header">
       <h1 class="rb-resume-name">${escapeHtml(displayName)}</h1>
-      <p class="rb-resume-contact">${escapeHtml(displayContact)}</p>
+      <p class="rb-resume-contact">${renderContactParts(contactParts)}</p>
     </div>`;
 
   for (const section of sections) {
@@ -664,7 +738,7 @@ function renderFormattedPreview(resumeText) {
       if (isResumeDividerLine(line)) continue;
       if (line.startsWith('\u2022') || line.startsWith('-')) {
         const text = normalizeResumeBulletText(line);
-        html += `<p class="rb-resume-bullet">\u2022 ${escapeHtml(text)}</p>`;
+        html += `<p class="rb-resume-bullet"><span class="rb-resume-bullet-marker" aria-hidden="true"></span><span>${escapeHtml(text)}</span></p>`;
       } else {
         html += `<p class="rb-resume-line">${escapeHtml(line)}</p>`;
       }
@@ -675,6 +749,7 @@ function renderFormattedPreview(resumeText) {
 
   html += '</div>';
   container.innerHTML = html;
+  applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
 }
 
 // PDF Export
@@ -803,6 +878,18 @@ function getResumePrintStyles() {
       word-break: normal;
     }
 
+    .rb-resume-contact-sep::before {
+      content: " | ";
+    }
+
+    .rb-tpl-modern .rb-resume-contact-sep::before {
+      content: " \\00B7 ";
+    }
+
+    .rb-resume-bullet-marker::before {
+      content: "\\2022\\00A0";
+    }
+
     .rb-resume-section {
       margin-bottom: 0.2in;
       break-inside: avoid;
@@ -853,6 +940,128 @@ function getResumePrintStyles() {
       text-indent: -0.15in;
     }
 
+    .rb-resume-doc.rb-tpl-modern {
+      padding: 0.65in 0.72in;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 10pt;
+      line-height: 1.34;
+      color: #111827;
+    }
+
+    .rb-resume-doc.rb-tpl-modern .rb-resume-header {
+      text-align: left;
+      margin-bottom: 0.24in;
+      padding-bottom: 0.1in;
+      border-bottom: 2pt solid #3b4f6b;
+    }
+
+    .rb-resume-doc.rb-tpl-modern .rb-resume-name {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 20pt;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      text-transform: none;
+      color: #111827;
+    }
+
+    .rb-resume-doc.rb-tpl-modern .rb-resume-contact {
+      text-align: left;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 9pt;
+      color: #374151;
+    }
+
+    .rb-resume-doc.rb-tpl-modern .rb-resume-contact-sep::before {
+      content: " \\00B7 ";
+    }
+
+    .rb-resume-doc.rb-tpl-modern .rb-resume-section {
+      margin-bottom: 0.16in;
+    }
+
+    .rb-resume-doc.rb-tpl-modern .rb-resume-section-title {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 10pt;
+      letter-spacing: 0.055em;
+      color: #24364f;
+    }
+
+    .rb-resume-doc.rb-tpl-modern .rb-resume-section-divider {
+      width: 1.1in;
+      border-top: 2pt solid #3b4f6b;
+      margin-bottom: 0.055in;
+    }
+
+    .rb-resume-doc.rb-tpl-modern .rb-resume-line,
+    .rb-resume-doc.rb-tpl-modern .rb-resume-bullet {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 10pt;
+      line-height: 1.34;
+    }
+
+    .rb-resume-doc.rb-tpl-modern .rb-resume-bullet {
+      margin-left: 0.12in;
+      padding-left: 0.12in;
+      text-indent: -0.12in;
+    }
+
+    .rb-resume-doc.rb-tpl-modern .rb-resume-bullet-marker::before {
+      content: "\\2013\\00A0";
+    }
+
+    .rb-resume-doc.rb-tpl-compact {
+      padding: 0.55in 0.62in;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 9.5pt;
+      line-height: 1.23;
+      color: #111111;
+    }
+
+    .rb-resume-doc.rb-tpl-compact .rb-resume-header {
+      text-align: left;
+      margin-bottom: 0.18in;
+    }
+
+    .rb-resume-doc.rb-tpl-compact .rb-resume-name {
+      font-size: 15pt;
+      line-height: 1.1;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .rb-resume-doc.rb-tpl-compact .rb-resume-contact {
+      text-align: left;
+      font-size: 8.5pt;
+      line-height: 1.2;
+    }
+
+    .rb-resume-doc.rb-tpl-compact .rb-resume-section {
+      margin-bottom: 0.105in;
+    }
+
+    .rb-resume-doc.rb-tpl-compact .rb-resume-section-title {
+      font-size: 9.5pt;
+      letter-spacing: 0.055em;
+    }
+
+    .rb-resume-doc.rb-tpl-compact .rb-resume-section-divider {
+      border-top: 0.75pt solid #333333;
+      margin-bottom: 0.035in;
+    }
+
+    .rb-resume-doc.rb-tpl-compact .rb-resume-line,
+    .rb-resume-doc.rb-tpl-compact .rb-resume-bullet {
+      font-size: 9.5pt;
+      line-height: 1.23;
+      margin-bottom: 1pt;
+    }
+
+    .rb-resume-doc.rb-tpl-compact .rb-resume-bullet {
+      margin-left: 0.11in;
+      padding-left: 0.11in;
+      text-indent: -0.11in;
+    }
+
     @media print {
       html,
       body,
@@ -882,7 +1091,8 @@ function openResumePrintDialog(intent = 'print') {
 
   removeResumePrintFrame();
 
-  const fileBaseName = `${getResumeFileBaseName()}_resume`;
+  const templateName = normalizeResumeTemplate(resumeExportState?.template);
+  const fileBaseName = `${getResumeFileBaseName()}_resume_${templateName}`;
   const frame = document.createElement('iframe');
   frame.id = 'rb-print-frame';
   frame.title = 'Resume print export';
@@ -1128,6 +1338,7 @@ function buildDocxChildren(state) {
 }
 
 async function downloadResumeDOCX() {
+  // DOCX intentionally stays in a fixed Classic text structure for maximum ATS compatibility.
   const state = resumeExportState;
   const btn = document.getElementById('rb-btn-download-docx');
   if (!state?.generatedResume) {
@@ -1650,6 +1861,7 @@ export async function initResumeBuilderTool(container) {
     educations: [createEmptyEducation()],
     skills: '',
     targetRole: '',
+    template: 'classic',
     certifications: [createEmptyCertification()],
   };
 
@@ -1664,6 +1876,9 @@ export async function initResumeBuilderTool(container) {
   const wasRestored = restoreFromStorage(state);
   resumeExportState = state;
   resumeExportToastStack = toastStack;
+  resumeTemplateState = state;
+  resumeTemplateRoot = root;
+  resumeTemplateSave = debouncedSave;
 
   function syncExportButtons() {
     const hasReport = Boolean(state.lastReport);
@@ -2481,13 +2696,15 @@ export async function initResumeBuilderTool(container) {
     state.projects = [];
     state.skills = '';
     state.targetRole = '';
+    state.template = 'classic';
     state.certifications = [createEmptyCertification()];
     clearSavedDraft();
     populateFormFromState();
-    previewWrap.classList.add('hidden');
+    previewWrap.classList.remove('hidden');
     previewCount.textContent = '0 chars';
     previewNote.textContent = 'ATS note pending';
     renderFormattedPreview('');
+    applyTemplate('classic', { persist: false });
     syncExportButtons();
     setStep(1);
     setBanner(builderBanner, 'Draft cleared. Start fresh whenever you are ready.', 'success');
@@ -2557,6 +2774,14 @@ export async function initResumeBuilderTool(container) {
       improveExperienceBulletsWithAI(index, btn);
     });
   }
+  const templatePicker = qs(root, '#rb-template-picker');
+  if (templatePicker) {
+    templatePicker.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-resume-template]');
+      if (!button || !templatePicker.contains(button)) return;
+      applyTemplate(button.dataset.resumeTemplate);
+    });
+  }
   if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);
   if (docxButton) docxButton.addEventListener('click', downloadResumeDOCX);
   if (printButton) printButton.addEventListener('click', printResume);
@@ -2592,6 +2817,7 @@ export async function initResumeBuilderTool(container) {
   bindCounter(atsJob, atsJobCount, 3000, null, 2500);
   updateBuilderFieldBindings();
   populateFormFromState();
+  applyTemplate(state.template, { persist: false });
   renderFormattedPreview(state.generatedResume);
   setStep(1);
   syncExportButtons();
