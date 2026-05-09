@@ -1211,7 +1211,8 @@ async function loadDocx() {
 }
 
 function getDocxFileName() {
-  return `${getResumeFileBaseName()}_resume.docx`;
+  const template = normalizeResumeTemplate(resumeExportState?.template);
+  return `${getResumeFileBaseName()}_resume_${template}.docx`;
 }
 
 function getFilledEducations(state) {
@@ -1233,6 +1234,90 @@ function getFilledProjects(state) {
   ].some((value) => String(value || '').trim()));
 }
 
+function getDocxTemplateProfile(templateName) {
+  const template = normalizeResumeTemplate(templateName);
+  const profiles = {
+    classic: {
+      template,
+      font: 'Times New Roman',
+      textColor: '111111',
+      mutedColor: '333333',
+      accentColor: '111111',
+      nameTransform: (value) => value.toUpperCase(),
+      nameSize: 36,
+      nameAlign: 'center',
+      nameAfter: 80,
+      contactSize: 19,
+      contactAlign: 'center',
+      contactAfter: 260,
+      contactSeparator: ' | ',
+      sectionSize: 22,
+      sectionBefore: 180,
+      sectionAfter: 120,
+      sectionBorderSize: 6,
+      bodySize: 21,
+      bodyAfter: 100,
+      lineSpacing: 276,
+      bulletPrefix: '\u2022 ',
+      bulletIndent: { left: 432, hanging: 216 },
+      margins: { top: 1080, right: 1224, bottom: 1080, left: 1224 },
+    },
+    modern: {
+      template,
+      font: 'Calibri',
+      textColor: '111827',
+      mutedColor: '374151',
+      accentColor: '3B4F6B',
+      nameTransform: (value) => value,
+      nameSize: 40,
+      nameAlign: 'left',
+      nameAfter: 60,
+      contactSize: 18,
+      contactAlign: 'left',
+      contactAfter: 260,
+      contactSeparator: ' \u00B7 ',
+      contactBorder: true,
+      sectionSize: 20,
+      sectionBefore: 150,
+      sectionAfter: 90,
+      sectionBorderSize: 8,
+      bodySize: 20,
+      bodyAfter: 80,
+      lineSpacing: 258,
+      bulletPrefix: '- ',
+      bulletIndent: { left: 360, hanging: 180 },
+      margins: { top: 936, right: 1037, bottom: 936, left: 1037 },
+    },
+    compact: {
+      template,
+      font: 'Georgia',
+      textColor: '111111',
+      mutedColor: '2F2F2F',
+      accentColor: '333333',
+      nameTransform: (value) => value.toUpperCase(),
+      nameSize: 30,
+      nameAlign: 'left',
+      nameAfter: 50,
+      contactSize: 17,
+      contactAlign: 'left',
+      contactAfter: 170,
+      contactSeparator: ' | ',
+      sectionSize: 19,
+      sectionBefore: 105,
+      sectionAfter: 65,
+      sectionBorderSize: 4,
+      bodySize: 19,
+      bodyAfter: 55,
+      lineSpacing: 235,
+      bulletPrefix: '\u2022 ',
+      bulletIndent: { left: 316, hanging: 158 },
+      margins: { top: 792, right: 893, bottom: 792, left: 893 },
+    },
+  };
+
+  return profiles[template];
+}
+
 function createDocxParagraph(text, options = {}) {
   const { Paragraph, TextRun, AlignmentType } = window.docx;
   const {
@@ -1243,51 +1328,65 @@ function createDocxParagraph(text, options = {}) {
     after = 120,
     before = 0,
     indent = null,
+    font = 'Calibri',
+    color = '111111',
+    border = null,
+    line = 276,
   } = options;
   const alignment = align === 'center' ? AlignmentType.CENTER : AlignmentType.LEFT;
-  return new Paragraph({
+  const paragraphOptions = {
     alignment,
-    spacing: { before, after, line: 276 },
+    spacing: { before, after, line },
     indent,
     children: [
       new TextRun({
         text: String(text || ''),
-        font: 'Calibri',
+        font,
         size,
+        color,
         bold,
         italics: italic,
       }),
     ],
-  });
+  };
+  if (border) {
+    paragraphOptions.border = border;
+  }
+  return new Paragraph(paragraphOptions);
 }
 
-function createDocxSectionHeader(title) {
+function createDocxSectionHeader(title, profile) {
   const { Paragraph, TextRun, BorderStyle } = window.docx;
   return new Paragraph({
-    spacing: { before: 180, after: 120, line: 276 },
+    spacing: { before: profile.sectionBefore, after: profile.sectionAfter, line: profile.lineSpacing },
     border: {
       bottom: {
         style: BorderStyle.SINGLE,
-        size: 6,
-        color: '111111',
+        size: profile.sectionBorderSize,
+        color: profile.accentColor,
         space: 1,
       },
     },
     children: [
       new TextRun({
         text: String(title || '').toUpperCase(),
-        font: 'Calibri',
-        size: 24,
+        font: profile.font,
+        size: profile.sectionSize,
+        color: profile.accentColor,
         bold: true,
       }),
     ],
   });
 }
 
-function createDocxBullet(text) {
-  return createDocxParagraph(`\u2022 ${normalizeResumeBulletText(text)}`, {
-    size: 22,
-    indent: { left: 432, hanging: 216 },
+function createDocxBullet(text, profile) {
+  return createDocxParagraph(`${profile.bulletPrefix}${normalizeResumeBulletText(text)}`, {
+    size: profile.bodySize,
+    font: profile.font,
+    color: profile.textColor,
+    after: profile.bodyAfter,
+    line: profile.lineSpacing,
+    indent: profile.bulletIndent,
   });
 }
 
@@ -1305,17 +1404,37 @@ function createDocxMixedLine(parts) {
   });
 }
 
-function buildDocxChildren(state) {
+function buildDocxChildren(state, profile) {
+  const { BorderStyle } = window.docx;
   const children = [];
   const { name, contact } = getCanonicalResumeHeader(state);
-  children.push(createDocxParagraph((name || 'Your Name').toUpperCase(), {
+  children.push(createDocxParagraph(profile.nameTransform(name || 'Your Name'), {
     bold: true,
-    size: 32,
-    align: 'center',
-    after: 80,
+    size: profile.nameSize,
+    align: profile.nameAlign,
+    after: profile.nameAfter,
+    font: profile.font,
+    color: profile.textColor,
+    line: profile.lineSpacing,
   }));
   if (contact) {
-    children.push(createDocxParagraph(contact, { size: 20, align: 'center', after: 240 }));
+    const contactText = getResumeContactParts(state, contact).join(profile.contactSeparator);
+    children.push(createDocxParagraph(contactText, {
+      size: profile.contactSize,
+      align: profile.contactAlign,
+      after: profile.contactAfter,
+      font: profile.font,
+      color: profile.mutedColor,
+      line: profile.lineSpacing,
+      border: profile.contactBorder ? {
+        bottom: {
+          style: BorderStyle.SINGLE,
+          size: 8,
+          color: profile.accentColor,
+          space: 8,
+        },
+      } : null,
+    }));
   }
 
   const parsed = parseResumeText(state.generatedResume || '');
@@ -1323,14 +1442,20 @@ function buildDocxChildren(state) {
   sections.forEach((section) => {
     const lines = (section.lines || []).filter((line) => String(line || '').trim() && !isResumeDividerLine(line));
     if (!lines.length) return;
-    children.push(createDocxSectionHeader(section.title));
+    children.push(createDocxSectionHeader(section.title, profile));
     lines.forEach((line) => {
       const trimmed = String(line || '').trim();
       if (trimmed.startsWith('\u2022') || trimmed.startsWith('-')) {
-        children.push(createDocxBullet(trimmed));
+        children.push(createDocxBullet(trimmed, profile));
         return;
       }
-      children.push(createDocxParagraph(trimmed));
+      children.push(createDocxParagraph(trimmed, {
+        size: profile.bodySize,
+        font: profile.font,
+        color: profile.textColor,
+        after: profile.bodyAfter,
+        line: profile.lineSpacing,
+      }));
     });
   });
 
@@ -1338,7 +1463,6 @@ function buildDocxChildren(state) {
 }
 
 async function downloadResumeDOCX() {
-  // DOCX intentionally stays in a fixed Classic text structure for maximum ATS compatibility.
   const state = resumeExportState;
   const btn = document.getElementById('rb-btn-download-docx');
   if (!state?.generatedResume) {
@@ -1355,15 +1479,16 @@ async function downloadResumeDOCX() {
     await loadDocx();
     if (!window.docx) throw new Error('docx global unavailable');
     const { Document, Packer } = window.docx;
+    const profile = getDocxTemplateProfile(state.template);
     const doc = new Document({
       sections: [{
         properties: {
           page: {
             size: { width: 12240, height: 15840 },
-            margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+            margin: profile.margins,
           },
         },
-        children: buildDocxChildren(state),
+        children: buildDocxChildren(state, profile),
       }],
     });
     const blob = await Packer.toBlob(doc);
