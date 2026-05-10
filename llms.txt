@@ -25,7 +25,7 @@ Statistics cited by this tool:
 
 ## Important pages
 
-- [AI Resume Builder](https://tooliest.com/resume-builder):
+- [AI Resume Builder](https://tooliest.com/resume-builder/):
   Main tool - resume builder wizard, ATS analyzer, cover letter
 - [All Tools](https://tooliest.com): Complete tool directory
 

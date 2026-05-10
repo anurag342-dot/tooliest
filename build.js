@@ -3578,12 +3578,19 @@ function renderHeadersFile(tools, categories) {
     '# Static assets - aggressive caching',
     '/css/*',
     '  Cache-Control: public, max-age=31536000, immutable',
+    '  X-Robots-Tag: noindex',
     '',
     '/js/*',
     '  Cache-Control: public, max-age=31536000, immutable',
+    '  X-Robots-Tag: noindex',
     '',
     `/${BUNDLE_OUTPUT_FILE}`,
     '  Cache-Control: public, max-age=31536000, immutable',
+    '  X-Robots-Tag: noindex',
+    '',
+    '/tools/*',
+    '  Cache-Control: public, max-age=0, must-revalidate',
+    '  X-Robots-Tag: noindex',
     '',
     '/favicon*',
     '  Cache-Control: public, max-age=31536000, immutable',
@@ -3760,7 +3767,7 @@ function writeSitemap(tools, categories) {
   }));
 
   const toolPages = tools.map((tool) => ({
-    loc: getAbsoluteUrl(tool.id === 'resume-builder' ? '/resume-builder' : getToolPath(tool.id)),
+    loc: getAbsoluteUrl(getToolPath(tool.id)),
     priority: tool.id === 'resume-builder' ? '1.0' : '0.8',
     changefreq: 'weekly',
     lastmod: getToolLastModifiedDate(tool),
