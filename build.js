@@ -114,6 +114,9 @@ const STATIC_PAGE_SOURCE_FILES = {
   terms: 'terms.html',
   disclaimer: 'disclaimer.html',
 };
+const MANUAL_STATIC_HTML_SOURCE_FILES = [
+  'resume-builder/index.html',
+];
 const ROOT_STATIC_FILE_PATHS = [
   '/ads.txt',
   '/404.html',
@@ -860,7 +863,12 @@ function syncStaticPageAssetVersions(tools = []) {
   const standaloneSourceFiles = tools
     .map((tool) => tool.standaloneSourceFile)
     .filter(Boolean);
-  const sourceFiles = [...new Set([...Object.values(STATIC_PAGE_SOURCE_FILES), ...standaloneSourceFiles, ...getManualHtmlSourceFiles()])];
+  const sourceFiles = [...new Set([
+    ...Object.values(STATIC_PAGE_SOURCE_FILES),
+    ...MANUAL_STATIC_HTML_SOURCE_FILES,
+    ...standaloneSourceFiles,
+    ...getManualHtmlSourceFiles(),
+  ])];
   const toolCountLabel = `${tools.length}+`;
 
   sourceFiles.forEach((sourceFile) => {
@@ -3353,7 +3361,7 @@ async function bundleJavascript() {
 function writeToolPages(tools, categories) {
   console.log(`Generating ${tools.length} static tool pages...`);
   tools.forEach((tool) => {
-    if (tool.standalonePage) {
+    if (tool.standalonePage || tool.staticShellPage) {
       return;
     }
     const outputDir = path.join(__dirname, tool.id);
@@ -3659,6 +3667,10 @@ function renderHeadersFile(tools, categories) {
     '/robots.txt',
     '  Cache-Control: public, max-age=86400',
     '',
+    '/llms.txt',
+    '  Cache-Control: public, max-age=86400',
+    '  Content-Type: text/plain; charset=utf-8',
+    '',
   ].join('\n');
 }
 
@@ -3748,8 +3760,8 @@ function writeSitemap(tools, categories) {
   }));
 
   const toolPages = tools.map((tool) => ({
-    loc: getAbsoluteUrl(getToolPath(tool.id)),
-    priority: '0.8',
+    loc: getAbsoluteUrl(tool.id === 'resume-builder' ? '/resume-builder' : getToolPath(tool.id)),
+    priority: tool.id === 'resume-builder' ? '1.0' : '0.8',
     changefreq: 'weekly',
     lastmod: getToolLastModifiedDate(tool),
   }));

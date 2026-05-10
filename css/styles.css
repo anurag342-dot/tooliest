@@ -3636,6 +3636,15 @@ body.embed-mode.standalone-tool-embed {
   text-decoration: none;
 }
 
+.tool-content-section .btn {
+  color: #fff;
+}
+
+.tool-content-section .btn:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
 .tool-content-section a:hover {
   text-decoration: underline;
 }

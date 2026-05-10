@@ -37,7 +37,7 @@ const TOOLIEST_WHATS_NEW = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260510-d077fab3';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260510-370c46f5';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -1088,8 +1088,15 @@ const App = {
     return Boolean(TOOLS.find((tool) => tool.id === route.toolId && tool.standalonePage));
   },
 
+  isStaticShellToolPath(pathname = window.location.pathname) {
+    const normalized = pathname.replace(/\/index\.html$/, '/');
+    const route = this.parsePath(normalized);
+    if (route.view !== 'tool' || !route.toolId) return false;
+    return Boolean(TOOLS.find((tool) => tool.id === route.toolId && (tool.standalonePage || tool.staticShellPage)));
+  },
+
   shouldUseSpaNavigation(targetPathname = window.location.pathname) {
-    if (this.isStandaloneToolPath(targetPathname)) {
+    if (this.isStaticShellToolPath(targetPathname)) {
       return false;
     }
     return this.isAppPath(window.location.pathname) &&
@@ -2288,14 +2295,14 @@ const App = {
     }
     const catName = TOOL_CATEGORIES.find(c => c.id === tool.category)?.name || '';
     const main = document.getElementById('main-content');
-    const preserveStaticStandaloneShell = !isEmbed
-      && tool.standalonePage
+    const preserveStaticToolShell = !isEmbed
+      && (tool.standalonePage || tool.staticShellPage)
       && Boolean(main?.querySelector('#tool-workspace'))
       && Boolean(main?.querySelector('.tool-page'));
     
     const related = this.getRelatedTools(tool, 5);
     const compareCandidates = this.getCompareCandidates(tool, 10);
-    if (!preserveStaticStandaloneShell) {
+    if (!preserveStaticToolShell) {
       this.updateSEO(tool.meta.title, tool.meta.desc, tool);
       main.innerHTML = this.getToolPageHTML(tool, catName, related, compareCandidates, isEmbed);
       main.querySelector('#tool-performance-panel')?.remove();
