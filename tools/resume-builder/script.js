@@ -307,7 +307,7 @@ function setImproveBtnLoading(btn, isLoading) {
     btn.disabled = true;
     btn.setAttribute('aria-busy', 'true');
     btn.classList.add('rb-improve-btn--loading');
-    if (label) label.textContent = 'Improving...';
+    if (label) label.textContent = btn.dataset.loadingLabel || 'Improving...';
     if (spinner) spinner.hidden = false;
   } else {
     btn.disabled = false;
@@ -453,6 +453,41 @@ function normalizeSavedEducation(education = {}) {
   };
 }
 
+function normalizeSavedAtsAnalysisResult(result = null) {
+  if (!result || typeof result !== 'object' || Array.isArray(result)) return null;
+  const score = Number(result.score ?? result.total);
+  if (!Number.isFinite(score)) return null;
+  const keywordsFound = Array.isArray(result.keywordsFound)
+    ? result.keywordsFound
+    : Array.isArray(result.keywords_found)
+      ? result.keywords_found
+      : [];
+  const keywordsMissing = Array.isArray(result.keywordsMissing)
+    ? result.keywordsMissing
+    : Array.isArray(result.keywords_missing)
+      ? result.keywords_missing
+      : [];
+  if (!Array.isArray(keywordsFound) || !Array.isArray(keywordsMissing)) return null;
+  const scoreMeta = SCORE_META.find((meta) => score >= meta.min) || SCORE_META[SCORE_META.length - 1];
+  return {
+    score: Math.max(0, Math.min(100, Math.round(score))),
+    scoreLabel: String(result.scoreLabel || result.score_label || scoreMeta.label),
+    scoreColor: String(result.scoreColor || result.color || scoreMeta.color),
+    keywordsFound: keywordsFound.map((item) => String(item || '').trim()).filter(Boolean).slice(0, 40),
+    keywordsMissing: keywordsMissing.map((item) => String(item || '').trim()).filter(Boolean).slice(0, 40),
+    improvements: Array.isArray(result.improvements)
+      ? result.improvements.slice(0, 8).map((item) => ({
+        priority: String(item?.priority || 'medium'),
+        title: String(item?.title || 'Improve resume fit'),
+        detail: String(item?.detail || item?.message || '').trim(),
+      })).filter((item) => item.detail || item.title)
+      : [],
+    sections: result.sections && typeof result.sections === 'object' && !Array.isArray(result.sections)
+      ? result.sections
+      : {},
+  };
+}
+
 function serializeState(state) {
   try {
     return JSON.stringify({
@@ -468,6 +503,7 @@ function serializeState(state) {
         skills: state.skills,
         certifications: [...state.certifications],
         template: normalizeResumeTemplate(state.template),
+        atsAnalysisResult: normalizeSavedAtsAnalysisResult(state.atsAnalysisResult),
       },
     });
   } catch (_) {
@@ -529,6 +565,7 @@ function restoreFromStorage(state) {
       }
     }
     state.template = normalizeResumeTemplate(saved.template);
+    state.atsAnalysisResult = normalizeSavedAtsAnalysisResult(saved.atsAnalysisResult);
 
     return true;
   } catch (_) {
@@ -2172,6 +2209,25 @@ export async function initResumeBuilderTool(container) {
   const creditsBar = qs(root, '#rb-credits-bar');
   const creditsRemaining = qs(root, '#rb-credits-remaining');
   const creditsLabel = qs(root, '.rb-credits-bar__label');
+  const scoreCompact = qs(root, '#rb-live-score-compact');
+  const scoreCompactNumber = qs(root, '#rb-score-compact-number');
+  const scoreCompactLabel = qs(root, '#rb-score-compact-label');
+  const scoreCompactTip = qs(root, '#rb-score-compact-tip');
+  const scorePanelFull = qs(root, '#rb-score-panel-full');
+  const scoreGaugeValue = qs(root, '#rb-score-gauge-value');
+  const scoreFullNumber = qs(root, '#rb-score-full-number');
+  const scoreFullLabel = qs(root, '#rb-score-full-label');
+  const scoreFullDescription = qs(root, '#rb-score-full-description');
+  const scoreAiBadge = qs(root, '#rb-score-ai-badge');
+  const scoreBreakdown = qs(root, '#rb-score-breakdown');
+  const scoreTips = qs(root, '#rb-score-tips');
+  const scoreKeywords = qs(root, '#rb-score-keywords');
+  const scoreKeywordsFound = qs(root, '#rb-score-keywords-found');
+  const scoreKeywordsMissing = qs(root, '#rb-score-keywords-missing');
+  const scoreAnalyzeToggle = qs(root, '#rb-score-analyze-toggle');
+  const scoreJdForm = qs(root, '#rb-score-jd-form');
+  const scoreJdInput = qs(root, '#rb-score-jd');
+  const scoreRunAiButton = qs(root, '#rb-score-run-ai');
   const importCard = qs(root, '#rb-import-card');
   const importCollapsed = qs(root, '#rb-import-collapsed');
   const importExpanded = qs(root, '#rb-import-expanded');
@@ -2205,6 +2261,7 @@ export async function initResumeBuilderTool(container) {
     skills: '',
     targetRole: '',
     template: 'classic',
+    atsAnalysisResult: null,
     certifications: [createEmptyCertification()],
   };
 
@@ -2218,6 +2275,7 @@ export async function initResumeBuilderTool(container) {
     showSaveIndicator('saving');
     saveToStorage(state);
   }, AUTOSAVE_DELAY);
+  let debouncedRefreshScore = () => {};
   const wasRestored = restoreFromStorage(state);
   resumeExportState = state;
   resumeExportToastStack = toastStack;
@@ -2264,6 +2322,11 @@ export async function initResumeBuilderTool(container) {
       button.disabled = remaining === 0;
       button.setAttribute('aria-disabled', String(remaining === 0));
     });
+    if (scoreAnalyzeToggle) {
+      scoreAnalyzeToggle.disabled = false;
+      scoreAnalyzeToggle.classList.toggle('rb-improve-btn--credit-empty', remaining === 0);
+      scoreAnalyzeToggle.setAttribute('aria-disabled', String(remaining === 0));
+    }
     syncImportCreditState(remaining);
   }
 
@@ -2273,6 +2336,312 @@ export async function initResumeBuilderTool(container) {
     atsButton.textContent = getQuotaButtonLabel(atsBaseLabel, TOOL_KEY);
     generateButton.textContent = `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`;
     updateCreditsDisplay();
+  }
+
+  // Local ATS pre-scorer
+  const LOCAL_ATS_ACTION_VERBS = new Set([
+    'led', 'built', 'designed', 'developed', 'increased', 'reduced',
+    'managed', 'launched', 'delivered', 'implemented', 'optimized',
+    'streamlined', 'collaborated', 'coordinated', 'achieved', 'automated',
+    'negotiated', 'created', 'established', 'improved', 'maintained',
+    'operated', 'produced', 'provided', 'resolved', 'scaled', 'secured',
+    'spearheaded', 'supported', 'transformed', 'architected', 'accelerated',
+    'deployed', 'engineered', 'generated', 'grew', 'integrated', 'mentored',
+    'migrated', 'presented', 'prioritized', 'recruited', 'restructured',
+    'reviewed', 'saved', 'trained', 'utilized', 'won', 'wrote',
+  ]);
+  const LOCAL_ATS_STOP_WORDS = new Set([
+    'the', 'and', 'or', 'in', 'at', 'to', 'a', 'an', 'of', 'for', 'with',
+    'as', 'is', 'was', 'are', 'were', 'be', 'been', 'by', 'from', 'on',
+    'that', 'this', 'it', 'its', 'not', 'but',
+  ]);
+  const LOCAL_SCORE_DIMENSION_LABELS = {
+    contact: 'Contact Info',
+    sections: 'Section Completeness',
+    achievements: 'Achievement Quality',
+    keywords: 'Keyword Density',
+    length: 'Resume Length',
+    completeness: 'Profile Completeness',
+  };
+
+  function getLocalScoreMeta(score) {
+    if (score >= 90) return { label: 'ATS Ready', color: '#6366f1' };
+    if (score >= 75) return { label: 'Strong', color: '#22c55e' };
+    if (score >= 60) return { label: 'Good Start', color: '#eab308' };
+    if (score >= 40) return { label: 'Getting There', color: '#f97316' };
+    return { label: 'Needs Work', color: '#ef4444' };
+  }
+
+  function getValidExperiencesForScore() {
+    return (state.experiences || []).filter((experience) => String(experience?.jobTitle || experience?.title || '').trim());
+  }
+
+  function getAchievementBulletsForScore() {
+    return (state.experiences || []).flatMap((experience) => [
+      experience?.achievement1,
+      experience?.achievement2,
+      experience?.achievement3,
+    ]).map((bullet) => String(bullet || '').trim()).filter(Boolean);
+  }
+
+  function countResumeWords(text) {
+    return String(text || '').trim().split(/\s+/).filter(Boolean).length;
+  }
+
+  function tokenizeScoreKeywords(text) {
+    return String(text || '')
+      .toLowerCase()
+      .match(/[a-z0-9+#.]+/g)?.filter((word) => word.length >= 3 && !LOCAL_ATS_STOP_WORDS.has(word)) || [];
+  }
+
+  function getLocalScoreTip(key) {
+    const bullets = getAchievementBulletsForScore();
+    const skills = parseCommaList(state.skills);
+    const resumeWords = countResumeWords(state.generatedResume);
+    if (key === 'contact') {
+      if (!state.personal.email.trim()) return 'Add your email address - most ATS systems require it.';
+      if (!state.personal.phone.trim()) return 'Add your phone number so recruiters can contact you quickly.';
+      if (!state.personal.linkedin.trim()) return 'Add a LinkedIn URL to strengthen recruiter trust signals.';
+      return 'Complete every contact field to make parsing and recruiter follow-up easier.';
+    }
+    if (key === 'sections') {
+      if (!state.summary.trim() || state.summary.trim().length < 50) return 'Write a 2-3 sentence summary tailored to your target role.';
+      if (!getValidExperiencesForScore().length) return 'Add at least one work experience with a role title and achievement.';
+      if (!skills.length) return 'Add targeted skills so ATS systems can match your resume to the role.';
+      return 'Fill in summary, experience, education, and skills for stronger section coverage.';
+    }
+    if (key === 'achievements') {
+      if (!bullets.length) return 'Add achievement bullets under experience before generating your resume.';
+      return 'Start bullet points with action verbs like Led, Built, or Increased and include real metrics where possible.';
+    }
+    if (key === 'keywords') {
+      return 'Add more specific skills and target-role terms to improve ATS keyword density.';
+    }
+    if (key === 'length') {
+      if (!state.generatedResume.trim()) return 'Generate your resume to evaluate final length and keyword coverage.';
+      if (resumeWords < 350) return 'Your resume is light; add more concrete detail to experience and project bullets.';
+      return 'Trim low-impact wording so the final resume stays focused and ATS-friendly.';
+    }
+    return 'Add target role, projects, certifications, and complete education details to boost profile completeness.';
+  }
+
+  function buildLocalScoreTips(dimensions) {
+    return Object.entries(dimensions)
+      .map(([key, dimension]) => ({
+        key,
+        ratio: dimension.max ? dimension.score / dimension.max : 1,
+      }))
+      .filter((item) => item.ratio < 0.6)
+      .sort((a, b) => a.ratio - b.ratio)
+      .slice(0, 3)
+      .map((item) => getLocalScoreTip(item.key));
+  }
+
+  function calculateLocalAtsScore() {
+    const personal = state.personal || {};
+    let contact = 0;
+    if (String(personal.name || '').trim()) contact += 3;
+    if (String(personal.email || '').trim()) contact += 4;
+    if (String(personal.phone || '').trim()) contact += 3;
+    if (String(personal.location || '').trim()) contact += 2;
+    if (String(personal.linkedin || '').trim()) contact += 2;
+    if (String(personal.portfolio || '').trim()) contact += 1;
+
+    const summaryLength = String(state.summary || '').trim().length;
+    let sections = summaryLength >= 50 ? 7 : summaryLength > 0 ? 3 : 0;
+    const experienceEntriesWithAchievements = (state.experiences || []).filter((experience) => {
+      const title = String(experience?.jobTitle || experience?.title || '').trim();
+      const hasAchievement = [experience?.achievement1, experience?.achievement2, experience?.achievement3]
+        .some((value) => String(value || '').trim());
+      return title && hasAchievement;
+    });
+    if (experienceEntriesWithAchievements.length >= 2) sections += 8;
+    else if (experienceEntriesWithAchievements.length === 1) sections += 5;
+    if ((state.educations || []).some((education) => String(education?.degree || '').trim() && String(education?.institution || '').trim())) {
+      sections += 4;
+    }
+    const skillCount = parseCommaList(state.skills).length;
+    if (skillCount >= 10) sections += 6;
+    else if (skillCount >= 5) sections += 4;
+    else if (skillCount >= 1) sections += 2;
+
+    const achievementBullets = getAchievementBulletsForScore();
+    let achievements = 0;
+    if (achievementBullets.length) {
+      const strongVerbCount = achievementBullets.filter((bullet) => {
+        const firstWord = String(bullet || '').trim().split(/\s+/)[0]?.replace(/[^a-z]/gi, '').toLowerCase();
+        return LOCAL_ATS_ACTION_VERBS.has(firstWord);
+      }).length;
+      const quantifiedCount = achievementBullets.filter((bullet) => /[0-9%$€£¥₹]|\b\d+x\b/i.test(bullet)).length;
+      achievements = Math.round((strongVerbCount / achievementBullets.length) * 10)
+        + Math.round((quantifiedCount / achievementBullets.length) * 10);
+    }
+
+    let keywords = 3;
+    if (String(state.generatedResume || '').trim() || String(state.skills || '').trim()) {
+      const keywordSource = [
+        ...parseCommaList(state.skills),
+        ...String(state.targetRole || '').split(/\s+/),
+        ...(state.experiences || []).map((experience) => experience?.jobTitle || experience?.title || ''),
+      ].join(' ');
+      const keywordSet = new Set(tokenizeScoreKeywords(keywordSource));
+      const matchCorpus = String(state.generatedResume || '').trim()
+        || [
+          state.summary,
+          state.skills,
+          ...achievementBullets,
+        ].join(' ');
+      const corpusLower = String(matchCorpus || '').toLowerCase();
+      const matches = [...keywordSet].filter((keyword) => corpusLower.includes(keyword)).length;
+      if (matches >= 15) keywords = 15;
+      else if (matches >= 10) keywords = 11;
+      else if (matches >= 5) keywords = 7;
+      else keywords = 3;
+    }
+
+    let length = 5;
+    if (String(state.generatedResume || '').trim()) {
+      const words = countResumeWords(state.generatedResume);
+      if (words < 200) length = 2;
+      else if (words <= 349) length = 6;
+      else if (words <= 700) length = 10;
+      else if (words <= 900) length = 8;
+      else length = 4;
+    }
+
+    let completeness = 0;
+    if (String(state.targetRole || '').trim()) completeness += 3;
+    if (getValidExperiencesForScore().length >= 2) completeness += 2;
+    if ((state.certifications || []).some((item) => String(item || '').trim())) completeness += 2;
+    if (String(personal.linkedin || '').trim()) completeness += 2;
+    if ((state.projects || []).some((project) => String(project?.name || '').trim())) completeness += 2;
+    if ((state.educations || []).some((education) => (
+      String(education?.degree || '').trim()
+      && String(education?.institution || '').trim()
+      && String(education?.year || '').trim()
+    ))) completeness += 2;
+    if (summaryLength >= 100) completeness += 2;
+
+    const dimensions = {
+      contact: { score: contact, max: 15, label: LOCAL_SCORE_DIMENSION_LABELS.contact },
+      sections: { score: sections, max: 25, label: LOCAL_SCORE_DIMENSION_LABELS.sections },
+      achievements: { score: achievements, max: 20, label: LOCAL_SCORE_DIMENSION_LABELS.achievements },
+      keywords: { score: keywords, max: 15, label: LOCAL_SCORE_DIMENSION_LABELS.keywords },
+      length: { score: length, max: 10, label: LOCAL_SCORE_DIMENSION_LABELS.length },
+      completeness: { score: completeness, max: 15, label: LOCAL_SCORE_DIMENSION_LABELS.completeness },
+    };
+    const total = Math.max(0, Math.min(100, Math.round(
+      contact + sections + achievements + keywords + length + completeness,
+    )));
+    const meta = getLocalScoreMeta(total);
+    return {
+      total,
+      label: meta.label,
+      color: meta.color,
+      dimensions,
+      tips: buildLocalScoreTips(dimensions),
+    };
+  }
+
+  function getDisplayScoreResult(localScore) {
+    const aiResult = normalizeSavedAtsAnalysisResult(state.atsAnalysisResult);
+    if (!aiResult) return { ...localScore, isAi: false, keywordsFound: [], keywordsMissing: [] };
+    const scoreMeta = getLocalScoreMeta(aiResult.score);
+    const aiTips = aiResult.improvements.length
+      ? aiResult.improvements.slice(0, 3).map((item) => `${item.title}: ${item.detail}`.replace(/:\s*$/, ''))
+      : localScore.tips;
+    return {
+      ...localScore,
+      total: aiResult.score,
+      label: aiResult.scoreLabel || scoreMeta.label,
+      color: aiResult.scoreColor || scoreMeta.color,
+      tips: aiTips,
+      isAi: true,
+      keywordsFound: aiResult.keywordsFound,
+      keywordsMissing: aiResult.keywordsMissing,
+    };
+  }
+
+  function renderScoreBreakdown(dimensions, color) {
+    clearNode(scoreBreakdown);
+    if (!scoreBreakdown) return;
+    Object.entries(dimensions).forEach(([, dimension]) => {
+      const row = createNode('div', 'rb-score-breakdown-row');
+      const label = createNode('span', 'rb-score-breakdown-row__label', dimension.label);
+      const bar = createNode('span', 'rb-score-breakdown-row__bar');
+      const fill = createNode('span', 'rb-score-breakdown-row__fill');
+      const value = createNode('span', 'rb-score-breakdown-row__value', `${dimension.score}/${dimension.max}`);
+      fill.style.width = `${Math.max(0, Math.min(100, Math.round((dimension.score / dimension.max) * 100)))}%`;
+      fill.style.backgroundColor = color;
+      bar.appendChild(fill);
+      row.append(label, bar, value);
+      scoreBreakdown.appendChild(row);
+    });
+  }
+
+  function renderScoreTips(tips) {
+    clearNode(scoreTips);
+    if (!scoreTips) return;
+    const safeTips = tips?.length ? tips : ['Keep filling the form - your live score will update as you add stronger detail.'];
+    safeTips.slice(0, 3).forEach((tip) => {
+      const item = createNode('li', '', tip);
+      scoreTips.appendChild(item);
+    });
+  }
+
+  function refreshLiveScore() {
+    const localScore = calculateLocalAtsScore();
+    const displayScore = getDisplayScoreResult(localScore);
+    const tip = displayScore.tips[0] || 'Keep filling the form to improve your ATS readiness.';
+    const circumference = 2 * Math.PI * 38;
+    const gaugeOffset = circumference - ((displayScore.total / 100) * circumference);
+
+    [scoreCompact, scorePanelFull].forEach((node) => {
+      if (node) node.style.setProperty('--rb-score-color', displayScore.color);
+    });
+    if (scoreCompactNumber) {
+      scoreCompactNumber.textContent = String(displayScore.total);
+      scoreCompactNumber.style.borderColor = displayScore.color;
+    }
+    if (scoreCompactLabel) {
+      scoreCompactLabel.textContent = displayScore.label;
+      scoreCompactLabel.style.color = displayScore.color;
+    }
+    if (scoreCompactTip) scoreCompactTip.textContent = tip;
+    if (scoreGaugeValue) {
+      scoreGaugeValue.style.stroke = displayScore.color;
+      scoreGaugeValue.style.strokeDasharray = String(circumference);
+      scoreGaugeValue.style.strokeDashoffset = String(gaugeOffset);
+    }
+    if (scoreFullNumber) scoreFullNumber.textContent = String(displayScore.total);
+    if (scoreFullLabel) {
+      scoreFullLabel.textContent = displayScore.label;
+      scoreFullLabel.style.color = displayScore.color;
+    }
+    if (scoreFullDescription) {
+      scoreFullDescription.textContent = displayScore.isAi
+        ? 'Job-description match from your latest AI analysis.'
+        : 'Local score based on contact details, sections, achievements, keywords, and length.';
+    }
+    if (scoreAiBadge) scoreAiBadge.hidden = !displayScore.isAi;
+    renderScoreBreakdown(localScore.dimensions, displayScore.color);
+    renderScoreTips(displayScore.tips);
+    if (scoreKeywords) scoreKeywords.hidden = !displayScore.isAi;
+    if (displayScore.isAi) {
+      renderPills(scoreKeywordsFound, displayScore.keywordsFound, 'found');
+      renderPills(scoreKeywordsMissing, displayScore.keywordsMissing, 'missing');
+    }
+    const analyzeLabel = scoreAnalyzeToggle?.querySelector('.rb-improve-btn__label');
+    if (analyzeLabel) {
+      analyzeLabel.textContent = displayScore.isAi ? 'Re-analyze with Job Description' : 'Analyze with Job Description';
+    }
+  }
+
+  debouncedRefreshScore = debounce(refreshLiveScore, 600);
+
+  function markBuilderContentChanged() {
+    state.atsAnalysisResult = null;
+    debouncedRefreshScore();
   }
 
   function renderPillPreview(containerNode, values) {
@@ -2427,6 +2796,7 @@ export async function initResumeBuilderTool(container) {
           state[path[0]][path[1]] = input.value;
         }
         renderBuilderDerivedViews();
+        markBuilderContentChanged();
         debouncedSave();
       });
     });
@@ -2570,6 +2940,7 @@ export async function initResumeBuilderTool(container) {
     state.skills = '';
     state.targetRole = '';
     state.template = template;
+    state.atsAnalysisResult = null;
     state.certifications = [createEmptyCertification()];
   }
 
@@ -2660,6 +3031,7 @@ export async function initResumeBuilderTool(container) {
     }
 
     state.generatedResume = '';
+    state.atsAnalysisResult = null;
     renderFormattedPreview('');
     previewCount.textContent = '0 chars';
     previewNote.textContent = 'ATS note pending';
@@ -2668,6 +3040,7 @@ export async function initResumeBuilderTool(container) {
     saveToStorage(state);
     applyTemplate(state.template);
     setStep(1);
+    refreshLiveScore();
     return summary.fieldsPopulated.length ? summary : buildImportSummary();
   }
 
@@ -2775,6 +3148,7 @@ export async function initResumeBuilderTool(container) {
         state.experiences.splice(index, 1);
         renderExperienceList();
         renderBuilderDerivedViews();
+        markBuilderContentChanged();
         saveToStorage(state);
       });
       head.append(title, remove);
@@ -2796,6 +3170,7 @@ export async function initResumeBuilderTool(container) {
         input.addEventListener('input', () => {
           experience[key] = input.value;
           renderBuilderDerivedViews();
+          markBuilderContentChanged();
           debouncedSave();
         });
         field.append(label, input);
@@ -2814,6 +3189,7 @@ export async function initResumeBuilderTool(container) {
         input.addEventListener('input', () => {
           experience[key] = input.value;
           renderBuilderDerivedViews();
+          markBuilderContentChanged();
           debouncedSave();
         });
         field.append(label, input);
@@ -2853,6 +3229,7 @@ export async function initResumeBuilderTool(container) {
         state.educations.splice(index, 1);
         renderEducationList();
         renderBuilderDerivedViews();
+        markBuilderContentChanged();
         saveToStorage(state);
       });
       head.append(title, remove);
@@ -2874,6 +3251,7 @@ export async function initResumeBuilderTool(container) {
         input.addEventListener('input', () => {
           education[key] = input.value;
           renderBuilderDerivedViews();
+          markBuilderContentChanged();
           debouncedSave();
         });
         field.append(label, input);
@@ -2892,6 +3270,7 @@ export async function initResumeBuilderTool(container) {
         education.courses = input.value;
         renderPillPreview(pills, parseCommaList(education.courses));
         renderBuilderDerivedViews();
+        markBuilderContentChanged();
         debouncedSave();
       });
       field.append(label, input, pills);
@@ -2925,6 +3304,7 @@ export async function initResumeBuilderTool(container) {
         state.projects.splice(index, 1);
         renderProjectList();
         renderBuilderDerivedViews();
+        markBuilderContentChanged();
         saveToStorage(state);
       });
       head.append(title, remove);
@@ -2945,6 +3325,7 @@ export async function initResumeBuilderTool(container) {
         input.addEventListener('input', () => {
           project[key] = input.value;
           renderBuilderDerivedViews();
+          markBuilderContentChanged();
           debouncedSave();
         });
         field.append(label, input);
@@ -2962,6 +3343,7 @@ export async function initResumeBuilderTool(container) {
       input.addEventListener('input', () => {
         project.description = input.value;
         renderBuilderDerivedViews();
+        markBuilderContentChanged();
         debouncedSave();
       });
       field.append(label, input);
@@ -2987,6 +3369,7 @@ export async function initResumeBuilderTool(container) {
         state.certifications.splice(index, 1);
         renderCertificationList();
         renderBuilderDerivedViews();
+        markBuilderContentChanged();
         saveToStorage(state);
       });
       head.append(title, remove);
@@ -3000,6 +3383,7 @@ export async function initResumeBuilderTool(container) {
       input.addEventListener('input', () => {
         state.certifications[index] = input.value;
         renderBuilderDerivedViews();
+        markBuilderContentChanged();
         debouncedSave();
       });
       field.append(label, input);
@@ -3098,6 +3482,8 @@ export async function initResumeBuilderTool(container) {
       if (input) input.value = improved;
       state.summary = improved;
       renderBuilderDerivedViews();
+      state.atsAnalysisResult = null;
+      refreshLiveScore();
       debouncedSave();
       showToast(toastStack, 'Summary improved! Review the changes above.', 'success');
     } catch (error) {
@@ -3106,6 +3492,7 @@ export async function initResumeBuilderTool(container) {
     } finally {
       setImproveBtnLoading(btn, false);
       updateQuotaUi();
+      refreshLiveScore();
     }
   }
 
@@ -3158,6 +3545,8 @@ export async function initResumeBuilderTool(container) {
         experience[key] = value;
       });
       renderBuilderDerivedViews();
+      state.atsAnalysisResult = null;
+      refreshLiveScore();
       debouncedSave();
       showToast(toastStack, 'Bullets improved! Review the changes above.', 'success');
     } catch (error) {
@@ -3166,6 +3555,7 @@ export async function initResumeBuilderTool(container) {
     } finally {
       setImproveBtnLoading(btn, false);
       updateQuotaUi();
+      refreshLiveScore();
     }
   }
 
@@ -3196,6 +3586,8 @@ export async function initResumeBuilderTool(container) {
       if (input) input.value = improved;
       state.skills = improved;
       renderBuilderDerivedViews();
+      state.atsAnalysisResult = null;
+      refreshLiveScore();
       debouncedSave();
       showToast(toastStack, 'Skills optimized! Review the cleaned keyword list above.', 'success');
     } catch (error) {
@@ -3204,6 +3596,95 @@ export async function initResumeBuilderTool(container) {
     } finally {
       setImproveBtnLoading(btn, false);
       updateQuotaUi();
+      refreshLiveScore();
+    }
+  }
+
+  function setScoreJdFormVisible(isVisible) {
+    if (!scoreJdForm || !scoreAnalyzeToggle) return;
+    scoreJdForm.hidden = !isVisible;
+    scoreAnalyzeToggle.setAttribute('aria-expanded', String(isVisible));
+    if (isVisible) {
+      window.requestAnimationFrame(() => scoreJdInput?.focus({ preventScroll: true }));
+    }
+  }
+
+  function handleScoreAnalyzeToggle() {
+    if (!String(state.generatedResume || '').trim()) {
+      showToast(toastStack, 'Generate your resume first, then run the full analysis.', 'info');
+      return;
+    }
+    if (getRemainingCreditsSafe() <= 0) {
+      showToast(toastStack, 'No AI credits remaining today. The local score above is still accurate for structure and completeness.', 'warning');
+      if (scoreFullDescription) {
+        scoreFullDescription.textContent = 'No AI credits remain today, but the local score still updates for structure and completeness.';
+      }
+      return;
+    }
+    setScoreJdFormVisible(scoreJdForm?.hidden !== false);
+  }
+
+  async function runBuilderAtsEnrichment() {
+    if (!String(state.generatedResume || '').trim()) {
+      showToast(toastStack, 'Generate your resume first, then run the full analysis.', 'info');
+      return;
+    }
+    if (getRemainingCreditsSafe() <= 0) {
+      showToast(toastStack, 'No AI credits remaining today. The local score above is still accurate for structure and completeness.', 'warning');
+      return;
+    }
+
+    const jobDescription = String(scoreJdInput?.value || '').trim();
+    if (jobDescription.length < 20) {
+      showToast(toastStack, 'Paste a job description first for a tailored ATS analysis.', 'info');
+      return;
+    }
+
+    const btn = scoreRunAiButton;
+    cacheImproveButtonLabel(btn, 'Run Analysis ->');
+    if (btn) btn.dataset.loadingLabel = 'Analyzing...';
+    setImproveBtnLoading(btn, true);
+
+    try {
+      const userContent = `Resume:\n${state.generatedResume}\n\nJob Description:\n${jobDescription}`;
+      const firstAttempt = await callAI({
+        tool: TOOL_KEY,
+        systemPrompt: ATS_SYSTEM_PROMPT,
+        userContent,
+        maxTokens: 1800,
+        temperature: 0.2,
+      });
+
+      let parsed = parsePossiblyWrappedJson(getAIResultText(firstAttempt));
+      if (!parsed) {
+        const retryAttempt = await callAI({
+          tool: TOOL_KEY,
+          systemPrompt: ATS_SYSTEM_PROMPT,
+          userContent,
+          maxTokens: 1800,
+          temperature: 0.15,
+          chargeQuota: false,
+          skipModels: firstAttempt.model ? [firstAttempt.model] : [],
+        });
+        parsed = parsePossiblyWrappedJson(getAIResultText(retryAttempt));
+      }
+
+      if (!parsed) {
+        throw new Error('AI returned unexpected format. Please retry.');
+      }
+
+      state.atsAnalysisResult = sanitizeAnalysisPayload(parsed);
+      saveToStorage(state);
+      refreshLiveScore();
+      setScoreJdFormVisible(false);
+      showToast(toastStack, 'Job description analysis complete. Review the score and keyword gaps.', 'success');
+    } catch (error) {
+      console.error('[Resume Builder] ATS enrichment failed:', error);
+      showToast(toastStack, 'AI analysis failed. Check your credits or try again.', 'error');
+    } finally {
+      setImproveBtnLoading(btn, false);
+      updateQuotaUi();
+      refreshLiveScore();
     }
   }
 
@@ -3306,6 +3787,7 @@ export async function initResumeBuilderTool(container) {
 
     builderBusy = true;
     state.generatedResume = '';
+    state.atsAnalysisResult = null;
     syncExportButtons();
     updateQuotaUi();
     setBanner(builderBanner);
@@ -3329,6 +3811,7 @@ export async function initResumeBuilderTool(container) {
       previewNote.textContent = deriveResumeNote(state.generatedResume, state);
       previewWrap.classList.remove('hidden');
       syncExportButtons();
+      refreshLiveScore();
       setBanner(builderBanner, 'Resume draft ready. Review every metric, date, and claim before you use it.', 'success');
     } catch (error) {
       const message = String(error?.message || error || '');
@@ -3348,6 +3831,7 @@ export async function initResumeBuilderTool(container) {
       builderBusy = false;
       updateQuotaUi();
       setButtonLoading(generateButton, false, `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`, 'Generating...');
+      refreshLiveScore();
     }
   }
 
@@ -3370,6 +3854,7 @@ export async function initResumeBuilderTool(container) {
     state.skills = '';
     state.targetRole = '';
     state.template = 'classic';
+    state.atsAnalysisResult = null;
     state.certifications = [createEmptyCertification()];
     clearSavedDraft();
     populateFormFromState();
@@ -3380,6 +3865,7 @@ export async function initResumeBuilderTool(container) {
     applyTemplate('classic', { persist: false });
     syncExportButtons();
     setStep(1);
+    refreshLiveScore();
     setBanner(builderBanner, 'Draft cleared. Start fresh whenever you are ready.', 'success');
     showToast(toastStack, 'Draft cleared.', 'success');
   }
@@ -3392,6 +3878,7 @@ export async function initResumeBuilderTool(container) {
     state.experiences.push(createEmptyExperience());
     renderExperienceList();
     renderBuilderDerivedViews();
+    markBuilderContentChanged();
     saveToStorage(state);
   });
 
@@ -3403,6 +3890,7 @@ export async function initResumeBuilderTool(container) {
     state.educations.push(createEmptyEducation());
     renderEducationList();
     renderBuilderDerivedViews();
+    markBuilderContentChanged();
     saveToStorage(state);
   });
 
@@ -3414,6 +3902,7 @@ export async function initResumeBuilderTool(container) {
     state.projects.push(createEmptyProject());
     renderProjectList();
     renderBuilderDerivedViews();
+    markBuilderContentChanged();
     saveToStorage(state);
   });
 
@@ -3425,6 +3914,7 @@ export async function initResumeBuilderTool(container) {
     state.certifications.push(createEmptyCertification());
     renderCertificationList();
     renderBuilderDerivedViews();
+    markBuilderContentChanged();
     saveToStorage(state);
   });
 
@@ -3438,6 +3928,8 @@ export async function initResumeBuilderTool(container) {
   generateButton.addEventListener('click', runResumeBuilder);
   if (improveSummaryButton) improveSummaryButton.addEventListener('click', improveSummaryWithAI);
   if (improveSkillsButton) improveSkillsButton.addEventListener('click', improveSkillsWithAI);
+  if (scoreAnalyzeToggle) scoreAnalyzeToggle.addEventListener('click', handleScoreAnalyzeToggle);
+  if (scoreRunAiButton) scoreRunAiButton.addEventListener('click', runBuilderAtsEnrichment);
   if (experienceContainer) {
     experienceContainer.addEventListener('click', (event) => {
       const btn = event.target.closest('.rb-improve-bullets-btn');
@@ -3538,7 +4030,9 @@ export async function initResumeBuilderTool(container) {
   setStep(1);
   syncExportButtons();
   updateQuotaUi();
+  refreshLiveScore();
   window.requestAnimationFrame(updateQuotaUi);
+  window.requestAnimationFrame(refreshLiveScore);
   window.setTimeout(updateQuotaUi, 250);
   if (wasRestored) {
     window.setTimeout(() => {

@@ -239,6 +239,12 @@
         <span class="rb-credits-bar__label"> AI credits remaining today</span>
       </div>
 
+      <div class="rb-live-score-compact" id="rb-live-score-compact" aria-live="polite">
+        <span class="rb-score-mini-badge" id="rb-score-compact-number">0</span>
+        <span class="rb-score-compact-label" id="rb-score-compact-label">Needs Work</span>
+        <span class="rb-score-compact-tip" id="rb-score-compact-tip">Start by adding your name and email.</span>
+      </div>
+
       <div class="resume-step-panels">
         <section class="resume-step-panel is-active" data-step-panel="1">
           <div class="resume-form-grid two-col">
@@ -353,6 +359,64 @@
               </div>
             </div>
             <div id="rb-review-summary" class="resume-review-summary"></div>
+          </div>
+
+          <div class="rb-score-panel" id="rb-score-panel-full" aria-live="polite">
+            <div class="rb-score-panel__head">
+              <div class="rb-score-gauge-wrap" aria-hidden="true">
+                <svg class="rb-score-gauge" viewBox="0 0 90 90">
+                  <circle class="rb-score-gauge__track" cx="45" cy="45" r="38"></circle>
+                  <circle class="rb-score-gauge__value" id="rb-score-gauge-value" cx="45" cy="45" r="38"></circle>
+                </svg>
+                <span class="rb-score-gauge__number" id="rb-score-full-number">0</span>
+              </div>
+              <div class="rb-score-panel__copy">
+                <span class="rb-score-ai-badge" id="rb-score-ai-badge" hidden>Powered by AI analysis</span>
+                <p class="resume-eyebrow">ATS readiness</p>
+                <h3 id="rb-score-full-label">Needs Work</h3>
+                <p id="rb-score-full-description">Your live score updates as you complete the form.</p>
+              </div>
+            </div>
+
+            <div class="rb-score-breakdown" id="rb-score-breakdown"></div>
+
+            <div class="rb-score-tips">
+              <h4>Next best fixes</h4>
+              <ul id="rb-score-tips"></ul>
+            </div>
+
+            <div class="rb-score-keywords" id="rb-score-keywords" hidden>
+              <div>
+                <h4>Keywords found</h4>
+                <div class="resume-pill-list" id="rb-score-keywords-found"></div>
+              </div>
+              <div>
+                <h4>Keywords missing</h4>
+                <div class="resume-pill-list" id="rb-score-keywords-missing"></div>
+              </div>
+            </div>
+
+            <div class="rb-score-ai-actions">
+              <button type="button" class="rb-improve-btn" id="rb-score-analyze-toggle" aria-expanded="false">
+                <span class="rb-improve-btn__icon" aria-hidden="true">&#10022;</span>
+                <span class="rb-improve-btn__label">Analyze with Job Description</span>
+              </button>
+              <span class="rb-improve-btn__hint">Uses 1 AI credit</span>
+            </div>
+
+            <div class="rb-score-jd-form" id="rb-score-jd-form" hidden>
+              <label for="rb-score-jd">Job description for tailored analysis</label>
+              <textarea
+                id="rb-score-jd"
+                maxlength="3000"
+                rows="5"
+                placeholder="Paste the job description here for a tailored ATS analysis&hellip;"></textarea>
+              <button type="button" class="rb-improve-btn" id="rb-score-run-ai">
+                <span class="rb-improve-btn__icon" aria-hidden="true">&#10022;</span>
+                <span class="rb-improve-btn__label">Run Analysis &rarr;</span>
+                <span class="rb-improve-btn__spinner" aria-hidden="true" hidden></span>
+              </button>
+            </div>
           </div>
 
           <div class="resume-action-row wide">
