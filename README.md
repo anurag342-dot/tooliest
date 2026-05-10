@@ -6,7 +6,7 @@
   [![Live Site](https://img.shields.io/badge/Live-tooliest.com-8b5cf6?style=for-the-badge&logo=google-chrome&logoColor=white)](https://tooliest.com)
   [![PWA Ready](https://img.shields.io/badge/PWA-Ready-success?style=for-the-badge&logo=pwa)](https://tooliest.com)
   [![Zero Server](https://img.shields.io/badge/Zero_Server-100%25_Privacy-blue?style=for-the-badge)](https://tooliest.com)
-  [![Tools](https://img.shields.io/badge/Tools-82+-f59e0b?style=for-the-badge)](https://tooliest.com/sitemap.html)
+  [![Tools](https://img.shields.io/badge/Tools-103+-f59e0b?style=for-the-badge)](https://tooliest.com/sitemap.html)
 </div>
 
 <br />
