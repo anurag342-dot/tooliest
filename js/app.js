@@ -37,7 +37,7 @@ const TOOLIEST_WHATS_NEW = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260510-370c46f5';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260510-28778c5a';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -511,6 +511,19 @@ const App = {
 
   getToolPath(toolId) {
     return this.ensureTrailingSlashPath(`/${encodeURIComponent(toolId)}`);
+  },
+
+  openToolPath(toolId, options = {}) {
+    const path = this.getToolPath(toolId);
+    if (this.isStaticShellToolPath(path)) {
+      if (options.replace) {
+        window.location.replace(path);
+      } else {
+        window.location.assign(path);
+      }
+      return;
+    }
+    this.navigate(path, options);
   },
 
   getSearchPath(query) {
@@ -1380,7 +1393,7 @@ const App = {
       this.clearStandaloneToolStyles();
     }
     if (route.view === 'tool' && route.legacyPath) {
-      this.navigate(this.getToolPath(route.toolId), { replace: true });
+      this.openToolPath(route.toolId, { replace: true });
       return;
     }
     const preserveCollectionScroll = Boolean(options.preserveScroll) &&
@@ -1727,13 +1740,13 @@ const App = {
 
       card.addEventListener('click', (e) => {
         if (e.target.closest('.fav-btn')) return;
-        this.navigate(this.getToolPath(card.dataset.toolId));
+        this.openToolPath(card.dataset.toolId);
       });
 
       card.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          this.navigate(this.getToolPath(card.dataset.toolId));
+          this.openToolPath(card.dataset.toolId);
         }
       });
 
@@ -2632,7 +2645,7 @@ const App = {
       this.toast('Use a tool once and then Ctrl + / will bring it back instantly.', 'error');
       return;
     }
-    this.navigate(this.getToolPath(recent));
+    this.openToolPath(recent);
   },
 
   // ===== FEAT-04: WEB SHARE API =====
