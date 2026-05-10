@@ -403,6 +403,20 @@ function setImproveBtnLoading(btn, isLoading) {
   }
 }
 
+function flashImproveButtonDone(btn) {
+  if (!btn) return;
+  const label = btn.querySelector('.rb-improve-btn__label');
+  const originalLabel = btn.dataset.originalLabel || label?.textContent || 'Improve with AI';
+  btn.classList.add('rb-improve-btn--done');
+  if (label) label.textContent = '\u2713 Done';
+  window.setTimeout(() => {
+    btn.classList.remove('rb-improve-btn--done');
+    if (label && !btn.classList.contains('rb-improve-btn--loading')) {
+      label.textContent = originalLabel;
+    }
+  }, 1500);
+}
+
 function cacheImproveButtonLabel(btn, fallback = 'Improve with AI') {
   if (!btn) return;
   if (!btn.dataset.originalLabel) {
@@ -843,8 +857,13 @@ function syncTemplatePicker(template) {
   const root = resumeTemplateRoot || document;
   root.querySelectorAll('[data-resume-template]').forEach((button) => {
     const active = button.dataset.resumeTemplate === template;
+    const wasActive = button.classList.contains('is-active');
     button.classList.toggle('is-active', active);
     button.setAttribute('aria-pressed', String(active));
+    if (active && !wasActive) {
+      button.classList.add('rb-template-pop');
+      window.setTimeout(() => button.classList.remove('rb-template-pop'), 220);
+    }
   });
 }
 
@@ -861,6 +880,12 @@ function applyTemplate(templateName, options = {}) {
   if (doc) {
     Object.values(RESUME_TEMPLATE_CLASSES).forEach((className) => doc.classList.remove(className));
     doc.classList.add(RESUME_TEMPLATE_CLASSES[template]);
+    if (options.animate !== false) {
+      doc.classList.remove('rb-template-fade');
+      void doc.offsetWidth;
+      doc.classList.add('rb-template-fade');
+      window.setTimeout(() => doc.classList.remove('rb-template-fade'), 280);
+    }
   }
 
   syncTemplatePicker(template);
@@ -2251,7 +2276,7 @@ function configureTabs(root) {
   const tabs = Array.from(root.querySelectorAll('[data-tab-target]'));
   const panels = Array.from(root.querySelectorAll('[data-panel]'));
 
-  const activate = (target) => {
+  const activate = (target, { animate = true } = {}) => {
     tabs.forEach((tab) => {
       const active = tab.dataset.tabTarget === target;
       tab.classList.toggle('is-active', active);
@@ -2263,7 +2288,12 @@ function configureTabs(root) {
       panel.classList.toggle('is-active', active);
       panel.hidden = !active;
       panel.setAttribute('aria-hidden', String(!active));
+      if (active && animate) {
+        panel.classList.add('rb-panel-entering');
+        window.setTimeout(() => panel.classList.remove('rb-panel-entering'), 240);
+      }
     });
+    root.dispatchEvent(new CustomEvent('resume-tab-change', { detail: { target } }));
   };
 
   tabs.forEach((tab, index) => {
@@ -2282,7 +2312,7 @@ function configureTabs(root) {
   const initialTab = tabs.find((tab) => tab.classList.contains('is-active'))?.dataset.tabTarget
     || tabs[0]?.dataset.tabTarget
     || 'ats';
-  activate(initialTab);
+  activate(initialTab, { animate: false });
 }
 
 export async function initResumeBuilderTool(container) {
@@ -2381,6 +2411,12 @@ export async function initResumeBuilderTool(container) {
   const importSteps = qs(root, '#rb-import-steps');
   const importError = qs(root, '#rb-import-error');
   const importSuccess = qs(root, '#rb-import-success');
+  const builderPanel = qs(root, '#resume-panel-builder');
+  const mobileNav = qs(root, '#rb-mobile-nav');
+  const mobileNavButtons = Array.from(root.querySelectorAll('[data-mobile-nav]'));
+  const mobilePreviewView = qs(root, '#rb-mobile-preview-view');
+  const mobileScoreView = qs(root, '#rb-mobile-score-view');
+  const generateReadiness = qs(root, '#rb-generate-readiness');
 
   const state = {
     currentStep: 1,
@@ -2414,6 +2450,15 @@ export async function initResumeBuilderTool(container) {
   let importBusy = false;
   let importSuccessTimer = null;
   let coverLetterPrintFrame = null;
+  let activeMainTab = 'ats';
+  let activeMobileBuilderView = 'edit';
+  let previousLiveScore = null;
+  const previewOriginalPosition = previewWrap
+    ? { parent: previewWrap.parentNode, nextSibling: previewWrap.nextSibling }
+    : null;
+  const scoreOriginalPosition = scorePanelFull
+    ? { parent: scorePanelFull.parentNode, nextSibling: scorePanelFull.nextSibling }
+    : null;
   const debouncedSave = debounce(() => {
     showSaveIndicator('saving');
     saveToStorage(state);
@@ -2493,6 +2538,87 @@ export async function initResumeBuilderTool(container) {
     atsButton.textContent = getQuotaButtonLabel(atsBaseLabel, TOOL_KEY);
     generateButton.textContent = `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`;
     updateCreditsDisplay();
+  }
+
+  function isMobileLayout() {
+    return window.matchMedia('(max-width: 767px)').matches;
+  }
+
+  function returnNodeToOriginalPosition(node, position) {
+    if (!node || !position?.parent) return;
+    if (node.parentNode === position.parent) return;
+    position.parent.insertBefore(node, position.nextSibling);
+  }
+
+  function mountNodeForMobile(node, target) {
+    if (!node || !target || node.parentNode === target) return;
+    target.appendChild(node);
+  }
+
+  function setMobileBuilderView(view = 'edit') {
+    activeMobileBuilderView = ['edit', 'preview', 'score'].includes(view) ? view : 'edit';
+    if (!builderPanel) return;
+
+    builderPanel.classList.toggle('rb-mobile-view-edit', activeMobileBuilderView === 'edit');
+    builderPanel.classList.toggle('rb-mobile-view-preview', activeMobileBuilderView === 'preview');
+    builderPanel.classList.toggle('rb-mobile-view-score', activeMobileBuilderView === 'score');
+
+    if (isMobileLayout() && activeMobileBuilderView === 'preview') {
+      returnNodeToOriginalPosition(scorePanelFull, scoreOriginalPosition);
+      mountNodeForMobile(previewWrap, mobilePreviewView);
+    } else if (isMobileLayout() && activeMobileBuilderView === 'score') {
+      returnNodeToOriginalPosition(previewWrap, previewOriginalPosition);
+      mountNodeForMobile(scorePanelFull, mobileScoreView);
+    } else {
+      returnNodeToOriginalPosition(previewWrap, previewOriginalPosition);
+      returnNodeToOriginalPosition(scorePanelFull, scoreOriginalPosition);
+    }
+
+    updateMobileNavState();
+  }
+
+  function updateMobileNavState() {
+    if (!mobileNav || !mobileNavButtons.length) return;
+    const builderMode = activeMainTab === 'builder';
+    const labels = builderMode
+      ? { edit: 'Edit', preview: 'Preview', score: 'Score' }
+      : { edit: 'ATS', preview: 'Builder', score: 'Letter' };
+    const activeByMainTab = { ats: 'edit', builder: 'preview', 'cover-letter': 'score' };
+    const activeKey = builderMode ? activeMobileBuilderView : activeByMainTab[activeMainTab] || 'edit';
+
+    mobileNavButtons.forEach((button) => {
+      const key = button.dataset.mobileNav;
+      const active = key === activeKey;
+      const label = button.querySelector('.rb-mobile-nav__label');
+      if (label) label.textContent = labels[key] || key;
+      button.classList.toggle('rb-mobile-nav__btn--active', active);
+      button.setAttribute('aria-selected', String(active));
+    });
+  }
+
+  function activateMainTabFromMobile(navKey) {
+    const targetByKey = { edit: 'ats', preview: 'builder', score: 'cover-letter' };
+    const target = targetByKey[navKey];
+    if (target === 'builder') activeMobileBuilderView = 'edit';
+    root.querySelector(`[data-tab-target="${target}"]`)?.click();
+  }
+
+  function handleMobileNavClick(event) {
+    const button = event.target.closest('[data-mobile-nav]');
+    if (!button) return;
+    const navKey = button.dataset.mobileNav;
+    if (activeMainTab === 'builder') {
+      setMobileBuilderView(navKey);
+      return;
+    }
+    activateMainTabFromMobile(navKey);
+  }
+
+  function handleMobileViewportChange() {
+    if (!isMobileLayout()) {
+      setMobileBuilderView('edit');
+    }
+    updateMobileNavState();
   }
 
   // Local ATS pre-scorer
@@ -2752,10 +2878,18 @@ export async function initResumeBuilderTool(container) {
     const tip = displayScore.tips[0] || 'Keep filling the form to improve your ATS readiness.';
     const circumference = 2 * Math.PI * 38;
     const gaugeOffset = circumference - ((displayScore.total / 100) * circumference);
+    const previousScore = previousLiveScore;
+    previousLiveScore = displayScore.total;
 
     [scoreCompact, scorePanelFull].forEach((node) => {
       if (node) node.style.setProperty('--rb-score-color', displayScore.color);
     });
+    if (scoreCompact && previousScore !== null && previousScore !== displayScore.total) {
+      scoreCompact.classList.remove('rb-score-increased', 'rb-score-decreased');
+      void scoreCompact.offsetWidth;
+      scoreCompact.classList.add(displayScore.total > previousScore ? 'rb-score-increased' : 'rb-score-decreased');
+      window.setTimeout(() => scoreCompact.classList.remove('rb-score-increased', 'rb-score-decreased'), 320);
+    }
     if (scoreCompactNumber) {
       scoreCompactNumber.textContent = String(displayScore.total);
       scoreCompactNumber.style.borderColor = displayScore.color;
@@ -2791,6 +2925,13 @@ export async function initResumeBuilderTool(container) {
     const analyzeLabel = scoreAnalyzeToggle?.querySelector('.rb-improve-btn__label');
     if (analyzeLabel) {
       analyzeLabel.textContent = displayScore.isAi ? 'Re-analyze with Job Description' : 'Analyze with Job Description';
+    }
+    if (generateReadiness) {
+      const showNotice = state.currentStep === 5 && displayScore.total < 40;
+      generateReadiness.hidden = !showNotice;
+      if (showNotice) {
+        generateReadiness.textContent = `Your resume needs a bit more work before generating. Score: ${displayScore.total}/100 - add more details to improve it.`;
+      }
     }
   }
 
@@ -4132,13 +4273,21 @@ export async function initResumeBuilderTool(container) {
       panel.classList.toggle('is-active', active);
       panel.hidden = !active;
       panel.setAttribute('aria-hidden', String(!active));
-      if (active) activePanel = panel;
+      if (active) {
+        activePanel = panel;
+        panel.classList.add('rb-step-entering');
+        window.setTimeout(() => panel.classList.remove('rb-step-entering'), 210);
+      }
     });
     root.querySelectorAll('[data-step-dot]').forEach((dot) => {
       const dotStep = Number(dot.getAttribute('data-step-dot'));
+      const dotNumber = dot.querySelector('span');
+      const stateName = dotStep < state.currentStep ? 'done' : dotStep === state.currentStep ? 'current' : 'upcoming';
       dot.classList.toggle('is-active', dotStep === state.currentStep);
       dot.classList.toggle('is-complete', dotStep < state.currentStep);
+      dot.dataset.stepState = stateName;
       dot.setAttribute('aria-current', dotStep === state.currentStep ? 'step' : 'false');
+      if (dotNumber) dotNumber.textContent = dotStep < state.currentStep ? '\u2713' : String(dotStep);
     });
 
     const prev = qs(root, '#rb-prev');
@@ -4150,13 +4299,16 @@ export async function initResumeBuilderTool(container) {
     next.setAttribute('aria-hidden', String(state.currentStep === 5));
     next.textContent = state.currentStep === 4 ? 'Review & Generate' : 'Next';
     renderReviewSummary();
+    refreshLiveScore();
 
     if (activePanel) {
       const focusTarget = activePanel.querySelector('input, textarea, select, button:not([disabled])');
       if (focusTarget && state.currentStep !== 5) {
         window.requestAnimationFrame(() => focusTarget.focus({ preventScroll: true }));
       }
-      window.requestAnimationFrame(() => activePanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+      if (isMobileLayout()) {
+        window.requestAnimationFrame(() => activePanel.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+      }
     }
   }
 
@@ -4168,6 +4320,49 @@ export async function initResumeBuilderTool(container) {
     }
     setBanner(builderBanner);
     return true;
+  }
+
+  function isTypingTarget(target) {
+    const tagName = target?.tagName;
+    return ['INPUT', 'TEXTAREA', 'SELECT'].includes(tagName) || Boolean(target?.isContentEditable);
+  }
+
+  function handleBuilderKeyboardShortcuts(event) {
+    const target = event.target;
+    const typing = isTypingTarget(target);
+
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+      if (state.generatedResume && pdfButton && !pdfButton.disabled) {
+        event.preventDefault();
+        pdfButton.click();
+      }
+      return;
+    }
+
+    if (typing) return;
+
+    if (event.key === 'Escape' && activeMobileBuilderView === 'score') {
+      event.preventDefault();
+      setMobileBuilderView('edit');
+      return;
+    }
+
+    if (event.key === 'ArrowRight' && activeMainTab === 'builder' && state.currentStep < 5) {
+      event.preventDefault();
+      if (validateCurrentStep()) setStep(state.currentStep + 1);
+      return;
+    }
+
+    if (event.key === 'ArrowLeft' && activeMainTab === 'builder' && state.currentStep > 1) {
+      event.preventDefault();
+      setStep(state.currentStep - 1);
+      return;
+    }
+
+    if (event.key === 'Enter' && event.ctrlKey && activeMainTab === 'builder' && state.currentStep === 5 && generateButton && !generateButton.disabled) {
+      event.preventDefault();
+      generateButton.click();
+    }
   }
 
   function getTargetRoleValue() {
@@ -4216,12 +4411,17 @@ export async function initResumeBuilderTool(container) {
       state.atsAnalysisResult = null;
       refreshLiveScore();
       debouncedSave();
+      if (btn) btn.dataset.flashDone = 'true';
       showToast(toastStack, 'Summary improved! Review the changes above.', 'success');
     } catch (error) {
       console.error('[Resume Builder] Summary improvement failed:', error);
       showToast(toastStack, 'Improvement failed. Check your AI credits or try again.', 'error');
     } finally {
       setImproveBtnLoading(btn, false);
+      if (btn?.dataset.flashDone === 'true') {
+        delete btn.dataset.flashDone;
+        flashImproveButtonDone(btn);
+      }
       updateQuotaUi();
       refreshLiveScore();
     }
@@ -4279,12 +4479,17 @@ export async function initResumeBuilderTool(container) {
       state.atsAnalysisResult = null;
       refreshLiveScore();
       debouncedSave();
+      if (btn) btn.dataset.flashDone = 'true';
       showToast(toastStack, 'Bullets improved! Review the changes above.', 'success');
     } catch (error) {
       console.error('[Resume Builder] Bullet improvement failed:', error);
       showToast(toastStack, 'Improvement failed. Check your AI credits or try again.', 'error');
     } finally {
       setImproveBtnLoading(btn, false);
+      if (btn?.dataset.flashDone === 'true') {
+        delete btn.dataset.flashDone;
+        flashImproveButtonDone(btn);
+      }
       updateQuotaUi();
       refreshLiveScore();
     }
@@ -4320,12 +4525,17 @@ export async function initResumeBuilderTool(container) {
       state.atsAnalysisResult = null;
       refreshLiveScore();
       debouncedSave();
+      if (btn) btn.dataset.flashDone = 'true';
       showToast(toastStack, 'Skills optimized! Review the cleaned keyword list above.', 'success');
     } catch (error) {
       console.error('[Resume Builder] Skills improvement failed:', error);
       showToast(toastStack, 'Improvement failed. Check your AI credits or try again.', 'error');
     } finally {
       setImproveBtnLoading(btn, false);
+      if (btn?.dataset.flashDone === 'true') {
+        delete btn.dataset.flashDone;
+        flashImproveButtonDone(btn);
+      }
       updateQuotaUi();
       refreshLiveScore();
     }
@@ -4541,6 +4751,7 @@ export async function initResumeBuilderTool(container) {
       previewCount.textContent = `${state.generatedResume.length} chars`;
       previewNote.textContent = deriveResumeNote(state.generatedResume, state);
       previewWrap.classList.remove('hidden');
+      if (isMobileLayout()) setMobileBuilderView('preview');
       syncExportButtons();
       refreshLiveScore();
       setBanner(builderBanner, 'Resume draft ready. Review every metric, date, and claim before you use it.', 'success');
@@ -4600,6 +4811,7 @@ export async function initResumeBuilderTool(container) {
     applyTemplate('classic', { persist: false });
     syncExportButtons();
     setStep(1);
+    setMobileBuilderView('edit');
     refreshLiveScore();
     setBanner(builderBanner, 'Draft cleared. Start fresh whenever you are ready.', 'success');
     showToast(toastStack, 'Draft cleared.', 'success');
@@ -4730,6 +4942,25 @@ export async function initResumeBuilderTool(container) {
       processResumeImportFile(file);
     });
   }
+  root.addEventListener('resume-tab-change', (event) => {
+    activeMainTab = event.detail?.target || 'ats';
+    if (activeMainTab === 'builder') {
+      setMobileBuilderView(activeMobileBuilderView || 'edit');
+    } else {
+      returnNodeToOriginalPosition(previewWrap, previewOriginalPosition);
+      returnNodeToOriginalPosition(scorePanelFull, scoreOriginalPosition);
+      if (builderPanel) {
+        builderPanel.classList.remove('rb-mobile-view-preview', 'rb-mobile-view-score');
+        builderPanel.classList.add('rb-mobile-view-edit');
+      }
+    }
+    updateMobileNavState();
+  });
+  if (mobileNav) {
+    mobileNav.addEventListener('click', handleMobileNavClick);
+  }
+  root.addEventListener('keydown', handleBuilderKeyboardShortcuts);
+  window.addEventListener('resize', handleMobileViewportChange);
   if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);
   if (docxButton) docxButton.addEventListener('click', downloadResumeDOCX);
   if (printButton) printButton.addEventListener('click', printResume);
@@ -4763,6 +4994,9 @@ export async function initResumeBuilderTool(container) {
 
   bindCounter(atsResume, atsResumeCount, 5000, atsWarn, 4500);
   bindCounter(atsJob, atsJobCount, 3000, null, 2500);
+  activeMainTab = root.querySelector('.resume-tab.is-active')?.dataset.tabTarget || 'ats';
+  if (builderPanel) builderPanel.classList.add('rb-mobile-view-edit');
+  updateMobileNavState();
   updateBuilderFieldBindings();
   initCoverLetterTab();
   populateFormFromState();

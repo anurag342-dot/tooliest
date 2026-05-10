@@ -258,6 +258,7 @@
 
       <div class="resume-step-panels">
         <section class="resume-step-panel is-active" data-step-panel="1">
+          <h3 class="rb-step-heading"><span class="rb-step-heading__number">Step 1</span> · Personal Information &amp; Summary</h3>
           <div class="resume-form-grid two-col">
             <div class="resume-field">
               <label for="rb-name">Full name</label>
@@ -307,6 +308,7 @@
         </section>
 
         <section class="resume-step-panel" data-step-panel="2" hidden>
+          <h3 class="rb-step-heading"><span class="rb-step-heading__number">Step 2</span> · Work Experience</h3>
           <div id="rb-experience-list" class="resume-stack"></div>
           <div class="resume-action-row">
             <button type="button" class="btn btn-secondary" id="rb-add-experience" aria-label="Add work experience">Add Experience</button>
@@ -314,6 +316,7 @@
         </section>
 
         <section class="resume-step-panel" data-step-panel="3" hidden>
+          <h3 class="rb-step-heading"><span class="rb-step-heading__number">Step 3</span> · Education</h3>
           <div id="rb-education-list" class="resume-stack"></div>
           <div class="resume-action-row">
             <button type="button" class="btn btn-secondary" id="rb-add-education" aria-label="Add education">Add Education</button>
@@ -321,6 +324,7 @@
         </section>
 
         <section class="resume-step-panel" data-step-panel="4" hidden>
+          <h3 class="rb-step-heading"><span class="rb-step-heading__number">Step 4</span> · Skills, Projects &amp; Certifications</h3>
           <div class="resume-field">
             <label for="rb-skills">Skills and keywords (comma-separated)</label>
             <textarea id="rb-skills" rows="5" aria-label="Skills and keywords"></textarea>
@@ -362,6 +366,7 @@
         </section>
 
         <section class="resume-step-panel" data-step-panel="5" hidden>
+          <h3 class="rb-step-heading"><span class="rb-step-heading__number">Step 5</span> · Review &amp; Generate Resume</h3>
           <div class="resume-card inset">
             <div class="resume-card-head compact">
               <div>
@@ -431,7 +436,9 @@
           </div>
 
           <div class="resume-action-row wide">
+            <p class="rb-generate-readiness" id="rb-generate-readiness" hidden></p>
             <button type="button" class="btn btn-primary resume-primary-btn" id="rb-generate" aria-label="Generate resume">&#9889; Generate Resume</button>
+            <p class="rb-shortcut-hint">Ctrl+Enter to generate · Ctrl+S to save PDF</p>
           </div>
           <div class="resume-quota-wrap" data-resume-quota="shared-builder"></div>
           <div class="resume-inline-banner hidden" id="rb-banner"></div>
@@ -559,6 +566,9 @@
           </div>
         </section>
       </div>
+
+      <div class="rb-mobile-builder-view" id="rb-mobile-preview-view" aria-live="polite"></div>
+      <div class="rb-mobile-builder-view" id="rb-mobile-score-view" aria-live="polite"></div>
 
       <div class="resume-step-nav">
         <button type="button" class="btn btn-secondary" id="rb-prev" aria-label="Previous step">Previous</button>
@@ -716,4 +726,30 @@
       </div>
     </div>
   </section>
+  <nav id="rb-mobile-nav" class="rb-mobile-nav" role="navigation" aria-label="Mobile navigation">
+    <button type="button" class="rb-mobile-nav__btn rb-mobile-nav__btn--active" data-mobile-nav="edit" aria-selected="true">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 20h9"/>
+        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+      </svg>
+      <span class="rb-mobile-nav__label">Edit</span>
+    </button>
+    <button type="button" class="rb-mobile-nav__btn" data-mobile-nav="preview" aria-selected="false">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+      <span class="rb-mobile-nav__label">Preview</span>
+    </button>
+    <button type="button" class="rb-mobile-nav__btn" data-mobile-nav="score" aria-selected="false">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 19V5"/>
+        <path d="M4 19h16"/>
+        <path d="M8 16v-4"/>
+        <path d="M12 16V8"/>
+        <path d="M16 16v-7"/>
+      </svg>
+      <span class="rb-mobile-nav__label">Score</span>
+    </button>
+  </nav>
 </div>

@@ -1,3 +1,109 @@
+/* ─── CSS VARIABLES ─── */
+:root {
+  --rb-bg-primary: #0b0b12;
+  --rb-bg-secondary: #141421;
+  --rb-bg-tertiary: #0f1018;
+  --rb-bg-hover: rgba(255, 255, 255, 0.06);
+  --rb-bg-active: rgba(129, 140, 248, 0.14);
+  --rb-border-default: rgba(255, 255, 255, 0.1);
+  --rb-border-focus: #818cf8;
+  --rb-border-strong: rgba(255, 255, 255, 0.18);
+  --rb-text-primary: #f8fafc;
+  --rb-text-secondary: #cbd5e1;
+  --rb-text-tertiary: #94a3b8;
+  --rb-text-inverse: #ffffff;
+  --rb-accent-primary: #818cf8;
+  --rb-accent-hover: #a5b4fc;
+  --rb-accent-subtle: rgba(129, 140, 248, 0.16);
+  --rb-success: #22c55e;
+  --rb-success-subtle: rgba(34, 197, 94, 0.12);
+  --rb-warning: #f59e0b;
+  --rb-warning-subtle: rgba(245, 158, 11, 0.12);
+  --rb-error: #ef4444;
+  --rb-error-subtle: rgba(239, 68, 68, 0.12);
+  --rb-info: #06b6d4;
+  --rb-doc-bg: #ffffff;
+  --rb-doc-text: #111111;
+  --rb-doc-border: #111111;
+  --rb-font-ui: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --rb-font-resume: "Times New Roman", Georgia, serif;
+  --rb-font-size-base: 0.9rem;
+  --rb-font-size-sm: 0.78rem;
+  --rb-font-size-xs: 0.7rem;
+  --rb-radius-sm: 6px;
+  --rb-radius-md: 10px;
+  --rb-radius-lg: 16px;
+  --rb-radius-pill: 999px;
+  --rb-transition-fast: 150ms ease;
+  --rb-transition-base: 220ms ease;
+  --rb-transition-slow: 350ms ease;
+  --rb-mobile-nav-height: 76px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --rb-bg-primary: #f4f4f8;
+    --rb-bg-secondary: #ffffff;
+    --rb-bg-tertiary: #f0f0f5;
+    --rb-bg-hover: rgba(17, 24, 39, 0.06);
+    --rb-bg-active: rgba(129, 140, 248, 0.14);
+    --rb-border-default: rgba(0, 0, 0, 0.12);
+    --rb-border-focus: #818cf8;
+    --rb-border-strong: rgba(0, 0, 0, 0.2);
+    --rb-text-primary: #111827;
+    --rb-text-secondary: #4b5563;
+    --rb-text-tertiary: #6b7280;
+  }
+}
+
+/* ─── RESET + FOCUS SYSTEM ─── */
+.resume-tool {
+  --bg-secondary: var(--rb-bg-secondary);
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --border-color: var(--rb-border-default);
+  --accent-primary: var(--rb-accent-primary);
+  --text-primary: var(--rb-text-primary);
+  --text-secondary: var(--rb-text-secondary);
+  --text-tertiary: var(--rb-text-tertiary);
+  --font-primary: var(--rb-font-ui);
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --color-surface: var(--rb-bg-secondary);
+  --color-border: var(--rb-border-default);
+  --color-text-primary: var(--rb-text-primary);
+  --color-text-secondary: var(--rb-text-secondary);
+  color: var(--rb-text-primary);
+  color-scheme: dark light;
+  scroll-behavior: smooth;
+}
+
+.resume-tool *,
+.resume-tool *::before,
+.resume-tool *::after {
+  box-sizing: border-box;
+}
+
+.resume-tool *:focus {
+  outline: none;
+}
+
+.resume-tool *:focus-visible {
+  outline: 2px solid var(--rb-accent-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--rb-accent-subtle);
+  border-radius: var(--rb-radius-sm);
+  transition: outline-offset var(--rb-transition-fast), box-shadow var(--rb-transition-fast);
+}
+
+.resume-tool #rb-preview-pane:focus,
+.resume-tool #rb-preview-pane:focus-visible,
+.resume-tool .rb-resume-doc:focus,
+.resume-tool .rb-resume-doc:focus-visible,
+.resume-tool .cl-letter-doc:focus,
+.resume-tool .cl-letter-doc:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .resume-tool {
   display: flex;
   flex-direction: column;
@@ -2618,3 +2724,724 @@
     gap: 0.1in;
   }
 }
+
+/* ─── TOOL SHELL LAYOUT ─── */
+.resume-tool {
+  width: min(100%, 1400px);
+  margin-inline: auto;
+  overflow-x: clip;
+}
+
+.resume-card,
+.resume-card.inset,
+.resume-subcard,
+.cl-settings-section,
+.rb-import-card,
+.rb-score-panel {
+  background-color: var(--rb-bg-secondary);
+  border-color: var(--rb-border-default);
+}
+
+.resume-card.inset,
+.resume-subcard,
+.cl-settings-section,
+.rb-import-card,
+.rb-score-panel {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.012));
+}
+
+.resume-card-head h2,
+.resume-card-head h3,
+.resume-card-head h4,
+.resume-field label,
+.resume-review-value {
+  color: var(--rb-text-primary);
+}
+
+.resume-eyebrow,
+.resume-meta,
+.resume-status-text,
+.resume-counter-row,
+.resume-preview-meta,
+.rb-improve-btn__hint,
+.cl-credit-hint {
+  color: var(--rb-text-tertiary);
+}
+
+.resume-panel.rb-panel-entering {
+  animation: rb-panel-enter var(--rb-transition-base) ease-out both;
+}
+
+/* ─── TAB NAVIGATION ─── */
+.resume-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: color-mix(in srgb, var(--rb-bg-secondary) 88%, transparent);
+  border-color: var(--rb-border-default);
+  backdrop-filter: blur(16px);
+}
+
+.resume-tab {
+  border-color: var(--rb-border-default);
+  background: var(--rb-bg-tertiary);
+  color: var(--rb-text-secondary);
+  transition: background var(--rb-transition-base), border-color var(--rb-transition-base), color var(--rb-transition-base), transform var(--rb-transition-fast), box-shadow var(--rb-transition-base);
+}
+
+.resume-tab:hover {
+  background: var(--rb-bg-hover);
+  color: var(--rb-text-primary);
+}
+
+.resume-tab:active {
+  transform: translateY(1px);
+}
+
+.resume-tab.is-active {
+  border-color: var(--rb-accent-primary);
+  background: var(--rb-accent-subtle);
+  color: var(--rb-text-primary);
+}
+
+.resume-tab.is-active::after {
+  background: linear-gradient(135deg, var(--rb-accent-primary), var(--rb-info));
+}
+
+.resume-tab:focus-visible,
+.rb-template-option:focus-visible,
+.cl-option-pill:focus-visible {
+  border-radius: var(--rb-radius-pill);
+}
+
+/* ─── WIZARD + STEPS ─── */
+.resume-progress {
+  position: sticky;
+  top: 72px;
+  z-index: 20;
+  padding: 0.35rem 0;
+  background: var(--rb-bg-secondary);
+}
+
+.resume-progress-step {
+  min-width: 0;
+}
+
+.resume-progress-step span {
+  transition: background var(--rb-transition-base), border-color var(--rb-transition-base), color var(--rb-transition-base), transform var(--rb-transition-fast);
+}
+
+.resume-progress-step[data-step-state="done"] span {
+  background: var(--rb-success-subtle);
+  border-color: var(--rb-success);
+  color: var(--rb-success);
+}
+
+.resume-progress-step[data-step-state="current"] span {
+  transform: scale(1.08);
+  background: linear-gradient(135deg, var(--rb-accent-primary), var(--rb-info));
+  color: var(--rb-text-inverse);
+  border-color: transparent;
+}
+
+.resume-progress-step[data-step-state="upcoming"] span {
+  background: var(--rb-bg-tertiary);
+  color: var(--rb-text-tertiary);
+}
+
+.resume-step-panel.rb-step-entering {
+  animation: rb-step-enter 180ms ease-out both;
+}
+
+.rb-step-heading {
+  margin: 0 0 1rem;
+  color: var(--rb-text-primary);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.rb-step-heading__number {
+  color: var(--rb-accent-primary);
+}
+
+.rb-generate-readiness {
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--rb-warning);
+  border-radius: var(--rb-radius-md);
+  background: var(--rb-warning-subtle);
+  color: var(--rb-text-secondary);
+  font-size: var(--rb-font-size-sm);
+  line-height: 1.45;
+}
+
+.rb-shortcut-hint {
+  display: none;
+  margin: 0.45rem 0 0;
+  color: var(--rb-text-tertiary);
+  font-size: var(--rb-font-size-xs);
+  text-align: center;
+}
+
+@media (pointer: fine) {
+  .rb-shortcut-hint {
+    display: block;
+  }
+}
+
+/* ─── FORM FIELDS ─── */
+.resume-field textarea,
+.resume-field input,
+.resume-field select,
+.rb-score-jd-form textarea,
+.cl-settings-panel input,
+.cl-settings-panel textarea {
+  background: var(--rb-bg-tertiary);
+  border-color: var(--rb-border-default);
+  color: var(--rb-text-primary);
+  font-family: var(--rb-font-ui);
+  line-height: 1.45;
+}
+
+.resume-field textarea:focus,
+.resume-field input:focus,
+.resume-field select:focus,
+.rb-score-jd-form textarea:focus,
+.cl-settings-panel input:focus,
+.cl-settings-panel textarea:focus {
+  border-color: var(--rb-border-focus);
+  box-shadow: 0 0 0 4px var(--rb-accent-subtle);
+}
+
+.resume-tool input::placeholder,
+.resume-tool textarea::placeholder {
+  color: var(--rb-text-tertiary);
+  font-style: italic;
+}
+
+.rb-preview-empty p,
+.cl-preview-empty p,
+.rb-preview-empty span,
+.cl-preview-empty span {
+  font-style: normal;
+}
+
+/* ─── RESUME PREVIEW DOCUMENT ─── */
+.resume-preview-panel {
+  background: var(--rb-bg-secondary);
+  color: var(--rb-text-primary);
+  border-color: var(--rb-border-default);
+}
+
+.rb-preview-pane,
+.rb-resume-doc,
+.cl-letter-doc {
+  background: var(--rb-doc-bg);
+  color: var(--rb-doc-text);
+}
+
+.rb-preview-empty {
+  color: #9ca3af;
+}
+
+.rb-preview-empty p {
+  max-width: 18rem;
+  text-align: center;
+}
+
+.rb-resume-doc.rb-template-fade {
+  animation: rb-template-fade 250ms ease both;
+}
+
+/* ─── EXPORT BAR + BUTTONS ─── */
+.rb-export-bar,
+.rb-template-picker {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.rb-export-btn,
+.btn,
+.rb-import-browse,
+.rb-import-link-btn,
+.rb-import-cancel,
+.cl-option-pill {
+  transition: background var(--rb-transition-base), border-color var(--rb-transition-base), color var(--rb-transition-base), transform var(--rb-transition-fast), box-shadow var(--rb-transition-base), opacity var(--rb-transition-base);
+}
+
+.btn:active,
+.rb-export-btn:not(:disabled):active,
+.rb-improve-btn:not(:disabled):active,
+.cl-option-pill:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* ─── TEMPLATE SYSTEM ─── */
+.rb-template-option.rb-template-pop {
+  animation: rb-template-pop 200ms ease-out both;
+}
+
+/* ─── AI IMPROVE BUTTONS ─── */
+.rb-improve-btn {
+  min-height: 2.1rem;
+}
+
+.rb-improve-btn.rb-improve-btn--done {
+  border-color: var(--rb-success);
+  color: var(--rb-success);
+  background: var(--rb-success-subtle);
+}
+
+/* ─── ATS SCORE PANEL ─── */
+.rb-live-score-compact {
+  position: sticky;
+  top: 128px;
+  z-index: 18;
+  background: color-mix(in srgb, var(--rb-bg-secondary) 92%, transparent);
+  border-color: var(--rb-border-default);
+  backdrop-filter: blur(12px);
+}
+
+.rb-live-score-compact.rb-score-increased .rb-score-mini-badge {
+  animation: rb-score-up 260ms ease-out both;
+}
+
+.rb-live-score-compact.rb-score-decreased .rb-score-mini-badge {
+  animation: rb-score-down 200ms ease-out both;
+}
+
+.rb-score-mini-badge,
+.rb-score-gauge__value,
+.rb-score-breakdown-row__fill {
+  transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── COVER LETTER TAB ─── */
+.cl-layout {
+  grid-template-columns: minmax(280px, 0.4fr) minmax(360px, 0.6fr);
+}
+
+.cl-option-pill {
+  min-height: 2.35rem;
+}
+
+.cl-preview-actions {
+  align-items: center;
+}
+
+/* ─── IMPORT/UPLOAD UI ─── */
+.rb-import-dropzone,
+.rb-import-card {
+  border-color: var(--rb-border-default);
+}
+
+.rb-import-dropzone.is-active {
+  border-color: var(--rb-accent-primary);
+  background: var(--rb-accent-subtle);
+}
+
+/* ─── MOBILE NAVIGATION + RESPONSIVE ─── */
+.rb-mobile-nav {
+  display: none;
+}
+
+.rb-mobile-builder-view {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .resume-panel[data-panel="builder"].is-active .resume-card {
+    max-width: 1400px;
+    margin-inline: auto;
+  }
+
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active > .resume-card,
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active > .rb-score-panel,
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active > .resume-action-row,
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active > .resume-quota-wrap,
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active > .resume-inline-banner,
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active > .resume-loading {
+    grid-column: 1;
+  }
+
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active > .resume-preview-wrap {
+    grid-column: 2;
+    grid-row: 1 / span 6;
+    margin-top: 0;
+    padding-left: 1.25rem;
+    border-left: 1px solid var(--rb-border-default);
+    max-height: min(82vh, 980px);
+    overflow-y: auto;
+  }
+}
+
+@media (min-width: 1280px) {
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active {
+    grid-template-columns: minmax(0, 0.45fr) minmax(0, 0.55fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .resume-tool {
+    width: 100%;
+    padding-bottom: calc(var(--rb-mobile-nav-height) + max(0.75rem, env(safe-area-inset-bottom)));
+    overflow-x: hidden;
+  }
+
+  .resume-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding: 6px;
+    gap: 6px;
+    scrollbar-width: none;
+  }
+
+  .resume-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .resume-tab {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+
+  .resume-card {
+    padding: 16px;
+    border-radius: var(--rb-radius-lg);
+  }
+
+  .resume-progress {
+    top: 56px;
+    grid-template-columns: repeat(5, minmax(44px, 1fr));
+    gap: 2px;
+    margin-inline: -4px;
+  }
+
+  .resume-progress-step {
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .resume-progress-step span {
+    width: 32px;
+    height: 32px;
+  }
+
+  .resume-progress-step small {
+    display: none;
+  }
+
+  .resume-field input,
+  .resume-field select,
+  .resume-field textarea,
+  .rb-score-jd-form textarea,
+  .cl-settings-panel input,
+  .cl-settings-panel textarea {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .resume-field textarea,
+  #resume-ats-resume,
+  #resume-ats-job {
+    min-height: 132px;
+  }
+
+  .resume-action-row,
+  .resume-step-nav,
+  .rb-section-ai-actions,
+  .rb-export-bar__actions,
+  .cl-preview-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .resume-action-row .btn,
+  .resume-step-nav .btn,
+  .rb-export-btn,
+  .rb-improve-btn,
+  .rb-import-browse,
+  .rb-template-option,
+  .cl-option-pill,
+  #rb-add-experience,
+  #rb-add-education,
+  #rb-add-project,
+  #rb-add-certification {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .resume-step-nav .btn {
+    min-height: 52px;
+  }
+
+  #rb-generate,
+  .cl-generate-btn,
+  #resume-ats-submit {
+    width: 100%;
+    min-height: 56px;
+    justify-content: center;
+  }
+
+  .rb-template-picker__options {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .rb-template-option {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .rb-tpl-thumb {
+    width: 3rem;
+    height: 3.6rem;
+    flex: 0 0 auto;
+  }
+
+  .rb-export-bar,
+  .rb-template-picker,
+  .rb-live-score-compact {
+    position: static;
+  }
+
+  .rb-mobile-nav {
+    position: fixed;
+    left: max(0.75rem, env(safe-area-inset-left));
+    right: max(0.75rem, env(safe-area-inset-right));
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    z-index: 1200;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+    padding: 0.55rem;
+    border: 1px solid var(--rb-border-default);
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--rb-bg-secondary) 92%, transparent);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(18px);
+  }
+
+  .rb-mobile-nav__btn {
+    appearance: none;
+    display: grid;
+    place-items: center;
+    gap: 0.2rem;
+    min-height: 54px;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    background: transparent;
+    color: var(--rb-text-tertiary);
+    font: inherit;
+    font-size: var(--rb-font-size-xs);
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .rb-mobile-nav__btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .rb-mobile-nav__btn--active {
+    border-color: var(--rb-accent-primary);
+    background: var(--rb-accent-subtle);
+    color: var(--rb-text-primary);
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview .rb-import-card,
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview .resume-progress,
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview .rb-credits-bar,
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview .rb-live-score-compact,
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview .resume-step-panels,
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview .resume-step-nav,
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-btn-clear-draft,
+  .resume-panel[data-panel="builder"].rb-mobile-view-score .rb-import-card,
+  .resume-panel[data-panel="builder"].rb-mobile-view-score .resume-progress,
+  .resume-panel[data-panel="builder"].rb-mobile-view-score .rb-credits-bar,
+  .resume-panel[data-panel="builder"].rb-mobile-view-score .rb-live-score-compact,
+  .resume-panel[data-panel="builder"].rb-mobile-view-score .resume-step-panels,
+  .resume-panel[data-panel="builder"].rb-mobile-view-score .resume-step-nav,
+  .resume-panel[data-panel="builder"].rb-mobile-view-score #rb-btn-clear-draft {
+    display: none !important;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-mobile-preview-view,
+  .resume-panel[data-panel="builder"].rb-mobile-view-score #rb-mobile-score-view {
+    display: block;
+  }
+
+  .rb-mobile-builder-view {
+    margin-top: 1rem;
+  }
+
+  .rb-preview-pane {
+    min-height: min(72vh, 680px);
+  }
+
+  .rb-autosave-indicator {
+    top: max(0.75rem, env(safe-area-inset-top));
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    transform: translate(-50%, -8px);
+  }
+
+  .rb-autosave-indicator.rb-autosave--visible {
+    transform: translate(-50%, 0);
+  }
+
+  .cl-layout,
+  .resume-results-grid,
+  .resume-keyword-grid,
+  .rb-score-keywords {
+    grid-template-columns: 1fr;
+  }
+
+  .cl-option-buttons {
+    flex-wrap: wrap;
+  }
+
+  .cl-preview-pane,
+  .resume-results,
+  .resume-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .resume-gauge-wrap {
+    justify-content: center;
+  }
+}
+
+/* ─── ANIMATIONS + TRANSITIONS ─── */
+@keyframes rb-panel-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rb-step-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rb-score-up {
+  0% { transform: scale(1); color: inherit; }
+  50% { transform: scale(1.15); color: var(--rb-success); }
+  100% { transform: scale(1); }
+}
+
+@keyframes rb-score-down {
+  0%, 100% { transform: translateX(0); }
+  35% { transform: translateX(-2px); }
+  70% { transform: translateX(2px); }
+}
+
+@keyframes rb-template-fade {
+  0% { opacity: 1; }
+  45% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+@keyframes rb-template-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.rb-autosave-indicator[data-status="saving"]::before {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.4rem;
+  border-radius: 999px;
+  background: currentColor;
+  animation: rb-save-pulse 900ms ease-in-out infinite;
+}
+
+.rb-autosave-indicator[data-status="saved"]::before {
+  content: "\2713";
+  margin-right: 0.35rem;
+  font-weight: 900;
+}
+
+@keyframes rb-save-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resume-tool *,
+  .resume-tool *::before,
+  .resume-tool *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .rb-panel-entering,
+  .rb-step-entering,
+  .rb-resume-doc.rb-template-fade,
+  .rb-template-option.rb-template-pop {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* ─── DARK/LIGHT THEME OVERRIDES ─── */
+@media (prefers-color-scheme: light) {
+  .resume-tool {
+    --bg-glass: rgba(17, 24, 39, 0.03);
+    color-scheme: light;
+  }
+
+  .resume-tabs,
+  .resume-card,
+  .resume-card.inset,
+  .resume-subcard,
+  .cl-settings-section,
+  .rb-import-card,
+  .rb-score-panel,
+  .rb-live-score-compact,
+  .rb-mobile-nav {
+    background-color: var(--rb-bg-secondary);
+    box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
+  }
+
+  .resume-field textarea,
+  .resume-field input,
+  .resume-field select,
+  .rb-score-jd-form textarea,
+  .cl-settings-panel input,
+  .cl-settings-panel textarea {
+    background: var(--rb-bg-tertiary);
+    color: var(--rb-text-primary);
+  }
+
+  .resume-card.inset,
+  .resume-subcard,
+  .cl-settings-section,
+  .rb-import-card,
+  .rb-score-panel {
+    background-image: none;
+  }
+
+  .cl-preview-pane {
+    background: var(--rb-bg-tertiary);
+  }
+}
+
+/* ─── PRINT STYLES ─── */
