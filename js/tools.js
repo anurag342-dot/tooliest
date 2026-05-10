@@ -1651,6 +1651,7 @@ const TOOLS = [
     icon: '📄',
     tags: ['resume builder', 'ats checker', 'resume score', 'job application', 'ai'],
     isAI: true,
+    standalonePage: true,
     lastReviewed: '2026-05-06',
     lastReviewedLabel: 'May 6, 2026',
     relatedCategoryIds: ['text', 'seo', 'developer'],

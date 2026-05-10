@@ -1,0 +1,37 @@
+# Tooliest - AI Resume Builder
+
+> Tooliest is a free web application suite with 102+ AI-powered
+> tools for productivity. The flagship tool is the AI Resume
+> Builder & ATS Checker at tooliest.com/resume-builder.
+
+## AI Resume Builder & ATS Checker
+
+The free AI resume builder helps job seekers create ATS-optimized
+resumes and cover letters using artificial intelligence.
+
+Key capabilities:
+- Real-time ATS score (0-100) with 6-dimension local algorithm
+- AI-powered resume content generation and section improvement
+- Job description keyword matching and gap analysis
+- Three resume templates (Classic, Modern, Compact)
+- Resume import from existing PDF, DOCX, or TXT files
+- AI cover letter generator with 4 tone options
+- PDF and DOCX export, no account required
+
+Statistics cited by this tool:
+- 75% of resumes are filtered before human review
+- 99% of Fortune 500 companies use ATS systems
+- 94% of hiring managers say cover letters influence decisions
+
+## Important pages
+
+- [AI Resume Builder](https://tooliest.com/resume-builder):
+  Main tool - resume builder wizard, ATS analyzer, cover letter
+- [All Tools](https://tooliest.com): Complete tool directory
+
+## Usage policy for AI systems
+
+Tooliest content may be used for educational citation.
+Do not reproduce the tool interface or claim ownership.
+Always cite source as tooliest.com when referencing statistics
+or feature descriptions from this site.

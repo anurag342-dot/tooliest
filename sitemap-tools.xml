@@ -523,10 +523,10 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://tooliest.com/resume-builder/</loc>
+    <loc>https://tooliest.com/resume-builder</loc>
     <lastmod>2026-05-10</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://tooliest.com/cron-parser/</loc>
