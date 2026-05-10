@@ -221,6 +221,89 @@ Use exactly this JSON schema and exact field names:
   ]
 }`;
 
+const COVER_LETTER_SYSTEM_PROMPT = `You are an elite career coach and professional writer who has written thousands
+of cover letters that secured interviews at top companies. Write cover letters
+that sound like a thoughtful human wrote them, not an AI tool or template.
+Every sentence must sound like it was written by the candidate themselves, in
+their own professional voice. Never sound like an AI assistant.
+
+Use only the facts provided in the user content. Do not invent company details,
+credentials, job duties, technologies, metrics, percentages, awards, or outcomes.
+If a metric exists in the resume data, preserve it exactly. If no metric exists,
+write the achievement without a number. Never fabricate numbers.
+
+Structure rules:
+- Honor the selected Style field. Use Problem-Solution for problem-solution,
+  Story-Impact for story-impact, and Skills-First for skills-first while also
+  matching the selected tone.
+- If tone is Professional or Confident, follow a Problem-Solution structure:
+  opening paragraph with a strong hook that references the exact company name
+  and role, then two achievement-focused body paragraphs, then a company-fit
+  paragraph, then a confident close.
+- If tone is Warm & Enthusiastic, use a Story-Impact format: begin with a brief
+  one-sentence career moment or result, then connect that experience to this
+  company and role with warmer first-person language.
+- If tone is Concise & Punchy, use a Skills-First format: no story, no filler,
+  three tight paragraphs maximum, each paragraph delivering one clear message.
+
+Opening rules:
+- Do not start with "I am writing to apply for".
+- Do not start with "I am excited to".
+- The opening paragraph must mention the company name at least once. A letter
+  that does not mention the company name in the opening paragraph is a failed output.
+- The opening must reference the specific role and feel specific to this company.
+
+Content rules:
+- Body paragraph 1 must use the candidate's strongest relevant achievement and
+  connect it to a problem the target role likely faces.
+- Body paragraph 2 must use a second supporting achievement, skill set, or
+  project. If a job description was provided, address a specific requirement
+  from it using the candidate's real experience.
+- The company paragraph must use the "Why this company" field if provided. If
+  it is not provided, write a grounded sentence about why this role aligns with
+  the candidate's trajectory without pretending to know private company facts.
+- Closing must be confident and forward-looking. State availability for an
+  interview. Use a professional sign-off.
+
+Banned phrases:
+- "I am writing to apply"
+- "I am excited to"
+- "I am passionate about"
+- "I believe I would be a great fit"
+- "I look forward to hearing from you"
+- "Thank you for your time and consideration"
+- "Furthermore,"
+- "In conclusion,"
+- "It goes without saying"
+- "I am a team player"
+- "my passion for [industry]"
+- "I have always been fascinated"
+
+Never include unfilled placeholders, brackets, "[Your Name]", "[Company]",
+"[Company Name]", "[Role]", or any similar marker. Use the actual provided data.
+
+Output format:
+- Start directly with the opening paragraph. Do not include date, address block,
+  subject line, or salutation.
+- Separate paragraphs with one blank line.
+- End with a complimentary close line such as "Best regards," on its own line,
+  then the candidate's full name on the next line.
+- Output ONLY the letter body text. No explanations, no commentary.
+
+Length targets:
+- Concise: 180-250 words
+- Standard: 280-380 words
+- Detailed: 400-480 words
+Before outputting, count your words. If over the target range, cut the least
+impactful sentence. If under, expand the achievement details.
+
+Human voice rules:
+- Vary sentence length: mix short, direct sentences with longer explanatory ones.
+- Use the candidate's specific job titles, company names, projects, skills, and
+  achievement details to ground every claim in real data.
+- The letter must be specific enough that it could only belong to this candidate
+  applying to this company and role. Generic output is a failure.`;
+
 function qs(root, selector) {
   return root.querySelector(selector);
 }
@@ -453,6 +536,40 @@ function normalizeSavedEducation(education = {}) {
   };
 }
 
+function createDefaultCoverLetterSettings() {
+  return {
+    company: '',
+    role: '',
+    hiringManager: '',
+    companyReason: '',
+    jobDescription: '',
+    tone: 'professional',
+    style: 'problem-solution',
+    length: 'standard',
+  };
+}
+
+function normalizeCoverLetterSettings(settings = {}) {
+  const defaults = createDefaultCoverLetterSettings();
+  const allowedTone = ['professional', 'confident', 'warm', 'concise'];
+  const allowedStyle = ['problem-solution', 'story-impact', 'skills-first'];
+  const allowedLength = ['concise', 'standard', 'detailed'];
+  const normalized = {
+    company: String(settings.company ?? defaults.company).trim(),
+    role: String(settings.role ?? defaults.role).trim(),
+    hiringManager: String(settings.hiringManager ?? defaults.hiringManager).trim(),
+    companyReason: String(settings.companyReason ?? settings.reason ?? defaults.companyReason).trim(),
+    jobDescription: String(settings.jobDescription ?? settings.jd ?? defaults.jobDescription).trim(),
+    tone: String(settings.tone ?? defaults.tone),
+    style: String(settings.style ?? defaults.style),
+    length: String(settings.length ?? defaults.length),
+  };
+  if (!allowedTone.includes(normalized.tone)) normalized.tone = defaults.tone;
+  if (!allowedStyle.includes(normalized.style)) normalized.style = defaults.style;
+  if (!allowedLength.includes(normalized.length)) normalized.length = defaults.length;
+  return normalized;
+}
+
 function normalizeSavedAtsAnalysisResult(result = null) {
   if (!result || typeof result !== 'object' || Array.isArray(result)) return null;
   const score = Number(result.score ?? result.total);
@@ -504,6 +621,8 @@ function serializeState(state) {
         certifications: [...state.certifications],
         template: normalizeResumeTemplate(state.template),
         atsAnalysisResult: normalizeSavedAtsAnalysisResult(state.atsAnalysisResult),
+        coverLetter: String(state.coverLetter || ''),
+        coverLetterSettings: normalizeCoverLetterSettings(state.coverLetterSettings),
       },
     });
   } catch (_) {
@@ -566,6 +685,8 @@ function restoreFromStorage(state) {
     }
     state.template = normalizeResumeTemplate(saved.template);
     state.atsAnalysisResult = normalizeSavedAtsAnalysisResult(saved.atsAnalysisResult);
+    state.coverLetter = typeof saved.coverLetter === 'string' ? saved.coverLetter : '';
+    state.coverLetterSettings = normalizeCoverLetterSettings(saved.coverLetterSettings);
 
     return true;
   } catch (_) {
@@ -2228,6 +2349,25 @@ export async function initResumeBuilderTool(container) {
   const scoreJdForm = qs(root, '#rb-score-jd-form');
   const scoreJdInput = qs(root, '#rb-score-jd');
   const scoreRunAiButton = qs(root, '#rb-score-run-ai');
+  const coverLetterQuotaMount = qs(root, '[data-resume-quota="shared-cover-letter"]');
+  const coverLetterCreditsBar = qs(root, '#cl-credits-bar');
+  const coverLetterCreditsRemaining = qs(root, '#cl-credits-remaining');
+  const coverLetterCreditsLabel = qs(root, '.cl-credits-bar__label');
+  const coverLetterNotice = qs(root, '#cl-resume-data-notice');
+  const coverLetterPreviewPane = qs(root, '#cl-preview-pane');
+  const coverLetterGenerateButton = qs(root, '#cl-btn-generate');
+  const coverLetterCopyButton = qs(root, '#cl-btn-copy');
+  const coverLetterPdfButton = qs(root, '#cl-btn-pdf');
+  const coverLetterDocxButton = qs(root, '#cl-btn-docx');
+  const coverLetterRegenerateButton = qs(root, '#cl-btn-regenerate');
+  const coverLetterJdCounter = qs(root, '#cl-jd-count');
+  const coverLetterInputs = {
+    company: qs(root, '#cl-company'),
+    role: qs(root, '#cl-role'),
+    hiringManager: qs(root, '#cl-manager'),
+    companyReason: qs(root, '#cl-reason'),
+    jobDescription: qs(root, '#cl-jd'),
+  };
   const importCard = qs(root, '#rb-import-card');
   const importCollapsed = qs(root, '#rb-import-collapsed');
   const importExpanded = qs(root, '#rb-import-expanded');
@@ -2262,6 +2402,8 @@ export async function initResumeBuilderTool(container) {
     targetRole: '',
     template: 'classic',
     atsAnalysisResult: null,
+    coverLetter: '',
+    coverLetterSettings: createDefaultCoverLetterSettings(),
     certifications: [createEmptyCertification()],
   };
 
@@ -2271,6 +2413,7 @@ export async function initResumeBuilderTool(container) {
   let builderBusy = false;
   let importBusy = false;
   let importSuccessTimer = null;
+  let coverLetterPrintFrame = null;
   const debouncedSave = debounce(() => {
     showSaveIndicator('saving');
     saveToStorage(state);
@@ -2316,6 +2459,14 @@ export async function initResumeBuilderTool(container) {
       creditsRemaining.textContent = String(remaining);
       creditsLabel.textContent = ' AI credits remaining today';
     }
+    if (coverLetterCreditsBar && coverLetterCreditsRemaining && coverLetterCreditsLabel) {
+      coverLetterCreditsBar.classList.toggle('cl-credits-bar--empty', remaining === 0);
+      coverLetterCreditsBar.classList.toggle('cl-credits-bar--low', remaining > 0 && remaining <= 3);
+      coverLetterCreditsRemaining.textContent = String(remaining);
+      coverLetterCreditsLabel.textContent = remaining === 0
+        ? ' - AI features paused until tomorrow'
+        : ' AI credits remaining today';
+    }
 
     root.querySelectorAll('.rb-improve-btn').forEach((button) => {
       if (button.classList.contains('rb-improve-btn--loading')) return;
@@ -2327,12 +2478,18 @@ export async function initResumeBuilderTool(container) {
       scoreAnalyzeToggle.classList.toggle('rb-improve-btn--credit-empty', remaining === 0);
       scoreAnalyzeToggle.setAttribute('aria-disabled', String(remaining === 0));
     }
+    if (coverLetterGenerateButton && !coverLetterGenerateButton.classList.contains('rb-improve-btn--loading')) {
+      coverLetterGenerateButton.disabled = false;
+      coverLetterGenerateButton.classList.toggle('rb-improve-btn--credit-empty', remaining === 0);
+      coverLetterGenerateButton.setAttribute('aria-disabled', String(remaining === 0));
+    }
     syncImportCreditState(remaining);
   }
 
   function updateQuotaUi() {
     renderQuota(TOOL_KEY, atsQuotaMount);
     renderQuota(TOOL_KEY, builderQuotaMount);
+    renderQuota(TOOL_KEY, coverLetterQuotaMount);
     atsButton.textContent = getQuotaButtonLabel(atsBaseLabel, TOOL_KEY);
     generateButton.textContent = `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`;
     updateCreditsDisplay();
@@ -2642,6 +2799,575 @@ export async function initResumeBuilderTool(container) {
   function markBuilderContentChanged() {
     state.atsAnalysisResult = null;
     debouncedRefreshScore();
+    updateCoverLetterResumeNotice();
+  }
+
+  function getCoverLetterSettingsFromForm() {
+    const current = normalizeCoverLetterSettings(state.coverLetterSettings);
+    return normalizeCoverLetterSettings({
+      company: coverLetterInputs.company?.value ?? current.company,
+      role: coverLetterInputs.role?.value || current.role || state.targetRole,
+      hiringManager: coverLetterInputs.hiringManager?.value ?? current.hiringManager,
+      companyReason: coverLetterInputs.companyReason?.value ?? current.companyReason,
+      jobDescription: coverLetterInputs.jobDescription?.value ?? current.jobDescription,
+      tone: current.tone,
+      style: current.style,
+      length: current.length,
+    });
+  }
+
+  function setCoverLetterButtonsEnabled(isEnabled) {
+    [
+      coverLetterCopyButton,
+      coverLetterPdfButton,
+      coverLetterDocxButton,
+      coverLetterRegenerateButton,
+    ].forEach((button) => {
+      if (!button) return;
+      button.disabled = !isEnabled;
+      button.setAttribute('aria-disabled', String(!isEnabled));
+    });
+  }
+
+  function getCoverLetterDate() {
+    return new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }
+
+  function getCoverLetterManager(settings) {
+    return String(settings?.hiringManager || '').trim() || 'Hiring Manager';
+  }
+
+  function getCoverLetterContactLine() {
+    const personal = state.personal || {};
+    return [
+      personal.email,
+      personal.phone,
+      personal.location,
+    ].map((value) => String(value || '').trim()).filter(Boolean).join(' | ');
+  }
+
+  function getCoverLetterParagraphs(letterText) {
+    return String(letterText || '')
+      .replace(/\r\n?/g, '\n')
+      .split(/\n{2,}/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean);
+  }
+
+  function renderCoverLetterEmptyState() {
+    if (!coverLetterPreviewPane) return;
+    coverLetterPreviewPane.innerHTML = `
+      <div class="cl-preview-empty">
+        <div class="cl-preview-empty__icon" aria-hidden="true">&#128100;</div>
+        <p>Your cover letter will appear here</p>
+        <span>Fill in the details and click Generate</span>
+      </div>`;
+  }
+
+  function renderCoverLetterLoadingState() {
+    if (!coverLetterPreviewPane) return;
+    coverLetterPreviewPane.innerHTML = `
+      <div class="cl-letter-skeleton" aria-live="polite" aria-label="Generating cover letter">
+        <span class="cl-letter-skeleton__bar wide"></span>
+        <span class="cl-letter-skeleton__bar"></span>
+        <span class="cl-letter-skeleton__bar short"></span>
+        <span class="cl-letter-skeleton__gap"></span>
+        <span class="cl-letter-skeleton__bar wide"></span>
+        <span class="cl-letter-skeleton__bar"></span>
+        <span class="cl-letter-skeleton__bar short"></span>
+      </div>`;
+  }
+
+  function renderCoverLetterPreview(letterText = state.coverLetter, settings = state.coverLetterSettings) {
+    if (!coverLetterPreviewPane) return;
+    const cleanLetter = String(letterText || '').trim();
+    if (!cleanLetter) {
+      renderCoverLetterEmptyState();
+      setCoverLetterButtonsEnabled(false);
+      return;
+    }
+
+    const normalizedSettings = normalizeCoverLetterSettings(settings);
+    const candidateName = String(state.personal.name || '').trim() || 'Your Name';
+    const contactLine = getCoverLetterContactLine();
+    const manager = getCoverLetterManager(normalizedSettings);
+    const company = normalizedSettings.company || 'Company';
+    const paragraphs = getCoverLetterParagraphs(cleanLetter);
+    const bodyHtml = paragraphs
+      .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+      .join('');
+
+    coverLetterPreviewPane.innerHTML = `
+      <div class="cl-letter-doc">
+        <header class="cl-letter-header">
+          <div>
+            <h1>${escapeHtml(candidateName)}</h1>
+            ${contactLine ? `<p>${escapeHtml(contactLine)}</p>` : ''}
+          </div>
+          <time>${escapeHtml(getCoverLetterDate())}</time>
+        </header>
+        <div class="cl-letter-address">
+          <p>${escapeHtml(manager)}</p>
+          <p>${escapeHtml(company)}</p>
+        </div>
+        <p class="cl-letter-salutation">Dear ${escapeHtml(manager)},</p>
+        <div class="cl-letter-body">${bodyHtml}</div>
+      </div>`;
+    setCoverLetterButtonsEnabled(true);
+  }
+
+  function buildCompleteCoverLetterText(letterText = state.coverLetter, settings = state.coverLetterSettings) {
+    const normalizedSettings = normalizeCoverLetterSettings(settings);
+    const candidateName = String(state.personal.name || '').trim() || 'Your Name';
+    const contactLine = getCoverLetterContactLine();
+    const manager = getCoverLetterManager(normalizedSettings);
+    const company = normalizedSettings.company || 'Company';
+    return [
+      candidateName,
+      contactLine,
+      getCoverLetterDate(),
+      '',
+      manager,
+      company,
+      '',
+      `Dear ${manager},`,
+      '',
+      String(letterText || '').trim(),
+    ].filter((line, index, array) => line || array[index - 1] !== '').join('\n');
+  }
+
+  function updateCoverLetterResumeNotice() {
+    if (!coverLetterNotice) return;
+    if (
+      coverLetterInputs.role
+      && !String(coverLetterInputs.role.value || '').trim()
+      && !String(state.coverLetterSettings?.role || '').trim()
+      && String(state.targetRole || '').trim()
+    ) {
+      coverLetterInputs.role.value = state.targetRole;
+    }
+    const experienceCount = (state.experiences || []).filter(hasAnyResumeValue).length;
+    const educationCount = (state.educations || []).filter(hasAnyResumeValue).length;
+    const skillCount = parseCommaList(state.skills).length;
+    if (experienceCount || educationCount || skillCount) {
+      coverLetterNotice.innerHTML = `&#10003; Using your resume data: ${experienceCount} experience${experienceCount === 1 ? '' : 's'}, ${skillCount} skill${skillCount === 1 ? '' : 's'}, ${educationCount} education entr${educationCount === 1 ? 'y' : 'ies'}`;
+      coverLetterNotice.classList.remove('is-empty');
+    } else {
+      coverLetterNotice.textContent = 'No resume data found - fill in the Resume Builder for best results, or generate with the info above.';
+      coverLetterNotice.classList.add('is-empty');
+    }
+  }
+
+  function syncCoverLetterOptionGroup(groupName, value) {
+    root.querySelectorAll(`[data-cl-option-group="${groupName}"] .cl-option-pill`).forEach((button) => {
+      const attr = groupName === 'tone' ? 'clTone' : groupName === 'style' ? 'clStyle' : 'clLength';
+      const active = button.dataset[attr] === value;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+  }
+
+  function populateCoverLetterFormFromState() {
+    state.coverLetterSettings = normalizeCoverLetterSettings(state.coverLetterSettings);
+    const settings = state.coverLetterSettings;
+    if (coverLetterInputs.company) coverLetterInputs.company.value = settings.company;
+    if (coverLetterInputs.role) coverLetterInputs.role.value = settings.role || state.targetRole || '';
+    if (coverLetterInputs.hiringManager) coverLetterInputs.hiringManager.value = settings.hiringManager;
+    if (coverLetterInputs.companyReason) coverLetterInputs.companyReason.value = settings.companyReason;
+    if (coverLetterInputs.jobDescription) coverLetterInputs.jobDescription.value = settings.jobDescription;
+    syncCoverLetterOptionGroup('tone', settings.tone);
+    syncCoverLetterOptionGroup('style', settings.style);
+    syncCoverLetterOptionGroup('length', settings.length);
+    updateCoverLetterJdCounter();
+    updateCoverLetterResumeNotice();
+  }
+
+  function updateCoverLetterJdCounter() {
+    if (!coverLetterJdCounter) return;
+    const length = String(coverLetterInputs.jobDescription?.value || '').length;
+    coverLetterJdCounter.textContent = `${Math.min(length, 3000)} / 3000`;
+  }
+
+  function scoreCoverLetterAchievement(achievement) {
+    const text = String(achievement || '').trim();
+    if (!text) return 0;
+    const firstWord = text.split(/\s+/)[0]?.replace(/[^a-z]/gi, '').toLowerCase();
+    let score = Math.min(text.length / 20, 8);
+    if (/[0-9%$€£¥₹]|\b\d+x\b/i.test(text)) score += 20;
+    if (LOCAL_ATS_ACTION_VERBS.has(firstWord)) score += 8;
+    if (/\b(increased|reduced|improved|built|launched|delivered|optimized|streamlined|managed|created)\b/i.test(text)) score += 5;
+    return score;
+  }
+
+  function getTopCoverLetterAchievements() {
+    return (state.experiences || []).flatMap((experience) => {
+      const jobTitle = experience.jobTitle || experience.title || '';
+      return [experience.achievement1, experience.achievement2, experience.achievement3]
+        .map((achievement) => ({
+          achievement: String(achievement || '').trim(),
+          jobTitle,
+          company: experience.company || '',
+          duration: experience.duration || '',
+          score: scoreCoverLetterAchievement(achievement),
+        }));
+    }).filter((item) => item.achievement)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+  }
+
+  function buildCoverLetterPrompt(settings) {
+    const normalizedSettings = normalizeCoverLetterSettings(settings);
+    const personal = state.personal || {};
+    const achievements = getTopCoverLetterAchievements();
+    const topExperiences = (state.experiences || [])
+      .filter(hasAnyResumeValue)
+      .slice(0, 3)
+      .map((experience, index) => [
+        `Experience ${index + 1}:`,
+        `Title: ${experience.jobTitle || experience.title || ''}`,
+        `Company: ${experience.company || ''}`,
+        `Duration: ${experience.duration || ''}`,
+        `Best achievements: ${[experience.achievement1, experience.achievement2, experience.achievement3].filter(Boolean).join(' | ')}`,
+      ].join('\n'));
+    const educationSummary = (state.educations || [])
+      .filter(hasAnyResumeValue)
+      .slice(0, 3)
+      .map((education) => [education.degree, education.institution, education.year].filter(Boolean).join(' - '))
+      .join('\n');
+    const projectSummary = (state.projects || [])
+      .filter(hasAnyResumeValue)
+      .slice(0, 3)
+      .map((project) => [
+        project.name,
+        project.technologies ? `Technologies: ${project.technologies}` : '',
+        project.description ? `Details: ${project.description}` : '',
+      ].filter(Boolean).join(' | '))
+      .join('\n');
+
+    return [
+      `Candidate Name: ${personal.name || ''}`,
+      `Email: ${personal.email || ''}`,
+      `Phone: ${personal.phone || ''}`,
+      `Location: ${personal.location || ''}`,
+      `LinkedIn: ${personal.linkedin || ''}`,
+      `Portfolio: ${personal.portfolio || ''}`,
+      '',
+      `Target Role: ${state.targetRole || normalizedSettings.role || 'General professional role'}`,
+      `Company Name: ${normalizedSettings.company}`,
+      `Position/Role Title: ${normalizedSettings.role || state.targetRole || 'Target role'}`,
+      `Hiring Manager: ${getCoverLetterManager(normalizedSettings)}`,
+      `Why This Company: ${normalizedSettings.companyReason || 'Not provided'}`,
+      `Job Description: ${normalizedSettings.jobDescription || 'Not provided'}`,
+      `Tone Selected: ${normalizedSettings.tone}`,
+      `Style Selected: ${normalizedSettings.style}`,
+      `Length Selected: ${normalizedSettings.length}`,
+      '',
+      `Professional Summary: ${state.summary || 'Not provided'}`,
+      '',
+      'Top 3 strongest achievements selected from resume data:',
+      achievements.length
+        ? achievements.map((item, index) => `${index + 1}. ${item.achievement} (${[item.jobTitle, item.company].filter(Boolean).join(' at ')})`).join('\n')
+        : 'No achievements provided.',
+      '',
+      'Top 3 experiences:',
+      topExperiences.length ? topExperiences.join('\n\n') : 'No work experience provided.',
+      '',
+      `Skills Summary: ${parseCommaList(state.skills).join(', ') || 'Not provided'}`,
+      '',
+      `Education Summary:\n${educationSummary || 'Not provided'}`,
+      '',
+      `Notable Projects:\n${projectSummary || 'Not provided'}`,
+    ].join('\n');
+  }
+
+  async function generateCoverLetter() {
+    const settings = getCoverLetterSettingsFromForm();
+    if (!settings.company) {
+      coverLetterInputs.company?.focus();
+      showToast(toastStack, 'Please enter the company name to generate your cover letter.', 'error');
+      return;
+    }
+    if (getRemainingCreditsSafe() <= 0) {
+      showToast(toastStack, 'No AI credits remaining today. Try again tomorrow.', 'warning');
+      return;
+    }
+
+    state.coverLetterSettings = settings;
+    const btn = coverLetterGenerateButton;
+    cacheImproveButtonLabel(btn, 'Generate Cover Letter');
+    if (btn) btn.dataset.loadingLabel = 'Generating...';
+    setImproveBtnLoading(btn, true);
+    renderCoverLetterLoadingState();
+
+    try {
+      const result = await callAI({
+        tool: TOOL_KEY,
+        systemPrompt: COVER_LETTER_SYSTEM_PROMPT,
+        userContent: buildCoverLetterPrompt(settings),
+        maxTokens: 1200,
+        temperature: 0.65,
+      });
+      const letter = getAIResultText(result);
+      if (!letter) throw new Error('The AI returned an empty cover letter.');
+      state.coverLetter = letter;
+      state.coverLetterSettings = settings;
+      saveToStorage(state);
+      renderCoverLetterPreview(state.coverLetter, state.coverLetterSettings);
+      showToast(toastStack, 'Cover letter generated. Review and personalize before sending.', 'success');
+    } catch (error) {
+      console.error('[Cover Letter]', error);
+      renderCoverLetterPreview(state.coverLetter, state.coverLetterSettings);
+      showToast(toastStack, 'Cover letter generation failed. Check your AI credits or try again.', 'error');
+    } finally {
+      setImproveBtnLoading(btn, false);
+      updateQuotaUi();
+    }
+  }
+
+  async function copyCoverLetter() {
+    if (!state.coverLetter) return;
+    try {
+      await copyText(
+        buildCompleteCoverLetterText(state.coverLetter, state.coverLetterSettings),
+        toastStack,
+        'Cover letter copied to clipboard!',
+      );
+    } catch (error) {
+      console.error('[Cover Letter Copy]', error);
+      showToast(toastStack, 'Copy failed. Please select and copy manually.', 'error');
+    }
+  }
+
+  function removeCoverLetterPrintFrame() {
+    if (coverLetterPrintFrame?.parentNode) {
+      coverLetterPrintFrame.parentNode.removeChild(coverLetterPrintFrame);
+    }
+    coverLetterPrintFrame = null;
+  }
+
+  function getCoverLetterPrintStyles() {
+    return `
+      @page { size: letter portrait; margin: 0; }
+      * { box-sizing: border-box; }
+      html, body {
+        width: 8.5in;
+        min-height: 11in;
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+      }
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .cl-letter-doc {
+        width: 8.5in;
+        min-height: 11in;
+        margin: 0 auto;
+        padding: 1in;
+        background: #ffffff;
+        color: #111111;
+        box-shadow: none;
+        border-radius: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 10.5pt;
+        line-height: 1.5;
+      }
+      .cl-letter-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5in;
+        margin-bottom: 0.35in;
+      }
+      .cl-letter-header h1 {
+        margin: 0 0 0.06in;
+        font-size: 15pt;
+        line-height: 1.1;
+      }
+      .cl-letter-header p,
+      .cl-letter-header time,
+      .cl-letter-address p,
+      .cl-letter-salutation,
+      .cl-letter-body p {
+        margin: 0;
+      }
+      .cl-letter-header p {
+        color: #333333;
+        font-size: 9.5pt;
+      }
+      .cl-letter-header time {
+        white-space: nowrap;
+        font-size: 10pt;
+      }
+      .cl-letter-address {
+        margin-bottom: 0.25in;
+      }
+      .cl-letter-salutation {
+        margin-bottom: 0.2in;
+      }
+      .cl-letter-body p {
+        margin-bottom: 0.18in;
+        orphans: 2;
+        widows: 2;
+      }
+    `;
+  }
+
+  function printCoverLetter() {
+    const existingDoc = coverLetterPreviewPane?.querySelector('.cl-letter-doc');
+    if (!state.coverLetter || !existingDoc) {
+      showToast(toastStack, 'Generate a cover letter before saving as PDF.', 'error');
+      return;
+    }
+    removeCoverLetterPrintFrame();
+    const fileBaseName = `${getResumeFileBaseName()}_cover_letter`;
+    const frame = document.createElement('iframe');
+    frame.id = 'cl-print-frame';
+    frame.title = 'Cover letter print export';
+    frame.setAttribute('aria-hidden', 'true');
+    Object.assign(frame.style, {
+      position: 'fixed',
+      right: '0',
+      bottom: '0',
+      width: '0',
+      height: '0',
+      border: '0',
+      opacity: '0',
+      pointerEvents: 'none',
+    });
+    coverLetterPrintFrame = frame;
+    document.body.appendChild(frame);
+    frame.onload = () => {
+      window.setTimeout(() => {
+        const printWindow = frame.contentWindow;
+        if (!printWindow) {
+          removeCoverLetterPrintFrame();
+          showToast(toastStack, 'Could not open the print dialog. Please try again.', 'error');
+          return;
+        }
+        printWindow.addEventListener('afterprint', () => {
+          window.setTimeout(removeCoverLetterPrintFrame, 500);
+        }, { once: true });
+        window.setTimeout(removeCoverLetterPrintFrame, 45000);
+        printWindow.focus();
+        printWindow.print();
+      }, 100);
+    };
+    frame.srcdoc = `<!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>${escapeHtml(fileBaseName)}</title>
+          <style>${getCoverLetterPrintStyles()}</style>
+        </head>
+        <body>${existingDoc.outerHTML}</body>
+      </html>`;
+  }
+
+  async function downloadCoverLetterDOCX() {
+    if (!state.coverLetter) {
+      showToast(toastStack, 'Generate a cover letter before downloading DOCX.', 'error');
+      return;
+    }
+    const btn = coverLetterDocxButton;
+    btn?.classList.add('rb-export-btn--loading');
+    try {
+      await loadDocx();
+      if (!window.docx) throw new Error('docx global unavailable');
+      const { Document, Packer, Paragraph, TextRun, AlignmentType } = window.docx;
+      const settings = normalizeCoverLetterSettings(state.coverLetterSettings);
+      const name = String(state.personal.name || '').trim() || 'Your Name';
+      const contact = getCoverLetterContactLine();
+      const manager = getCoverLetterManager(settings);
+      const company = settings.company || 'Company';
+      const bodyParagraphs = getCoverLetterParagraphs(state.coverLetter)
+        .flatMap((paragraph) => paragraph.split('\n').map((line) => line.trim()).filter(Boolean));
+      const makeParagraph = (text, options = {}) => new Paragraph({
+        alignment: options.align === 'right' ? AlignmentType.RIGHT : AlignmentType.LEFT,
+        spacing: { after: options.after ?? 160, line: 300 },
+        children: [new TextRun({
+          text: String(text || ''),
+          font: options.font || 'Calibri',
+          size: options.size || 22,
+          bold: Boolean(options.bold),
+        })],
+      });
+      const children = [
+        makeParagraph(name, { bold: true, size: 28, after: 60 }),
+      ];
+      if (contact) children.push(makeParagraph(contact, { size: 20, after: 120 }));
+      children.push(
+        makeParagraph(getCoverLetterDate(), { align: 'right', size: 20, after: 220 }),
+        makeParagraph(manager, { after: 60 }),
+        makeParagraph(company, { after: 220 }),
+        makeParagraph(`Dear ${manager},`, { after: 220 }),
+        ...bodyParagraphs.map((paragraph) => makeParagraph(paragraph, { after: 180 })),
+      );
+      const doc = new Document({
+        sections: [{
+          properties: {
+            page: {
+              size: { width: 12240, height: 15840 },
+              margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 },
+            },
+          },
+          children,
+        }],
+      });
+      const blob = await Packer.toBlob(doc);
+      downloadBlob(`${getResumeFileBaseName()}_cover_letter.docx`, blob);
+      showToast(toastStack, 'Cover letter DOCX downloaded.', 'success');
+    } catch (error) {
+      console.error('[Cover Letter DOCX]', error);
+      showToast(toastStack, 'DOCX export unavailable. Try saving as PDF instead.', 'error');
+    } finally {
+      btn?.classList.remove('rb-export-btn--loading');
+    }
+  }
+
+  function initCoverLetterTab() {
+    populateCoverLetterFormFromState();
+    if (state.coverLetter) {
+      renderCoverLetterPreview(state.coverLetter, state.coverLetterSettings);
+    } else {
+      renderCoverLetterEmptyState();
+    }
+
+    Object.entries(coverLetterInputs).forEach(([key, input]) => {
+      if (!input || input.dataset.coverLetterBound === 'true') return;
+      input.dataset.coverLetterBound = 'true';
+      input.addEventListener('input', () => {
+        state.coverLetterSettings = {
+          ...normalizeCoverLetterSettings(state.coverLetterSettings),
+          [key]: input.value,
+        };
+        updateCoverLetterJdCounter();
+        debouncedSave();
+      });
+    });
+
+    root.querySelectorAll('.cl-option-group').forEach((group) => {
+      if (group.dataset.coverLetterBound === 'true') return;
+      group.dataset.coverLetterBound = 'true';
+      group.addEventListener('click', (event) => {
+        const button = event.target.closest('.cl-option-pill');
+        if (!button || !group.contains(button)) return;
+        const settings = normalizeCoverLetterSettings(state.coverLetterSettings);
+        if (button.dataset.clTone) settings.tone = button.dataset.clTone;
+        if (button.dataset.clStyle) settings.style = button.dataset.clStyle;
+        if (button.dataset.clLength) settings.length = button.dataset.clLength;
+        state.coverLetterSettings = settings;
+        syncCoverLetterOptionGroup('tone', settings.tone);
+        syncCoverLetterOptionGroup('style', settings.style);
+        syncCoverLetterOptionGroup('length', settings.length);
+        debouncedSave();
+      });
+    });
   }
 
   function renderPillPreview(containerNode, values) {
@@ -2748,6 +3474,7 @@ export async function initResumeBuilderTool(container) {
   function renderBuilderDerivedViews() {
     renderPillPreview(qs(root, '#rb-skill-pills'), parseCommaList(state.skills));
     renderReviewSummary();
+    updateCoverLetterResumeNotice();
   }
 
   function populateFormFromState() {
@@ -2941,6 +3668,8 @@ export async function initResumeBuilderTool(container) {
     state.targetRole = '';
     state.template = template;
     state.atsAnalysisResult = null;
+    state.coverLetter = '';
+    state.coverLetterSettings = createDefaultCoverLetterSettings();
     state.certifications = [createEmptyCertification()];
   }
 
@@ -3032,7 +3761,9 @@ export async function initResumeBuilderTool(container) {
 
     state.generatedResume = '';
     state.atsAnalysisResult = null;
+    state.coverLetter = '';
     renderFormattedPreview('');
+    renderCoverLetterPreview('', state.coverLetterSettings);
     previewCount.textContent = '0 chars';
     previewNote.textContent = 'ATS note pending';
     syncExportButtons();
@@ -3855,6 +4586,8 @@ export async function initResumeBuilderTool(container) {
     state.targetRole = '';
     state.template = 'classic';
     state.atsAnalysisResult = null;
+    state.coverLetter = '';
+    state.coverLetterSettings = createDefaultCoverLetterSettings();
     state.certifications = [createEmptyCertification()];
     clearSavedDraft();
     populateFormFromState();
@@ -3862,6 +4595,8 @@ export async function initResumeBuilderTool(container) {
     previewCount.textContent = '0 chars';
     previewNote.textContent = 'ATS note pending';
     renderFormattedPreview('');
+    renderCoverLetterPreview('', state.coverLetterSettings);
+    populateCoverLetterFormFromState();
     applyTemplate('classic', { persist: false });
     syncExportButtons();
     setStep(1);
@@ -3930,6 +4665,11 @@ export async function initResumeBuilderTool(container) {
   if (improveSkillsButton) improveSkillsButton.addEventListener('click', improveSkillsWithAI);
   if (scoreAnalyzeToggle) scoreAnalyzeToggle.addEventListener('click', handleScoreAnalyzeToggle);
   if (scoreRunAiButton) scoreRunAiButton.addEventListener('click', runBuilderAtsEnrichment);
+  if (coverLetterGenerateButton) coverLetterGenerateButton.addEventListener('click', generateCoverLetter);
+  if (coverLetterRegenerateButton) coverLetterRegenerateButton.addEventListener('click', generateCoverLetter);
+  if (coverLetterCopyButton) coverLetterCopyButton.addEventListener('click', copyCoverLetter);
+  if (coverLetterPdfButton) coverLetterPdfButton.addEventListener('click', printCoverLetter);
+  if (coverLetterDocxButton) coverLetterDocxButton.addEventListener('click', downloadCoverLetterDOCX);
   if (experienceContainer) {
     experienceContainer.addEventListener('click', (event) => {
       const btn = event.target.closest('.rb-improve-bullets-btn');
@@ -4024,6 +4764,7 @@ export async function initResumeBuilderTool(container) {
   bindCounter(atsResume, atsResumeCount, 5000, atsWarn, 4500);
   bindCounter(atsJob, atsJobCount, 3000, null, 2500);
   updateBuilderFieldBindings();
+  initCoverLetterTab();
   populateFormFromState();
   applyTemplate(state.template, { persist: false });
   renderFormattedPreview(state.generatedResume);

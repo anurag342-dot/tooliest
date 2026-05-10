@@ -23,6 +23,17 @@
       tabindex="-1"
       aria-label="Open Resume Builder tab"
     ><span class="resume-tab-icon" aria-hidden="true">&#9997;&#65039;</span><span class="resume-tab-label">Resume Builder</span></button>
+    <button
+      type="button"
+      class="resume-tab"
+      id="resume-tab-cover-letter"
+      role="tab"
+      aria-selected="false"
+      aria-controls="resume-panel-cover-letter"
+      data-tab-target="cover-letter"
+      tabindex="-1"
+      aria-label="Open Cover Letter tab"
+    ><span class="resume-tab-icon" aria-hidden="true">&#9993;&#65039;</span><span class="resume-tab-label">Cover Letter</span></button>
   </div>
 
   <section
@@ -554,6 +565,155 @@
         <button type="button" class="btn btn-primary" id="rb-next" aria-label="Next step">Next</button>
       </div>
       <button type="button" id="rb-btn-clear-draft">Start fresh</button>
+    </div>
+  </section>
+
+  <section
+    class="resume-panel"
+    id="resume-panel-cover-letter"
+    role="tabpanel"
+    aria-labelledby="resume-tab-cover-letter"
+    data-panel="cover-letter"
+    hidden
+  >
+    <div class="resume-card cl-workspace-card">
+      <div class="resume-card-head">
+        <div>
+          <p class="resume-eyebrow">Personalized application letter</p>
+          <h2>Generate a cover letter from your resume data</h2>
+        </div>
+        <p class="resume-meta">Uses your builder profile</p>
+      </div>
+
+      <div class="cl-layout">
+        <div class="cl-settings-panel">
+          <section class="cl-settings-section">
+            <div class="resume-card-head compact">
+              <div>
+                <p class="resume-eyebrow">About this application</p>
+                <h3>Target company and role</h3>
+              </div>
+            </div>
+            <div class="resume-form-grid two-col">
+              <div class="resume-field">
+                <label for="cl-company">Company Name</label>
+                <input id="cl-company" type="text" required placeholder="Google" aria-label="Company name">
+              </div>
+              <div class="resume-field">
+                <label for="cl-role">Position</label>
+                <input id="cl-role" type="text" placeholder="Software Engineer" aria-label="Position or role title">
+              </div>
+            </div>
+            <div class="resume-field">
+              <label for="cl-manager">Hiring Manager</label>
+              <input id="cl-manager" type="text" placeholder="Alex Johnson (optional)" aria-label="Hiring manager name (optional)">
+            </div>
+            <div class="resume-field">
+              <label for="cl-reason">Why this company?</label>
+              <textarea
+                id="cl-reason"
+                rows="2"
+                maxlength="300"
+                placeholder="What specifically excites you about this company? (optional - adds powerful personalization)"
+                aria-label="Why this company"></textarea>
+            </div>
+          </section>
+
+          <section class="cl-settings-section">
+            <div class="resume-field">
+              <label for="cl-jd">Job Description (optional)</label>
+              <textarea
+                id="cl-jd"
+                rows="4"
+                maxlength="3000"
+                placeholder="Paste the job description here for keyword-matched, tailored output..."
+                aria-label="Job description"></textarea>
+              <div class="resume-counter-row">
+                <span id="cl-jd-count">0 / 3000</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="cl-settings-section">
+            <div class="resume-card-head compact">
+              <div>
+                <p class="resume-eyebrow">Letter options</p>
+                <h3>Voice, structure, and length</h3>
+              </div>
+            </div>
+
+            <div class="cl-option-group" data-cl-option-group="tone" aria-label="Cover letter tone">
+              <span class="cl-option-label">Tone</span>
+              <div class="cl-option-buttons">
+                <button type="button" class="cl-option-pill is-active" data-cl-tone="professional" aria-pressed="true">Professional</button>
+                <button type="button" class="cl-option-pill" data-cl-tone="confident" aria-pressed="false">Confident &amp; Direct</button>
+                <button type="button" class="cl-option-pill" data-cl-tone="warm" aria-pressed="false">Warm &amp; Enthusiastic</button>
+                <button type="button" class="cl-option-pill" data-cl-tone="concise" aria-pressed="false">Concise &amp; Punchy</button>
+              </div>
+            </div>
+
+            <div class="cl-option-group" data-cl-option-group="style" aria-label="Cover letter structure">
+              <span class="cl-option-label">Structure</span>
+              <div class="cl-option-buttons">
+                <button type="button" class="cl-option-pill is-active" data-cl-style="problem-solution" aria-pressed="true">Problem-Solution</button>
+                <button type="button" class="cl-option-pill" data-cl-style="story-impact" aria-pressed="false">Story-Impact</button>
+                <button type="button" class="cl-option-pill" data-cl-style="skills-first" aria-pressed="false">Skills-First</button>
+              </div>
+            </div>
+
+            <div class="cl-option-group" data-cl-option-group="length" aria-label="Cover letter length">
+              <span class="cl-option-label">Length</span>
+              <div class="cl-option-buttons">
+                <button type="button" class="cl-option-pill" data-cl-length="concise" aria-pressed="false">Concise (~200w)</button>
+                <button type="button" class="cl-option-pill is-active" data-cl-length="standard" aria-pressed="true">Standard (~320w)</button>
+                <button type="button" class="cl-option-pill" data-cl-length="detailed" aria-pressed="false">Detailed (~450w)</button>
+              </div>
+            </div>
+          </section>
+
+          <div class="cl-generate-block">
+            <button
+              type="button"
+              id="cl-btn-generate"
+              class="rb-improve-btn cl-generate-btn"
+              aria-label="Generate cover letter">
+              <span class="rb-improve-btn__icon" aria-hidden="true">&#10022;</span>
+              <span class="rb-improve-btn__label">Generate Cover Letter</span>
+              <span class="rb-improve-btn__spinner" aria-hidden="true" hidden></span>
+            </button>
+            <p class="cl-credit-hint">Uses 1 AI credit</p>
+            <div class="cl-credits-bar" id="cl-credits-bar" aria-live="polite">
+              <span class="cl-credits-bar__icon" aria-hidden="true">&#9889;</span>
+              <span id="cl-credits-remaining">--</span>
+              <span class="cl-credits-bar__label"> AI credits remaining today</span>
+            </div>
+            <div class="resume-quota-wrap" data-resume-quota="shared-cover-letter"></div>
+            <div class="cl-resume-data-notice" id="cl-resume-data-notice"></div>
+          </div>
+        </div>
+
+        <div class="cl-preview-panel">
+          <div class="cl-preview-head">
+            <div>
+              <p class="resume-eyebrow">Cover Letter Preview</p>
+              <h3>Ready-to-send letter</h3>
+            </div>
+            <div class="cl-preview-actions">
+              <button type="button" class="rb-export-btn rb-export-btn--secondary" id="cl-btn-copy" disabled>Copy</button>
+              <button type="button" class="rb-export-btn rb-export-btn--secondary" id="cl-btn-pdf" disabled>Save as PDF</button>
+              <button type="button" class="rb-export-btn rb-export-btn--secondary" id="cl-btn-docx" disabled>Download DOCX</button>
+              <button type="button" class="rb-export-btn rb-export-btn--primary" id="cl-btn-regenerate" disabled>Regenerate &#8635;</button>
+            </div>
+          </div>
+          <div class="cl-preview-pane" id="cl-preview-pane" aria-live="polite">
+            <div class="cl-preview-empty">
+              <div class="cl-preview-empty__icon" aria-hidden="true">&#128100;</div>
+              <p>Your cover letter will appear here</p>
+              <span>Fill in the details and click Generate</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </div>
