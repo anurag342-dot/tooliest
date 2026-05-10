@@ -44,9 +44,20 @@ const DOCX_CDN_URLS = [
   'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js',
   'https://unpkg.com/docx@8.5.0/build/index.umd.js',
 ];
+const MAMMOTH_CDN_URLS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+  'https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js',
+];
+// PDF.js 3.x exposes a reliable browser global for lazy script loading.
+const PDFJS_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const RESUME_IMPORT_MAX_BYTES = 5 * 1024 * 1024;
+const RESUME_IMPORT_MAX_CHARS = 8000;
 let resumeExportState = null;
 let resumeExportToastStack = null;
 let docxLoaded = false;
+let mammothLoaded = false;
+let pdfJsLoaded = false;
 let resumeTemplateState = null;
 let resumeTemplateRoot = null;
 let resumeTemplateSave = null;
@@ -152,6 +163,63 @@ target job role and a comma-separated list of skills. Your job is to:
   not "javascript", "REST API" not "rest api")
 - Use comma separators only; do not use semicolons, bullets, headings, or grouped labels
 - Return ONLY the improved skills text, no commentary, no markdown`;
+
+const RESUME_IMPORT_PROMPT = `You are an expert resume parser. Extract structured resume data from raw resume text.
+
+Return ONLY a valid JSON object. No markdown fences, no prose, no commentary, no text before or after the JSON.
+The response MUST be parseable by JSON.parse() with no preprocessing: no trailing commas, no comments, no single quotes, no undefined, no NaN.
+
+Extract only data that is actually present in the resume text. Never invent, assume, complete, rewrite, or hallucinate missing data.
+If a string field is not found, return an empty string. If an array field is not found, return an empty array.
+For targetRole: if a target job title is clearly stated, extract it. Otherwise infer the most recent job title from work experience. If neither is clear, use an empty string.
+For summary: if a professional summary, profile, or objective exists, extract it exactly. If not, return an empty string.
+For skills: return one comma-separated string of individual skills.
+For experiences: extract up to 5 entries. If fewer than 3 achievements exist for a role, use empty strings for missing achievement fields. Never invent achievements.
+For educations: extract up to 3 entries. GPA and courses may be empty.
+For projects: extract up to 5 entries. Links and technologies may be empty.
+
+Use exactly this JSON schema and exact field names:
+{
+  "personal": {
+    "name": "",
+    "email": "",
+    "phone": "",
+    "linkedin": "",
+    "location": "",
+    "portfolio": ""
+  },
+  "targetRole": "",
+  "summary": "",
+  "experiences": [
+    {
+      "title": "",
+      "company": "",
+      "duration": "",
+      "achievement1": "",
+      "achievement2": "",
+      "achievement3": ""
+    }
+  ],
+  "educations": [
+    {
+      "degree": "",
+      "institution": "",
+      "year": "",
+      "gpa": "",
+      "courses": ""
+    }
+  ],
+  "skills": "",
+  "certifications": [],
+  "projects": [
+    {
+      "name": "",
+      "link": "",
+      "technologies": "",
+      "details": ""
+    }
+  ]
+}`;
 
 function qs(root, selector) {
   return root.querySelector(selector);
@@ -1171,6 +1239,143 @@ function printResume() {
   openResumePrintDialog('print');
 }
 
+// Resume Import: browser-only file text extraction
+function loadScriptFromUrls(urls, isReady, label) {
+  if (isReady()) return Promise.resolve();
+
+  let chain = Promise.reject(new Error(`${label} loader start`));
+  urls.forEach((url) => {
+    chain = chain.catch(() => new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = url;
+      script.async = true;
+      script.crossOrigin = 'anonymous';
+      script.onload = () => {
+        if (isReady()) {
+          resolve();
+          return;
+        }
+        script.remove();
+        reject(new Error(`${label} global unavailable after load`));
+      };
+      script.onerror = () => {
+        script.remove();
+        reject(new Error(`${label} CDN load failed: ${url}`));
+      };
+      document.head.appendChild(script);
+    }));
+  });
+
+  return chain.catch((error) => {
+    throw error || new Error(`${label} CDN load failed`);
+  });
+}
+
+async function loadMammoth() {
+  if (mammothLoaded || window.mammoth?.extractRawText) {
+    mammothLoaded = true;
+    return;
+  }
+  await loadScriptFromUrls(MAMMOTH_CDN_URLS, () => Boolean(window.mammoth?.extractRawText), 'mammoth.js');
+  mammothLoaded = true;
+}
+
+async function loadPdfJs() {
+  if (pdfJsLoaded || window.pdfjsLib?.getDocument) {
+    pdfJsLoaded = true;
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+    return;
+  }
+  await loadScriptFromUrls([PDFJS_CDN_URL], () => Boolean(window.pdfjsLib?.getDocument), 'PDF.js');
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+  pdfJsLoaded = true;
+}
+
+function readFileAsArrayBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Could not read this file. Please try again.'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Could not read this text file. Please try again.'));
+    reader.readAsText(file);
+  });
+}
+
+async function extractTextFromDocx(file) {
+  try {
+    await loadMammoth();
+    const arrayBuffer = await readFileAsArrayBuffer(file);
+    const result = await window.mammoth.extractRawText({ arrayBuffer });
+    return String(result?.value || '');
+  } catch (error) {
+    throw new Error(error?.message || 'Could not extract text from this DOCX file.');
+  }
+}
+
+async function extractTextFromPdf(file) {
+  try {
+    await loadPdfJs();
+    const arrayBuffer = await readFileAsArrayBuffer(file);
+    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pages = [];
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      const page = await pdf.getPage(pageNumber);
+      const content = await page.getTextContent();
+      pages.push(content.items.map((item) => String(item.str || '')).join(' '));
+    }
+    return pages.join('\n');
+  } catch (error) {
+    throw new Error(error?.message || 'Could not extract text from this PDF file.');
+  }
+}
+
+function cleanExtractedResumeText(text) {
+  return String(text || '')
+    .replace(/^\uFEFF/, '')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ' ')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function validateAndTrimExtractedText(text) {
+  const cleaned = cleanExtractedResumeText(text);
+  if (cleaned.length < 100) {
+    throw new Error('The file may be image-based or scanned, so text extraction failed. Try a text-based PDF/DOCX or start by filling the form manually.');
+  }
+  return cleaned.length > RESUME_IMPORT_MAX_CHARS
+    ? cleaned.slice(0, RESUME_IMPORT_MAX_CHARS)
+    : cleaned;
+}
+
+async function extractTextFromFile(file) {
+  const name = String(file?.name || '').toLowerCase();
+  const type = String(file?.type || '').toLowerCase();
+  let rawText = '';
+
+  if (type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || name.endsWith('.docx')) {
+    rawText = await extractTextFromDocx(file);
+  } else if (type === 'application/pdf' || name.endsWith('.pdf')) {
+    rawText = await extractTextFromPdf(file);
+  } else if (type === 'text/plain' || name.endsWith('.txt')) {
+    rawText = await readFileAsText(file);
+  } else {
+    throw new Error('Unsupported file type. Please upload a PDF, DOCX, or TXT file.');
+  }
+
+  return validateAndTrimExtractedText(rawText);
+}
+
 // DOCX Export
 async function loadDocx() {
   if (window.docx) {
@@ -1967,6 +2172,19 @@ export async function initResumeBuilderTool(container) {
   const creditsBar = qs(root, '#rb-credits-bar');
   const creditsRemaining = qs(root, '#rb-credits-remaining');
   const creditsLabel = qs(root, '.rb-credits-bar__label');
+  const importCard = qs(root, '#rb-import-card');
+  const importCollapsed = qs(root, '#rb-import-collapsed');
+  const importExpanded = qs(root, '#rb-import-expanded');
+  const importToggleButton = qs(root, '#rb-import-toggle');
+  const importCancelButton = qs(root, '#rb-import-cancel');
+  const importDropzone = qs(root, '#rb-import-dropzone');
+  const importBrowseButton = qs(root, '#rb-import-browse');
+  const importFileInput = qs(root, '#rb-import-file');
+  const importProcessing = qs(root, '#rb-import-processing');
+  const importFileName = qs(root, '#rb-import-file-name');
+  const importSteps = qs(root, '#rb-import-steps');
+  const importError = qs(root, '#rb-import-error');
+  const importSuccess = qs(root, '#rb-import-success');
 
   const state = {
     currentStep: 1,
@@ -1994,6 +2212,8 @@ export async function initResumeBuilderTool(container) {
   const builderBaseLabel = 'Generate Resume';
   let atsBusy = false;
   let builderBusy = false;
+  let importBusy = false;
+  let importSuccessTimer = null;
   const debouncedSave = debounce(() => {
     showSaveIndicator('saving');
     saveToStorage(state);
@@ -2044,6 +2264,7 @@ export async function initResumeBuilderTool(container) {
       button.disabled = remaining === 0;
       button.setAttribute('aria-disabled', String(remaining === 0));
     });
+    syncImportCreditState(remaining);
   }
 
   function updateQuotaUi() {
@@ -2181,6 +2402,7 @@ export async function initResumeBuilderTool(container) {
     renderProjectList();
     renderCertificationList();
     renderBuilderDerivedViews();
+    applyTemplate(state.template, { persist: false });
   }
 
   function updateBuilderFieldBindings() {
@@ -2208,6 +2430,332 @@ export async function initResumeBuilderTool(container) {
         debouncedSave();
       });
     });
+  }
+
+  function setImportExpanded(isExpanded) {
+    if (!importCard || !importCollapsed || !importExpanded) return;
+    importCard.dataset.state = isExpanded ? 'expanded' : 'collapsed';
+    importCollapsed.hidden = isExpanded;
+    importExpanded.hidden = !isExpanded;
+    if (!isExpanded) {
+      setImportError('');
+      setImportProcessing(false);
+      if (importFileInput) importFileInput.value = '';
+    } else {
+      syncImportCreditState();
+    }
+  }
+
+  function setImportError(message = '') {
+    if (!importError) return;
+    importError.textContent = message;
+    importError.hidden = !message;
+  }
+
+  function setImportSuccess(summary) {
+    if (!importSuccess) return;
+    window.clearTimeout(importSuccessTimer);
+    const found = summary?.fieldsPopulated?.length
+      ? summary.fieldsPopulated.join(', ')
+      : 'resume details';
+    importSuccess.innerHTML = `<strong>&#10003; Resume imported!</strong> We found: ${escapeHtml(found)}. Review each step and make any corrections.`;
+    importSuccess.hidden = false;
+    importSuccessTimer = window.setTimeout(() => {
+      importSuccess.hidden = true;
+    }, 6000);
+  }
+
+  function setImportProcessing(isProcessing, file = null) {
+    importBusy = isProcessing;
+    if (importProcessing) importProcessing.hidden = !isProcessing;
+    if (importFileName) importFileName.textContent = file ? `Processing: ${file.name}` : '';
+    importCard?.classList.toggle('is-processing', isProcessing);
+    if (importCancelButton) {
+      importCancelButton.disabled = isProcessing;
+      importCancelButton.setAttribute('aria-disabled', String(isProcessing));
+    }
+    if (!isProcessing) {
+      setImportStep('');
+    }
+    syncImportCreditState();
+  }
+
+  function setImportStep(activeStep) {
+    const order = ['reading', 'extracting', 'parsing', 'populating'];
+    const activeIndex = order.indexOf(activeStep);
+    importSteps?.querySelectorAll('[data-import-step]').forEach((item) => {
+      const itemIndex = order.indexOf(item.dataset.importStep);
+      item.classList.toggle('is-active', itemIndex === activeIndex);
+      item.classList.toggle('is-complete', activeIndex !== -1 && itemIndex < activeIndex);
+    });
+  }
+
+  function getRemainingCreditsSafe() {
+    try {
+      return getRemaining(TOOL_KEY);
+    } catch (_) {
+      return 15;
+    }
+  }
+
+  function syncImportCreditState(remaining = getRemainingCreditsSafe()) {
+    const noCredits = Number.isFinite(remaining) && remaining <= 0;
+    const disabled = importBusy || noCredits;
+    importDropzone?.classList.toggle('is-disabled', disabled);
+    if (importBrowseButton) {
+      importBrowseButton.disabled = disabled;
+      importBrowseButton.setAttribute('aria-disabled', String(disabled));
+    }
+    if (importFileInput) {
+      importFileInput.disabled = disabled;
+    }
+    if (noCredits && importExpanded && !importExpanded.hidden) {
+      setImportError('No AI credits remain today. Resume import will be available again after the daily quota resets.');
+    }
+  }
+
+  function validateResumeImportFile(file) {
+    if (!file) {
+      throw new Error('Choose a PDF, DOCX, or TXT file to import.');
+    }
+    if (file.size > RESUME_IMPORT_MAX_BYTES) {
+      throw new Error('This file is larger than 5MB. Please upload a smaller resume file.');
+    }
+
+    const name = String(file.name || '').toLowerCase();
+    const type = String(file.type || '').toLowerCase();
+    const supported = type === 'application/pdf'
+      || type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      || type === 'text/plain'
+      || name.endsWith('.pdf')
+      || name.endsWith('.docx')
+      || name.endsWith('.txt');
+    if (!supported) {
+      throw new Error('Unsupported file type. Please upload a PDF, DOCX, or TXT file.');
+    }
+  }
+
+  function hasAnyResumeValue(item) {
+    return Object.values(item || {}).some((value) => String(value || '').trim());
+  }
+
+  function hasMeaningfulBuilderData() {
+    return Boolean(
+      state.personal.name.trim()
+      || state.summary.trim()
+      || state.skills.trim()
+      || state.targetRole.trim()
+      || state.experiences.some(hasAnyResumeValue)
+      || state.educations.some(hasAnyResumeValue)
+      || state.projects.some(hasAnyResumeValue)
+      || state.certifications.some((certification) => String(certification || '').trim()),
+    );
+  }
+
+  function resetStateForImport() {
+    const template = state.template;
+    state.generatedResume = '';
+    state.personal = {
+      name: '',
+      email: '',
+      phone: '',
+      linkedin: '',
+      location: '',
+      portfolio: '',
+    };
+    state.summary = '';
+    state.experiences = [createEmptyExperience()];
+    state.educations = [createEmptyEducation()];
+    state.projects = [createEmptyProject()];
+    state.skills = '';
+    state.targetRole = '';
+    state.template = template;
+    state.certifications = [createEmptyCertification()];
+  }
+
+  function assignImportedString(currentValue, nextValue, assign, label, summary, overwrite) {
+    const value = String(nextValue || '').trim();
+    const existing = String(currentValue || '').trim();
+    if (!value || (!overwrite && existing)) return;
+    assign(value);
+    summary.fieldsPopulated.push(label);
+  }
+
+  function buildImportSummary() {
+    const fieldsPopulated = [];
+    const fieldsEmpty = [];
+    const filledExperiences = state.experiences.filter(hasAnyResumeValue);
+    const filledEducations = state.educations.filter(hasAnyResumeValue);
+    const filledProjects = state.projects.filter(hasAnyResumeValue);
+    const filledCertifications = state.certifications.filter((item) => String(item || '').trim());
+    const skillsCount = parseCommaList(state.skills).length;
+
+    if (state.personal.name) fieldsPopulated.push('name');
+    else fieldsEmpty.push('name');
+    if (state.summary) fieldsPopulated.push('summary');
+    if (filledExperiences.length) fieldsPopulated.push(`${filledExperiences.length} work experience${filledExperiences.length === 1 ? '' : 's'}`);
+    else fieldsEmpty.push('work experience');
+    if (filledEducations.length) fieldsPopulated.push(`${filledEducations.length} education entr${filledEducations.length === 1 ? 'y' : 'ies'}`);
+    if (skillsCount) fieldsPopulated.push(`${skillsCount} skills`);
+    else fieldsEmpty.push('skills');
+    if (filledProjects.length) fieldsPopulated.push(`${filledProjects.length} project${filledProjects.length === 1 ? '' : 's'}`);
+    if (filledCertifications.length) fieldsPopulated.push(`${filledCertifications.length} certification${filledCertifications.length === 1 ? '' : 's'}`);
+
+    return { fieldsPopulated, fieldsEmpty };
+  }
+
+  function mergeParsedResumeData(parsed, overwrite = false) {
+    const summary = { fieldsPopulated: [], fieldsEmpty: [] };
+    if (overwrite) resetStateForImport();
+
+    const personal = parsed?.personal && typeof parsed.personal === 'object' ? parsed.personal : {};
+    assignImportedString(state.personal.name, personal.name, (value) => { state.personal.name = value; }, 'name', summary, overwrite);
+    assignImportedString(state.personal.email, personal.email, (value) => { state.personal.email = value; }, 'email', summary, overwrite);
+    assignImportedString(state.personal.phone, personal.phone, (value) => { state.personal.phone = value; }, 'phone', summary, overwrite);
+    assignImportedString(state.personal.linkedin, personal.linkedin, (value) => { state.personal.linkedin = value; }, 'LinkedIn', summary, overwrite);
+    assignImportedString(state.personal.location, personal.location, (value) => { state.personal.location = value; }, 'location', summary, overwrite);
+    assignImportedString(state.personal.portfolio, personal.portfolio, (value) => { state.personal.portfolio = value; }, 'portfolio', summary, overwrite);
+    assignImportedString(state.targetRole, parsed?.targetRole, (value) => { state.targetRole = value; }, 'target role', summary, overwrite);
+    assignImportedString(state.summary, parsed?.summary, (value) => { state.summary = value; }, 'summary', summary, overwrite);
+    assignImportedString(state.skills, parsed?.skills, (value) => { state.skills = normalizeSkillsText(value); }, 'skills', summary, overwrite);
+
+    const experiences = Array.isArray(parsed?.experiences)
+      ? parsed.experiences.map(normalizeSavedExperience).filter(hasAnyResumeValue).slice(0, 5)
+      : [];
+    if (experiences.length) {
+      state.experiences = experiences;
+      summary.fieldsPopulated.push(`${experiences.length} work experience${experiences.length === 1 ? '' : 's'}`);
+    } else if (overwrite) {
+      state.experiences = [createEmptyExperience()];
+    }
+
+    const educations = Array.isArray(parsed?.educations)
+      ? parsed.educations.map(normalizeSavedEducation).filter(hasAnyResumeValue).slice(0, 3)
+      : [];
+    if (educations.length) {
+      state.educations = educations;
+      summary.fieldsPopulated.push(`${educations.length} education entr${educations.length === 1 ? 'y' : 'ies'}`);
+    } else if (overwrite) {
+      state.educations = [createEmptyEducation()];
+    }
+
+    const projects = Array.isArray(parsed?.projects)
+      ? parsed.projects.map(normalizeSavedProject).filter(hasAnyResumeValue).slice(0, 5)
+      : [];
+    if (projects.length) {
+      state.projects = projects;
+      summary.fieldsPopulated.push(`${projects.length} project${projects.length === 1 ? '' : 's'}`);
+    } else if (overwrite) {
+      state.projects = [createEmptyProject()];
+    }
+
+    const certifications = Array.isArray(parsed?.certifications)
+      ? parsed.certifications.map((item) => String(item || '').trim()).filter(Boolean).slice(0, 10)
+      : [];
+    if (certifications.length) {
+      state.certifications = certifications;
+      summary.fieldsPopulated.push(`${certifications.length} certification${certifications.length === 1 ? '' : 's'}`);
+    } else if (overwrite) {
+      state.certifications = [createEmptyCertification()];
+    }
+
+    state.generatedResume = '';
+    renderFormattedPreview('');
+    previewCount.textContent = '0 chars';
+    previewNote.textContent = 'ATS note pending';
+    syncExportButtons();
+    populateFormFromState();
+    saveToStorage(state);
+    applyTemplate(state.template);
+    setStep(1);
+    return summary.fieldsPopulated.length ? summary : buildImportSummary();
+  }
+
+  function parseImportJsonResponse(text) {
+    const cleaned = String(text || '').replace(/```(?:json)?|```/gi, '').trim();
+    try {
+      const parsed = JSON.parse(cleaned);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    } catch (_) {
+      // Fall through to the tolerant parser used by other JSON AI flows.
+    }
+    const parsed = parsePossiblyWrappedJson(cleaned);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  }
+
+  async function parseResumeTextWithAI(rawText, overwrite = false) {
+    const userContent = `Raw resume text:\n${rawText}`;
+    const firstAttempt = await callAI({
+      tool: TOOL_KEY,
+      systemPrompt: RESUME_IMPORT_PROMPT,
+      userContent,
+      maxTokens: 1800,
+      temperature: 0.1,
+    });
+
+    let parsed = parseImportJsonResponse(getAIResultText(firstAttempt));
+    if (!parsed) {
+      const retryAttempt = await callAI({
+        tool: TOOL_KEY,
+        systemPrompt: `${RESUME_IMPORT_PROMPT}\n\nCritical retry instruction: return only raw JSON, absolutely nothing else.`,
+        userContent,
+        maxTokens: 1800,
+        temperature: 0,
+        chargeQuota: false,
+        skipModels: firstAttempt.model ? [firstAttempt.model] : [],
+      });
+      parsed = parseImportJsonResponse(getAIResultText(retryAttempt));
+    }
+
+    if (!parsed) {
+      throw new Error('AI could not return clean structured data from this resume.');
+    }
+
+    setImportStep('populating');
+    await delay(150);
+    return mergeParsedResumeData(parsed, overwrite);
+  }
+
+  async function processResumeImportFile(file) {
+    if (importBusy) return;
+    setImportError('');
+    if (importSuccess) importSuccess.hidden = true;
+
+    try {
+      validateResumeImportFile(file);
+      if (getRemainingCreditsSafe() <= 0) {
+        setImportError('No AI credits remain today. Resume import will be available again after the daily quota resets.');
+        syncImportCreditState(0);
+        return;
+      }
+
+      let overwrite = false;
+      if (hasMeaningfulBuilderData()) {
+        overwrite = window.confirm('You have existing data in the form. Importing will overwrite it. Continue?');
+        if (!overwrite) {
+          return;
+        }
+      }
+
+      setImportProcessing(true, file);
+      setImportStep('reading');
+      await delay(120);
+      setImportStep('extracting');
+      const extractedText = await extractTextFromFile(file);
+      setImportStep('parsing');
+      const summary = await parseResumeTextWithAI(extractedText, overwrite);
+      setImportProcessing(false);
+      setImportExpanded(false);
+      setImportSuccess(summary);
+      showToast(toastStack, 'Resume imported. Review the populated fields before generating.', 'success');
+    } catch (error) {
+      console.error('[Resume Import]', error);
+      setImportProcessing(false);
+      setImportError(`Could not import this resume. ${error?.message || 'Try a different file, or start by filling the form manually.'}`);
+    } finally {
+      if (importFileInput) importFileInput.value = '';
+      updateQuotaUi();
+    }
   }
 
   function renderExperienceList() {
@@ -2905,6 +3453,49 @@ export async function initResumeBuilderTool(container) {
       const button = event.target.closest('[data-resume-template]');
       if (!button || !templatePicker.contains(button)) return;
       applyTemplate(button.dataset.resumeTemplate);
+    });
+  }
+  if (importToggleButton) {
+    importToggleButton.addEventListener('click', () => {
+      setImportExpanded(true);
+    });
+  }
+  if (importCancelButton) {
+    importCancelButton.addEventListener('click', () => {
+      setImportExpanded(false);
+    });
+  }
+  if (importBrowseButton && importFileInput) {
+    importBrowseButton.addEventListener('click', () => {
+      if (importBrowseButton.disabled) return;
+      importFileInput.click();
+    });
+    importFileInput.addEventListener('change', () => {
+      const file = importFileInput.files?.[0];
+      processResumeImportFile(file);
+    });
+  }
+  if (importDropzone) {
+    importDropzone.addEventListener('click', (event) => {
+      if (event.target.closest('button') || importBusy || importBrowseButton?.disabled) return;
+      importFileInput?.click();
+    });
+    ['dragenter', 'dragover'].forEach((eventName) => {
+      importDropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        if (importBusy || importBrowseButton?.disabled) return;
+        importDropzone.classList.add('is-active');
+      });
+    });
+    ['dragleave', 'drop'].forEach((eventName) => {
+      importDropzone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        importDropzone.classList.remove('is-active');
+      });
+    });
+    importDropzone.addEventListener('drop', (event) => {
+      const file = event.dataTransfer?.files?.[0];
+      processResumeImportFile(file);
     });
   }
   if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);

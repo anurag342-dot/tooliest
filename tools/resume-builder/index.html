@@ -170,6 +170,61 @@
         <p class="resume-meta">5 steps · shared daily quota</p>
       </div>
 
+      <div class="rb-import-card" id="rb-import-card" data-state="collapsed">
+        <div class="rb-import-collapsed" id="rb-import-collapsed">
+          <div class="rb-import-collapsed__copy">
+            <span class="rb-import-collapsed__icon" aria-hidden="true">&#11014;</span>
+            <span>Have an existing resume? Import it to get started faster.</span>
+          </div>
+          <button type="button" class="rb-import-link-btn" id="rb-import-toggle">Import Resume &rarr;</button>
+        </div>
+
+        <div class="rb-import-expanded" id="rb-import-expanded" hidden>
+          <div class="rb-import-expanded__head">
+            <div>
+              <strong>Import existing resume</strong>
+              <p>Upload a PDF, DOCX, or TXT resume and we will fill the builder for you.</p>
+            </div>
+            <button type="button" class="rb-import-cancel" id="rb-import-cancel">Cancel</button>
+          </div>
+
+          <div
+            class="rb-import-dropzone"
+            id="rb-import-dropzone"
+            role="region"
+            aria-label="Resume upload drop zone">
+            <div class="rb-import-dropzone__icon" aria-hidden="true">&#128196;</div>
+            <p class="rb-import-dropzone__title">
+              <span class="rb-import-desktop-copy">Drag and drop your resume here</span>
+              <span class="rb-import-mobile-copy">Tap to browse files</span>
+            </p>
+            <p class="rb-import-dropzone__meta">PDF, DOCX, or TXT &mdash; max 5MB</p>
+            <span class="rb-import-or">or</span>
+            <button type="button" class="rb-import-browse" id="rb-import-browse">Browse files</button>
+            <label class="sr-only" for="rb-import-file">Choose a resume file to import</label>
+            <input id="rb-import-file" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" hidden>
+          </div>
+
+          <p class="rb-import-privacy">
+            &#128274; Your file is read locally in your browser. Only the extracted text is sent to AI for parsing &mdash; no file is uploaded to our servers.
+          </p>
+
+          <div class="rb-import-processing" id="rb-import-processing" hidden aria-live="polite">
+            <p class="rb-import-file" id="rb-import-file-name"></p>
+            <ol class="rb-import-steps" id="rb-import-steps">
+              <li data-import-step="reading"><span></span>Reading file...</li>
+              <li data-import-step="extracting"><span></span>Extracting text...</li>
+              <li data-import-step="parsing"><span></span>Parsing with AI...</li>
+              <li data-import-step="populating"><span></span>Populating form...</li>
+            </ol>
+          </div>
+
+          <p class="rb-import-error" id="rb-import-error" role="alert" hidden></p>
+        </div>
+
+        <div class="rb-import-success" id="rb-import-success" role="status" hidden></div>
+      </div>
+
       <div class="resume-progress" aria-label="Resume builder progress">
         <div class="resume-progress-step is-active" data-step-dot="1"><span>1</span><small>Personal</small></div>
         <div class="resume-progress-step" data-step-dot="2"><span>2</span><small>Experience</small></div>
