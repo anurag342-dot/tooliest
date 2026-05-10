@@ -13,7 +13,7 @@
 
 ## 📖 What is Tooliest?
 
-**[Tooliest](https://tooliest.com)** is a comprehensive Progressive Web App (PWA) offering 80+ free online tools for developers, designers, writers, marketers, and students. Every tool runs 100% in your browser — **your files and data never leave your device**.
+**[Tooliest](https://tooliest.com)** is a comprehensive Progressive Web App (PWA) offering 103+ free online tools for developers, designers, writers, marketers, and students. Every tool runs 100% in your browser — **your files and data never leave your device**.
 
 Unlike traditional web tools that upload your data to remote servers, Tooliest processes everything locally using JavaScript. This means tools like the [Image Compressor](https://tooliest.com/image-compressor), [EXIF Stripper](https://tooliest.com/image-exif-stripper), and [Password Generator](https://tooliest.com/password-security-suite) run without any server communication.
 
@@ -35,6 +35,7 @@ Unlike traditional web tools that upload your data to remote servers, Tooliest p
 | Category | Tools | Highlights |
 |:---|:---:|:---|
 | **📝 [Text Tools](https://tooliest.com/category/text)** | 8 | Word Counter, Case Converter, Lorem Ipsum, Text Reverser |
+| **📝 [PDF Tools](https://tooliest.com/category/pdf)** | 15 | PDF Merger, PDF Compressor, PDF Password Protect, PDF Page Numbers |
 | **🔍 [SEO Tools](https://tooliest.com/category/seo)** | 6 | Meta Tag Generator, Schema Markup, Keyword Density |
 | **🎨 [CSS Tools](https://tooliest.com/category/css)** | 6 | Gradient Generator, Flexbox Playground, Box Shadow |
 | **🎯 [Color Tools](https://tooliest.com/category/color)** | 5 | Color Picker, Palette Generator, Contrast Checker |
@@ -47,11 +48,11 @@ Unlike traditional web tools that upload your data to remote servers, Tooliest p
 | **🧮 [Math Tools](https://tooliest.com/category/math)** | 4 | Percentage, Age, BMI, Tip Calculator |
 | **📱 [Social Media Tools](https://tooliest.com/category/social)** | 4 | Twitter Counter, Instagram Captions, Hashtags |
 | **🛡️ [Privacy Tools](https://tooliest.com/category/privacy)** | 4 | Password Suite, UUID, Fake Data, EXIF Stripper |
-| **🤖 [AI Tools](https://tooliest.com/category/ai)** | 5 | Text Summarizer, Paraphraser, Email Writer |
+| **🤖 [AI Tools](https://tooliest.com/category/ai)** | 6 | Text Summarizer, Paraphraser, Email Writer, Resume maker |
 | **👨‍💻 [Developer Tools](https://tooliest.com/category/developer)** | 4 | Cron Parser, Diff Checker, SQL Formatter, Chmod |
 | **🏦 [Finance Tools](https://tooliest.com/category/finance)** | 6 | Loan Analyzer, Compound Interest, SIP, Retirement |
 
-**[View All 82 Tools →](https://tooliest.com/sitemap.html)**
+**[View All 103 Tools →](https://tooliest.com/sitemap.html)**
 
 ---
 
@@ -92,7 +93,7 @@ node devserver.js    # Start local dev server at http://localhost:8080
 
 ## 📈 SEO & Performance
 
-- **Pre-rendered static pages** for all 82 tools and 16 categories
+- **Pre-rendered static pages** for all 103 tools and 17 categories
 - **JSON-LD structured data**: WebApplication, FAQPage, BreadcrumbList, Speakable, Organization
 - **Core Web Vitals optimized**: Deferred JS, minified CSS, lazy-loaded ads, optimized fonts
 - **Robots.txt** with AI crawler directives (GPTBot, ClaudeBot, Google-Extended)
