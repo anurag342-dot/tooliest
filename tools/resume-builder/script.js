@@ -68,6 +68,24 @@ const RESUME_TEMPLATE_CLASSES = {
   modern: 'rb-tpl-modern',
   compact: 'rb-tpl-compact',
 };
+const OPTIONAL_RESUME_SECTIONS = ['projects', 'certifications', 'languages'];
+const DEFAULT_SECTION_ORDER = ['experience', 'projects', 'education', 'skills', 'certifications'];
+const SECTION_LABELS = {
+  experience: 'Work Experience',
+  projects: 'Projects',
+  education: 'Education',
+  skills: 'Skills',
+  certifications: 'Certifications',
+};
+const SECTION_TITLE_TO_KEY = {
+  'WORK EXPERIENCE': 'experience',
+  EXPERIENCE: 'experience',
+  PROJECTS: 'projects',
+  EDUCATION: 'education',
+  SKILLS: 'skills',
+  CERTIFICATIONS: 'certifications',
+  CERTIFICATION: 'certifications',
+};
 
 function normalizeResumeTemplate(template) {
   return RESUME_TEMPLATE_OPTIONS.includes(template) ? template : 'classic';
@@ -115,6 +133,7 @@ Format rules:
 - Achievements must be quantified wherever possible. If the user has not provided numbers, insert a [PLACEHOLDER — add your specific metric here] tag instead of fabricating numbers. Never invent percentages, dollar amounts, or statistics the user did not provide.
 - If the user provides projects, include a PROJECTS section using only the provided project names, links, technologies, and details. Never invent project links, repositories, metrics, or outcomes.
 - In the EDUCATION section, list all education entries provided by the user.
+- Follow the requested section order from the user content after PROFESSIONAL SUMMARY. Omit optional sections when they are disabled or not provided.
 - Tailor language to the target job title provided
 - Total length: 450-650 words for junior, 650-900 for senior
 - Use strong action verbs: Led, Built, Designed, Developed, Increased, Reduced, Managed, Launched, Delivered, Implemented, Optimized, Streamlined, Collaborated, Coordinated, Achieved
@@ -550,6 +569,50 @@ function normalizeSavedEducation(education = {}) {
   };
 }
 
+function createDefaultSectionsEnabled() {
+  return OPTIONAL_RESUME_SECTIONS.reduce((acc, key) => {
+    acc[key] = true;
+    return acc;
+  }, {});
+}
+
+function normalizeSectionsEnabled(value = {}) {
+  const defaults = createDefaultSectionsEnabled();
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return defaults;
+  OPTIONAL_RESUME_SECTIONS.forEach((key) => {
+    if (typeof value[key] === 'boolean') defaults[key] = value[key];
+  });
+  return defaults;
+}
+
+function normalizeSectionOrder(value = []) {
+  const valid = new Set(DEFAULT_SECTION_ORDER);
+  const normalized = [];
+  if (Array.isArray(value)) {
+    value.forEach((item) => {
+      const key = String(item || '').trim();
+      if (valid.has(key) && !normalized.includes(key)) normalized.push(key);
+    });
+  }
+  DEFAULT_SECTION_ORDER.forEach((key) => {
+    if (!normalized.includes(key)) normalized.push(key);
+  });
+  return normalized;
+}
+
+function isSectionEnabled(state, key) {
+  return normalizeSectionsEnabled(state?.sectionsEnabled)[key] !== false;
+}
+
+function hasFilledProject(project) {
+  return [project?.name, project?.link, project?.technologies, project?.description]
+    .some((value) => String(value || '').trim());
+}
+
+function hasFilledCertification(certification) {
+  return Boolean(String(certification || '').trim());
+}
+
 function createDefaultCoverLetterSettings() {
   return {
     company: '',
@@ -637,6 +700,8 @@ function serializeState(state) {
         atsAnalysisResult: normalizeSavedAtsAnalysisResult(state.atsAnalysisResult),
         coverLetter: String(state.coverLetter || ''),
         coverLetterSettings: normalizeCoverLetterSettings(state.coverLetterSettings),
+        sectionsEnabled: normalizeSectionsEnabled(state.sectionsEnabled),
+        sectionOrder: normalizeSectionOrder(state.sectionOrder),
       },
     });
   } catch (_) {
@@ -701,6 +766,8 @@ function restoreFromStorage(state) {
     state.atsAnalysisResult = normalizeSavedAtsAnalysisResult(saved.atsAnalysisResult);
     state.coverLetter = typeof saved.coverLetter === 'string' ? saved.coverLetter : '';
     state.coverLetterSettings = normalizeCoverLetterSettings(saved.coverLetterSettings);
+    state.sectionsEnabled = normalizeSectionsEnabled(saved.sectionsEnabled);
+    state.sectionOrder = normalizeSectionOrder(saved.sectionOrder);
 
     return true;
   } catch (_) {
@@ -937,13 +1004,64 @@ function normalizeGeneratedResumeIdentity(resumeText, state) {
 
 function getRenderableResumeSections(sections, state) {
   const summary = String(state?.summary || '').trim();
-  if (!summary) return sections;
+  const preparedSections = (sections || []).filter((section) => shouldRenderResumeSection(section, state));
+  const parsedSummarySections = preparedSections.filter((section) => isSummarySectionTitle(section.title));
+  const nonSummarySections = preparedSections.filter((section) => !isSummarySectionTitle(section.title));
+  const orderedSections = orderResumeSections(nonSummarySections, state);
 
-  const nonSummarySections = sections.filter((section) => !/^(SUMMARY|OBJECTIVE|PROFILE|PROFESSIONAL SUMMARY)$/i
-    .test(String(section.title || '').trim()));
+  if (summary) {
+    return [
+      { title: 'PROFESSIONAL SUMMARY', lines: [summary] },
+      ...orderedSections,
+    ];
+  }
+
   return [
-    { title: 'PROFESSIONAL SUMMARY', lines: [summary] },
-    ...nonSummarySections,
+    ...parsedSummarySections,
+    ...orderedSections,
+  ];
+}
+
+function isSummarySectionTitle(title) {
+  return /^(SUMMARY|OBJECTIVE|PROFILE|PROFESSIONAL SUMMARY)$/i.test(String(title || '').trim());
+}
+
+function getResumeSectionKey(title) {
+  return SECTION_TITLE_TO_KEY[String(title || '').trim().toUpperCase()] || null;
+}
+
+function isBracketOnlySection(section) {
+  const content = (section?.lines || []).join('\n').trim();
+  return !content || /^\[[\s\S]*\]$/.test(content);
+}
+
+function shouldRenderResumeSection(section, state) {
+  const key = getResumeSectionKey(section?.title);
+  if (key === 'projects') {
+    return isSectionEnabled(state, 'projects') && !isBracketOnlySection(section);
+  }
+  if (key === 'certifications') {
+    return isSectionEnabled(state, 'certifications') && !isBracketOnlySection(section);
+  }
+  return true;
+}
+
+function orderResumeSections(sections, state) {
+  const order = normalizeSectionOrder(state?.sectionOrder);
+  const indexed = new Map();
+  const unkeyed = [];
+  sections.forEach((section) => {
+    const key = getResumeSectionKey(section?.title);
+    if (!key) {
+      unkeyed.push(section);
+      return;
+    }
+    if (!indexed.has(key)) indexed.set(key, []);
+    indexed.get(key).push(section);
+  });
+  return [
+    ...order.flatMap((key) => indexed.get(key) || []),
+    ...unkeyed,
   ];
 }
 
@@ -1040,6 +1158,18 @@ function getResumeFileBaseName() {
     .replace(/[^a-zA-Z0-9\s_-]/g, '')
     .replace(/\s+/g, '_')
     .toLowerCase() || 'resume';
+}
+
+function detectPlaceholders(text) {
+  const matches = String(text || '').match(/\[.*?\]/g) || [];
+  return [...new Set(matches.map((item) => item.trim()).filter(Boolean))];
+}
+
+function confirmResumePlaceholdersBeforeExport() {
+  const placeholders = detectPlaceholders(resumeExportState?.generatedResume || '');
+  if (!placeholders.length) return true;
+  const list = placeholders.slice(0, 8).join('\n');
+  return window.confirm(`Your resume contains ${placeholders.length} unfilled placeholder(s):\n${list}\n\nThese will appear in your exported file. Review and fill them in before downloading?\n\nClick OK to continue anyway, or Cancel to go back and fix.`);
 }
 
 function getResumeDocumentHtml() {
@@ -1397,6 +1527,7 @@ function openResumePrintDialog(intent = 'print') {
 }
 
 async function downloadResumePDF() {
+  if (!confirmResumePlaceholdersBeforeExport()) return;
   const btn = document.getElementById('rb-btn-download-pdf');
   if (btn) {
     btn.classList.add('rb-export-btn--loading');
@@ -1419,6 +1550,7 @@ async function downloadResumePDF() {
 }
 
 function printResume() {
+  if (!confirmResumePlaceholdersBeforeExport()) return;
   openResumePrintDialog('print');
 }
 
@@ -1857,6 +1989,7 @@ async function downloadResumeDOCX() {
     showExportToast('Generate a resume before downloading the DOCX.', 'error');
     return;
   }
+  if (!confirmResumePlaceholdersBeforeExport()) return;
 
   if (btn) {
     btn.classList.add('rb-export-btn--loading');
@@ -2202,47 +2335,66 @@ function buildResumePrompt(state) {
     `Target Job Title: ${state.targetRole || 'General professional role'}`,
     `Professional Summary: ${state.summary || ''}`,
     '',
-    'WORK EXPERIENCE:',
+    `Requested section order after Professional Summary: ${normalizeSectionOrder(state.sectionOrder).map((key) => SECTION_LABELS[key]).join(' -> ')}`,
+    '',
   ];
 
-  state.experiences.forEach((experience, index) => {
-    parts.push(`Experience ${index + 1}:`);
-    parts.push(`Job Title: ${experience.jobTitle || ''}`);
-    parts.push(`Company: ${experience.company || ''}`);
-    parts.push(`Duration: ${experience.duration || ''}`);
-    [experience.achievement1, experience.achievement2, experience.achievement3].forEach((line, lineIndex) => {
-      if (String(line || '').trim()) {
-        parts.push(`Achievement ${lineIndex + 1}: ${line.trim()}`);
-      }
-    });
-    parts.push('');
-  });
+  const sectionWriters = {
+    experience() {
+      parts.push('WORK EXPERIENCE:');
+      state.experiences.forEach((experience, index) => {
+        parts.push(`Experience ${index + 1}:`);
+        parts.push(`Job Title: ${experience.jobTitle || ''}`);
+        parts.push(`Company: ${experience.company || ''}`);
+        parts.push(`Duration: ${experience.duration || ''}`);
+        [experience.achievement1, experience.achievement2, experience.achievement3].forEach((line, lineIndex) => {
+          if (String(line || '').trim()) {
+            parts.push(`Achievement ${lineIndex + 1}: ${line.trim()}`);
+          }
+        });
+        parts.push('');
+      });
+    },
+    projects() {
+      if (!isSectionEnabled(state, 'projects')) return;
+      const filledProjects = (state.projects || []).filter(hasFilledProject);
+      if (!filledProjects.length) return;
+      parts.push('PROJECTS:');
+      filledProjects.forEach((project, index) => {
+        parts.push(`Project ${index + 1}:`);
+        parts.push(`Name: ${project.name || ''}`);
+        parts.push(`Link: ${project.link || ''}`);
+        parts.push(`Technologies: ${project.technologies || ''}`);
+        parts.push(`Details: ${project.description || ''}`);
+        parts.push('');
+      });
+    },
+    education() {
+      parts.push('EDUCATION:');
+      (state.educations || []).forEach((education, index) => {
+        parts.push(`Education ${index + 1}:`);
+        parts.push(`Degree: ${education.degree || ''}`);
+        parts.push(`Institution: ${education.institution || ''}`);
+        parts.push(`Year: ${education.year || ''}`);
+        parts.push(`GPA: ${education.gpa || ''}`);
+        parts.push(`Relevant Courses: ${parseCommaList(education.courses).join(', ')}`);
+        parts.push('');
+      });
+    },
+    skills() {
+      parts.push(`Skills: ${parseCommaList(state.skills).join(', ')}`);
+    },
+    certifications() {
+      if (!isSectionEnabled(state, 'certifications')) return;
+      const filledCertifications = (state.certifications || []).filter(hasFilledCertification);
+      if (!filledCertifications.length) return;
+      parts.push(`Certifications: ${filledCertifications.join(', ')}`);
+    },
+  };
 
-  parts.push('PROJECTS:');
-  state.projects.forEach((project, index) => {
-    if (![project.name, project.link, project.technologies, project.description].some((value) => String(value || '').trim())) {
-      return;
-    }
-    parts.push(`Project ${index + 1}:`);
-    parts.push(`Name: ${project.name || ''}`);
-    parts.push(`Link: ${project.link || ''}`);
-    parts.push(`Technologies: ${project.technologies || ''}`);
-    parts.push(`Details: ${project.description || ''}`);
-    parts.push('');
+  normalizeSectionOrder(state.sectionOrder).forEach((key) => {
+    sectionWriters[key]?.();
   });
-
-  parts.push('EDUCATION:');
-  (state.educations || []).forEach((education, index) => {
-    parts.push(`Education ${index + 1}:`);
-    parts.push(`Degree: ${education.degree || ''}`);
-    parts.push(`Institution: ${education.institution || ''}`);
-    parts.push(`Year: ${education.year || ''}`);
-    parts.push(`GPA: ${education.gpa || ''}`);
-    parts.push(`Relevant Courses: ${parseCommaList(education.courses).join(', ')}`);
-    parts.push('');
-  });
-  parts.push(`Skills: ${parseCommaList(state.skills).join(', ')}`);
-  parts.push(`Certifications: ${state.certifications.filter(Boolean).join(', ')}`);
   return parts.join('\n');
 }
 
@@ -2417,6 +2569,15 @@ export async function initResumeBuilderTool(container) {
   const mobilePreviewView = qs(root, '#rb-mobile-preview-view');
   const mobileScoreView = qs(root, '#rb-mobile-score-view');
   const generateReadiness = qs(root, '#rb-generate-readiness');
+  const stepPanelsContainer = qs(root, '.resume-step-panels');
+  const toggleProjectsButton = qs(root, '#rb-toggle-projects');
+  const toggleCertificationsButton = qs(root, '#rb-toggle-certifications');
+  const projectFields = qs(root, '#rb-project-fields');
+  const certificationFields = qs(root, '#rb-certification-fields');
+  const projectsDisabledNote = qs(root, '#rb-projects-disabled-note');
+  const certificationsDisabledNote = qs(root, '#rb-certifications-disabled-note');
+  const sectionOrderList = qs(root, '#rb-section-order-list');
+  const fabBackButton = qs(root, '#rb-fab-back');
 
   const state = {
     currentStep: 1,
@@ -2440,6 +2601,8 @@ export async function initResumeBuilderTool(container) {
     atsAnalysisResult: null,
     coverLetter: '',
     coverLetterSettings: createDefaultCoverLetterSettings(),
+    sectionsEnabled: createDefaultSectionsEnabled(),
+    sectionOrder: normalizeSectionOrder(),
     certifications: [createEmptyCertification()],
   };
 
@@ -2603,15 +2766,28 @@ export async function initResumeBuilderTool(container) {
     root.querySelector(`[data-tab-target="${target}"]`)?.click();
   }
 
+  function isToolContainerVisible() {
+    const rect = root.getBoundingClientRect();
+    return rect.bottom > 0 && rect.top < window.innerHeight;
+  }
+
   function handleMobileNavClick(event) {
     const button = event.target.closest('[data-mobile-nav]');
     if (!button) return;
     const navKey = button.dataset.mobileNav;
-    if (activeMainTab === 'builder') {
-      setMobileBuilderView(navKey);
+    const performNavigation = () => {
+      if (activeMainTab === 'builder') {
+        setMobileBuilderView(navKey);
+        return;
+      }
+      activateMainTabFromMobile(navKey);
+    };
+    if (isMobileLayout() && !isToolContainerVisible()) {
+      root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.setTimeout(performNavigation, 600);
       return;
     }
-    activateMainTabFromMobile(navKey);
+    performNavigation();
   }
 
   function handleMobileViewportChange() {
@@ -2816,6 +2992,22 @@ export async function initResumeBuilderTool(container) {
     const total = Math.max(0, Math.min(100, Math.round(
       contact + sections + achievements + keywords + length + completeness,
     )));
+    const hasMeaningfulData = [
+      personal.name,
+      personal.email,
+      state.experiences?.[0]?.jobTitle,
+      state.experiences?.[0]?.title,
+      state.summary,
+    ].some((value) => String(value || '').trim());
+    if (!hasMeaningfulData) {
+      return {
+        total: null,
+        label: 'Not started',
+        color: null,
+        dimensions: null,
+        tips: null,
+      };
+    }
     const meta = getLocalScoreMeta(total);
     return {
       total,
@@ -2827,6 +3019,9 @@ export async function initResumeBuilderTool(container) {
   }
 
   function getDisplayScoreResult(localScore) {
+    if (localScore.total === null) {
+      return { ...localScore, isAi: false, keywordsFound: [], keywordsMissing: [] };
+    }
     const aiResult = normalizeSavedAtsAnalysisResult(state.atsAnalysisResult);
     if (!aiResult) return { ...localScore, isAi: false, keywordsFound: [], keywordsMissing: [] };
     const scoreMeta = getLocalScoreMeta(aiResult.score);
@@ -2875,6 +3070,26 @@ export async function initResumeBuilderTool(container) {
   function refreshLiveScore() {
     const localScore = calculateLocalAtsScore();
     const displayScore = getDisplayScoreResult(localScore);
+    const scoreNotStarted = displayScore.total === null;
+    if (scoreCompact) scoreCompact.classList.toggle('rb-score-hidden', scoreNotStarted);
+    if (scorePanelFull) scorePanelFull.classList.toggle('rb-score-empty', scoreNotStarted);
+    if (scoreNotStarted) {
+      previousLiveScore = null;
+      if (scoreFullNumber) scoreFullNumber.textContent = '';
+      if (scoreFullLabel) {
+        scoreFullLabel.textContent = 'Not started';
+        scoreFullLabel.style.color = '';
+      }
+      if (scoreFullDescription) {
+        scoreFullDescription.textContent = 'Fill in your details to see your ATS score.';
+      }
+      if (scoreAiBadge) scoreAiBadge.hidden = true;
+      if (scoreKeywords) scoreKeywords.hidden = true;
+      clearNode(scoreBreakdown);
+      clearNode(scoreTips);
+      if (generateReadiness) generateReadiness.hidden = true;
+      return;
+    }
     const tip = displayScore.tips[0] || 'Keep filling the form to improve your ATS readiness.';
     const circumference = 2 * Math.PI * 38;
     const gaugeOffset = circumference - ((displayScore.total / 100) * circumference);
@@ -3609,12 +3824,102 @@ export async function initResumeBuilderTool(container) {
       createNode('p', '', `Certifications: ${state.certifications.filter(Boolean).join(', ') || 'None added yet'}`),
     );
 
+    if (!isSectionEnabled(state, 'projects')) {
+      projectList.innerHTML = '';
+      projectList.appendChild(createNode('li', '', 'Projects hidden from resume.'));
+    }
+    if (!isSectionEnabled(state, 'certifications')) {
+      skillsCard.querySelectorAll('p').forEach((paragraph) => {
+        if (paragraph.textContent.startsWith('Certifications:')) {
+          paragraph.textContent = 'Certifications: hidden from resume';
+        }
+      });
+    }
+
     mount.append(personalCard, summaryCard, experienceCard, projectCard, educationCard, skillsCard);
+  }
+
+  function updateOptionalSectionUi(sectionKey) {
+    const enabled = isSectionEnabled(state, sectionKey);
+    const isProjects = sectionKey === 'projects';
+    const fields = isProjects ? projectFields : certificationFields;
+    const note = isProjects ? projectsDisabledNote : certificationsDisabledNote;
+    const button = isProjects ? toggleProjectsButton : toggleCertificationsButton;
+    if (fields) fields.hidden = !enabled;
+    if (note) note.hidden = enabled;
+    if (button) {
+      button.textContent = enabled ? 'Remove section' : `+ Add ${isProjects ? 'projects' : 'certifications'}`;
+      button.classList.toggle('rb-section-toggle--danger', enabled);
+      button.classList.toggle('rb-section-toggle--add', !enabled);
+      button.setAttribute('aria-pressed', String(enabled));
+    }
+  }
+
+  function toggleOptionalSection(sectionKey) {
+    state.sectionsEnabled = normalizeSectionsEnabled(state.sectionsEnabled);
+    state.sectionsEnabled[sectionKey] = !isSectionEnabled(state, sectionKey);
+    if (sectionKey === 'projects' && state.sectionsEnabled.projects && !state.projects.length) {
+      state.projects = [createEmptyProject()];
+      renderProjectList();
+    }
+    if (sectionKey === 'certifications' && state.sectionsEnabled.certifications && !state.certifications.length) {
+      state.certifications = [createEmptyCertification()];
+      renderCertificationList();
+    }
+    updateOptionalSectionUi(sectionKey);
+    renderBuilderDerivedViews();
+    markBuilderContentChanged();
+    saveToStorage(state);
+    refreshLiveScore();
+  }
+
+  function renderSectionOrderList() {
+    clearNode(sectionOrderList);
+    if (!sectionOrderList) return;
+    state.sectionOrder = normalizeSectionOrder(state.sectionOrder);
+    state.sectionOrder.forEach((key, index) => {
+      const row = createNode('div', 'rb-section-order-row');
+      const hidden = (key === 'projects' || key === 'certifications') && !isSectionEnabled(state, key);
+      row.classList.toggle('is-hidden-section', hidden);
+      const label = createNode('span', 'rb-section-order-label', SECTION_LABELS[key] || key);
+      if (hidden) label.appendChild(createNode('span', 'rb-section-order-badge', 'Hidden'));
+      const actions = createNode('span', 'rb-section-order-actions');
+      const up = createNode('button', 'rb-section-order-btn', '\u2191');
+      const down = createNode('button', 'rb-section-order-btn', '\u2193');
+      up.type = 'button';
+      down.type = 'button';
+      up.dataset.sectionOrderMove = 'up';
+      down.dataset.sectionOrderMove = 'down';
+      up.dataset.sectionKey = key;
+      down.dataset.sectionKey = key;
+      up.disabled = index === 0;
+      down.disabled = index === state.sectionOrder.length - 1;
+      up.setAttribute('aria-label', `Move ${SECTION_LABELS[key]} up`);
+      down.setAttribute('aria-label', `Move ${SECTION_LABELS[key]} down`);
+      actions.append(up, down);
+      row.append(label, actions);
+      sectionOrderList.appendChild(row);
+    });
+  }
+
+  function moveSectionOrderItem(key, direction) {
+    const order = normalizeSectionOrder(state.sectionOrder);
+    const index = order.indexOf(key);
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (index < 0 || targetIndex < 0 || targetIndex >= order.length) return;
+    [order[index], order[targetIndex]] = [order[targetIndex], order[index]];
+    state.sectionOrder = order;
+    renderSectionOrderList();
+    markBuilderContentChanged();
+    saveToStorage(state);
   }
 
   function renderBuilderDerivedViews() {
     renderPillPreview(qs(root, '#rb-skill-pills'), parseCommaList(state.skills));
     renderReviewSummary();
+    renderSectionOrderList();
+    updateOptionalSectionUi('projects');
+    updateOptionalSectionUi('certifications');
     updateCoverLetterResumeNotice();
   }
 
@@ -3811,6 +4116,8 @@ export async function initResumeBuilderTool(container) {
     state.atsAnalysisResult = null;
     state.coverLetter = '';
     state.coverLetterSettings = createDefaultCoverLetterSettings();
+    state.sectionsEnabled = createDefaultSectionsEnabled();
+    state.sectionOrder = normalizeSectionOrder();
     state.certifications = [createEmptyCertification()];
   }
 
@@ -4265,8 +4572,25 @@ export async function initResumeBuilderTool(container) {
     });
   }
 
+  function scrollStepContainerIntoView() {
+    if (!stepPanelsContainer) return;
+    stepPanelsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const rect = stepPanelsContainer.getBoundingClientRect();
+    const scrollTarget = window.scrollY + rect.top - 16;
+    window.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'smooth' });
+  }
+
+  function updateBackFab() {
+    if (!fabBackButton) return;
+    const showFab = state.currentStep === 5 && Boolean(String(state.generatedResume || '').trim());
+    fabBackButton.classList.toggle('rb-fab-visible', showFab);
+    fabBackButton.setAttribute('aria-hidden', String(!showFab));
+  }
+
   function setStep(step) {
+    const previousStep = state.currentStep;
     state.currentStep = Math.min(5, Math.max(1, step));
+    const stepChanged = previousStep !== state.currentStep;
     let activePanel = null;
     root.querySelectorAll('[data-step-panel]').forEach((panel) => {
       const active = Number(panel.getAttribute('data-step-panel')) === state.currentStep;
@@ -4299,15 +4623,17 @@ export async function initResumeBuilderTool(container) {
     next.setAttribute('aria-hidden', String(state.currentStep === 5));
     next.textContent = state.currentStep === 4 ? 'Review & Generate' : 'Next';
     renderReviewSummary();
+    renderSectionOrderList();
     refreshLiveScore();
+    updateBackFab();
 
     if (activePanel) {
       const focusTarget = activePanel.querySelector('input, textarea, select, button:not([disabled])');
       if (focusTarget && state.currentStep !== 5) {
         window.requestAnimationFrame(() => focusTarget.focus({ preventScroll: true }));
       }
-      if (isMobileLayout()) {
-        window.requestAnimationFrame(() => activePanel.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+      if (stepChanged) {
+        window.requestAnimationFrame(scrollStepContainerIntoView);
       }
     }
   }
@@ -4754,6 +5080,7 @@ export async function initResumeBuilderTool(container) {
       if (isMobileLayout()) setMobileBuilderView('preview');
       syncExportButtons();
       refreshLiveScore();
+      updateBackFab();
       setBanner(builderBanner, 'Resume draft ready. Review every metric, date, and claim before you use it.', 'success');
     } catch (error) {
       const message = String(error?.message || error || '');
@@ -4813,6 +5140,7 @@ export async function initResumeBuilderTool(container) {
     setStep(1);
     setMobileBuilderView('edit');
     refreshLiveScore();
+    updateBackFab();
     setBanner(builderBanner, 'Draft cleared. Start fresh whenever you are ready.', 'success');
     showToast(toastStack, 'Draft cleared.', 'success');
   }
@@ -4959,6 +5287,22 @@ export async function initResumeBuilderTool(container) {
   if (mobileNav) {
     mobileNav.addEventListener('click', handleMobileNavClick);
   }
+  if (toggleProjectsButton) {
+    toggleProjectsButton.addEventListener('click', () => toggleOptionalSection('projects'));
+  }
+  if (toggleCertificationsButton) {
+    toggleCertificationsButton.addEventListener('click', () => toggleOptionalSection('certifications'));
+  }
+  if (sectionOrderList) {
+    sectionOrderList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-section-order-move]');
+      if (!button || button.disabled) return;
+      moveSectionOrderItem(button.dataset.sectionKey, button.dataset.sectionOrderMove);
+    });
+  }
+  if (fabBackButton) {
+    fabBackButton.addEventListener('click', () => setStep(4));
+  }
   root.addEventListener('keydown', handleBuilderKeyboardShortcuts);
   window.addEventListener('resize', handleMobileViewportChange);
   if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);
@@ -4984,6 +5328,10 @@ export async function initResumeBuilderTool(container) {
 
   copyResumeButton.addEventListener('click', async () => {
     if (!state.generatedResume) return;
+    const placeholders = detectPlaceholders(state.generatedResume);
+    if (placeholders.length) {
+      showToast(toastStack, `Note: your resume has ${placeholders.length} unfilled placeholders. Search for [ in your copied text to find and replace them.`, 'warning');
+    }
     await copyText(state.generatedResume, toastStack, 'Resume copied to clipboard.');
   });
 
@@ -5006,6 +5354,7 @@ export async function initResumeBuilderTool(container) {
   syncExportButtons();
   updateQuotaUi();
   refreshLiveScore();
+  updateBackFab();
   window.requestAnimationFrame(updateQuotaUi);
   window.requestAnimationFrame(refreshLiveScore);
   window.setTimeout(updateQuotaUi, 250);

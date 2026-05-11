@@ -3445,3 +3445,401 @@
 }
 
 /* ─── PRINT STYLES ─── */
+
+/* --- DAY 11 REVISED BUG-FIX OVERRIDES --- */
+.rb-score-hidden {
+  display: none !important;
+}
+
+.rb-score-panel.rb-score-empty {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.rb-score-panel.rb-score-empty > * {
+  display: none !important;
+}
+
+.rb-score-panel.rb-score-empty::before {
+  content: "Fill in your details to see your ATS score";
+  color: var(--rb-text-secondary);
+  font-size: var(--rb-font-size-base, 0.9rem);
+  line-height: 1.5;
+}
+
+#rb-experience-list,
+#rb-certification-list {
+  margin-bottom: 1.25rem;
+}
+
+#rb-experience-list > .resume-card:last-child,
+#rb-certification-list > .resume-card:last-child,
+#rb-certification-list > .resume-subcard:last-child {
+  margin-bottom: 1rem;
+}
+
+.rb-section-ai-actions--card {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.75rem;
+}
+
+#rb-add-experience,
+#rb-add-certification {
+  display: block;
+  margin-top: 1rem;
+}
+
+.resume-step-nav {
+  margin-top: 1.5rem;
+}
+
+.resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active {
+  display: block;
+  width: 100%;
+}
+
+.resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active > .resume-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: none;
+  overflow: visible;
+  margin-top: 1.25rem;
+  padding-left: 0;
+  border-left: 0;
+}
+
+.resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active .resume-preview-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active .rb-template-picker {
+  order: 1;
+  width: 100%;
+  position: static;
+}
+
+.resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active #rb-preview-pane {
+  order: 2;
+  width: 100%;
+  max-width: 900px;
+  min-height: 600px;
+  margin: 0 auto;
+}
+
+.resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active .rb-preview-hint {
+  order: 3;
+}
+
+.resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active .rb-export-bar {
+  order: 4;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active .rb-resume-doc {
+  width: min(100%, 8.5in);
+  max-width: 816px;
+  margin-inline: auto;
+}
+
+.rb-export-bar,
+.rb-template-picker {
+  position: static;
+}
+
+.cl-layout {
+  grid-template-columns: minmax(320px, 38%) minmax(420px, 1fr);
+  align-items: start;
+}
+
+.cl-settings-panel {
+  width: 100%;
+  max-width: 460px;
+}
+
+.cl-preview-panel {
+  min-width: 420px;
+  overflow-y: auto;
+}
+
+.cl-preview-pane {
+  min-height: auto;
+  align-items: flex-start;
+}
+
+.cl-letter-doc {
+  width: min(100%, 680px);
+  max-width: 680px;
+  min-height: auto;
+  margin-inline: auto;
+}
+
+.rb-section-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--rb-text-secondary);
+  cursor: pointer;
+  font-size: var(--rb-font-size-sm, 0.78rem);
+  font-weight: 700;
+  padding: 0.35rem 0.45rem;
+  border-radius: var(--rb-radius-sm, 6px);
+  transition: color var(--rb-transition-fast, 150ms ease), background var(--rb-transition-fast, 150ms ease);
+}
+
+.rb-section-toggle:hover {
+  background: var(--rb-bg-hover);
+  color: var(--rb-text-primary);
+}
+
+.rb-section-toggle--danger {
+  color: var(--rb-error, #ef4444);
+}
+
+.rb-section-disabled-note {
+  margin: 0.35rem 0 0.8rem;
+  color: var(--rb-text-secondary);
+  font-size: var(--rb-font-size-sm, 0.78rem);
+}
+
+.rb-section-disabled {
+  display: none !important;
+}
+
+.rb-section-order-panel {
+  margin-top: 1rem;
+}
+
+.rb-section-order-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.rb-section-order-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-md, 10px);
+  background: var(--rb-bg-tertiary);
+}
+
+.rb-section-order-row.is-hidden-section {
+  opacity: 0.58;
+}
+
+.rb-section-order-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  color: var(--rb-text-primary);
+  font-weight: 700;
+}
+
+.rb-section-order-badge {
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-pill, 999px);
+  color: var(--rb-text-tertiary);
+  font-size: var(--rb-font-size-xs, 0.7rem);
+  padding: 0.12rem 0.4rem;
+}
+
+.rb-section-order-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.rb-section-order-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-sm, 6px);
+  background: var(--rb-bg-secondary);
+  color: var(--rb-text-primary);
+  cursor: pointer;
+  font-weight: 800;
+  line-height: 1;
+  transition: border-color var(--rb-transition-fast, 150ms ease), transform var(--rb-transition-fast, 150ms ease);
+}
+
+.rb-section-order-btn:not(:disabled):hover {
+  border-color: var(--rb-accent-primary);
+  transform: translateY(-1px);
+}
+
+.rb-section-order-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.rb-preview-hint {
+  display: none;
+}
+
+.rb-fab-back {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 200;
+  display: none;
+  align-items: center;
+  gap: 0.3rem;
+  border: 0;
+  border-radius: var(--rb-radius-pill, 999px);
+  background: var(--rb-accent-primary);
+  color: var(--rb-text-inverse, #ffffff);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.6rem 1.1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.rb-fab-back.rb-fab-visible {
+  display: inline-flex;
+}
+
+@media (max-width: 1023px) {
+  .cl-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cl-settings-panel,
+  .cl-preview-panel {
+    max-width: none;
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .cl-preview-actions {
+    flex-wrap: wrap;
+  }
+
+  .cl-preview-actions .rb-export-btn,
+  .cl-preview-actions button {
+    min-width: 130px;
+  }
+}
+
+@media (max-width: 767px) {
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active #rb-preview-pane,
+  .rb-preview-pane,
+  .cl-preview-pane {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+
+  .resume-panel[data-panel="builder"].is-active .resume-step-panel[data-step-panel="5"].is-active #rb-preview-pane {
+    max-width: 100%;
+    min-height: 480px;
+  }
+
+  .rb-resume-doc,
+  .cl-letter-doc {
+    min-width: 600px;
+    transform: none !important;
+  }
+
+  .rb-preview-hint {
+    display: block;
+    width: 100%;
+    margin: 0.5rem auto 0;
+    padding-bottom: 0.5rem;
+    color: var(--rb-text-tertiary, rgba(226, 232, 240, 0.45));
+    font-size: 0.7rem;
+    text-align: center;
+  }
+
+  .resume-review-row {
+    min-height: 0;
+    margin-bottom: 0.25rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .resume-field,
+  .rb-form-group {
+    margin-bottom: 0.5rem;
+  }
+
+  .resume-field label,
+  .rb-form-group label {
+    margin-bottom: 0.25rem;
+  }
+
+  .rb-export-bar {
+    align-items: stretch;
+  }
+
+  .rb-export-bar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .rb-export-bar__actions .rb-export-btn,
+  .rb-export-bar__actions button {
+    flex: 1 1 calc(50% - 0.25rem);
+    min-width: calc(50% - 0.25rem);
+    min-height: 44px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.82rem;
+  }
+
+  #rb-preview-wrap > .resume-action-row,
+  .resume-step-panel[data-step-panel="5"] > .resume-action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #rb-preview-wrap > .resume-action-row .resume-secondary-btn,
+  .resume-step-panel[data-step-panel="5"] > .resume-action-row .resume-secondary-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .cl-preview-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .cl-preview-actions .rb-export-btn,
+  .cl-preview-actions button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .rb-section-order-row {
+    min-height: 48px;
+  }
+
+  .rb-fab-back {
+    right: 16px;
+    bottom: calc(var(--rb-mobile-nav-height, 70px) + 16px);
+  }
+}
+
+@media (max-width: 359px) {
+  .rb-export-bar__actions .rb-export-btn,
+  .rb-export-bar__actions button {
+    flex-basis: 100%;
+    min-width: 100%;
+  }
+}

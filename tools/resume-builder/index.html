@@ -346,22 +346,38 @@
             <label for="rb-target-role">Target job title</label>
             <input id="rb-target-role" type="text" aria-label="Target job title">
           </div>
-          <div class="resume-card inset">
+          <div class="resume-card inset" id="rb-project-section">
             <div class="resume-card-head compact">
               <div>
                 <p class="resume-eyebrow">Optional proof</p>
                 <h3>Projects</h3>
               </div>
-              <p class="resume-meta">Add only real projects and links</p>
+              <button type="button" class="rb-section-toggle rb-section-toggle--danger" id="rb-toggle-projects">Remove section</button>
             </div>
-            <div class="resume-stack" id="rb-project-list"></div>
-            <div class="resume-action-row">
-              <button type="button" class="btn btn-secondary" id="rb-add-project" aria-label="Add project">Add Project</button>
+            <p class="resume-meta">Add only real projects and links</p>
+            <p class="rb-section-disabled-note" id="rb-projects-disabled-note" hidden>Projects will not appear in your resume.</p>
+            <div id="rb-project-fields">
+              <div class="resume-stack" id="rb-project-list"></div>
+              <div class="resume-action-row">
+                <button type="button" class="btn btn-secondary" id="rb-add-project" aria-label="Add project">Add Project</button>
+              </div>
             </div>
           </div>
-          <div class="resume-stack" id="rb-certification-list"></div>
-          <div class="resume-action-row">
-            <button type="button" class="btn btn-secondary" id="rb-add-certification" aria-label="Add certification">Add Certification</button>
+          <div class="resume-card inset" id="rb-certifications-section">
+            <div class="resume-card-head compact">
+              <div>
+                <p class="resume-eyebrow">Optional credentials</p>
+                <h3>Certifications</h3>
+              </div>
+              <button type="button" class="rb-section-toggle rb-section-toggle--danger" id="rb-toggle-certifications">Remove section</button>
+            </div>
+            <p class="rb-section-disabled-note" id="rb-certifications-disabled-note" hidden>Certifications will not appear in your resume.</p>
+            <div id="rb-certification-fields">
+              <div class="resume-stack" id="rb-certification-list"></div>
+              <div class="resume-action-row">
+                <button type="button" class="btn btn-secondary" id="rb-add-certification" aria-label="Add certification">Add Certification</button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -375,6 +391,16 @@
               </div>
             </div>
             <div id="rb-review-summary" class="resume-review-summary"></div>
+          </div>
+
+          <div class="resume-card inset rb-section-order-panel" id="rb-section-order-panel">
+            <div class="resume-card-head compact">
+              <div>
+                <p class="resume-eyebrow">Resume Section Order</p>
+                <h3>Use arrows to reorder sections</h3>
+              </div>
+            </div>
+            <div class="rb-section-order-list" id="rb-section-order-list" aria-live="polite"></div>
           </div>
 
           <div class="rb-score-panel" id="rb-score-panel-full" aria-live="polite">
@@ -558,6 +584,7 @@
                   <p>Your formatted resume will appear here after generation</p>
                 </div>
               </div>
+              <p class="rb-preview-hint" id="rb-preview-hint">Pinch to zoom &middot; Scroll to read</p>
             </div>
             <div class="resume-action-row">
               <button type="button" class="btn btn-secondary" id="rb-copy" aria-label="Copy generated resume" disabled>&#128203; Copy as Text</button>
@@ -722,10 +749,12 @@
               <span>Fill in the details and click Generate</span>
             </div>
           </div>
+          <p class="rb-preview-hint cl-preview-hint" id="cl-preview-hint">Pinch to zoom &middot; Scroll to read</p>
         </div>
       </div>
     </div>
   </section>
+  <button type="button" class="rb-fab-back" id="rb-fab-back" aria-hidden="true">&#8592; Edit</button>
   <nav id="rb-mobile-nav" class="rb-mobile-nav" role="navigation" aria-label="Mobile navigation">
     <button type="button" class="rb-mobile-nav__btn rb-mobile-nav__btn--active" data-mobile-nav="edit" aria-selected="true">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
