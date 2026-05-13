@@ -3843,3 +3843,119 @@
     min-width: 100%;
   }
 }
+
+/* --- DAY 12 SHARE + CONFIDENCE INDICATORS --- */
+.rb-export-bar {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rb-completion-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  padding: 0 0.25rem;
+}
+
+.rb-completion-bar {
+  flex: 1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--rb-border-default);
+}
+
+.rb-completion-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--rb-warning, #f97316);
+  transition:
+    width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.3s ease;
+}
+
+.rb-completion-fill.rb-completion--low {
+  background: var(--rb-warning, #f97316);
+}
+
+.rb-completion-fill.rb-completion--mid {
+  background: #eab308;
+}
+
+.rb-completion-fill.rb-completion--high {
+  background: var(--rb-success, #22c55e);
+}
+
+.rb-completion-label {
+  min-width: 120px;
+  color: var(--rb-text-secondary);
+  font-size: 0.68rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rb-word-count {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--rb-text-secondary);
+  font-size: 0.75rem;
+}
+
+.rb-word-count[hidden] {
+  display: none;
+}
+
+#rb-word-count-number {
+  font-weight: 700;
+}
+
+.rb-word-count-label {
+  font-size: 0.7rem;
+  transition: color var(--rb-transition-base, 220ms ease);
+}
+
+.rb-share-hint {
+  width: 100%;
+  margin: 0.35rem 0 0;
+  color: var(--rb-text-tertiary);
+  font-size: 0.7rem;
+}
+
+.rb-share-hint[hidden] {
+  display: none;
+}
+
+.rb-share-fallback {
+  display: none;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.rb-share-fallback.rb-share-fallback--visible {
+  display: flex;
+}
+
+.rb-share-fallback input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-sm, 4px);
+  background: var(--rb-bg-tertiary);
+  color: var(--rb-text-primary);
+  font-size: 0.75rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.rb-autosave-indicator--persistent {
+  opacity: 0.45;
+}
+
+@media (max-width: 480px) {
+  .rb-completion-label {
+    display: none;
+  }
+}

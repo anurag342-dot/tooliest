@@ -48,16 +48,24 @@ const MAMMOTH_CDN_URLS = [
   'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
   'https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js',
 ];
+const LZ_STRING_CDN_URLS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js',
+  'https://unpkg.com/lz-string@1.5.0/libs/lz-string.min.js',
+];
 // PDF.js 3.x exposes a reliable browser global for lazy script loading.
 const PDFJS_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const RESUME_IMPORT_MAX_BYTES = 5 * 1024 * 1024;
 const RESUME_IMPORT_MAX_CHARS = 8000;
+const SHARE_LINK_URL_LIMIT = 8000;
 let resumeExportState = null;
 let resumeExportToastStack = null;
 let docxLoaded = false;
 let mammothLoaded = false;
 let pdfJsLoaded = false;
+let lzStringLoaded = false;
+let autosaveSettleTimer = 0;
+let autosaveRefreshTimer = 0;
 let resumeTemplateState = null;
 let resumeTemplateRoot = null;
 let resumeTemplateSave = null;
@@ -604,6 +612,25 @@ function isSectionEnabled(state, key) {
   return normalizeSectionsEnabled(state?.sectionsEnabled)[key] !== false;
 }
 
+function normalizeTimestamp(value) {
+  const timestamp = Number(value);
+  return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : null;
+}
+
+function formatLastEdited(timestamp) {
+  const normalized = normalizeTimestamp(timestamp);
+  if (!normalized) return '';
+  const diffMs = Math.max(0, Date.now() - normalized);
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffSec < 10) return 'just now';
+  if (diffSec < 60) return `${diffSec}s ago`;
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHour < 24) return `${diffHour}h ago`;
+  return new Date(normalized).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 function hasFilledProject(project) {
   return [project?.name, project?.link, project?.technologies, project?.description]
     .some((value) => String(value || '').trim());
@@ -696,12 +723,14 @@ function serializeState(state) {
         educations: (state.educations || []).map(normalizeSavedEducation),
         skills: state.skills,
         certifications: [...state.certifications],
+        generatedResume: String(state.generatedResume || ''),
         template: normalizeResumeTemplate(state.template),
         atsAnalysisResult: normalizeSavedAtsAnalysisResult(state.atsAnalysisResult),
         coverLetter: String(state.coverLetter || ''),
         coverLetterSettings: normalizeCoverLetterSettings(state.coverLetterSettings),
         sectionsEnabled: normalizeSectionsEnabled(state.sectionsEnabled),
         sectionOrder: normalizeSectionOrder(state.sectionOrder),
+        lastEditedAt: normalizeTimestamp(state.lastEditedAt),
       },
     });
   } catch (_) {
@@ -710,16 +739,19 @@ function serializeState(state) {
 }
 
 function saveToStorage(state) {
+  state.lastEditedAt = Date.now();
   const serialized = serializeState(state);
   if (!serialized) return;
   try {
     localStorage.setItem(STORAGE_KEY, serialized);
-    showSaveIndicator('saved');
+    showSaveIndicator('saved', state);
   } catch (error) {
     // Autosave is a convenience layer; storage failures should never block the UI.
     console.warn('Autosave failed:', error?.message || 'localStorage unavailable');
     const indicator = document.getElementById('rb-autosave-indicator');
-    if (indicator) indicator.classList.remove('rb-autosave--visible');
+    window.clearTimeout(autosaveSettleTimer);
+    window.clearInterval(autosaveRefreshTimer);
+    if (indicator) indicator.classList.remove('rb-autosave--visible', 'rb-autosave-indicator--persistent');
   }
 }
 
@@ -764,10 +796,12 @@ function restoreFromStorage(state) {
     }
     state.template = normalizeResumeTemplate(saved.template);
     state.atsAnalysisResult = normalizeSavedAtsAnalysisResult(saved.atsAnalysisResult);
+    state.generatedResume = typeof saved.generatedResume === 'string' ? saved.generatedResume : '';
     state.coverLetter = typeof saved.coverLetter === 'string' ? saved.coverLetter : '';
     state.coverLetterSettings = normalizeCoverLetterSettings(saved.coverLetterSettings);
     state.sectionsEnabled = normalizeSectionsEnabled(saved.sectionsEnabled);
     state.sectionOrder = normalizeSectionOrder(saved.sectionOrder);
+    state.lastEditedAt = normalizeTimestamp(saved.lastEditedAt);
 
     return true;
   } catch (_) {
@@ -783,19 +817,30 @@ function clearSavedDraft() {
   }
 }
 
-function showSaveIndicator(status) {
+function showSaveIndicator(status, stateForTimestamp = resumeExportState) {
   const indicator = document.getElementById('rb-autosave-indicator');
   if (!indicator) return;
+  window.clearTimeout(autosaveSettleTimer);
+  window.clearInterval(autosaveRefreshTimer);
   indicator.setAttribute('data-status', status);
+  indicator.classList.remove('rb-autosave-indicator--persistent');
   const labels = {
-    saved: '\u2713 Draft saved',
+    saved: '\u2713 Saved',
     saving: 'Saving...',
     error: 'Save failed',
   };
-  indicator.textContent = labels[status] || '';
+  const timeStr = status === 'saved' ? formatLastEdited(stateForTimestamp?.lastEditedAt) : '';
+  indicator.textContent = `${labels[status] || ''}${timeStr ? ` \u00B7 ${timeStr}` : ''}`;
   indicator.classList.add('rb-autosave--visible');
   if (status === 'saved') {
-    window.setTimeout(() => indicator.classList.remove('rb-autosave--visible'), 2800);
+    autosaveRefreshTimer = window.setInterval(() => {
+      if (indicator.getAttribute('data-status') !== 'saved') return;
+      const refreshed = formatLastEdited(stateForTimestamp?.lastEditedAt);
+      indicator.textContent = `\u2713 Saved${refreshed ? ` \u00B7 ${refreshed}` : ''}`;
+    }, 30000);
+    autosaveSettleTimer = window.setTimeout(() => {
+      indicator.classList.add('rb-autosave-indicator--persistent');
+    }, 2800);
   }
 }
 
@@ -1080,6 +1125,7 @@ function renderFormattedPreview(resumeText) {
         <p>Your formatted resume will appear here after generation</p>
       </div>`;
     applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
+    updateWordCountDisplay(resumeExportState);
     return;
   }
 
@@ -1119,6 +1165,7 @@ function renderFormattedPreview(resumeText) {
   html += '</div>';
   container.innerHTML = html;
   applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
+  updateWordCountDisplay(resumeExportState);
 }
 
 // PDF Export
@@ -1133,9 +1180,11 @@ function setResumeExportReady(isReady) {
   const pdfBtn = document.getElementById('rb-btn-download-pdf');
   const docxBtn = document.getElementById('rb-btn-download-docx');
   const printBtn = document.getElementById('rb-btn-print');
+  const shareHint = document.getElementById('rb-share-hint');
   if (exportBar) {
-    exportBar.toggleAttribute('hidden', !isReady);
+    exportBar.removeAttribute('hidden');
   }
+  if (shareHint) shareHint.hidden = Boolean(isReady);
   if (pdfBtn) {
     pdfBtn.disabled = !isReady;
     pdfBtn.setAttribute('aria-disabled', String(!isReady));
@@ -1163,6 +1212,143 @@ function getResumeFileBaseName() {
 function detectPlaceholders(text) {
   const matches = String(text || '').match(/\[.*?\]/g) || [];
   return [...new Set(matches.map((item) => item.trim()).filter(Boolean))];
+}
+
+function getResumeWordCount(state = resumeExportState) {
+  const text = String(state?.generatedResume || '').trim();
+  if (!text) return 0;
+  return text.split(/\s+/).filter(Boolean).length;
+}
+
+function getWordCountMeta(count) {
+  if (count <= 0) return { label: '', color: '' };
+  if (count < 200) return { label: 'Too short for most roles', color: 'var(--rb-warning, #f97316)' };
+  if (count < 350) return { label: 'A bit short - add more detail', color: '#eab308' };
+  if (count <= 700) return { label: 'Ideal length \u2713', color: 'var(--rb-success, #22c55e)' };
+  if (count <= 900) return { label: 'Slightly long - consider trimming', color: '#eab308' };
+  return { label: 'Too long - ATS may truncate', color: 'var(--rb-error, #ef4444)' };
+}
+
+function updateWordCountDisplay(state = resumeExportState) {
+  const wrap = document.getElementById('rb-word-count');
+  const number = document.getElementById('rb-word-count-number');
+  const label = document.getElementById('rb-word-count-label');
+  if (!wrap || !number || !label) return;
+  const count = getResumeWordCount(state);
+  wrap.hidden = count === 0;
+  number.textContent = String(count);
+  const meta = getWordCountMeta(count);
+  label.textContent = meta.label;
+  label.style.color = meta.color;
+}
+
+function calculateCompletionPercentage(state = resumeExportState) {
+  if (!state) return 0;
+  let score = 0;
+  const personal = state.personal || {};
+  if (String(personal.name || '').trim()) score += 8;
+  if (String(personal.email || '').trim()) score += 8;
+  if (String(personal.phone || '').trim()) score += 5;
+  if (String(personal.location || '').trim()) score += 4;
+  if (String(personal.linkedin || '').trim()) score += 3;
+  if (String(state.targetRole || '').trim()) score += 5;
+
+  const summaryLength = String(state.summary || '').trim().length;
+  if (summaryLength >= 50) score += 10;
+  else if (summaryLength > 0) score += 5;
+
+  const experiences = state.experiences || [];
+  const titledExperiences = experiences.filter((exp) => String(exp?.title || exp?.jobTitle || '').trim());
+  const experiencesWithAchievements = titledExperiences.filter((exp) => [
+    exp?.achievement1,
+    exp?.achievement2,
+    exp?.achievement3,
+  ].some((value) => String(value || '').trim()));
+  if (titledExperiences.length >= 1) score += 10;
+  if (experiencesWithAchievements.length >= 1) score += 8;
+  if (experiencesWithAchievements.length >= 2) score += 5;
+
+  if ((state.educations || []).some((edu) => (
+    String(edu?.degree || '').trim() && String(edu?.institution || '').trim()
+  ))) score += 8;
+
+  const skillCount = parseCommaList(state.skills).length;
+  if (skillCount >= 5) score += 8;
+  else if (skillCount >= 1) score += 4;
+
+  if (String(state.generatedResume || '').trim()) score += 10;
+  if ((state.certifications || []).some(hasFilledCertification) || (state.projects || []).some(hasFilledProject)) score += 4;
+
+  return Math.max(0, Math.min(100, Math.round((score / 96) * 100)));
+}
+
+function updateCompletionBar(state = resumeExportState) {
+  const fill = document.getElementById('rb-completion-fill');
+  const label = document.getElementById('rb-completion-label');
+  if (!fill || !label) return;
+  const percent = calculateCompletionPercentage(state);
+  fill.style.width = `${percent}%`;
+  fill.setAttribute('aria-valuenow', String(percent));
+  fill.classList.toggle('rb-completion--low', percent < 50);
+  fill.classList.toggle('rb-completion--mid', percent >= 50 && percent < 80);
+  fill.classList.toggle('rb-completion--high', percent >= 80);
+
+  let message = `${percent}% complete - let's get started!`;
+  if (percent === 100) message = 'Complete \u2713 - ready to generate!';
+  else if (percent >= 90) message = `${percent}% complete - just a few more touches`;
+  else if (percent >= 75) message = `${percent}% complete - almost there`;
+  else if (percent >= 50) message = `${percent}% complete - looking good`;
+  else if (percent >= 20) message = `${percent}% complete - keep going`;
+  label.textContent = message;
+}
+
+function normalizeResumeTextForCopy(text) {
+  return String(text || '')
+    .replace(/\r\n?/g, '\n')
+    .replace(/^\s*[-*\u2022]\s+/gm, '\u2022 ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function formatResumeBodyForCopy(state) {
+  const parsed = parseResumeText(state.generatedResume || '');
+  const sections = getRenderableResumeSections(parsed.sections, state);
+  if (!sections.length) return normalizeResumeTextForCopy(state.generatedResume);
+  return sections.map((section) => {
+    const header = String(section.title || '').toUpperCase();
+    const lines = section.lines
+      .filter((line) => !isResumeDividerLine(line))
+      .map(normalizeResumeTextForCopy)
+      .filter(Boolean)
+      .join('\n');
+    return `${header}\n${'\u2500'.repeat(20)}\n${lines}`;
+  }).join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function buildFormattedResumeText(state) {
+  const placeholders = detectPlaceholders(state.generatedResume);
+  const parts = [];
+  if (placeholders.length) {
+    parts.push(`\u26A0 REVIEW BEFORE SENDING: This resume contains ${placeholders.length} unfilled placeholder(s). Search for [ to find and replace them.`);
+    parts.push('');
+  }
+  const name = String(state.personal?.name || '').trim();
+  if (name) parts.push(name.toUpperCase());
+  const contactLine = [
+    state.personal?.email,
+    state.personal?.phone,
+    state.personal?.location,
+    state.personal?.linkedin,
+    state.personal?.portfolio,
+  ].map((item) => String(item || '').trim()).filter(Boolean).join(' | ');
+  if (contactLine) parts.push(contactLine);
+  parts.push('', '\u2500'.repeat(45));
+  parts.push(formatResumeBodyForCopy(state));
+  parts.push('', '\u2500'.repeat(45));
+  parts.push('Generated with Tooliest AI Resume Builder');
+  parts.push('tooliest.com/resume-builder');
+  return parts.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
 }
 
 function confirmResumePlaceholdersBeforeExport() {
@@ -1604,6 +1790,144 @@ async function loadPdfJs() {
   await loadScriptFromUrls([PDFJS_CDN_URL], () => Boolean(window.pdfjsLib?.getDocument), 'PDF.js');
   window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
   pdfJsLoaded = true;
+}
+
+async function loadLzString() {
+  if (lzStringLoaded || window.LZString?.compressToEncodedURIComponent) {
+    lzStringLoaded = true;
+    return;
+  }
+  await loadScriptFromUrls(
+    LZ_STRING_CDN_URLS,
+    () => Boolean(window.LZString?.compressToEncodedURIComponent && window.LZString?.decompressFromEncodedURIComponent),
+    'lz-string',
+  );
+  lzStringLoaded = true;
+}
+
+function buildShareableState(state) {
+  const personal = state.personal || {};
+  return {
+    v: 2,
+    p: {
+      n: personal.name || '',
+      e: personal.email || '',
+      ph: personal.phone || '',
+      li: personal.linkedin || '',
+      lo: personal.location || '',
+      po: personal.portfolio || '',
+    },
+    tr: state.targetRole || '',
+    su: state.summary || '',
+    ex: (state.experiences || []).map((exp) => ({
+      t: exp.title || exp.jobTitle || '',
+      c: exp.company || '',
+      d: exp.duration || exp.dates || '',
+      a1: exp.achievement1 || '',
+      a2: exp.achievement2 || '',
+      a3: exp.achievement3 || '',
+    })),
+    ed: (state.educations || []).map((edu) => ({
+      dg: edu.degree || '',
+      i: edu.institution || '',
+      y: edu.year || '',
+      g: edu.gpa || '',
+      co: edu.courses || '',
+    })),
+    sk: state.skills || '',
+    ce: Array.isArray(state.certifications) ? [...state.certifications] : [],
+    pr: (state.projects || []).map((project) => ({
+      n: project.name || '',
+      l: project.link || '',
+      t: project.technologies || '',
+      d: project.details || project.description || '',
+    })),
+    tm: normalizeResumeTemplate(state.template),
+    se: normalizeSectionsEnabled(state.sectionsEnabled),
+    so: normalizeSectionOrder(state.sectionOrder),
+    gr: state.generatedResume || '',
+  };
+}
+
+function applyShareableState(shared, state) {
+  if (!shared || typeof shared !== 'object' || !shared.v || !shared.p || typeof shared.p !== 'object') {
+    return false;
+  }
+  state.personal = {
+    name: String(shared.p.n || ''),
+    email: String(shared.p.e || ''),
+    phone: String(shared.p.ph || ''),
+    linkedin: String(shared.p.li || ''),
+    location: String(shared.p.lo || ''),
+    portfolio: String(shared.p.po || ''),
+  };
+  state.targetRole = String(shared.tr || '');
+  state.summary = String(shared.su || '');
+  state.experiences = Array.isArray(shared.ex) && shared.ex.length
+    ? shared.ex.slice(0, 5).map((exp) => normalizeSavedExperience({
+      title: exp?.t,
+      company: exp?.c,
+      duration: exp?.d,
+      achievement1: exp?.a1,
+      achievement2: exp?.a2,
+      achievement3: exp?.a3,
+    }))
+    : [createEmptyExperience()];
+  state.educations = Array.isArray(shared.ed) && shared.ed.length
+    ? shared.ed.slice(0, 3).map((edu) => normalizeSavedEducation({
+      degree: edu?.dg,
+      institution: edu?.i,
+      year: edu?.y,
+      gpa: edu?.g,
+      courses: edu?.co,
+    }))
+    : [createEmptyEducation()];
+  state.skills = String(shared.sk || '');
+  state.certifications = Array.isArray(shared.ce) && shared.ce.length
+    ? shared.ce.slice(0, 5).map((item) => String(item || ''))
+    : [createEmptyCertification()];
+  state.projects = Array.isArray(shared.pr) && shared.pr.length
+    ? shared.pr.slice(0, 5).map((project) => normalizeSavedProject({
+      name: project?.n,
+      link: project?.l,
+      technologies: project?.t,
+      details: project?.d,
+    }))
+    : [createEmptyProject()];
+  state.template = normalizeResumeTemplate(shared.tm);
+  state.sectionsEnabled = normalizeSectionsEnabled(shared.se);
+  state.sectionOrder = normalizeSectionOrder(shared.so);
+  state.generatedResume = String(shared.gr || '');
+  state.atsAnalysisResult = null;
+  state.lastEditedAt = null;
+  return true;
+}
+
+function hasStoredDraft() {
+  try {
+    return Boolean(localStorage.getItem(STORAGE_KEY));
+  } catch (_) {
+    return false;
+  }
+}
+
+async function loadShareableStateFromHash(state) {
+  const hash = window.location.hash || '';
+  if (!hash.startsWith('#r=')) return { loaded: false, hadStoredDraft: false };
+  const hadStoredDraft = hasStoredDraft();
+  try {
+    await loadLzString();
+    const compressed = hash.slice(3);
+    const json = window.LZString.decompressFromEncodedURIComponent(compressed);
+    if (!json) return { loaded: false, hadStoredDraft };
+    const parsed = JSON.parse(json);
+    if (!applyShareableState(parsed, state)) return { loaded: false, hadStoredDraft };
+    history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    return { loaded: true, hadStoredDraft };
+  } catch (error) {
+    console.warn('[Resume Builder] Shared resume link could not be loaded:', error?.message || 'invalid hash');
+    return { loaded: false, hadStoredDraft };
+  }
 }
 
 function readFileAsArrayBuffer(file) {
@@ -2505,6 +2829,12 @@ export async function initResumeBuilderTool(container) {
   const pdfButton = qs(root, '#rb-btn-download-pdf');
   const docxButton = qs(root, '#rb-btn-download-docx');
   const printButton = qs(root, '#rb-btn-print');
+  const shareLinkButton = qs(root, '#rb-btn-share-link');
+  const shareFallback = qs(root, '#rb-share-fallback');
+  const shareFallbackUrl = qs(root, '#rb-share-fallback-url');
+  const shareHint = qs(root, '#rb-share-hint');
+  const wordCountWrap = qs(root, '#rb-word-count');
+  const completionFill = qs(root, '#rb-completion-fill');
   const clearDraftButton = qs(root, '#rb-btn-clear-draft');
   const improveSummaryButton = qs(root, '#rb-btn-improve-summary');
   const improveSkillsButton = qs(root, '#rb-btn-improve-skills');
@@ -2603,6 +2933,7 @@ export async function initResumeBuilderTool(container) {
     coverLetterSettings: createDefaultCoverLetterSettings(),
     sectionsEnabled: createDefaultSectionsEnabled(),
     sectionOrder: normalizeSectionOrder(),
+    lastEditedAt: null,
     certifications: [createEmptyCertification()],
   };
 
@@ -2627,7 +2958,8 @@ export async function initResumeBuilderTool(container) {
     saveToStorage(state);
   }, AUTOSAVE_DELAY);
   let debouncedRefreshScore = () => {};
-  const wasRestored = restoreFromStorage(state);
+  const sharedLoad = await loadShareableStateFromHash(state);
+  const wasRestored = sharedLoad.loaded ? false : restoreFromStorage(state);
   resumeExportState = state;
   resumeExportToastStack = toastStack;
   resumeTemplateState = state;
@@ -2646,6 +2978,54 @@ export async function initResumeBuilderTool(container) {
     copyResumeButton.setAttribute('aria-disabled', String(!hasResume));
     downloadResumeButton.setAttribute('aria-disabled', String(!hasResume));
     setResumeExportReady(hasResume);
+  }
+
+  function updateResumePreviewMeta() {
+    if (previewCount) previewCount.textContent = `${String(state.generatedResume || '').length} chars`;
+    if (previewNote) previewNote.textContent = state.generatedResume ? deriveResumeNote(state.generatedResume, state) : 'ATS note pending';
+    updateWordCountDisplay(state);
+    syncExportButtons();
+  }
+
+  async function copyShareLink() {
+    if (!String(state.personal?.name || '').trim()) {
+      showToast(toastStack, 'Add your name and details first to create a shareable link.', 'info');
+      return;
+    }
+    try {
+      saveToStorage(state);
+      await loadLzString();
+      const json = JSON.stringify(buildShareableState(state));
+      const compressed = window.LZString.compressToEncodedURIComponent(json);
+      const shareUrl = `${window.location.origin}/resume-builder/#r=${compressed}`;
+      if (shareUrl.length > SHARE_LINK_URL_LIMIT) {
+        showToast(toastStack, 'Your resume is too long to share as a link. Try removing some content or using PDF/DOCX export.', 'warning');
+        return;
+      }
+      try {
+        if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+        await navigator.clipboard.writeText(shareUrl);
+        if (shareFallback) {
+          shareFallback.hidden = true;
+          shareFallback.classList.remove('rb-share-fallback--visible');
+        }
+        showToast(toastStack, 'Share link copied! Anyone with this link can view and edit your resume.', 'success');
+      } catch (_) {
+        if (shareFallback && shareFallbackUrl) {
+          shareFallback.hidden = false;
+          shareFallback.classList.add('rb-share-fallback--visible');
+          shareFallbackUrl.value = shareUrl;
+          shareFallbackUrl.focus();
+          shareFallbackUrl.select();
+          showToast(toastStack, 'Clipboard access was blocked. Select and copy the share link below.', 'info');
+          return;
+        }
+        showToast(toastStack, 'Clipboard access was blocked. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('[Resume Builder] Share link failed:', error);
+      showToast(toastStack, 'Could not create a share link. Please try again.', 'error');
+    }
   }
 
   function updateCreditsDisplay() {
@@ -3150,7 +3530,10 @@ export async function initResumeBuilderTool(container) {
     }
   }
 
-  debouncedRefreshScore = debounce(refreshLiveScore, 600);
+  debouncedRefreshScore = debounce(() => {
+    refreshLiveScore();
+    updateCompletionBar(state);
+  }, 600);
 
   function markBuilderContentChanged() {
     state.atsAnalysisResult = null;
@@ -3871,6 +4254,7 @@ export async function initResumeBuilderTool(container) {
     markBuilderContentChanged();
     saveToStorage(state);
     refreshLiveScore();
+    updateCompletionBar(state);
   }
 
   function renderSectionOrderList() {
@@ -4220,6 +4604,7 @@ export async function initResumeBuilderTool(container) {
     applyTemplate(state.template);
     setStep(1);
     refreshLiveScore();
+    updateCompletionBar(state);
     return summary.fieldsPopulated.length ? summary : buildImportSummary();
   }
 
@@ -4625,6 +5010,7 @@ export async function initResumeBuilderTool(container) {
     renderReviewSummary();
     renderSectionOrderList();
     refreshLiveScore();
+    updateCompletionBar(state);
     updateBackFab();
 
     if (activePanel) {
@@ -4736,6 +5122,7 @@ export async function initResumeBuilderTool(container) {
       renderBuilderDerivedViews();
       state.atsAnalysisResult = null;
       refreshLiveScore();
+      updateCompletionBar(state);
       debouncedSave();
       if (btn) btn.dataset.flashDone = 'true';
       showToast(toastStack, 'Summary improved! Review the changes above.', 'success');
@@ -4750,6 +5137,7 @@ export async function initResumeBuilderTool(container) {
       }
       updateQuotaUi();
       refreshLiveScore();
+      updateCompletionBar(state);
     }
   }
 
@@ -4804,6 +5192,7 @@ export async function initResumeBuilderTool(container) {
       renderBuilderDerivedViews();
       state.atsAnalysisResult = null;
       refreshLiveScore();
+      updateCompletionBar(state);
       debouncedSave();
       if (btn) btn.dataset.flashDone = 'true';
       showToast(toastStack, 'Bullets improved! Review the changes above.', 'success');
@@ -4818,6 +5207,7 @@ export async function initResumeBuilderTool(container) {
       }
       updateQuotaUi();
       refreshLiveScore();
+      updateCompletionBar(state);
     }
   }
 
@@ -4850,6 +5240,7 @@ export async function initResumeBuilderTool(container) {
       renderBuilderDerivedViews();
       state.atsAnalysisResult = null;
       refreshLiveScore();
+      updateCompletionBar(state);
       debouncedSave();
       if (btn) btn.dataset.flashDone = 'true';
       showToast(toastStack, 'Skills optimized! Review the cleaned keyword list above.', 'success');
@@ -4864,6 +5255,7 @@ export async function initResumeBuilderTool(container) {
       }
       updateQuotaUi();
       refreshLiveScore();
+      updateCompletionBar(state);
     }
   }
 
@@ -4943,6 +5335,7 @@ export async function initResumeBuilderTool(container) {
       state.atsAnalysisResult = sanitizeAnalysisPayload(parsed);
       saveToStorage(state);
       refreshLiveScore();
+      updateCompletionBar(state);
       setScoreJdFormVisible(false);
       showToast(toastStack, 'Job description analysis complete. Review the score and keyword gaps.', 'success');
     } catch (error) {
@@ -4952,6 +5345,7 @@ export async function initResumeBuilderTool(container) {
       setImproveBtnLoading(btn, false);
       updateQuotaUi();
       refreshLiveScore();
+      updateCompletionBar(state);
     }
   }
 
@@ -5074,13 +5468,14 @@ export async function initResumeBuilderTool(container) {
 
       state.generatedResume = normalizeGeneratedResumeIdentity(result.text.trim(), state);
       renderFormattedPreview(state.generatedResume);
-      previewCount.textContent = `${state.generatedResume.length} chars`;
-      previewNote.textContent = deriveResumeNote(state.generatedResume, state);
+      updateResumePreviewMeta();
       previewWrap.classList.remove('hidden');
       if (isMobileLayout()) setMobileBuilderView('preview');
       syncExportButtons();
       refreshLiveScore();
+      updateCompletionBar(state);
       updateBackFab();
+      saveToStorage(state);
       setBanner(builderBanner, 'Resume draft ready. Review every metric, date, and claim before you use it.', 'success');
     } catch (error) {
       const message = String(error?.message || error || '');
@@ -5101,6 +5496,7 @@ export async function initResumeBuilderTool(container) {
       updateQuotaUi();
       setButtonLoading(generateButton, false, `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`, 'Generating...');
       refreshLiveScore();
+      updateCompletionBar(state);
     }
   }
 
@@ -5126,6 +5522,9 @@ export async function initResumeBuilderTool(container) {
     state.atsAnalysisResult = null;
     state.coverLetter = '';
     state.coverLetterSettings = createDefaultCoverLetterSettings();
+    state.sectionsEnabled = createDefaultSectionsEnabled();
+    state.sectionOrder = normalizeSectionOrder();
+    state.lastEditedAt = null;
     state.certifications = [createEmptyCertification()];
     clearSavedDraft();
     populateFormFromState();
@@ -5135,12 +5534,25 @@ export async function initResumeBuilderTool(container) {
     renderFormattedPreview('');
     renderCoverLetterPreview('', state.coverLetterSettings);
     populateCoverLetterFormFromState();
+    if (shareFallback) {
+      shareFallback.hidden = true;
+      shareFallback.classList.remove('rb-share-fallback--visible');
+    }
     applyTemplate('classic', { persist: false });
     syncExportButtons();
     setStep(1);
     setMobileBuilderView('edit');
     refreshLiveScore();
+    updateWordCountDisplay(state);
+    updateCompletionBar(state);
     updateBackFab();
+    window.clearTimeout(autosaveSettleTimer);
+    window.clearInterval(autosaveRefreshTimer);
+    const autosaveIndicator = qs(root, '#rb-autosave-indicator');
+    if (autosaveIndicator) {
+      autosaveIndicator.classList.remove('rb-autosave--visible', 'rb-autosave-indicator--persistent');
+      autosaveIndicator.textContent = '';
+    }
     setBanner(builderBanner, 'Draft cleared. Start fresh whenever you are ready.', 'success');
     showToast(toastStack, 'Draft cleared.', 'success');
   }
@@ -5328,17 +5740,21 @@ export async function initResumeBuilderTool(container) {
 
   copyResumeButton.addEventListener('click', async () => {
     if (!state.generatedResume) return;
-    const placeholders = detectPlaceholders(state.generatedResume);
-    if (placeholders.length) {
-      showToast(toastStack, `Note: your resume has ${placeholders.length} unfilled placeholders. Search for [ in your copied text to find and replace them.`, 'warning');
-    }
-    await copyText(state.generatedResume, toastStack, 'Resume copied to clipboard.');
+    await copyText(
+      buildFormattedResumeText(state),
+      toastStack,
+      'Resume copied as formatted text! Remember to review before pasting to a job application.',
+    );
   });
 
   downloadResumeButton.addEventListener('click', () => {
     if (!state.generatedResume) return;
     downloadText('tooliest-resume.txt', state.generatedResume);
   });
+
+  if (shareLinkButton) {
+    shareLinkButton.addEventListener('click', copyShareLink);
+  }
 
   bindCounter(atsResume, atsResumeCount, 5000, atsWarn, 4500);
   bindCounter(atsJob, atsJobCount, 3000, null, 2500);
@@ -5350,15 +5766,26 @@ export async function initResumeBuilderTool(container) {
   populateFormFromState();
   applyTemplate(state.template, { persist: false });
   renderFormattedPreview(state.generatedResume);
+  updateResumePreviewMeta();
   setStep(1);
   syncExportButtons();
   updateQuotaUi();
   refreshLiveScore();
+  updateCompletionBar(state);
   updateBackFab();
   window.requestAnimationFrame(updateQuotaUi);
-  window.requestAnimationFrame(refreshLiveScore);
+  window.requestAnimationFrame(() => {
+    refreshLiveScore();
+    updateCompletionBar(state);
+  });
   window.setTimeout(updateQuotaUi, 250);
-  if (wasRestored) {
+  if (sharedLoad.loaded) {
+    window.setTimeout(() => {
+      const suffix = sharedLoad.hadStoredDraft ? ' Your previous draft was not overwritten - start fresh or use the shared resume.' : '';
+      showToast(toastStack, `\u2713 Resume loaded from shared link! Review the details and make it your own.${suffix}`, 'success');
+    }, 400);
+  } else if (wasRestored) {
+    if (state.lastEditedAt) showSaveIndicator('saved', state);
     window.setTimeout(() => {
       showToast(toastStack, 'Draft restored - your previous work has been loaded.', 'info');
     }, 400);

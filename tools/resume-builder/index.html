@@ -244,6 +244,21 @@
         <div class="resume-progress-step" data-step-dot="5"><span>5</span><small>Review</small></div>
       </div>
 
+      <div class="rb-completion-bar-wrap" id="rb-completion-bar-wrap">
+        <div class="rb-completion-bar">
+          <div
+            class="rb-completion-fill rb-completion--low"
+            id="rb-completion-fill"
+            style="width: 0%"
+            role="progressbar"
+            aria-valuenow="0"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-label="Resume completion"></div>
+        </div>
+        <span class="rb-completion-label" id="rb-completion-label">0% complete</span>
+      </div>
+
       <div class="rb-credits-bar" id="rb-credits-bar" aria-live="polite">
         <span class="rb-credits-bar__icon" aria-hidden="true">&#9889;</span>
         <span id="rb-credits-remaining">15</span>
@@ -485,6 +500,10 @@
               </div>
               <div class="resume-preview-meta">
                 <span id="rb-preview-count">0 chars</span>
+                <div id="rb-word-count" class="rb-word-count" hidden>
+                  <span id="rb-word-count-number">0</span> words
+                  <span id="rb-word-count-label" class="rb-word-count-label"></span>
+                </div>
                 <span id="rb-ats-note">ATS note pending</span>
               </div>
             </div>
@@ -539,6 +558,24 @@
                     </svg>
                     Print
                   </button>
+                  <button
+                    type="button"
+                    id="rb-btn-share-link"
+                    class="rb-export-btn rb-export-btn--secondary"
+                    aria-label="Copy shareable resume link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true">
+                      <path d="M10 13a5 5 0 007.07 0l2.83-2.83a5 5 0 00-7.07-7.07L11.5 4.43"/>
+                      <path d="M14 11a5 5 0 00-7.07 0L4.1 13.83a5 5 0 007.07 7.07l1.33-1.33"/>
+                    </svg>
+                    Copy share link
+                  </button>
+                </div>
+                <p class="rb-share-hint" id="rb-share-hint">Share includes form data only until you generate a resume.</p>
+                <div class="rb-share-fallback" id="rb-share-fallback" hidden>
+                  <label class="sr-only" for="rb-share-fallback-url">Shareable resume link</label>
+                  <input id="rb-share-fallback-url" type="text" readonly aria-label="Shareable resume link">
                 </div>
               </div>
               <div class="rb-template-picker" id="rb-template-picker" aria-label="Resume style selector">
