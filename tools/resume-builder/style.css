@@ -3959,3 +3959,211 @@
     display: none;
   }
 }
+
+/* --- KEYWORD SUGGESTION PANEL --- */
+.rb-keyword-suggestions {
+  max-height: 1400px;
+  margin-top: 0.9rem;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-md);
+  background:
+    linear-gradient(135deg, var(--rb-accent-subtle), transparent 34%),
+    var(--rb-bg-secondary);
+  overflow: hidden;
+  padding: 0.9rem;
+  transition:
+    max-height var(--rb-transition-slow, 350ms ease),
+    opacity var(--rb-transition-base, 220ms ease),
+    border-color var(--rb-transition-base, 220ms ease);
+}
+
+.rb-keyword-suggestions[hidden] {
+  display: none;
+}
+
+.rb-kw-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.rb-kw-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--rb-text-primary);
+  font-size: var(--rb-font-size-sm);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+#rb-kw-industry-label {
+  color: var(--rb-accent-primary);
+}
+
+.rb-kw-dismiss {
+  min-width: 32px;
+  min-height: 32px;
+  border: 0;
+  border-radius: var(--rb-radius-pill);
+  background: transparent;
+  color: var(--rb-text-tertiary);
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
+  transition:
+    background var(--rb-transition-fast, 150ms ease),
+    color var(--rb-transition-fast, 150ms ease);
+}
+
+.rb-kw-dismiss:hover {
+  background: var(--rb-bg-hover);
+  color: var(--rb-text-primary);
+}
+
+.rb-kw-subtitle,
+.rb-kw-footer {
+  margin: 0.45rem 0 0;
+  color: var(--rb-text-secondary);
+  font-size: var(--rb-font-size-xs);
+  line-height: 1.45;
+}
+
+.rb-kw-footer {
+  color: var(--rb-text-tertiary);
+}
+
+.rb-kw-pills-container {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.8rem;
+}
+
+.rb-kw-category-group {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.rb-kw-category-label {
+  color: var(--rb-text-tertiary);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.rb-kw-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.rb-kw-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-pill);
+  background: var(--rb-bg-tertiary);
+  color: var(--rb-text-secondary);
+  cursor: pointer;
+  font-size: var(--rb-font-size-xs);
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0.38rem 0.68rem;
+  transition:
+    transform var(--rb-transition-fast, 150ms ease),
+    border-color var(--rb-transition-fast, 150ms ease),
+    background var(--rb-transition-fast, 150ms ease),
+    color var(--rb-transition-fast, 150ms ease);
+}
+
+.rb-kw-pill[data-priority="1"] {
+  border-color: color-mix(in srgb, var(--rb-accent-primary) 48%, var(--rb-border-default));
+  color: var(--rb-text-primary);
+}
+
+.rb-kw-pill:not(.rb-kw-pill--added):hover {
+  border-color: var(--rb-accent-primary);
+  background: var(--rb-accent-subtle);
+  color: var(--rb-text-primary);
+  transform: translateY(-1px);
+}
+
+.rb-kw-pill--added {
+  border-color: color-mix(in srgb, var(--rb-success) 70%, var(--rb-border-default));
+  background: var(--rb-success-subtle);
+  color: var(--rb-success);
+}
+
+.rb-industry-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  margin-top: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--rb-accent-primary) 40%, transparent);
+  border-radius: var(--rb-radius-pill);
+  background: var(--rb-accent-subtle);
+  color: var(--rb-accent-primary);
+  font-size: var(--rb-font-size-xs);
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0.35rem 0.6rem;
+}
+
+.rb-industry-badge[hidden] {
+  display: none;
+}
+
+.rb-industry-badge__icon {
+  font-size: 0.72rem;
+}
+
+#rb-kw-restore {
+  width: fit-content;
+  margin-top: 0.6rem;
+  border: 0;
+  background: transparent;
+  color: var(--rb-accent-primary);
+  cursor: pointer;
+  font-size: var(--rb-font-size-xs);
+  font-weight: 700;
+  padding: 0.25rem 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+#rb-kw-restore[hidden] {
+  display: none;
+}
+
+#rb-kw-restore:hover {
+  color: var(--rb-accent-hover);
+}
+
+@media (max-width: 640px) {
+  .rb-keyword-suggestions {
+    padding: 0.75rem;
+  }
+
+  .rb-kw-header {
+    align-items: flex-start;
+  }
+
+  .rb-kw-pills-container {
+    gap: 0.65rem;
+  }
+
+  .rb-kw-pill-row {
+    gap: 0.4rem;
+  }
+
+  .rb-kw-pill {
+    min-height: 36px;
+    padding: 0.36rem 0.58rem;
+  }
+}

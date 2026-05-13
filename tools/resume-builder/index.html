@@ -360,6 +360,23 @@
           <div class="resume-field">
             <label for="rb-target-role">Target job title</label>
             <input id="rb-target-role" type="text" aria-label="Target job title">
+            <div id="rb-industry-badge" class="rb-industry-badge" hidden>
+              <span class="rb-industry-badge__icon" aria-hidden="true">&#9673;</span>
+              <span id="rb-industry-badge-label"></span>
+            </div>
+            <div id="rb-keyword-suggestions" class="rb-keyword-suggestions" hidden>
+              <div class="rb-kw-header">
+                <div class="rb-kw-title">
+                  <span aria-hidden="true">&#10022;</span>
+                  <span>Suggested for <span id="rb-kw-industry-label"></span></span>
+                </div>
+                <button type="button" class="rb-kw-dismiss" id="rb-kw-dismiss" aria-label="Dismiss suggestions">&times;</button>
+              </div>
+              <p class="rb-kw-subtitle">Click any keyword to add it to your skills</p>
+              <div class="rb-kw-pills-container" id="rb-kw-pills-container"></div>
+              <p class="rb-kw-footer">Already in your skills shown in green &middot; Based on your target role</p>
+            </div>
+            <button type="button" id="rb-kw-restore" hidden>Show skill suggestions</button>
           </div>
           <div class="resume-card inset" id="rb-project-section">
             <div class="resume-card-head compact">

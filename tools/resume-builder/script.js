@@ -95,6 +95,475 @@ const SECTION_TITLE_TO_KEY = {
   CERTIFICATION: 'certifications',
 };
 
+// --- INDUSTRY KEYWORD INTELLIGENCE ---
+const INDUSTRY_KEYWORD_MAP = {
+  ROLE_TO_INDUSTRY: [
+    { patterns: ['software engineer', 'software developer', 'full stack', 'fullstack', 'frontend', 'front-end', 'backend', 'back-end', 'web developer', 'web engineer'], industry: 'software_engineering' },
+    { patterns: ['data scientist', 'data analyst', 'data engineer', 'machine learning', 'ml engineer', 'ai engineer', 'deep learning', 'nlp engineer'], industry: 'data_science' },
+    { patterns: ['product manager', 'product owner', 'pm ', 'program manager'], industry: 'product_management' },
+    { patterns: ['devops', 'site reliability', 'sre', 'platform engineer', 'cloud engineer', 'infrastructure engineer', 'devsecops'], industry: 'devops_cloud' },
+    { patterns: ['ui designer', 'ux designer', 'ui/ux', 'product designer', 'visual designer', 'interaction designer', 'design lead'], industry: 'design' },
+    { patterns: ['marketing manager', 'digital marketing', 'growth manager', 'content strategist', 'seo specialist', 'performance marketer', 'brand manager'], industry: 'marketing' },
+    { patterns: ['financial analyst', 'finance manager', 'accountant', 'investment analyst', 'cfo', 'controller', 'auditor', 'budget analyst'], industry: 'finance' },
+    { patterns: ['sales manager', 'account executive', 'sales engineer', 'business development', 'account manager', 'sales representative', 'solutions engineer'], industry: 'sales' },
+    { patterns: ['registered nurse', 'rn ', 'nurse practitioner', 'clinical nurse', 'healthcare', 'medical assistant', 'physician assistant', 'pharmacist'], industry: 'healthcare' },
+    { patterns: ['teacher', 'educator', 'professor', 'curriculum', 'instructional designer', 'academic', 'tutor', 'lecturer'], industry: 'education' },
+    { patterns: ['project manager', 'pmp', 'scrum master', 'delivery manager', 'program manager', 'operations manager'], industry: 'project_management' },
+    { patterns: ['cybersecurity', 'security analyst', 'penetration', 'information security', 'infosec', 'security engineer', 'soc analyst'], industry: 'cybersecurity' },
+    { patterns: ['recruiter', 'talent acquisition', 'hr manager', 'human resources', 'people operations', 'hr business partner'], industry: 'human_resources' },
+    { patterns: ['content writer', 'copywriter', 'technical writer', 'journalist', 'editor', 'communications manager', 'public relations'], industry: 'content_writing' },
+    { patterns: ['business analyst', 'systems analyst', 'ba ', 'process analyst', 'functional analyst'], industry: 'business_analysis' },
+  ],
+  INDUSTRY_KEYWORDS: {
+    software_engineering: [
+      { kw: 'JavaScript', category: 'Technical', priority: 1 },
+      { kw: 'TypeScript', category: 'Technical', priority: 1 },
+      { kw: 'React', category: 'Technical', priority: 1 },
+      { kw: 'Node.js', category: 'Technical', priority: 1 },
+      { kw: 'Python', category: 'Technical', priority: 1 },
+      { kw: 'REST API', category: 'Technical', priority: 1 },
+      { kw: 'SQL', category: 'Technical', priority: 1 },
+      { kw: 'Git', category: 'Tools', priority: 1 },
+      { kw: 'Docker', category: 'Tools', priority: 1 },
+      { kw: 'Agile', category: 'Methodologies', priority: 1 },
+      { kw: 'CI/CD', category: 'Methodologies', priority: 1 },
+      { kw: 'AWS', category: 'Tools', priority: 1 },
+      { kw: 'Microservices', category: 'Technical', priority: 1 },
+      { kw: 'Unit Testing', category: 'Methodologies', priority: 1 },
+      { kw: 'Code Review', category: 'Methodologies', priority: 1 },
+      { kw: 'Vue.js', category: 'Technical', priority: 2 },
+      { kw: 'PostgreSQL', category: 'Technical', priority: 2 },
+      { kw: 'GraphQL', category: 'Technical', priority: 2 },
+      { kw: 'Kubernetes', category: 'Tools', priority: 2 },
+      { kw: 'System Design', category: 'Technical', priority: 2 },
+      { kw: 'Performance Optimization', category: 'Technical', priority: 2 },
+      { kw: 'Cross-functional Collaboration', category: 'Soft Skills', priority: 2 },
+      { kw: 'Technical Documentation', category: 'Soft Skills', priority: 2 },
+      { kw: 'Problem Solving', category: 'Soft Skills', priority: 1 },
+      { kw: 'Scalability', category: 'Technical', priority: 2 },
+    ],
+    data_science: [
+      { kw: 'Python', category: 'Technical', priority: 1 },
+      { kw: 'Machine Learning', category: 'Technical', priority: 1 },
+      { kw: 'SQL', category: 'Technical', priority: 1 },
+      { kw: 'TensorFlow', category: 'Tools', priority: 1 },
+      { kw: 'PyTorch', category: 'Tools', priority: 1 },
+      { kw: 'Data Visualization', category: 'Technical', priority: 1 },
+      { kw: 'Statistical Analysis', category: 'Technical', priority: 1 },
+      { kw: 'Pandas', category: 'Tools', priority: 1 },
+      { kw: 'NumPy', category: 'Tools', priority: 1 },
+      { kw: 'Scikit-learn', category: 'Tools', priority: 1 },
+      { kw: 'A/B Testing', category: 'Methodologies', priority: 1 },
+      { kw: 'Natural Language Processing', category: 'Technical', priority: 2 },
+      { kw: 'Deep Learning', category: 'Technical', priority: 2 },
+      { kw: 'Feature Engineering', category: 'Technical', priority: 1 },
+      { kw: 'Data Pipeline', category: 'Technical', priority: 1 },
+      { kw: 'Tableau', category: 'Tools', priority: 2 },
+      { kw: 'Apache Spark', category: 'Tools', priority: 2 },
+      { kw: 'ETL', category: 'Technical', priority: 2 },
+      { kw: 'Model Deployment', category: 'Technical', priority: 2 },
+      { kw: 'Data Wrangling', category: 'Technical', priority: 1 },
+      { kw: 'Jupyter Notebook', category: 'Tools', priority: 2 },
+      { kw: 'Regression Analysis', category: 'Technical', priority: 1 },
+      { kw: 'Data Storytelling', category: 'Soft Skills', priority: 2 },
+      { kw: 'Cross-team Collaboration', category: 'Soft Skills', priority: 2 },
+      { kw: 'Business Intelligence', category: 'Technical', priority: 2 },
+    ],
+    product_management: [
+      { kw: 'Product Roadmap', category: 'Core', priority: 1 },
+      { kw: 'User Research', category: 'Core', priority: 1 },
+      { kw: 'Agile', category: 'Methodologies', priority: 1 },
+      { kw: 'Scrum', category: 'Methodologies', priority: 1 },
+      { kw: 'A/B Testing', category: 'Technical', priority: 1 },
+      { kw: 'Data-driven Decision Making', category: 'Core', priority: 1 },
+      { kw: 'Stakeholder Management', category: 'Soft Skills', priority: 1 },
+      { kw: 'Product Strategy', category: 'Core', priority: 1 },
+      { kw: 'Go-to-Market Strategy', category: 'Core', priority: 1 },
+      { kw: 'Customer Discovery', category: 'Core', priority: 1 },
+      { kw: 'KPIs', category: 'Core', priority: 1 },
+      { kw: 'OKRs', category: 'Methodologies', priority: 2 },
+      { kw: 'JIRA', category: 'Tools', priority: 2 },
+      { kw: 'Figma', category: 'Tools', priority: 2 },
+      { kw: 'SQL', category: 'Technical', priority: 2 },
+      { kw: 'Customer Journey Mapping', category: 'Core', priority: 2 },
+      { kw: 'Feature Prioritization', category: 'Core', priority: 1 },
+      { kw: 'Cross-functional Leadership', category: 'Soft Skills', priority: 1 },
+      { kw: 'Market Analysis', category: 'Core', priority: 2 },
+      { kw: 'Sprint Planning', category: 'Methodologies', priority: 2 },
+      { kw: 'Revenue Growth', category: 'Core', priority: 2 },
+      { kw: 'Product Metrics', category: 'Core', priority: 1 },
+      { kw: 'Wireframing', category: 'Technical', priority: 2 },
+      { kw: 'Competitive Analysis', category: 'Core', priority: 2 },
+      { kw: 'Communication', category: 'Soft Skills', priority: 1 },
+    ],
+    devops_cloud: [
+      { kw: 'AWS', category: 'Technical', priority: 1 },
+      { kw: 'Kubernetes', category: 'Technical', priority: 1 },
+      { kw: 'Docker', category: 'Technical', priority: 1 },
+      { kw: 'CI/CD', category: 'Methodologies', priority: 1 },
+      { kw: 'Terraform', category: 'Tools', priority: 1 },
+      { kw: 'Linux', category: 'Technical', priority: 1 },
+      { kw: 'Jenkins', category: 'Tools', priority: 1 },
+      { kw: 'Ansible', category: 'Tools', priority: 2 },
+      { kw: 'Infrastructure as Code', category: 'Methodologies', priority: 1 },
+      { kw: 'Monitoring', category: 'Technical', priority: 1 },
+      { kw: 'Azure', category: 'Technical', priority: 2 },
+      { kw: 'GCP', category: 'Technical', priority: 2 },
+      { kw: 'Prometheus', category: 'Tools', priority: 2 },
+      { kw: 'Grafana', category: 'Tools', priority: 2 },
+      { kw: 'GitOps', category: 'Methodologies', priority: 2 },
+      { kw: 'Site Reliability', category: 'Methodologies', priority: 1 },
+      { kw: 'Incident Management', category: 'Core', priority: 1 },
+      { kw: 'Security Best Practices', category: 'Core', priority: 1 },
+      { kw: 'Bash Scripting', category: 'Technical', priority: 1 },
+      { kw: 'Python', category: 'Technical', priority: 2 },
+      { kw: 'Microservices Architecture', category: 'Technical', priority: 2 },
+      { kw: 'Network Configuration', category: 'Technical', priority: 2 },
+      { kw: 'Disaster Recovery', category: 'Core', priority: 2 },
+      { kw: 'Cost Optimization', category: 'Core', priority: 2 },
+      { kw: 'Automation', category: 'Methodologies', priority: 1 },
+    ],
+    design: [
+      { kw: 'Figma', category: 'Tools', priority: 1 },
+      { kw: 'User Research', category: 'Core', priority: 1 },
+      { kw: 'Wireframing', category: 'Core', priority: 1 },
+      { kw: 'Prototyping', category: 'Core', priority: 1 },
+      { kw: 'Design Systems', category: 'Core', priority: 1 },
+      { kw: 'Usability Testing', category: 'Core', priority: 1 },
+      { kw: 'Information Architecture', category: 'Core', priority: 1 },
+      { kw: 'Interaction Design', category: 'Core', priority: 1 },
+      { kw: 'Adobe XD', category: 'Tools', priority: 2 },
+      { kw: 'Adobe Illustrator', category: 'Tools', priority: 2 },
+      { kw: 'Accessibility (WCAG)', category: 'Technical', priority: 1 },
+      { kw: 'Design Thinking', category: 'Methodologies', priority: 1 },
+      { kw: 'Visual Design', category: 'Core', priority: 1 },
+      { kw: 'Typography', category: 'Core', priority: 2 },
+      { kw: 'Color Theory', category: 'Core', priority: 2 },
+      { kw: 'User Personas', category: 'Methodologies', priority: 2 },
+      { kw: 'A/B Testing', category: 'Methodologies', priority: 2 },
+      { kw: 'Cross-functional Collaboration', category: 'Soft Skills', priority: 1 },
+      { kw: 'Responsive Design', category: 'Technical', priority: 1 },
+      { kw: 'Stakeholder Presentation', category: 'Soft Skills', priority: 2 },
+      { kw: 'Journey Mapping', category: 'Methodologies', priority: 2 },
+      { kw: 'Design Critique', category: 'Soft Skills', priority: 2 },
+      { kw: 'CSS', category: 'Technical', priority: 2 },
+      { kw: 'Motion Design', category: 'Core', priority: 2 },
+      { kw: 'Empathy', category: 'Soft Skills', priority: 1 },
+    ],
+    marketing: [
+      { kw: 'Digital Marketing', category: 'Core', priority: 1 },
+      { kw: 'SEO', category: 'Technical', priority: 1 },
+      { kw: 'Content Marketing', category: 'Core', priority: 1 },
+      { kw: 'Google Analytics', category: 'Tools', priority: 1 },
+      { kw: 'Social Media Marketing', category: 'Core', priority: 1 },
+      { kw: 'Email Marketing', category: 'Core', priority: 1 },
+      { kw: 'PPC Advertising', category: 'Technical', priority: 1 },
+      { kw: 'CRM', category: 'Tools', priority: 1 },
+      { kw: 'HubSpot', category: 'Tools', priority: 2 },
+      { kw: 'A/B Testing', category: 'Methodologies', priority: 1 },
+      { kw: 'Campaign Management', category: 'Core', priority: 1 },
+      { kw: 'Marketing Automation', category: 'Technical', priority: 2 },
+      { kw: 'Conversion Rate Optimization', category: 'Technical', priority: 2 },
+      { kw: 'Brand Strategy', category: 'Core', priority: 2 },
+      { kw: 'Market Research', category: 'Core', priority: 1 },
+      { kw: 'Copywriting', category: 'Core', priority: 2 },
+      { kw: 'Google Ads', category: 'Tools', priority: 1 },
+      { kw: 'Data Analytics', category: 'Technical', priority: 1 },
+      { kw: 'Lead Generation', category: 'Core', priority: 1 },
+      { kw: 'Customer Segmentation', category: 'Core', priority: 2 },
+      { kw: 'Salesforce', category: 'Tools', priority: 2 },
+      { kw: 'ROI Analysis', category: 'Core', priority: 2 },
+      { kw: 'Growth Hacking', category: 'Methodologies', priority: 2 },
+      { kw: 'Storytelling', category: 'Soft Skills', priority: 2 },
+      { kw: 'Budget Management', category: 'Core', priority: 2 },
+    ],
+    finance: [
+      { kw: 'Financial Analysis', category: 'Core', priority: 1 },
+      { kw: 'Financial Modeling', category: 'Technical', priority: 1 },
+      { kw: 'Excel', category: 'Tools', priority: 1 },
+      { kw: 'Budgeting', category: 'Core', priority: 1 },
+      { kw: 'Forecasting', category: 'Core', priority: 1 },
+      { kw: 'GAAP', category: 'Methodologies', priority: 1 },
+      { kw: 'Variance Analysis', category: 'Technical', priority: 1 },
+      { kw: 'Accounts Payable', category: 'Core', priority: 2 },
+      { kw: 'Accounts Receivable', category: 'Core', priority: 2 },
+      { kw: 'Risk Management', category: 'Core', priority: 1 },
+      { kw: 'SQL', category: 'Technical', priority: 2 },
+      { kw: 'SAP', category: 'Tools', priority: 2 },
+      { kw: 'QuickBooks', category: 'Tools', priority: 2 },
+      { kw: 'Valuation', category: 'Technical', priority: 2 },
+      { kw: 'Audit', category: 'Core', priority: 2 },
+      { kw: 'Cash Flow Management', category: 'Core', priority: 1 },
+      { kw: 'Financial Reporting', category: 'Core', priority: 1 },
+      { kw: 'DCF Analysis', category: 'Technical', priority: 2 },
+      { kw: 'Regulatory Compliance', category: 'Core', priority: 1 },
+      { kw: 'Investment Analysis', category: 'Technical', priority: 2 },
+      { kw: 'Power BI', category: 'Tools', priority: 2 },
+      { kw: 'CPA', category: 'Credentials', priority: 1 },
+      { kw: 'Attention to Detail', category: 'Soft Skills', priority: 1 },
+      { kw: 'Strategic Planning', category: 'Core', priority: 2 },
+      { kw: 'Stakeholder Reporting', category: 'Core', priority: 2 },
+    ],
+    sales: [
+      { kw: 'Salesforce', category: 'Tools', priority: 1 },
+      { kw: 'CRM', category: 'Tools', priority: 1 },
+      { kw: 'Pipeline Management', category: 'Core', priority: 1 },
+      { kw: 'Lead Generation', category: 'Core', priority: 1 },
+      { kw: 'Cold Outreach', category: 'Core', priority: 1 },
+      { kw: 'Closing Deals', category: 'Core', priority: 1 },
+      { kw: 'Account Management', category: 'Core', priority: 1 },
+      { kw: 'SaaS Sales', category: 'Technical', priority: 2 },
+      { kw: 'B2B Sales', category: 'Core', priority: 1 },
+      { kw: 'Quota Achievement', category: 'Core', priority: 1 },
+      { kw: 'Negotiation', category: 'Soft Skills', priority: 1 },
+      { kw: 'Solution Selling', category: 'Methodologies', priority: 2 },
+      { kw: 'Prospecting', category: 'Core', priority: 1 },
+      { kw: 'Forecasting', category: 'Technical', priority: 2 },
+      { kw: 'HubSpot', category: 'Tools', priority: 2 },
+      { kw: 'Customer Success', category: 'Core', priority: 2 },
+      { kw: 'Revenue Growth', category: 'Core', priority: 1 },
+      { kw: 'Outbound Sales', category: 'Core', priority: 2 },
+      { kw: 'Discovery Calls', category: 'Core', priority: 2 },
+      { kw: 'LinkedIn Sales Navigator', category: 'Tools', priority: 2 },
+      { kw: 'Relationship Building', category: 'Soft Skills', priority: 1 },
+      { kw: 'Product Demos', category: 'Core', priority: 2 },
+      { kw: 'Objection Handling', category: 'Soft Skills', priority: 1 },
+      { kw: 'Territory Management', category: 'Core', priority: 2 },
+      { kw: 'Communication', category: 'Soft Skills', priority: 1 },
+    ],
+    healthcare: [
+      { kw: 'Patient Care', category: 'Core', priority: 1 },
+      { kw: 'Electronic Health Records (EHR)', category: 'Technical', priority: 1 },
+      { kw: 'HIPAA Compliance', category: 'Regulatory', priority: 1 },
+      { kw: 'Clinical Documentation', category: 'Core', priority: 1 },
+      { kw: 'Medication Administration', category: 'Core', priority: 1 },
+      { kw: 'Vital Signs Monitoring', category: 'Core', priority: 1 },
+      { kw: 'Patient Assessment', category: 'Core', priority: 1 },
+      { kw: 'Epic Systems', category: 'Tools', priority: 2 },
+      { kw: 'IV Therapy', category: 'Core', priority: 2 },
+      { kw: 'Infection Control', category: 'Core', priority: 1 },
+      { kw: 'Care Coordination', category: 'Core', priority: 1 },
+      { kw: 'Acute Care', category: 'Core', priority: 2 },
+      { kw: 'Patient Education', category: 'Core', priority: 2 },
+      { kw: 'Interdisciplinary Collaboration', category: 'Soft Skills', priority: 1 },
+      { kw: 'Critical Thinking', category: 'Soft Skills', priority: 1 },
+      { kw: 'BLS Certification', category: 'Credentials', priority: 1 },
+      { kw: 'ACLS', category: 'Credentials', priority: 2 },
+      { kw: 'Triage', category: 'Core', priority: 2 },
+      { kw: 'Wound Care', category: 'Core', priority: 2 },
+      { kw: 'Compassionate Care', category: 'Soft Skills', priority: 1 },
+      { kw: 'Medical Terminology', category: 'Technical', priority: 1 },
+      { kw: 'Quality Improvement', category: 'Methodologies', priority: 2 },
+      { kw: 'Time Management', category: 'Soft Skills', priority: 1 },
+      { kw: 'Diagnostic Support', category: 'Core', priority: 2 },
+      { kw: 'Multidisciplinary Teamwork', category: 'Soft Skills', priority: 1 },
+    ],
+    education: [
+      { kw: 'Curriculum Development', category: 'Core', priority: 1 },
+      { kw: 'Lesson Planning', category: 'Core', priority: 1 },
+      { kw: 'Classroom Management', category: 'Core', priority: 1 },
+      { kw: 'Differentiated Instruction', category: 'Methodologies', priority: 1 },
+      { kw: 'Assessment Design', category: 'Core', priority: 1 },
+      { kw: 'Student Engagement', category: 'Core', priority: 1 },
+      { kw: 'Learning Management System', category: 'Tools', priority: 1 },
+      { kw: 'Google Classroom', category: 'Tools', priority: 2 },
+      { kw: 'Formative Assessment', category: 'Methodologies', priority: 2 },
+      { kw: 'Data-Driven Instruction', category: 'Methodologies', priority: 2 },
+      { kw: 'Special Education', category: 'Core', priority: 2 },
+      { kw: 'IEP', category: 'Regulatory', priority: 2 },
+      { kw: 'Parent Communication', category: 'Soft Skills', priority: 1 },
+      { kw: 'Collaborative Teaching', category: 'Soft Skills', priority: 2 },
+      { kw: 'STEM Education', category: 'Core', priority: 2 },
+      { kw: 'Instructional Technology', category: 'Technical', priority: 2 },
+      { kw: 'Project-Based Learning', category: 'Methodologies', priority: 2 },
+      { kw: 'Bloom\'s Taxonomy', category: 'Methodologies', priority: 2 },
+      { kw: 'Student-Centered Learning', category: 'Methodologies', priority: 1 },
+      { kw: 'Educational Leadership', category: 'Soft Skills', priority: 2 },
+      { kw: 'Mentorship', category: 'Soft Skills', priority: 2 },
+      { kw: 'Critical Thinking Development', category: 'Core', priority: 1 },
+      { kw: 'Empathy', category: 'Soft Skills', priority: 1 },
+      { kw: 'Microsoft Office', category: 'Tools', priority: 1 },
+      { kw: 'Communication', category: 'Soft Skills', priority: 1 },
+    ],
+    project_management: [
+      { kw: 'PMP', category: 'Credentials', priority: 1 },
+      { kw: 'Agile', category: 'Methodologies', priority: 1 },
+      { kw: 'Scrum', category: 'Methodologies', priority: 1 },
+      { kw: 'Project Planning', category: 'Core', priority: 1 },
+      { kw: 'Risk Management', category: 'Core', priority: 1 },
+      { kw: 'Stakeholder Management', category: 'Soft Skills', priority: 1 },
+      { kw: 'Budget Management', category: 'Core', priority: 1 },
+      { kw: 'JIRA', category: 'Tools', priority: 1 },
+      { kw: 'MS Project', category: 'Tools', priority: 2 },
+      { kw: 'Gantt Charts', category: 'Technical', priority: 2 },
+      { kw: 'Resource Allocation', category: 'Core', priority: 1 },
+      { kw: 'Sprint Planning', category: 'Methodologies', priority: 1 },
+      { kw: 'Cross-functional Collaboration', category: 'Soft Skills', priority: 1 },
+      { kw: 'Waterfall', category: 'Methodologies', priority: 2 },
+      { kw: 'Change Management', category: 'Core', priority: 2 },
+      { kw: 'KPIs', category: 'Core', priority: 1 },
+      { kw: 'Milestone Tracking', category: 'Core', priority: 1 },
+      { kw: 'Vendor Management', category: 'Core', priority: 2 },
+      { kw: 'Asana', category: 'Tools', priority: 2 },
+      { kw: 'Trello', category: 'Tools', priority: 2 },
+      { kw: 'Executive Reporting', category: 'Core', priority: 2 },
+      { kw: 'Conflict Resolution', category: 'Soft Skills', priority: 2 },
+      { kw: 'Kanban', category: 'Methodologies', priority: 2 },
+      { kw: 'Scope Management', category: 'Core', priority: 1 },
+      { kw: 'Communication', category: 'Soft Skills', priority: 1 },
+    ],
+    cybersecurity: [
+      { kw: 'SIEM', category: 'Tools', priority: 1 },
+      { kw: 'Penetration Testing', category: 'Technical', priority: 1 },
+      { kw: 'Vulnerability Assessment', category: 'Technical', priority: 1 },
+      { kw: 'Network Security', category: 'Technical', priority: 1 },
+      { kw: 'Incident Response', category: 'Core', priority: 1 },
+      { kw: 'Threat Intelligence', category: 'Core', priority: 1 },
+      { kw: 'NIST Framework', category: 'Methodologies', priority: 1 },
+      { kw: 'ISO 27001', category: 'Regulatory', priority: 2 },
+      { kw: 'Firewall Management', category: 'Technical', priority: 1 },
+      { kw: 'Splunk', category: 'Tools', priority: 2 },
+      { kw: 'OWASP', category: 'Methodologies', priority: 1 },
+      { kw: 'Ethical Hacking', category: 'Technical', priority: 2 },
+      { kw: 'Risk Assessment', category: 'Core', priority: 1 },
+      { kw: 'Cloud Security', category: 'Technical', priority: 1 },
+      { kw: 'Identity and Access Management', category: 'Technical', priority: 1 },
+      { kw: 'Forensics', category: 'Technical', priority: 2 },
+      { kw: 'Python', category: 'Technical', priority: 2 },
+      { kw: 'Compliance', category: 'Regulatory', priority: 1 },
+      { kw: 'Zero Trust', category: 'Methodologies', priority: 2 },
+      { kw: 'SOC', category: 'Core', priority: 1 },
+      { kw: 'Endpoint Security', category: 'Technical', priority: 2 },
+      { kw: 'CompTIA Security+', category: 'Credentials', priority: 1 },
+      { kw: 'CISSP', category: 'Credentials', priority: 2 },
+      { kw: 'Malware Analysis', category: 'Technical', priority: 2 },
+      { kw: 'Security Awareness Training', category: 'Core', priority: 2 },
+    ],
+    human_resources: [
+      { kw: 'Talent Acquisition', category: 'Core', priority: 1 },
+      { kw: 'Applicant Tracking System', category: 'Tools', priority: 1 },
+      { kw: 'Employee Relations', category: 'Core', priority: 1 },
+      { kw: 'Performance Management', category: 'Core', priority: 1 },
+      { kw: 'Onboarding', category: 'Core', priority: 1 },
+      { kw: 'HRIS', category: 'Tools', priority: 1 },
+      { kw: 'Compensation & Benefits', category: 'Core', priority: 1 },
+      { kw: 'Labor Law Compliance', category: 'Regulatory', priority: 1 },
+      { kw: 'Workforce Planning', category: 'Core', priority: 2 },
+      { kw: 'Diversity & Inclusion', category: 'Core', priority: 1 },
+      { kw: 'Training & Development', category: 'Core', priority: 1 },
+      { kw: 'Succession Planning', category: 'Core', priority: 2 },
+      { kw: 'Workday', category: 'Tools', priority: 2 },
+      { kw: 'LinkedIn Recruiter', category: 'Tools', priority: 2 },
+      { kw: 'Behavioral Interviewing', category: 'Methodologies', priority: 1 },
+      { kw: 'Conflict Resolution', category: 'Soft Skills', priority: 1 },
+      { kw: 'Employee Engagement', category: 'Core', priority: 1 },
+      { kw: 'Organizational Development', category: 'Core', priority: 2 },
+      { kw: 'HR Analytics', category: 'Technical', priority: 2 },
+      { kw: 'Policy Development', category: 'Core', priority: 2 },
+      { kw: 'Exit Interviews', category: 'Core', priority: 2 },
+      { kw: 'Empathy', category: 'Soft Skills', priority: 1 },
+      { kw: 'Confidentiality', category: 'Soft Skills', priority: 1 },
+      { kw: 'Communication', category: 'Soft Skills', priority: 1 },
+      { kw: 'SHRM-CP', category: 'Credentials', priority: 2 },
+    ],
+    content_writing: [
+      { kw: 'SEO Writing', category: 'Technical', priority: 1 },
+      { kw: 'Content Strategy', category: 'Core', priority: 1 },
+      { kw: 'Copywriting', category: 'Core', priority: 1 },
+      { kw: 'Editing', category: 'Core', priority: 1 },
+      { kw: 'Blog Writing', category: 'Core', priority: 1 },
+      { kw: 'AP Style', category: 'Methodologies', priority: 2 },
+      { kw: 'Social Media Content', category: 'Core', priority: 1 },
+      { kw: 'Content Management System', category: 'Tools', priority: 1 },
+      { kw: 'WordPress', category: 'Tools', priority: 2 },
+      { kw: 'Keyword Research', category: 'Technical', priority: 1 },
+      { kw: 'Long-form Content', category: 'Core', priority: 2 },
+      { kw: 'Email Newsletters', category: 'Core', priority: 2 },
+      { kw: 'Brand Voice', category: 'Core', priority: 1 },
+      { kw: 'Research', category: 'Core', priority: 1 },
+      { kw: 'Storytelling', category: 'Soft Skills', priority: 1 },
+      { kw: 'Content Calendar', category: 'Methodologies', priority: 2 },
+      { kw: 'Grammarly', category: 'Tools', priority: 2 },
+      { kw: 'Google Analytics', category: 'Tools', priority: 2 },
+      { kw: 'Audience Analysis', category: 'Core', priority: 2 },
+      { kw: 'White Papers', category: 'Core', priority: 2 },
+      { kw: 'Technical Writing', category: 'Core', priority: 2 },
+      { kw: 'Interviewing Sources', category: 'Core', priority: 2 },
+      { kw: 'Attention to Detail', category: 'Soft Skills', priority: 1 },
+      { kw: 'Deadline Management', category: 'Soft Skills', priority: 1 },
+      { kw: 'Adaptability', category: 'Soft Skills', priority: 1 },
+    ],
+    business_analysis: [
+      { kw: 'Requirements Gathering', category: 'Core', priority: 1 },
+      { kw: 'Process Mapping', category: 'Technical', priority: 1 },
+      { kw: 'SQL', category: 'Technical', priority: 1 },
+      { kw: 'Data Analysis', category: 'Technical', priority: 1 },
+      { kw: 'Stakeholder Management', category: 'Soft Skills', priority: 1 },
+      { kw: 'User Stories', category: 'Methodologies', priority: 1 },
+      { kw: 'JIRA', category: 'Tools', priority: 1 },
+      { kw: 'Visio', category: 'Tools', priority: 2 },
+      { kw: 'Gap Analysis', category: 'Technical', priority: 1 },
+      { kw: 'BPMN', category: 'Methodologies', priority: 2 },
+      { kw: 'Agile', category: 'Methodologies', priority: 1 },
+      { kw: 'Business Case Development', category: 'Core', priority: 1 },
+      { kw: 'UAT', category: 'Methodologies', priority: 1 },
+      { kw: 'Tableau', category: 'Tools', priority: 2 },
+      { kw: 'Excel', category: 'Tools', priority: 1 },
+      { kw: 'Process Improvement', category: 'Core', priority: 1 },
+      { kw: 'Documentation', category: 'Core', priority: 1 },
+      { kw: 'Change Management', category: 'Core', priority: 2 },
+      { kw: 'KPIs', category: 'Core', priority: 1 },
+      { kw: 'Root Cause Analysis', category: 'Technical', priority: 2 },
+      { kw: 'Cross-functional Collaboration', category: 'Soft Skills', priority: 1 },
+      { kw: 'Communication', category: 'Soft Skills', priority: 1 },
+      { kw: 'Problem Solving', category: 'Soft Skills', priority: 1 },
+      { kw: 'CBAP', category: 'Credentials', priority: 2 },
+      { kw: 'Lean Six Sigma', category: 'Methodologies', priority: 2 },
+    ],
+  },
+};
+
+const INDUSTRY_DISPLAY_NAMES = {
+  software_engineering: 'Software Engineering',
+  data_science: 'Data Science & Analytics',
+  product_management: 'Product Management',
+  devops_cloud: 'DevOps & Cloud Engineering',
+  design: 'UI/UX Design',
+  marketing: 'Digital Marketing',
+  finance: 'Finance & Accounting',
+  sales: 'Sales & Business Development',
+  healthcare: 'Healthcare & Nursing',
+  education: 'Education & Teaching',
+  project_management: 'Project Management',
+  cybersecurity: 'Cybersecurity',
+  human_resources: 'Human Resources',
+  content_writing: 'Content Writing & Communications',
+  business_analysis: 'Business Analysis',
+};
+
+let lastDetectedIndustry = null;
+
+function detectIndustry(targetRole) {
+  const role = String(targetRole || '').trim().toLowerCase();
+  if (role.length < 2) return null;
+  for (const entry of INDUSTRY_KEYWORD_MAP.ROLE_TO_INDUSTRY) {
+    if (entry.patterns.some((pattern) => role.includes(pattern))) return entry.industry;
+  }
+  return null;
+}
+
+function getKeywordsForIndustry(industry) {
+  return INDUSTRY_KEYWORD_MAP.INDUSTRY_KEYWORDS[industry] || [];
+}
+
+function getIndustryDisplayName(industry) {
+  return INDUSTRY_DISPLAY_NAMES[industry] || '';
+}
+
+function getAlreadyAddedKeywords(state = resumeExportState) {
+  return new Set(parseCommaList(state?.skills).map((skill) => skill.toLowerCase()));
+}
+
 function normalizeResumeTemplate(template) {
   return RESUME_TEMPLATE_OPTIONS.includes(template) ? template : 'classic';
 }
@@ -731,6 +1200,7 @@ function serializeState(state) {
         sectionsEnabled: normalizeSectionsEnabled(state.sectionsEnabled),
         sectionOrder: normalizeSectionOrder(state.sectionOrder),
         lastEditedAt: normalizeTimestamp(state.lastEditedAt),
+        suggestionsDismissed: Boolean(state.suggestionsDismissed),
       },
     });
   } catch (_) {
@@ -802,6 +1272,7 @@ function restoreFromStorage(state) {
     state.sectionsEnabled = normalizeSectionsEnabled(saved.sectionsEnabled);
     state.sectionOrder = normalizeSectionOrder(saved.sectionOrder);
     state.lastEditedAt = normalizeTimestamp(saved.lastEditedAt);
+    state.suggestionsDismissed = Boolean(saved.suggestionsDismissed);
 
     return true;
   } catch (_) {
@@ -1900,6 +2371,7 @@ function applyShareableState(shared, state) {
   state.generatedResume = String(shared.gr || '');
   state.atsAnalysisResult = null;
   state.lastEditedAt = null;
+  state.suggestionsDismissed = false;
   return true;
 }
 
@@ -2908,6 +3380,14 @@ export async function initResumeBuilderTool(container) {
   const certificationsDisabledNote = qs(root, '#rb-certifications-disabled-note');
   const sectionOrderList = qs(root, '#rb-section-order-list');
   const fabBackButton = qs(root, '#rb-fab-back');
+  const keywordSuggestions = qs(root, '#rb-keyword-suggestions');
+  const keywordIndustryLabel = qs(root, '#rb-kw-industry-label');
+  const keywordPillsContainer = qs(root, '#rb-kw-pills-container');
+  const keywordDismissButton = qs(root, '#rb-kw-dismiss');
+  const keywordRestoreButton = qs(root, '#rb-kw-restore');
+  const industryBadge = qs(root, '#rb-industry-badge');
+  const industryBadgeLabel = qs(root, '#rb-industry-badge-label');
+  const skillsTextarea = qs(root, '#rb-skills');
 
   const state = {
     currentStep: 1,
@@ -2934,6 +3414,7 @@ export async function initResumeBuilderTool(container) {
     sectionsEnabled: createDefaultSectionsEnabled(),
     sectionOrder: normalizeSectionOrder(),
     lastEditedAt: null,
+    suggestionsDismissed: false,
     certifications: [createEmptyCertification()],
   };
 
@@ -3539,6 +4020,114 @@ export async function initResumeBuilderTool(container) {
     state.atsAnalysisResult = null;
     debouncedRefreshScore();
     updateCoverLetterResumeNotice();
+  }
+
+  function updateIndustryBadge(industry) {
+    if (!industryBadge || !industryBadgeLabel) return;
+    const label = getIndustryDisplayName(industry);
+    industryBadge.hidden = !label;
+    industryBadgeLabel.textContent = label ? `Detected: ${label}` : '';
+  }
+
+  function hideKeywordSuggestions() {
+    if (keywordSuggestions) keywordSuggestions.hidden = true;
+    if (keywordPillsContainer) clearNode(keywordPillsContainer);
+  }
+
+  function renderSuggestionPanel(industry = detectIndustry(state.targetRole), keywords = getKeywordsForIndustry(industry)) {
+    const hasSuggestions = Boolean(industry && keywords.length);
+    if (!keywordSuggestions || !keywordPillsContainer) {
+      if (keywordRestoreButton) keywordRestoreButton.hidden = true;
+      return;
+    }
+
+    if (!hasSuggestions) {
+      hideKeywordSuggestions();
+      if (keywordRestoreButton) keywordRestoreButton.hidden = true;
+      return;
+    }
+
+    if (state.suggestionsDismissed) {
+      hideKeywordSuggestions();
+      if (keywordRestoreButton) keywordRestoreButton.hidden = false;
+      return;
+    }
+
+    if (keywordRestoreButton) keywordRestoreButton.hidden = true;
+    if (keywordIndustryLabel) keywordIndustryLabel.textContent = getIndustryDisplayName(industry);
+    clearNode(keywordPillsContainer);
+
+    const alreadyAdded = getAlreadyAddedKeywords(state);
+    const grouped = new Map();
+    keywords.forEach((item) => {
+      const category = item.category || 'Suggested';
+      if (!grouped.has(category)) grouped.set(category, []);
+      grouped.get(category).push(item);
+    });
+
+    grouped.forEach((items, category) => {
+      const group = createNode('div', 'rb-kw-category-group');
+      group.appendChild(createNode('span', 'rb-kw-category-label', category));
+      const pillRow = createNode('div', 'rb-kw-pill-row');
+      items
+        .slice()
+        .sort((a, b) => Number(a.priority || 2) - Number(b.priority || 2))
+        .forEach((item) => {
+          const keyword = String(item.kw || '').trim();
+          if (!keyword) return;
+          const isAdded = alreadyAdded.has(keyword.toLowerCase());
+          const button = createNode('button', `rb-kw-pill${isAdded ? ' rb-kw-pill--added' : ''}`, isAdded ? `\u2713 ${keyword}` : keyword);
+          button.type = 'button';
+          button.dataset.keyword = keyword;
+          button.dataset.priority = String(item.priority || 2);
+          button.setAttribute('aria-pressed', String(isAdded));
+          pillRow.appendChild(button);
+        });
+      group.appendChild(pillRow);
+      keywordPillsContainer.appendChild(group);
+    });
+
+    keywordSuggestions.hidden = false;
+  }
+
+  function renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange = true } = {}) {
+    const industry = detectIndustry(state.targetRole);
+    if (industry !== lastDetectedIndustry) {
+      if (resetDismissedOnIndustryChange && industry) {
+        state.suggestionsDismissed = false;
+      }
+      lastDetectedIndustry = industry;
+    }
+    updateIndustryBadge(industry);
+    renderSuggestionPanel(industry, getKeywordsForIndustry(industry));
+  }
+
+  const debouncedDetectIndustry = debounce(() => {
+    renderCurrentIndustrySuggestions();
+  }, 600);
+
+  function addKeywordToSkills(keyword) {
+    const nextKeyword = String(keyword || '').trim();
+    if (!nextKeyword) return;
+
+    const currentSkills = parseCommaList(state.skills);
+    const existing = new Set(currentSkills.map((skill) => skill.toLowerCase()));
+    if (existing.has(nextKeyword.toLowerCase())) {
+      showToast(toastStack, 'Already in your skills!', 'info');
+      renderSuggestionPanel(detectIndustry(state.targetRole), getKeywordsForIndustry(detectIndustry(state.targetRole)));
+      return;
+    }
+
+    currentSkills.push(nextKeyword);
+    state.skills = currentSkills.join(', ');
+    const field = skillsTextarea || qs(root, '#rb-skills');
+    if (field) field.value = state.skills;
+    renderBuilderDerivedViews();
+    state.atsAnalysisResult = null;
+    refreshLiveScore();
+    updateCompletionBar(state);
+    renderSuggestionPanel(detectIndustry(state.targetRole), getKeywordsForIndustry(detectIndustry(state.targetRole)));
+    debouncedSave();
   }
 
   function getCoverLetterSettingsFromForm() {
@@ -4353,6 +4942,11 @@ export async function initResumeBuilderTool(container) {
           state[path[0]][path[1]] = input.value;
         }
         renderBuilderDerivedViews();
+        if (selector === '#rb-target-role') {
+          debouncedDetectIndustry();
+        } else if (selector === '#rb-skills') {
+          renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange: false });
+        }
         markBuilderContentChanged();
         debouncedSave();
       });
@@ -4503,6 +5097,8 @@ export async function initResumeBuilderTool(container) {
     state.sectionsEnabled = createDefaultSectionsEnabled();
     state.sectionOrder = normalizeSectionOrder();
     state.certifications = [createEmptyCertification()];
+    state.suggestionsDismissed = false;
+    lastDetectedIndustry = null;
   }
 
   function assignImportedString(currentValue, nextValue, assign, label, summary, overwrite) {
@@ -4605,6 +5201,7 @@ export async function initResumeBuilderTool(container) {
     setStep(1);
     refreshLiveScore();
     updateCompletionBar(state);
+    renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange: false });
     return summary.fieldsPopulated.length ? summary : buildImportSummary();
   }
 
@@ -5241,6 +5838,7 @@ export async function initResumeBuilderTool(container) {
       state.atsAnalysisResult = null;
       refreshLiveScore();
       updateCompletionBar(state);
+      renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange: false });
       debouncedSave();
       if (btn) btn.dataset.flashDone = 'true';
       showToast(toastStack, 'Skills optimized! Review the cleaned keyword list above.', 'success');
@@ -5526,6 +6124,8 @@ export async function initResumeBuilderTool(container) {
     state.sectionOrder = normalizeSectionOrder();
     state.lastEditedAt = null;
     state.certifications = [createEmptyCertification()];
+    state.suggestionsDismissed = false;
+    lastDetectedIndustry = null;
     clearSavedDraft();
     populateFormFromState();
     previewWrap.classList.remove('hidden');
@@ -5545,6 +6145,7 @@ export async function initResumeBuilderTool(container) {
     refreshLiveScore();
     updateWordCountDisplay(state);
     updateCompletionBar(state);
+    renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange: false });
     updateBackFab();
     window.clearTimeout(autosaveSettleTimer);
     window.clearInterval(autosaveRefreshTimer);
@@ -5715,6 +6316,27 @@ export async function initResumeBuilderTool(container) {
   if (fabBackButton) {
     fabBackButton.addEventListener('click', () => setStep(4));
   }
+  if (keywordPillsContainer) {
+    keywordPillsContainer.addEventListener('click', (event) => {
+      const pill = event.target.closest('.rb-kw-pill');
+      if (!pill) return;
+      addKeywordToSkills(pill.dataset.keyword);
+    });
+  }
+  if (keywordDismissButton) {
+    keywordDismissButton.addEventListener('click', () => {
+      state.suggestionsDismissed = true;
+      renderSuggestionPanel(detectIndustry(state.targetRole), getKeywordsForIndustry(detectIndustry(state.targetRole)));
+      saveToStorage(state);
+    });
+  }
+  if (keywordRestoreButton) {
+    keywordRestoreButton.addEventListener('click', () => {
+      state.suggestionsDismissed = false;
+      renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange: false });
+      saveToStorage(state);
+    });
+  }
   root.addEventListener('keydown', handleBuilderKeyboardShortcuts);
   window.addEventListener('resize', handleMobileViewportChange);
   if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);
@@ -5772,6 +6394,7 @@ export async function initResumeBuilderTool(container) {
   updateQuotaUi();
   refreshLiveScore();
   updateCompletionBar(state);
+  renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange: false });
   updateBackFab();
   window.requestAnimationFrame(updateQuotaUi);
   window.requestAnimationFrame(() => {
