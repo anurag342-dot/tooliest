@@ -69,6 +69,96 @@ let autosaveRefreshTimer = 0;
 let resumeTemplateState = null;
 let resumeTemplateRoot = null;
 let resumeTemplateSave = null;
+let quotaCountdownInterval = 0;
+let resumeQuotaUiController = null;
+let globalErrorBoundaryReady = false;
+
+function getErrorMessage(error) {
+  return String(error?.message || error || '');
+}
+
+function isRateLimitError(error) {
+  const message = getErrorMessage(error).toLowerCase();
+  return error?.status === 429
+    || message.includes('429')
+    || message.includes('rate limit')
+    || message.includes('daily limit')
+    || message.includes('quota');
+}
+
+function isNetworkError(error) {
+  const message = getErrorMessage(error).toLowerCase();
+  return error instanceof TypeError
+    || message.includes('failed to fetch')
+    || message.includes('network')
+    || message.includes('connection');
+}
+
+function showGlobalToast(message, type = 'error') {
+  if (resumeExportToastStack) {
+    showToast(resumeExportToastStack, message, type);
+  }
+}
+
+function getQuotaResetCountdown() {
+  const now = new Date();
+  const resetUTC = new Date();
+  resetUTC.setUTCHours(24, 0, 0, 0);
+  const diffMs = Math.max(0, resetUTC.getTime() - now.getTime());
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffMins = Math.floor((diffMs % 3600000) / 60000);
+  if (diffHours === 0) return `${diffMins} minutes`;
+  if (diffMins === 0) return `${diffHours} hours`;
+  return `${diffHours}h ${diffMins}m`;
+}
+
+function showRateLimitExhaustedState() {
+  showGlobalToast(
+    "You've used all 15 AI credits for today. The counter resets at midnight UTC. Non-AI features (PDF, DOCX, Copy, Share, Templates) still work!",
+    'warning',
+  );
+  if (resumeQuotaUiController?.showRateLimitExhaustedState) {
+    resumeQuotaUiController.showRateLimitExhaustedState();
+  }
+}
+
+function setupGlobalErrorBoundary() {
+  if (globalErrorBoundaryReady || typeof window === 'undefined') return;
+  globalErrorBoundaryReady = true;
+
+  window.onerror = (message, source, lineno, colno, error) => {
+    const filename = String(source || '');
+    const text = String(message || '');
+    if (filename.includes('extension://') || filename.includes('moz-extension://')) return true;
+    if (text === 'Script error.' && !filename && !error) return true;
+    const isOwnScript = /resume-builder|tooliest/i.test(filename);
+    if (isOwnScript) {
+      console.error('[Resume Builder] Runtime error boundary:', error || { message, source, lineno, colno });
+      showGlobalToast('Something went wrong. Your draft is safe - try refreshing the page if the issue persists.', 'error');
+      return true;
+    }
+    return false;
+  };
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason;
+    console.error('[Resume Builder] Unhandled promise rejection:', reason);
+    if (isRateLimitError(reason)) {
+      showRateLimitExhaustedState();
+    } else if (isNetworkError(reason)) {
+      showGlobalToast('Network error - check your connection and try again.', 'error');
+    } else {
+      showGlobalToast('An unexpected error occurred. Your draft is safe.', 'error');
+    }
+    event.preventDefault();
+  });
+
+  window.addEventListener('beforeunload', () => {
+    window.clearInterval(quotaCountdownInterval);
+  });
+}
+
+setupGlobalErrorBoundary();
 
 const RESUME_TEMPLATE_OPTIONS = ['classic', 'modern', 'compact'];
 const RESUME_TEMPLATE_CLASSES = {
@@ -948,6 +1038,8 @@ function parseImprovedBulletResponse(text) {
 
 function showToast(stack, message, type = 'error') {
   if (!stack || !message) return;
+  stack.setAttribute('role', 'status');
+  stack.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
   const toast = createNode('div', `resume-toast ${type}`);
   const text = createNode('span', '', message);
   const close = createNode('button', 'btn btn-secondary', 'Dismiss');
@@ -998,18 +1090,23 @@ function downloadBlob(filename, blob) {
 }
 
 async function copyText(text, toastRoot, successMessage) {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-  } else {
-    const fallback = document.createElement('textarea');
-    fallback.value = text;
-    fallback.setAttribute('readonly', 'true');
-    fallback.style.position = 'fixed';
-    fallback.style.opacity = '0';
-    document.body.appendChild(fallback);
-    fallback.select();
-    document.execCommand('copy');
-    fallback.remove();
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const fallback = document.createElement('textarea');
+      fallback.value = text;
+      fallback.setAttribute('readonly', 'true');
+      fallback.style.position = 'fixed';
+      fallback.style.opacity = '0';
+      document.body.appendChild(fallback);
+      fallback.select();
+      document.execCommand('copy');
+      fallback.remove();
+    }
+  } catch (error) {
+    showToast(toastRoot, 'Clipboard copy failed. Select the text manually and try again.', 'error');
+    throw error;
   }
   showToast(toastRoot, successMessage, 'success');
 }
@@ -1218,6 +1315,9 @@ function saveToStorage(state) {
   } catch (error) {
     // Autosave is a convenience layer; storage failures should never block the UI.
     console.warn('Autosave failed:', error?.message || 'localStorage unavailable');
+    if (error?.name === 'QuotaExceededError') {
+      showGlobalToast('Storage full - your draft could not be saved. Download your resume to avoid losing work.', 'warning');
+    }
     const indicator = document.getElementById('rb-autosave-indicator');
     window.clearTimeout(autosaveSettleTimer);
     window.clearInterval(autosaveRefreshTimer);
@@ -1276,6 +1376,11 @@ function restoreFromStorage(state) {
 
     return true;
   } catch (_) {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignore storage cleanup failures.
+    }
     return false;
   }
 }
@@ -2196,6 +2301,9 @@ async function downloadResumePDF() {
     if (opened) {
       showExportToast('Use Save as PDF in the print dialog for a preview-matched PDF.', 'info');
     }
+  } catch (error) {
+    console.error('[PDF Export]', error);
+    showExportToast('PDF export failed. Try the Print option or check your browser pop-up settings.', 'error');
   } finally {
     window.setTimeout(() => {
       if (btn) {
@@ -2239,6 +2347,7 @@ function loadScriptFromUrls(urls, isReady, label) {
   });
 
   return chain.catch((error) => {
+    showGlobalToast(`${label} failed to load. Check your internet connection - this feature requires a CDN library.`, 'error');
     throw error || new Error(`${label} CDN load failed`);
   });
 }
@@ -2248,8 +2357,13 @@ async function loadMammoth() {
     mammothLoaded = true;
     return;
   }
-  await loadScriptFromUrls(MAMMOTH_CDN_URLS, () => Boolean(window.mammoth?.extractRawText), 'mammoth.js');
-  mammothLoaded = true;
+  try {
+    await loadScriptFromUrls(MAMMOTH_CDN_URLS, () => Boolean(window.mammoth?.extractRawText), 'mammoth.js');
+    mammothLoaded = true;
+  } catch (error) {
+    mammothLoaded = false;
+    throw error;
+  }
 }
 
 async function loadPdfJs() {
@@ -2258,9 +2372,14 @@ async function loadPdfJs() {
     window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
     return;
   }
-  await loadScriptFromUrls([PDFJS_CDN_URL], () => Boolean(window.pdfjsLib?.getDocument), 'PDF.js');
-  window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
-  pdfJsLoaded = true;
+  try {
+    await loadScriptFromUrls([PDFJS_CDN_URL], () => Boolean(window.pdfjsLib?.getDocument), 'PDF.js');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+    pdfJsLoaded = true;
+  } catch (error) {
+    pdfJsLoaded = false;
+    throw error;
+  }
 }
 
 async function loadLzString() {
@@ -2268,12 +2387,17 @@ async function loadLzString() {
     lzStringLoaded = true;
     return;
   }
-  await loadScriptFromUrls(
-    LZ_STRING_CDN_URLS,
-    () => Boolean(window.LZString?.compressToEncodedURIComponent && window.LZString?.decompressFromEncodedURIComponent),
-    'lz-string',
-  );
-  lzStringLoaded = true;
+  try {
+    await loadScriptFromUrls(
+      LZ_STRING_CDN_URLS,
+      () => Boolean(window.LZString?.compressToEncodedURIComponent && window.LZString?.decompressFromEncodedURIComponent),
+      'lz-string',
+    );
+    lzStringLoaded = true;
+  } catch (error) {
+    lzStringLoaded = false;
+    throw error;
+  }
 }
 
 function buildShareableState(state) {
@@ -2470,21 +2594,27 @@ function validateAndTrimExtractedText(text) {
 }
 
 async function extractTextFromFile(file) {
-  const name = String(file?.name || '').toLowerCase();
-  const type = String(file?.type || '').toLowerCase();
-  let rawText = '';
+  try {
+    const name = String(file?.name || '').toLowerCase();
+    const type = String(file?.type || '').toLowerCase();
+    let rawText = '';
 
-  if (type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || name.endsWith('.docx')) {
-    rawText = await extractTextFromDocx(file);
-  } else if (type === 'application/pdf' || name.endsWith('.pdf')) {
-    rawText = await extractTextFromPdf(file);
-  } else if (type === 'text/plain' || name.endsWith('.txt')) {
-    rawText = await readFileAsText(file);
-  } else {
-    throw new Error('Unsupported file type. Please upload a PDF, DOCX, or TXT file.');
+    if (type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || name.endsWith('.docx')) {
+      rawText = await extractTextFromDocx(file);
+    } else if (type === 'application/pdf' || name.endsWith('.pdf')) {
+      rawText = await extractTextFromPdf(file);
+    } else if (type === 'text/plain' || name.endsWith('.txt')) {
+      rawText = await readFileAsText(file);
+    } else {
+      throw new Error('Unsupported file type. Please upload a PDF, DOCX, or TXT file.');
+    }
+
+    return validateAndTrimExtractedText(rawText);
+  } catch (error) {
+    const message = getErrorMessage(error);
+    if (/unsupported file type/i.test(message)) throw error;
+    throw new Error(message || 'This file could not be read. Try a different PDF, DOCX, or TXT file.');
   }
-
-  return validateAndTrimExtractedText(rawText);
 }
 
 // DOCX Export
@@ -2523,6 +2653,8 @@ async function loadDocx() {
     }
   }
 
+  docxLoaded = false;
+  showGlobalToast('DOCX library failed to load. Check your internet connection - this feature requires a CDN library.', 'error');
   throw lastError || new Error('docx CDN load failed');
 }
 
@@ -2813,7 +2945,7 @@ async function downloadResumeDOCX() {
     showExportToast('DOCX downloaded successfully.', 'success');
   } catch (error) {
     console.error('[DOCX Export]', error);
-    showExportToast('DOCX export unavailable. Try saving as PDF or printing instead.', 'error');
+    showExportToast('DOCX export failed. Try Save as PDF instead, or check your internet connection.', 'error');
   } finally {
     if (btn) {
       btn.classList.remove('rb-export-btn--loading');
@@ -3314,6 +3446,8 @@ export async function initResumeBuilderTool(container) {
   const creditsBar = qs(root, '#rb-credits-bar');
   const creditsRemaining = qs(root, '#rb-credits-remaining');
   const creditsLabel = qs(root, '.rb-credits-bar__label');
+  const quotaExhaustedBanner = qs(root, '#rb-quota-exhausted-banner');
+  const quotaCountdown = qs(root, '#rb-quota-countdown');
   const scoreCompact = qs(root, '#rb-live-score-compact');
   const scoreCompactNumber = qs(root, '#rb-score-compact-number');
   const scoreCompactLabel = qs(root, '#rb-score-compact-label');
@@ -3509,6 +3643,93 @@ export async function initResumeBuilderTool(container) {
     }
   }
 
+  function getAiActionButtons() {
+    return [
+      atsButton,
+      generateButton,
+      improveSummaryButton,
+      improveSkillsButton,
+      coverLetterGenerateButton,
+      scoreAnalyzeToggle,
+      scoreRunAiButton,
+      ...Array.from(root.querySelectorAll('.rb-improve-bullets-btn')),
+    ].filter(Boolean);
+  }
+
+  function showQuotaExhaustedBanner() {
+    if (!quotaExhaustedBanner) return;
+    quotaExhaustedBanner.hidden = false;
+    const updateCountdown = () => {
+      if (quotaCountdown) quotaCountdown.textContent = getQuotaResetCountdown();
+    };
+    updateCountdown();
+    window.clearInterval(quotaCountdownInterval);
+    quotaCountdownInterval = window.setInterval(updateCountdown, 60000);
+  }
+
+  function hideQuotaExhaustedBanner() {
+    if (quotaExhaustedBanner) quotaExhaustedBanner.hidden = true;
+    window.clearInterval(quotaCountdownInterval);
+    quotaCountdownInterval = 0;
+  }
+
+  function syncQuotaExhaustedState(remaining) {
+    const exhausted = Number(remaining) <= 0;
+    getAiActionButtons().forEach((button) => {
+      if (button.classList.contains('rb-improve-btn--loading')) return;
+      button.classList.toggle('rb-btn-quota-exhausted', exhausted);
+      button.disabled = exhausted;
+      button.setAttribute('aria-disabled', String(exhausted));
+    });
+    if (exhausted) {
+      showQuotaExhaustedBanner();
+    } else {
+      hideQuotaExhaustedBanner();
+    }
+  }
+
+  function showRateLimitExhaustedStateLocal() {
+    showQuotaExhaustedBanner();
+    syncQuotaExhaustedState(0);
+    if (creditsRemaining) creditsRemaining.textContent = '0';
+    if (creditsLabel) creditsLabel.textContent = ' - AI features paused until tomorrow';
+    if (coverLetterCreditsRemaining) coverLetterCreditsRemaining.textContent = '0';
+    if (coverLetterCreditsLabel) coverLetterCreditsLabel.textContent = ' - AI features paused until tomorrow';
+    creditsBar?.classList.add('rb-credits-bar--empty');
+    coverLetterCreditsBar?.classList.add('cl-credits-bar--empty');
+    syncImportCreditState(0);
+  }
+
+  resumeQuotaUiController = {
+    showRateLimitExhaustedState: showRateLimitExhaustedStateLocal,
+  };
+
+  function guardAiCredits() {
+    if (getRemainingCreditsSafe() > 0) return true;
+    showRateLimitExhaustedState();
+    return false;
+  }
+
+  function handleAiActionError(error, fallbackMessage, options = {}) {
+    if (isRateLimitError(error)) {
+      if (options.banner) {
+        setBanner(options.banner, `Daily AI limit reached. Resets in ${getQuotaResetCountdown()}.`, 'error');
+      }
+      showRateLimitExhaustedState();
+      return;
+    }
+    if (isNetworkError(error) || !navigator.onLine) {
+      const message = 'Network error - check your connection.';
+      if (options.banner) setBanner(options.banner, message, 'error', options.retryHandler || null);
+      showToast(toastStack, message, 'error');
+      return;
+    }
+    if (options.banner) {
+      setBanner(options.banner, fallbackMessage, 'error', options.retryHandler || null);
+    }
+    showToast(toastStack, fallbackMessage, 'error');
+  }
+
   function updateCreditsDisplay() {
     if (!creditsBar || !creditsRemaining || !creditsLabel) return;
     let remaining = 15;
@@ -3537,21 +3758,13 @@ export async function initResumeBuilderTool(container) {
         : ' AI credits remaining today';
     }
 
-    root.querySelectorAll('.rb-improve-btn').forEach((button) => {
-      if (button.classList.contains('rb-improve-btn--loading')) return;
-      button.disabled = remaining === 0;
-      button.setAttribute('aria-disabled', String(remaining === 0));
-    });
     if (scoreAnalyzeToggle) {
-      scoreAnalyzeToggle.disabled = false;
       scoreAnalyzeToggle.classList.toggle('rb-improve-btn--credit-empty', remaining === 0);
-      scoreAnalyzeToggle.setAttribute('aria-disabled', String(remaining === 0));
     }
-    if (coverLetterGenerateButton && !coverLetterGenerateButton.classList.contains('rb-improve-btn--loading')) {
-      coverLetterGenerateButton.disabled = false;
+    if (coverLetterGenerateButton) {
       coverLetterGenerateButton.classList.toggle('rb-improve-btn--credit-empty', remaining === 0);
-      coverLetterGenerateButton.setAttribute('aria-disabled', String(remaining === 0));
     }
+    syncQuotaExhaustedState(remaining);
     syncImportCreditState(remaining);
   }
 
@@ -4419,10 +4632,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Please enter the company name to generate your cover letter.', 'error');
       return;
     }
-    if (getRemainingCreditsSafe() <= 0) {
-      showToast(toastStack, 'No AI credits remaining today. Try again tomorrow.', 'warning');
-      return;
-    }
+    if (!guardAiCredits()) return;
 
     state.coverLetterSettings = settings;
     const btn = coverLetterGenerateButton;
@@ -4449,7 +4659,7 @@ export async function initResumeBuilderTool(container) {
     } catch (error) {
       console.error('[Cover Letter]', error);
       renderCoverLetterPreview(state.coverLetter, state.coverLetterSettings);
-      showToast(toastStack, 'Cover letter generation failed. Check your AI credits or try again.', 'error');
+      handleAiActionError(error, 'Cover letter generation failed. Check your credits or try again.');
     } finally {
       setImproveBtnLoading(btn, false);
       updateQuotaUi();
@@ -4652,7 +4862,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Cover letter DOCX downloaded.', 'success');
     } catch (error) {
       console.error('[Cover Letter DOCX]', error);
-      showToast(toastStack, 'DOCX export unavailable. Try saving as PDF instead.', 'error');
+      showToast(toastStack, 'Cover letter DOCX export failed. Try the PDF option instead.', 'error');
     } finally {
       btn?.classList.remove('rb-export-btn--loading');
     }
@@ -5031,7 +5241,7 @@ export async function initResumeBuilderTool(container) {
       importFileInput.disabled = disabled;
     }
     if (noCredits && importExpanded && !importExpanded.hidden) {
-      setImportError('No AI credits remain today. Resume import will be available again after the daily quota resets.');
+      setImportError(`No AI credits remain today. Resume import will be available again in ${getQuotaResetCountdown()}.`);
     }
   }
 
@@ -5218,36 +5428,50 @@ export async function initResumeBuilderTool(container) {
   }
 
   async function parseResumeTextWithAI(rawText, overwrite = false) {
-    const userContent = `Raw resume text:\n${rawText}`;
-    const firstAttempt = await callAI({
-      tool: TOOL_KEY,
-      systemPrompt: RESUME_IMPORT_PROMPT,
-      userContent,
-      maxTokens: 1800,
-      temperature: 0.1,
-    });
-
-    let parsed = parseImportJsonResponse(getAIResultText(firstAttempt));
-    if (!parsed) {
-      const retryAttempt = await callAI({
+    try {
+      const userContent = `Raw resume text:\n${rawText}`;
+      const firstAttempt = await callAI({
         tool: TOOL_KEY,
-        systemPrompt: `${RESUME_IMPORT_PROMPT}\n\nCritical retry instruction: return only raw JSON, absolutely nothing else.`,
+        systemPrompt: RESUME_IMPORT_PROMPT,
         userContent,
         maxTokens: 1800,
-        temperature: 0,
-        chargeQuota: false,
-        skipModels: firstAttempt.model ? [firstAttempt.model] : [],
+        temperature: 0.1,
       });
-      parsed = parseImportJsonResponse(getAIResultText(retryAttempt));
-    }
 
-    if (!parsed) {
-      throw new Error('AI could not return clean structured data from this resume.');
-    }
+      let parsed = parseImportJsonResponse(getAIResultText(firstAttempt));
+      if (!parsed) {
+        const retryAttempt = await callAI({
+          tool: TOOL_KEY,
+          systemPrompt: `${RESUME_IMPORT_PROMPT}\n\nCritical retry instruction: return only raw JSON, absolutely nothing else.`,
+          userContent,
+          maxTokens: 1800,
+          temperature: 0,
+          chargeQuota: false,
+          skipModels: firstAttempt.model ? [firstAttempt.model] : [],
+        });
+        parsed = parseImportJsonResponse(getAIResultText(retryAttempt));
+      }
 
-    setImportStep('populating');
-    await delay(150);
-    return mergeParsedResumeData(parsed, overwrite);
+      if (!parsed) {
+        throw new Error('AI could not return clean structured data from this resume.');
+      }
+
+      setImportStep('populating');
+      await delay(150);
+      return mergeParsedResumeData(parsed, overwrite);
+    } catch (error) {
+      console.error('[Resume Import] AI parsing failed:', error);
+      if (isRateLimitError(error)) {
+        showRateLimitExhaustedState();
+        throw new Error('Resume parsing failed because the daily AI limit was reached.');
+      }
+      if (isNetworkError(error)) {
+        showToast(toastStack, 'Network error - check your connection and try importing again.', 'error');
+        throw new Error('Resume parsing failed because the network request could not complete.');
+      }
+      showToast(toastStack, 'Resume parsing failed. The form is still available to fill manually.', 'error');
+      throw error;
+    }
   }
 
   async function processResumeImportFile(file) {
@@ -5258,7 +5482,8 @@ export async function initResumeBuilderTool(container) {
     try {
       validateResumeImportFile(file);
       if (getRemainingCreditsSafe() <= 0) {
-        setImportError('No AI credits remain today. Resume import will be available again after the daily quota resets.');
+        showRateLimitExhaustedState();
+        setImportError(`No AI credits remain today. Resume import will be available again in ${getQuotaResetCountdown()}.`);
         syncImportCreditState(0);
         return;
       }
@@ -5285,7 +5510,15 @@ export async function initResumeBuilderTool(container) {
     } catch (error) {
       console.error('[Resume Import]', error);
       setImportProcessing(false);
-      setImportError(`Could not import this resume. ${error?.message || 'Try a different file, or start by filling the form manually.'}`);
+      if (isRateLimitError(error)) {
+        showRateLimitExhaustedState();
+        setImportError(`Daily AI limit reached. Resume import resets in ${getQuotaResetCountdown()}.`);
+      } else if (isNetworkError(error)) {
+        showToast(toastStack, 'Network error - check your connection and try the import again.', 'error');
+        setImportError('Connection issue while importing. Check your internet and try again.');
+      } else {
+        setImportError(`Could not import this resume. ${error?.message || 'Try a different file, or start by filling the form manually.'}`);
+      }
     } finally {
       if (importFileInput) importFileInput.value = '';
       updateQuotaUi();
@@ -5698,6 +5931,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Please write a basic summary first, then AI can improve it.', 'info');
       return;
     }
+    if (!guardAiCredits()) return;
 
     const btn = improveSummaryButton;
     cacheImproveButtonLabel(btn, 'Improve with AI');
@@ -5725,7 +5959,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Summary improved! Review the changes above.', 'success');
     } catch (error) {
       console.error('[Resume Builder] Summary improvement failed:', error);
-      showToast(toastStack, 'Improvement failed. Check your AI credits or try again.', 'error');
+      handleAiActionError(error, 'Summary improvement failed. Check your AI credits or try again in a moment.');
     } finally {
       setImproveBtnLoading(btn, false);
       if (btn?.dataset.flashDone === 'true') {
@@ -5752,6 +5986,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Add at least one achievement first, then AI can improve it.', 'info');
       return;
     }
+    if (!guardAiCredits()) return;
 
     const jobTitle = readExperienceCardField(card, 'jobTitle', experience.jobTitle);
     const company = readExperienceCardField(card, 'company', experience.company);
@@ -5795,7 +6030,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Bullets improved! Review the changes above.', 'success');
     } catch (error) {
       console.error('[Resume Builder] Bullet improvement failed:', error);
-      showToast(toastStack, 'Improvement failed. Check your AI credits or try again.', 'error');
+      handleAiActionError(error, 'Bullet improvement failed. Your original bullets are unchanged.');
     } finally {
       setImproveBtnLoading(btn, false);
       if (btn?.dataset.flashDone === 'true') {
@@ -5816,6 +6051,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Add some skills first, then AI can organize and enhance them.', 'info');
       return;
     }
+    if (!guardAiCredits()) return;
 
     const btn = improveSkillsButton;
     cacheImproveButtonLabel(btn, 'Optimize Skills');
@@ -5844,7 +6080,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Skills optimized! Review the cleaned keyword list above.', 'success');
     } catch (error) {
       console.error('[Resume Builder] Skills improvement failed:', error);
-      showToast(toastStack, 'Improvement failed. Check your AI credits or try again.', 'error');
+      handleAiActionError(error, 'Skills optimization failed. Your original skills list is unchanged.');
     } finally {
       setImproveBtnLoading(btn, false);
       if (btn?.dataset.flashDone === 'true') {
@@ -5872,7 +6108,7 @@ export async function initResumeBuilderTool(container) {
       return;
     }
     if (getRemainingCreditsSafe() <= 0) {
-      showToast(toastStack, 'No AI credits remaining today. The local score above is still accurate for structure and completeness.', 'warning');
+      showRateLimitExhaustedState();
       if (scoreFullDescription) {
         scoreFullDescription.textContent = 'No AI credits remain today, but the local score still updates for structure and completeness.';
       }
@@ -5886,10 +6122,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Generate your resume first, then run the full analysis.', 'info');
       return;
     }
-    if (getRemainingCreditsSafe() <= 0) {
-      showToast(toastStack, 'No AI credits remaining today. The local score above is still accurate for structure and completeness.', 'warning');
-      return;
-    }
+    if (!guardAiCredits()) return;
 
     const jobDescription = String(scoreJdInput?.value || '').trim();
     if (jobDescription.length < 20) {
@@ -5938,7 +6171,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Job description analysis complete. Review the score and keyword gaps.', 'success');
     } catch (error) {
       console.error('[Resume Builder] ATS enrichment failed:', error);
-      showToast(toastStack, 'AI analysis failed. Check your credits or try again.', 'error');
+      handleAiActionError(error, 'Job description analysis failed. Your local ATS score is still available.');
     } finally {
       setImproveBtnLoading(btn, false);
       updateQuotaUi();
@@ -5968,6 +6201,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Please paste more resume text before running the ATS analysis.', 'error');
       return;
     }
+    if (!guardAiCredits()) return;
 
     atsBusy = true;
     state.lastReport = null;
@@ -6016,9 +6250,9 @@ export async function initResumeBuilderTool(container) {
       setBanner(atsBanner, 'Analysis complete. Review missing keywords and high-priority fixes before you apply.', 'success');
     } catch (error) {
       const message = String(error?.message || error || '');
-      if (/Daily limit reached/i.test(message)) {
-        setBanner(atsBanner, 'Daily limit reached \u2014 15 uses per tool per day. Resets at midnight. \u26A1');
-        showToast(toastStack, 'Daily limit reached \u2014 15 uses per tool per day. Resets at midnight. \u26A1', 'error');
+      if (isRateLimitError(error)) {
+        setBanner(atsBanner, `Daily AI limit reached. Resets in ${getQuotaResetCountdown()}.`);
+        showRateLimitExhaustedState();
       } else if (/busy|60 seconds/i.test(message)) {
         setBanner(atsBanner, 'Our AI is busy right now. Try again in 60 seconds.', 'error', runAtsAnalysis);
       } else if (/unexpected format/i.test(message)) {
@@ -6032,8 +6266,8 @@ export async function initResumeBuilderTool(container) {
       stopRotation();
       atsLoading.classList.add('hidden');
       atsBusy = false;
-      updateQuotaUi();
       setButtonLoading(atsButton, false, getQuotaButtonLabel(atsBaseLabel, TOOL_KEY), 'Analyzing...');
+      updateQuotaUi();
     }
   }
 
@@ -6043,6 +6277,7 @@ export async function initResumeBuilderTool(container) {
       showToast(toastStack, 'Add your full name before generating the resume.', 'error');
       return;
     }
+    if (!guardAiCredits()) return;
 
     builderBusy = true;
     state.generatedResume = '';
@@ -6077,9 +6312,9 @@ export async function initResumeBuilderTool(container) {
       setBanner(builderBanner, 'Resume draft ready. Review every metric, date, and claim before you use it.', 'success');
     } catch (error) {
       const message = String(error?.message || error || '');
-      if (/Daily limit reached/i.test(message)) {
-        setBanner(builderBanner, 'Daily limit reached \u2014 15 uses per tool per day. Resets at midnight. \u26A1');
-        showToast(toastStack, 'Daily limit reached \u2014 15 uses per tool per day. Resets at midnight. \u26A1', 'error');
+      if (isRateLimitError(error)) {
+        setBanner(builderBanner, `Daily AI limit reached. Resets in ${getQuotaResetCountdown()}.`);
+        showRateLimitExhaustedState();
       } else if (/busy|60 seconds/i.test(message)) {
         setBanner(builderBanner, 'Our AI is busy right now. Try again in 60 seconds.', 'error', runResumeBuilder);
       } else if (/connection|network/i.test(message) || !navigator.onLine) {
@@ -6091,8 +6326,8 @@ export async function initResumeBuilderTool(container) {
       stopRotation();
       builderLoading.classList.add('hidden');
       builderBusy = false;
-      updateQuotaUi();
       setButtonLoading(generateButton, false, `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`, 'Generating...');
+      updateQuotaUi();
       refreshLiveScore();
       updateCompletionBar(state);
     }
@@ -6352,7 +6587,11 @@ export async function initResumeBuilderTool(container) {
 
   copyReportButton.addEventListener('click', async () => {
     if (!state.lastReport) return;
-    await copyText(buildReportMarkdown(state.lastReport), toastStack, 'ATS report copied to clipboard.');
+    try {
+      await copyText(buildReportMarkdown(state.lastReport), toastStack, 'ATS report copied to clipboard.');
+    } catch (error) {
+      console.error('[Resume Builder] ATS report copy failed:', error);
+    }
   });
 
   downloadReportButton.addEventListener('click', () => {
@@ -6362,11 +6601,15 @@ export async function initResumeBuilderTool(container) {
 
   copyResumeButton.addEventListener('click', async () => {
     if (!state.generatedResume) return;
-    await copyText(
-      buildFormattedResumeText(state),
-      toastStack,
-      'Resume copied as formatted text! Remember to review before pasting to a job application.',
-    );
+    try {
+      await copyText(
+        buildFormattedResumeText(state),
+        toastStack,
+        'Resume copied as formatted text! Remember to review before pasting to a job application.',
+      );
+    } catch (error) {
+      console.error('[Resume Builder] Resume copy failed:', error);
+    }
   });
 
   downloadResumeButton.addEventListener('click', () => {

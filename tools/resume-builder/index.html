@@ -1,5 +1,5 @@
 <div class="resume-tool" data-resume-tool>
-  <div class="resume-toast-stack" id="resume-toast-stack" aria-live="polite" aria-atomic="true"></div>
+  <div class="resume-toast-stack" id="resume-toast-stack" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <div class="resume-tabs" role="tablist" aria-label="Resume tool modes">
     <button
@@ -263,6 +263,16 @@
         <span class="rb-credits-bar__icon" aria-hidden="true">&#9889;</span>
         <span id="rb-credits-remaining">15</span>
         <span class="rb-credits-bar__label"> AI credits remaining today</span>
+      </div>
+      <div id="rb-quota-exhausted-banner" class="rb-quota-exhausted-banner" role="alert" aria-live="assertive" hidden>
+        <span class="rb-quota-banner__icon" aria-hidden="true">&#9889;</span>
+        <div class="rb-quota-banner__text">
+          <strong>Daily AI limit reached</strong>
+          <span id="rb-quota-reset-msg">Resets in <span id="rb-quota-countdown"></span></span>
+        </div>
+        <div class="rb-quota-banner__actions">
+          <span class="rb-quota-banner__note">PDF, DOCX, templates, share link, and copy still work</span>
+        </div>
       </div>
 
       <div class="rb-live-score-compact" id="rb-live-score-compact" aria-live="polite">

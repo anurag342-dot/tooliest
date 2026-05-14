@@ -73,6 +73,8 @@
   --color-text-secondary: var(--rb-text-secondary);
   color: var(--rb-text-primary);
   color-scheme: dark light;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   scroll-behavior: smooth;
 }
 
@@ -83,7 +85,15 @@
 }
 
 .resume-tool *:focus {
+  outline: 2px solid var(--rb-accent-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--rb-accent-subtle);
+  border-radius: var(--rb-radius-sm);
+}
+
+.resume-tool *:focus:not(:focus-visible) {
   outline: none;
+  box-shadow: none;
 }
 
 .resume-tool *:focus-visible {
@@ -127,6 +137,8 @@
 }
 
 .resume-tab {
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   border: 1px solid var(--border-color);
   background: var(--bg-glass);
@@ -639,6 +651,8 @@
 }
 
 .resume-remove-btn {
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   border: 1px solid rgba(239, 68, 68, 0.3);
   background: rgba(239, 68, 68, 0.08);
@@ -1329,6 +1343,7 @@
   background: transparent;
   border: 1px solid transparent;
   transition: color 0.2s, border-color 0.2s;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -1851,6 +1866,8 @@
 
 .rb-import-link-btn,
 .rb-import-cancel {
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   border: 0;
   background: transparent;
@@ -2114,6 +2131,7 @@
   border-radius: 8px;
   color: var(--text-secondary, rgba(226, 232, 240, 0.66));
   background: rgba(255, 255, 255, 0.018);
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -2443,6 +2461,8 @@
 }
 
 .cl-option-pill {
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   border: 1px solid var(--color-border, rgba(255, 255, 255, 0.15));
   border-radius: 999px;
@@ -2779,6 +2799,7 @@
   z-index: 30;
   background: color-mix(in srgb, var(--rb-bg-secondary) 88%, transparent);
   border-color: var(--rb-border-default);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
 }
 
@@ -2897,6 +2918,9 @@
 .rb-score-jd-form textarea,
 .cl-settings-panel input,
 .cl-settings-panel textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   background: var(--rb-bg-tertiary);
   border-color: var(--rb-border-default);
   color: var(--rb-text-primary);
@@ -2918,6 +2942,18 @@
 .resume-tool textarea::placeholder {
   color: var(--rb-text-tertiary);
   font-style: italic;
+}
+
+.resume-tool input:-webkit-autofill,
+.resume-tool input:-webkit-autofill:hover,
+.resume-tool input:-webkit-autofill:focus,
+.resume-tool textarea:-webkit-autofill,
+.resume-tool textarea:-webkit-autofill:hover,
+.resume-tool textarea:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--rb-bg-tertiary, #1e1e2e) inset !important;
+  -webkit-text-fill-color: var(--rb-text-primary, rgba(226, 232, 240, 0.9)) !important;
+  caret-color: var(--rb-text-primary, rgba(226, 232, 240, 0.9));
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .rb-preview-empty p,
@@ -3001,6 +3037,7 @@
   z-index: 18;
   background: color-mix(in srgb, var(--rb-bg-secondary) 92%, transparent);
   border-color: var(--rb-border-default);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
 
@@ -3230,10 +3267,13 @@
     border-radius: 22px;
     background: color-mix(in srgb, var(--rb-bg-secondary) 92%, transparent);
     box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+    -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
   }
 
   .rb-mobile-nav__btn {
+    -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
     display: grid;
     place-items: center;
@@ -3582,6 +3622,8 @@
 }
 
 .rb-section-toggle {
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   border: 0;
   background: transparent;
@@ -3741,7 +3783,6 @@
   .rb-preview-pane,
   .cl-preview-pane {
     overflow: auto;
-    -webkit-overflow-scrolling: touch;
     touch-action: pan-x pan-y pinch-zoom;
   }
 
@@ -4143,6 +4184,60 @@
 
 #rb-kw-restore:hover {
   color: var(--rb-accent-hover);
+}
+
+.rb-btn-quota-exhausted {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+.rb-btn-quota-exhausted::after {
+  content: " (quota)";
+  font-size: 0.7em;
+  opacity: 0.7;
+}
+
+.rb-quota-exhausted-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  border-radius: var(--rb-radius-md, 8px);
+  background: rgba(251, 146, 60, 0.08);
+  padding: 0.7rem 1rem;
+  flex-wrap: wrap;
+}
+
+.rb-quota-exhausted-banner[hidden] {
+  display: none;
+}
+
+.rb-quota-banner__icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.rb-quota-banner__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  color: var(--rb-text-primary);
+  font-size: 0.8rem;
+}
+
+.rb-quota-banner__text strong {
+  color: #fb923c;
+}
+
+#rb-quota-reset-msg,
+.rb-quota-banner__note {
+  color: var(--rb-text-secondary);
+}
+
+.rb-quota-banner__note {
+  font-size: 0.72rem;
 }
 
 @media (max-width: 640px) {
