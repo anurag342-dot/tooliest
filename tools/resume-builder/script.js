@@ -3396,6 +3396,7 @@ function configureTabs(root) {
 }
 
 export async function initResumeBuilderTool(container) {
+  try {
   const root = qs(container, '[data-resume-tool]') || container;
   configureTabs(root);
 
@@ -6655,5 +6656,9 @@ export async function initResumeBuilderTool(container) {
     window.setTimeout(() => {
       showToast(toastStack, 'Draft restored - your previous work has been loaded.', 'info');
     }, 400);
+  }
+  } catch (error) {
+    console.error('[Resume Builder Init]', error);
+    showGlobalToast('Resume Builder could not initialize. Refresh the page and try again.', 'error');
   }
 }
