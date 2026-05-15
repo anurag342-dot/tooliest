@@ -11,8 +11,5 @@ id = "3ae4cbc48f6b42088ce95fcdb8ed2048"
 
 [[kv_namespaces]]
 binding = "RESUME_STORE"
-# Dedicated namespace creation was blocked locally by missing CLOUDFLARE_API_TOKEN.
-# This fallback keeps deployment working; replace with the dedicated RESUME_STORE id
-# and preview_id after creating the namespace in Cloudflare.
-id = "3ae4cbc48f6b42088ce95fcdb8ed2048"
-preview_id = "3ae4cbc48f6b42088ce95fcdb8ed2048"
+id = "dd9d03af45554efd9f5c185def9989f9"
+preview_id = "49cf580b8e404153aedb52e6cb5a98ba"
