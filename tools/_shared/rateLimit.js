@@ -13,6 +13,52 @@ function todayStr() {
   return new Date().toDateString();
 }
 
+function getQuotaResetAt() {
+  const resetAt = new Date();
+  resetAt.setHours(24, 0, 0, 0);
+  return resetAt;
+}
+
+function plural(value, unit) {
+  return `${value} ${unit}${value === 1 ? '' : 's'}`;
+}
+
+function formatLocalResetTime(date = getQuotaResetAt()) {
+  return date.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function formatResetCountdown(date = getQuotaResetAt()) {
+  const diffMs = Math.max(0, date.getTime() - Date.now());
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffMins = Math.max(1, Math.ceil((diffMs % 3600000) / 60000));
+  if (diffHours <= 0) return plural(diffMins, 'minute');
+  if (diffMins >= 60) return plural(diffHours + 1, 'hour');
+  return `${diffHours}h ${diffMins}m`;
+}
+
+export function getQuotaResetDetails() {
+  const resetAt = getQuotaResetAt();
+  return {
+    resetAt,
+    countdown: formatResetCountdown(resetAt),
+    localTime: formatLocalResetTime(resetAt),
+    label: `Resets in ${formatResetCountdown(resetAt)} at ${formatLocalResetTime(resetAt)} local time`,
+  };
+}
+
+function createQuotaError(message) {
+  const details = getQuotaResetDetails();
+  const error = new Error(message || `Daily AI limit reached. ${details.label}.`);
+  error.status = 429;
+  error.quotaExhausted = true;
+  error.resetAt = details.resetAt;
+  error.resetLabel = details.label;
+  return error;
+}
+
 function readQuotaState(tool) {
   try {
     const raw = localStorage.getItem(storageKey(tool));
@@ -69,6 +115,10 @@ export function getRemaining(tool) {
   return Math.max(0, MAX_PER_DAY - state.count);
 }
 
+export function isQuotaExhausted(tool) {
+  return getRemaining(tool) <= 0;
+}
+
 export function consume(tool) {
   const state = readQuotaState(tool);
   writeQuotaState(tool, Math.min(MAX_PER_DAY, state.count + 1));
@@ -79,13 +129,14 @@ export function renderQuota(tool, el) {
   if (!el) return;
 
   const remaining = getRemaining(tool);
+  const exhausted = remaining <= 0;
   const pct = (remaining / MAX_PER_DAY) * 100;
   const color = pct > 50 ? '#22c55e' : pct > 20 ? '#f59e0b' : '#ef4444';
 
   el.textContent = '';
 
   const wrapper = document.createElement('div');
-  wrapper.className = 'quota-bar';
+  wrapper.className = `quota-bar${exhausted ? ' quota-bar-exhausted' : ''}`;
 
   const label = document.createElement('span');
   label.className = 'quota-label';
@@ -101,11 +152,21 @@ export function renderQuota(tool, el) {
 
   track.appendChild(fill);
   wrapper.append(label, track);
+
+  if (exhausted) {
+    const resetNote = document.createElement('span');
+    resetNote.className = 'quota-reset-note';
+    resetNote.textContent = `Daily AI limit reached. ${getQuotaResetDetails().label}.`;
+    wrapper.appendChild(resetNote);
+  }
+
   el.appendChild(wrapper);
 }
 
 export function getQuotaButtonLabel(baseLabel, tool) {
-  return `${baseLabel} (${getRemaining(tool)} left today)`;
+  return isQuotaExhausted(tool)
+    ? `${baseLabel} (limit reached)`
+    : `${baseLabel} (${getRemaining(tool)} left today)`;
 }
 
 export async function callAI({
@@ -117,8 +178,13 @@ export async function callAI({
   chargeQuota = true,
   skipModels = [],
 }) {
+  if (chargeQuota && isQuotaExhausted(tool)) {
+    throw createQuotaError();
+  }
+
   const requestBody = {
     tool,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userContent },
@@ -156,7 +222,11 @@ export async function callAI({
   }
 
   if (response.status === 429) {
-    throw new Error(data?.message || 'Daily limit reached — 15 uses per tool per day. Resets at midnight. ⚡');
+    throw createQuotaError(data?.message);
+  }
+
+  if (response.status === 403 && /origin/i.test(String(data?.error || data?.message || ''))) {
+    throw new Error('This browser domain is not allowed to use AI yet. Refresh the page after the latest Tooliest update deploys.');
   }
 
   if (!response.ok) {

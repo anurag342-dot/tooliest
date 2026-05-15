@@ -1,4 +1,8 @@
 const DEFAULT_ALLOWED_ORIGIN = 'https://tooliest.com';
+const DEFAULT_ALLOWED_ORIGINS = new Set([
+  DEFAULT_ALLOWED_ORIGIN,
+  'https://www.tooliest.com',
+]);
 const MAX_MESSAGES = 8;
 const MAX_MESSAGE_CHARS = 20000;
 const MAX_TOKENS_DEFAULT = 2048;
@@ -32,13 +36,24 @@ function getRequestOrigin(request) {
   return String(request.headers.get('Origin') || '').trim();
 }
 
+function getConfiguredAllowedOrigins(env) {
+  return String(env.ALLOWED_ORIGIN || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
 function getAllowedOrigin(request, env) {
   const requestOrigin = getRequestOrigin(request);
-  const configuredOrigin = String(env.ALLOWED_ORIGIN || DEFAULT_ALLOWED_ORIGIN).trim() || DEFAULT_ALLOWED_ORIGIN;
+  const configuredOrigins = getConfiguredAllowedOrigins(env);
+  const allowedOrigins = new Set([
+    ...DEFAULT_ALLOWED_ORIGINS,
+    ...configuredOrigins,
+  ]);
   if (!requestOrigin) {
-    return configuredOrigin;
+    return configuredOrigins[0] || DEFAULT_ALLOWED_ORIGIN;
   }
-  if (requestOrigin === configuredOrigin || requestOrigin === DEFAULT_ALLOWED_ORIGIN || isLocalOrigin(requestOrigin)) {
+  if (allowedOrigins.has(requestOrigin) || isLocalOrigin(requestOrigin)) {
     return requestOrigin;
   }
   return null;
@@ -81,9 +96,32 @@ function getClientIP(request) {
   );
 }
 
-async function checkIPLimit(env, ip, tool) {
+function getClientTimeZone(value) {
+  const timeZone = typeof value === 'string' ? value.trim() : '';
+  if (!timeZone || timeZone.length > 80) return 'UTC';
   try {
-    const key = `rl:${ip}:${tool}:${new Date().toDateString()}`;
+    new Intl.DateTimeFormat('en-US', { timeZone }).format(new Date());
+    return timeZone;
+  } catch (_) {
+    return 'UTC';
+  }
+}
+
+function getDateKeyForTimeZone(timeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
+async function checkIPLimit(env, ip, tool, timeZone) {
+  try {
+    const dateKey = getDateKeyForTimeZone(timeZone);
+    const key = `rl:${ip}:${tool}:${dateKey}`;
     const current = parseInt((await env.TOOLIEST_KV.get(key)) || '0', 10);
     if (current >= PER_TOOL_DAILY_LIMIT) {
       return { allowed: false, remaining: 0 };
@@ -213,6 +251,7 @@ export async function onRequestPost({ request, env }) {
   }
 
   const tool = typeof body?.tool === 'string' ? body.tool.trim() : '';
+  const timeZone = getClientTimeZone(body?.timezone);
   const messages = sanitizeMessages(body?.messages);
   const chain = CHAINS[tool];
 
@@ -224,14 +263,14 @@ export async function onRequestPost({ request, env }) {
   }
 
   const ip = getClientIP(request);
-  const { allowed, remaining } = await checkIPLimit(env, ip, tool);
+  const { allowed, remaining } = await checkIPLimit(env, ip, tool, timeZone);
   const rateLimitHeaders = buildRateLimitHeaders(remaining);
 
   if (!allowed) {
     return json({
       error: 'Daily limit reached',
-      message: 'You have used all 15 free requests today for this tool. Resets at midnight. ⚡',
-      reset_at: 'midnight (your local time)',
+      message: 'You have used all 15 free requests today for this tool. Resets at midnight in your local time.',
+      reset_at: `midnight (${timeZone})`,
     }, 429, {
       origin: responseOrigin,
       headers: rateLimitHeaders,

@@ -962,6 +962,9 @@ function _ensureAISharedStyles() {
     .quota-label{font-size:.82rem;color:var(--text-tertiary)}
     .quota-track{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
     .quota-fill{height:100%;border-radius:999px;transition:width .2s ease}
+    .quota-reset-note{font-size:.78rem;line-height:1.45;color:#fbbf24}
+    .quota-bar-exhausted .quota-track{background:rgba(239,68,68,.16)}
+    .ai-quota-exhausted{opacity:.55!important;cursor:not-allowed!important;filter:saturate(.65)}
     .ai-inline-note{font-size:.82rem;color:var(--text-tertiary);margin-top:10px}
   `;
   document.head.appendChild(style);
@@ -1044,8 +1047,9 @@ async function callAI(tool, input, options = {}) {
     return result;
   } catch (error) {
     const message = String(error && error.message ? error.message : error || '');
-    if (/Daily limit reached/i.test(message)) {
-      showError('Daily limit reached — 15 uses per tool per day. Resets at midnight. ⚡');
+    if (error?.quotaExhausted || error?.status === 429 || /Daily (AI )?limit reached|quota/i.test(message)) {
+      const resetLabel = error?.resetLabel || 'Resets at midnight in your local time.';
+      showError(`Daily AI limit reached. ${resetLabel} Non-AI features still work.`);
       return null;
     }
     if (/busy/i.test(message) || /60 seconds/i.test(message)) {
@@ -1168,10 +1172,21 @@ async function _syncAIQuota(bindings, tool, baseLabel) {
   if (!bindings) return;
   _ensureAISharedStyles();
   const shared = await _loadSharedAIClient();
+  const isExhausted = typeof shared.isQuotaExhausted === 'function'
+    ? shared.isQuotaExhausted(tool)
+    : shared.getRemaining(tool) <= 0;
   if (bindings.quotaMount) {
     shared.renderQuota(tool, bindings.quotaMount);
   }
   bindings.setIdleLabel(shared.getQuotaButtonLabel(baseLabel || bindings.baseLabel || 'Generate', tool));
+  if (bindings.button) {
+    bindings.button.disabled = isExhausted;
+    bindings.button.classList.toggle('ai-quota-exhausted', isExhausted);
+    bindings.button.setAttribute('aria-disabled', String(isExhausted));
+    bindings.button.title = isExhausted && typeof shared.getQuotaResetDetails === 'function'
+      ? shared.getQuotaResetDetails().label
+      : '';
+  }
 }
 
 function _ensureExternalToolStylesheet(href, id) {
