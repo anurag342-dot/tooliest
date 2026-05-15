@@ -13,6 +13,7 @@
   const CONSENT_KEY = 'tooliest_cookie_consent';
   const CONSENT_VERSION = '2';
   let releaseBannerFocus = null;
+  let bannerResizeObserver = null;
 
   // --- Google Consent Mode v2: set defaults as early as possible ---
   window.dataLayer = window.dataLayer || [];
@@ -81,15 +82,52 @@
       .filter((element) => !element.hasAttribute('hidden') && element.getAttribute('aria-hidden') !== 'true');
   }
 
-  function updateBannerLayout() {
+  function clearBannerHeight() {
+    document.documentElement.style.setProperty('--cookie-banner-height', '0px');
+  }
+
+  function setBannerHeight(height) {
+    document.documentElement.style.setProperty('--cookie-banner-height', `${Math.max(0, Math.round(height))}px`);
+  }
+
+  function measureBannerHeightFallback() {
     const banner = document.getElementById('cookie-banner');
-    const rootStyle = document.documentElement.style;
     if (!banner || banner.classList.contains('banner-hidden')) {
-      rootStyle.setProperty('--cookie-banner-height', '0px');
+      clearBannerHeight();
       return;
     }
 
-    rootStyle.setProperty('--cookie-banner-height', `${banner.offsetHeight}px`);
+    setBannerHeight(banner.getBoundingClientRect().height);
+  }
+
+  function setupBannerResizeObserver() {
+    const banner = document.getElementById('cookie-banner');
+    if (!banner) return;
+
+    if (bannerResizeObserver) {
+      bannerResizeObserver.disconnect();
+      bannerResizeObserver = null;
+    }
+
+    if (!('ResizeObserver' in window)) {
+      window.setTimeout(measureBannerHeightFallback, 100);
+      return;
+    }
+
+    bannerResizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target.classList.contains('banner-hidden')) {
+          clearBannerHeight();
+          continue;
+        }
+
+        const borderBox = Array.isArray(entry.borderBoxSize) ? entry.borderBoxSize[0] : entry.borderBoxSize;
+        const height = borderBox?.blockSize || entry.contentRect.height;
+        setBannerHeight(height);
+      }
+    });
+
+    bannerResizeObserver.observe(banner);
   }
 
   function activateBannerFocusTrap(banner) {
@@ -149,7 +187,7 @@
       banner.classList.add('banner-hidden');
       banner.setAttribute('aria-hidden', 'true');
     }
-    updateBannerLayout();
+    clearBannerHeight();
   }
 
   function handleAccept() {
@@ -179,15 +217,15 @@
       banner.tabIndex = -1;
       releaseBannerFocus?.();
       releaseBannerFocus = activateBannerFocusTrap(banner);
-      updateBannerLayout();
+      setupBannerResizeObserver();
 
       // Animate in
-      requestAnimationFrame(() => {
+      window.setTimeout(() => {
         requestAnimationFrame(() => {
           banner.classList.add('banner-visible');
-          updateBannerLayout();
+          setupBannerResizeObserver();
         });
-      });
+      }, 50);
     };
 
     if (document.readyState === 'loading') {
@@ -219,14 +257,11 @@
       showBanner();
     },
     refreshLayout: function () {
-      updateBannerLayout();
+      setupBannerResizeObserver();
     },
     getStatus: function () {
       return getSavedConsent();
     }
   };
-
-  window.addEventListener('resize', updateBannerLayout, { passive: true });
-  window.addEventListener('orientationchange', updateBannerLayout, { passive: true });
 
 })();
