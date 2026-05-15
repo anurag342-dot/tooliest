@@ -73,6 +73,7 @@ let autosaveRefreshTimer = 0;
 let resumeTemplateState = null;
 let resumeTemplateRoot = null;
 let resumeTemplateSave = null;
+let resumePreviewPrefersLive = true;
 let quotaCountdownInterval = 0;
 let resumeQuotaUiController = null;
 let globalErrorBoundaryReady = false;
@@ -1894,10 +1895,11 @@ function renderFormattedPreview(resumeText) {
   if (!container) return;
 
   if (!resumeText || !resumeText.trim()) {
+    resumePreviewPrefersLive = true;
     container.innerHTML = `
       <div class="rb-preview-empty">
         <div class="rb-preview-empty-icon" aria-hidden="true">&#128196;</div>
-        <p>Your formatted resume will appear here after generation</p>
+        <p>Your resume will appear here as you fill in your details</p>
       </div>`;
     applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
     updateWordCountDisplay(resumeExportState);
@@ -1905,6 +1907,7 @@ function renderFormattedPreview(resumeText) {
   }
 
   const { name, contact } = getCanonicalResumeHeader(resumeExportState);
+  resumePreviewPrefersLive = false;
   const parsed = parseResumeText(resumeText);
   const displayName = name || parsed.name;
   const contactParts = getResumeContactParts(resumeExportState, contact || parsed.contact);
@@ -1941,6 +1944,463 @@ function renderFormattedPreview(resumeText) {
   container.innerHTML = html;
   applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
   updateWordCountDisplay(resumeExportState);
+}
+
+// --- LIVE RESUME RENDERER ---
+function cleanResumeValue(value) {
+  return String(value || '').trim();
+}
+
+function hasAnyResumeValue(values) {
+  return values.some((value) => cleanResumeValue(value));
+}
+
+function createResumeSection(title, lines = []) {
+  return {
+    title,
+    lines: lines.map((line) => cleanResumeValue(line)).filter(Boolean),
+  };
+}
+
+function createBulletLine(value) {
+  const text = cleanResumeValue(value);
+  return text ? `\u2022 ${text.replace(/^[\s\u2022-]+/, '')}` : '';
+}
+
+function getLiveResumeSectionsFromState(state = resumeExportState) {
+  if (!state) return [];
+  const sections = [];
+  const summary = cleanResumeValue(state.summary);
+  if (summary) {
+    sections.push(createResumeSection('PROFESSIONAL SUMMARY', [summary]));
+  }
+
+  const renderers = {
+    experience: () => {
+      const lines = [];
+      (state.experiences || []).forEach((exp) => {
+        const title = cleanResumeValue(exp?.jobTitle || exp?.title);
+        if (!title) return;
+        const company = cleanResumeValue(exp?.company);
+        const duration = cleanResumeValue(exp?.duration || exp?.dates);
+        const meta = [company, duration].filter(Boolean).join(' | ');
+        lines.push(meta ? `${title} | ${meta}` : title);
+        [exp?.achievement1, exp?.achievement2, exp?.achievement3]
+          .map(createBulletLine)
+          .filter(Boolean)
+          .forEach((line) => lines.push(line));
+      });
+      return createResumeSection('WORK EXPERIENCE', lines);
+    },
+    education: () => {
+      const lines = [];
+      (state.educations || []).forEach((edu) => {
+        const degree = cleanResumeValue(edu?.degree);
+        if (!degree) return;
+        const institution = cleanResumeValue(edu?.institution);
+        const year = cleanResumeValue(edu?.year);
+        const lineParts = [degree, institution].filter(Boolean);
+        lines.push(`${lineParts.join(' - ')}${year ? ` ${year}` : ''}`.trim());
+        if (cleanResumeValue(edu?.gpa)) lines.push(`GPA: ${cleanResumeValue(edu.gpa)}`);
+        if (cleanResumeValue(edu?.courses)) lines.push(`Coursework: ${cleanResumeValue(edu.courses)}`);
+      });
+      return createResumeSection('EDUCATION', lines);
+    },
+    skills: () => createResumeSection('SKILLS', [state.skills]),
+    projects: () => {
+      if (!isSectionEnabled(state, 'projects')) return createResumeSection('PROJECTS', []);
+      const lines = [];
+      (state.projects || []).forEach((project) => {
+        const name = cleanResumeValue(project?.name);
+        if (!name) return;
+        const link = cleanResumeValue(project?.link);
+        const technologies = cleanResumeValue(project?.technologies);
+        const description = cleanResumeValue(project?.description || project?.details);
+        lines.push(link ? `${name} | ${link}` : name);
+        if (technologies) lines.push(`Tech: ${technologies}`);
+        if (description) lines.push(createBulletLine(description));
+      });
+      return createResumeSection('PROJECTS', lines);
+    },
+    certifications: () => {
+      if (!isSectionEnabled(state, 'certifications')) return createResumeSection('CERTIFICATIONS', []);
+      const lines = (state.certifications || [])
+        .map((certification) => {
+          if (typeof certification === 'string') return createBulletLine(certification);
+          return createBulletLine(certification?.name || certification?.title);
+        })
+        .filter(Boolean);
+      return createResumeSection('CERTIFICATIONS', lines);
+    },
+    languages: () => createResumeSection('LANGUAGES', normalizeOptionalList(state.languages)),
+    awards: () => createResumeSection('AWARDS & HONORS', normalizeNameDetailList(state.awards)),
+    volunteer: () => createResumeSection('VOLUNTEER WORK', normalizeRoleLikeList(state.volunteer)),
+    publications: () => createResumeSection('PUBLICATIONS', normalizeNameDetailList(state.publications)),
+    courses: () => createResumeSection('COURSES', normalizeOptionalList(state.courses)),
+    custom: () => createResumeSection(
+      cleanResumeValue(state.customSection?.title || state.custom?.title) || 'CUSTOM SECTION',
+      normalizeOptionalList(state.customSection?.items || state.custom?.items || state.custom),
+    ),
+  };
+
+  normalizeSectionOrder(state.sectionOrder).forEach((key) => {
+    const section = renderers[key]?.();
+    if (section?.lines?.length) sections.push(section);
+  });
+  return sections;
+}
+
+function normalizeOptionalList(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      if (typeof item === 'string') return item;
+      return [item?.name || item?.title, item?.details || item?.description].filter(Boolean).join(' - ');
+    }).filter((item) => cleanResumeValue(item));
+  }
+  return parseCommaList(value).length ? parseCommaList(value) : [value].filter((item) => cleanResumeValue(item));
+}
+
+function normalizeNameDetailList(items) {
+  if (!Array.isArray(items)) return normalizeOptionalList(items);
+  return items.map((item) => {
+    if (typeof item === 'string') return item;
+    const name = cleanResumeValue(item?.name || item?.title);
+    const details = [item?.issuer, item?.date, item?.description || item?.details]
+      .map(cleanResumeValue)
+      .filter(Boolean)
+      .join(' - ');
+    return [name, details].filter(Boolean).join(' - ');
+  }).filter(Boolean);
+}
+
+function normalizeRoleLikeList(items) {
+  if (!Array.isArray(items)) return normalizeOptionalList(items);
+  const lines = [];
+  items.forEach((item) => {
+    if (typeof item === 'string') {
+      if (cleanResumeValue(item)) lines.push(item);
+      return;
+    }
+    const role = cleanResumeValue(item?.role || item?.title || item?.name);
+    if (!role) return;
+    const organization = cleanResumeValue(item?.organization || item?.company);
+    const duration = cleanResumeValue(item?.duration || item?.dates);
+    lines.push([role, organization, duration].filter(Boolean).join(' | '));
+    if (cleanResumeValue(item?.description || item?.details)) {
+      lines.push(createBulletLine(item.description || item.details));
+    }
+  });
+  return lines;
+}
+
+function hasMeaningfulLiveResumeData(state = resumeExportState) {
+  if (!state) return false;
+  const hasName = cleanResumeValue(state.personal?.name);
+  const hasExperience = (state.experiences || []).some((exp) => hasAnyResumeValue([
+    exp?.jobTitle || exp?.title,
+    exp?.company,
+    exp?.duration,
+    exp?.achievement1,
+    exp?.achievement2,
+    exp?.achievement3,
+  ]));
+  const hasEducation = (state.educations || []).some((edu) => hasAnyResumeValue([
+    edu?.degree,
+    edu?.institution,
+    edu?.year,
+    edu?.gpa,
+    edu?.courses,
+  ]));
+  return Boolean(hasName || hasExperience || hasEducation);
+}
+
+function buildLiveResumePlainText(state = resumeExportState) {
+  if (!state || !hasMeaningfulLiveResumeData(state)) return '';
+  const parts = [];
+  const name = cleanResumeValue(state.personal?.name) || 'Your Name';
+  parts.push(name.toUpperCase());
+  const contact = getResumeContactParts(state).join(' | ');
+  if (contact) parts.push(contact);
+  getLiveResumeSectionsFromState(state).forEach((section) => {
+    parts.push('', String(section.title || '').toUpperCase(), '-'.repeat(32));
+    section.lines.forEach((line) => parts.push(line));
+  });
+  return parts.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function renderLiveResumeFromState(state = resumeExportState) {
+  const container = document.getElementById('rb-preview-pane');
+  if (!container) return;
+  resumePreviewPrefersLive = true;
+
+  if (!hasMeaningfulLiveResumeData(state)) {
+    container.innerHTML = `
+      <div class="rb-preview-empty">
+        <div class="rb-preview-empty-icon" aria-hidden="true">&#128196;</div>
+        <p>Your resume will appear here as you fill in your details</p>
+      </div>`;
+    applyTemplate(state?.template || 'classic', { persist: false, animate: false });
+    updateWordCountDisplay(state);
+    return;
+  }
+
+  const name = cleanResumeValue(state.personal?.name) || 'Your Name';
+  const contactParts = getResumeContactParts(state);
+  let html = '<div class="rb-resume-doc">';
+  html += `
+    <div class="rb-resume-header">
+      <h1 class="rb-resume-name">${escapeHtml(name)}</h1>
+      <p class="rb-resume-contact${contactParts.length ? '' : ' rb-resume-placeholder'}">${
+        contactParts.length ? renderContactParts(contactParts) : 'Add your contact details'
+      }</p>
+    </div>`;
+
+  getLiveResumeSectionsFromState(state).forEach((section) => {
+    html += `
+      <div class="rb-resume-section">
+        <h2 class="rb-resume-section-title">${escapeHtml(section.title)}</h2>
+        <div class="rb-resume-section-divider"></div>
+        <div class="rb-resume-section-body">`;
+    section.lines.forEach((line) => {
+      if (line.startsWith('\u2022') || line.startsWith('-')) {
+        const text = normalizeResumeBulletText(line);
+        html += `<p class="rb-resume-bullet"><span class="rb-resume-bullet-marker" aria-hidden="true"></span><span>${escapeHtml(text)}</span></p>`;
+      } else {
+        html += `<p class="rb-resume-line">${escapeHtml(line)}</p>`;
+      }
+    });
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+  applyTemplate(state.template || 'classic', { persist: false, animate: false });
+  updateWordCountDisplay(state);
+}
+
+function buildAccordionCard(sectionKey, label, nodes, options = {}) {
+  const card = createNode('section', 'rb-accordion-card');
+  const bodyId = `rb-accordion-body-${sectionKey}`;
+  card.dataset.accordionSection = sectionKey;
+  card.classList.toggle('is-open', options.open !== false);
+  if (options.locked) card.dataset.accordionLocked = 'true';
+
+  const header = createNode('button', 'rb-accordion-header');
+  header.type = 'button';
+  header.dataset.accordionTrigger = sectionKey;
+  header.setAttribute('aria-controls', bodyId);
+  header.setAttribute('aria-expanded', String(options.open !== false));
+  header.innerHTML = `
+    <span class="rb-accordion-header__left">
+      <span class="rb-accordion-grip" aria-hidden="true">&#8942;</span>
+      <span class="rb-accordion-icon" aria-hidden="true">${options.icon || '&#9679;'}</span>
+      <span class="rb-accordion-title">${escapeHtml(label)}</span>
+    </span>
+    <span class="rb-accordion-header__right">
+      <span class="rb-section-completeness rb-section-completeness--empty" data-section-status="${escapeHtml(sectionKey)}">Empty</span>
+      <span class="rb-accordion-chevron" aria-hidden="true">&#8964;</span>
+    </span>`;
+
+  const body = createNode('div', 'rb-accordion-body');
+  body.id = bodyId;
+  body.setAttribute('aria-hidden', String(options.open === false));
+  nodes.filter(Boolean).forEach((node) => body.appendChild(node));
+  card.append(header, body);
+  return card;
+}
+
+function moveNode(node, parent) {
+  if (node && parent) parent.appendChild(node);
+}
+
+function setupBuilderCanvasLayout(root) {
+  const builderPanel = qs(root, '#resume-panel-builder');
+  const card = builderPanel?.querySelector('.resume-card');
+  if (!builderPanel || !card || qs(root, '#rb-app-layout')) return;
+
+  card.classList.add('rb-builder-canvas');
+  const cardHead = card.querySelector('.resume-card-head');
+  const cardTitle = cardHead?.querySelector('h2');
+  const cardEyebrow = cardHead?.querySelector('.resume-eyebrow');
+  const cardMeta = cardHead?.querySelector('.resume-meta');
+  if (cardEyebrow) cardEyebrow.textContent = 'Live builder';
+  if (cardTitle) cardTitle.textContent = 'Edit and preview your resume side by side';
+  if (cardMeta) cardMeta.textContent = 'Live preview - AI polish';
+
+  const appLayout = createNode('div', 'rb-app-layout');
+  appLayout.id = 'rb-app-layout';
+  const editorPanel = createNode('div', 'rb-editor-panel');
+  editorPanel.id = 'rb-editor-panel';
+  const previewPanel = qs(root, '#rb-preview-panel');
+  previewPanel?.classList.remove('resume-preview-panel');
+  previewPanel?.classList.add('rb-preview-panel');
+
+  const editorTopbar = createNode('div', 'rb-editor-topbar');
+  const accordion = createNode('div', 'rb-accordion');
+  accordion.id = 'rb-accordion';
+  const editorBottombar = createNode('div', 'rb-editor-bottombar');
+
+  const importCard = qs(root, '#rb-import-card');
+  const completion = qs(root, '#rb-completion-bar-wrap');
+  const credits = qs(root, '#rb-credits-bar');
+  const quotaBanner = qs(root, '#rb-quota-exhausted-banner');
+  const scoreCompact = qs(root, '#rb-live-score-compact');
+  [importCard, completion, credits, quotaBanner, scoreCompact].forEach((node) => moveNode(node, editorTopbar));
+
+  const personalGrid = qs(root, '[data-step-panel="1"] .resume-form-grid');
+  const summaryField = qs(root, '#rb-summary')?.closest('.resume-field');
+  const targetRoleField = qs(root, '#rb-target-role')?.closest('.resume-field');
+  const skillsField = qs(root, '#rb-skills')?.closest('.resume-field');
+  const keywordSuggestions = qs(root, '#rb-keyword-suggestions');
+  const keywordRestore = qs(root, '#rb-kw-restore');
+  if (keywordSuggestions && skillsField) skillsField.appendChild(keywordSuggestions);
+  if (keywordRestore && skillsField) skillsField.appendChild(keywordRestore);
+
+  accordion.append(
+    buildAccordionCard('personal', 'Personal Information', [personalGrid, targetRoleField], { icon: '&#128100;', locked: true, open: true }),
+    buildAccordionCard('summary', 'Professional Summary', [summaryField], { icon: '&#9998;', open: true }),
+    buildAccordionCard('experience', 'Work Experience', [
+      qs(root, '#rb-experience-list'),
+      qs(root, '#rb-add-experience')?.closest('.resume-action-row'),
+    ], { icon: '&#128188;', open: true }),
+    buildAccordionCard('education', 'Education', [
+      qs(root, '#rb-education-list'),
+      qs(root, '#rb-add-education')?.closest('.resume-action-row'),
+    ], { icon: '&#127891;', open: false }),
+    buildAccordionCard('skills', 'Skills', [skillsField], { icon: '&#9881;', open: false }),
+    buildAccordionCard('projects', 'Projects', [qs(root, '#rb-project-section')], { icon: '&#128640;', open: false }),
+    buildAccordionCard('certifications', 'Certifications', [qs(root, '#rb-certifications-section')], { icon: '&#127942;', open: false }),
+    buildAccordionCard('review', 'Review Snapshot', [qs(root, '#rb-review-summary')?.closest('.resume-card')], { icon: '&#128269;', open: false }),
+    buildAccordionCard('ats', 'ATS Score & Analysis', [qs(root, '#rb-score-panel-full')], { icon: '&#128202;', open: false }),
+    buildAccordionCard('settings', 'Section Order', [qs(root, '#rb-section-order-panel')], { icon: '&#8597;', open: false }),
+  );
+
+  const addSection = createNode('button', 'rb-add-section-placeholder', '+ Add Section');
+  addSection.type = 'button';
+  addSection.disabled = true;
+  addSection.title = 'Coming soon: Languages, Awards, Custom Sections';
+  accordion.appendChild(addSection);
+
+  const generateRow = qs(root, '#rb-generate')?.closest('.resume-action-row');
+  const quotaWrap = qs(root, '[data-resume-quota="shared-builder"]');
+  const builderBanner = qs(root, '#rb-banner');
+  const builderLoading = qs(root, '#rb-loading');
+  [generateRow, quotaWrap, builderBanner, builderLoading].forEach((node) => moveNode(node, editorBottombar));
+  editorPanel.append(editorTopbar, accordion, editorBottombar);
+
+  const previewWrap = qs(root, '#rb-preview-wrap');
+  const previewHead = previewWrap?.querySelector('.resume-preview-head');
+  const templatePicker = qs(root, '#rb-template-picker');
+  const previewMeta = previewHead?.querySelector('.resume-preview-meta');
+  const previewPane = qs(root, '#rb-preview-pane');
+  const previewHint = qs(root, '#rb-preview-hint');
+  const exportBar = qs(root, '#rb-export-bar');
+  const previewActions = previewWrap?.querySelector(':scope > .resume-action-row');
+  const previewTopbar = createNode('div', 'rb-preview-topbar');
+  const previewTitle = createNode('div', 'rb-preview-title');
+  previewTitle.innerHTML = '<p class="resume-eyebrow">Resume Preview</p><h3>Live canvas</h3>';
+  [previewTitle, templatePicker, previewMeta].forEach((node) => moveNode(node, previewTopbar));
+  if (previewPanel) {
+    previewPanel.append(previewTopbar, previewPane, previewHint, exportBar, previewActions);
+  }
+  if (previewHead) previewHead.remove();
+
+  appLayout.append(editorPanel, previewWrap);
+  cardHead?.insertAdjacentElement('afterend', appLayout);
+
+  card.querySelector('.resume-progress')?.remove();
+  const stepPanels = card.querySelector('.resume-step-panels');
+  stepPanels?.remove();
+  const stepNav = qs(root, '.resume-step-nav');
+  if (stepNav) stepNav.hidden = true;
+}
+
+function bindResumeAccordion(root) {
+  root.querySelectorAll('[data-accordion-trigger]').forEach((trigger) => {
+    if (trigger.dataset.accordionBound === 'true') return;
+    trigger.dataset.accordionBound = 'true';
+    trigger.addEventListener('click', () => {
+      const card = trigger.closest('.rb-accordion-card');
+      if (!card || card.dataset.accordionLocked === 'true') return;
+      const nextOpen = !card.classList.contains('is-open');
+      card.classList.toggle('is-open', nextOpen);
+      trigger.setAttribute('aria-expanded', String(nextOpen));
+      card.querySelector('.rb-accordion-body')?.setAttribute('aria-hidden', String(!nextOpen));
+    });
+  });
+}
+
+function setAccordionSectionOpen(root, sectionKey, isOpen) {
+  const card = root.querySelector(`[data-accordion-section="${sectionKey}"]`);
+  if (!card || card.dataset.accordionLocked === 'true') return;
+  card.classList.toggle('is-open', isOpen);
+  card.querySelector('[data-accordion-trigger]')?.setAttribute('aria-expanded', String(isOpen));
+  card.querySelector('.rb-accordion-body')?.setAttribute('aria-hidden', String(!isOpen));
+}
+
+function syncAccordionOpenState(root, state) {
+  ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'].forEach((key) => {
+    const completeness = getSectionCompleteness(state, key);
+    if (completeness !== 'empty') setAccordionSectionOpen(root, key, true);
+  });
+}
+
+function getSectionCompleteness(state, key) {
+  if (!state) return 'empty';
+  if (key === 'personal') {
+    const required = [state.personal?.name, state.personal?.email, state.targetRole].filter((value) => cleanResumeValue(value)).length;
+    if (required >= 3) return 'complete';
+    return required > 0 ? 'partial' : 'empty';
+  }
+  if (key === 'summary') {
+    const length = cleanResumeValue(state.summary).length;
+    if (length >= 80) return 'complete';
+    return length > 0 ? 'partial' : 'empty';
+  }
+  if (key === 'experience') {
+    const filled = (state.experiences || []).filter((exp) => cleanResumeValue(exp?.jobTitle || exp?.title));
+    const strong = filled.filter((exp) => [exp?.achievement1, exp?.achievement2, exp?.achievement3].some((value) => cleanResumeValue(value)));
+    if (strong.length >= 2) return 'complete';
+    if (filled.length || strong.length) return 'partial';
+    return 'empty';
+  }
+  if (key === 'education') {
+    const complete = (state.educations || []).some((edu) => cleanResumeValue(edu?.degree) && cleanResumeValue(edu?.institution));
+    const partial = (state.educations || []).some((edu) => hasAnyResumeValue([edu?.degree, edu?.institution, edu?.year, edu?.gpa, edu?.courses]));
+    return complete ? 'complete' : partial ? 'partial' : 'empty';
+  }
+  if (key === 'skills') {
+    const count = parseCommaList(state.skills).length;
+    if (count >= 8) return 'complete';
+    return count > 0 ? 'partial' : 'empty';
+  }
+  if (key === 'projects') {
+    const count = (state.projects || []).filter(hasFilledProject).length;
+    if (count >= 2) return 'complete';
+    return count > 0 ? 'partial' : 'empty';
+  }
+  if (key === 'certifications') {
+    const count = (state.certifications || []).filter(hasFilledCertification).length;
+    if (count >= 2) return 'complete';
+    return count > 0 ? 'partial' : 'empty';
+  }
+  if (key === 'review') {
+    return hasMeaningfulLiveResumeData(state) ? 'partial' : 'empty';
+  }
+  if (key === 'ats') {
+    if (cleanResumeValue(state.generatedResume)) return 'complete';
+    return hasMeaningfulLiveResumeData(state) ? 'partial' : 'empty';
+  }
+  return 'partial';
+}
+
+function updateAccordionCompleteness(root, state) {
+  root.querySelectorAll('[data-section-status]').forEach((status) => {
+    const key = status.dataset.sectionStatus;
+    const completeness = getSectionCompleteness(state, key);
+    status.className = `rb-section-completeness rb-section-completeness--${completeness}`;
+    status.textContent = completeness === 'complete' ? 'Complete' : completeness === 'partial' ? 'In progress' : 'Empty';
+  });
 }
 
 // PDF Export
@@ -1990,7 +2450,7 @@ function detectPlaceholders(text) {
 }
 
 function getResumeWordCount(state = resumeExportState) {
-  const text = String(state?.generatedResume || '').trim();
+  const text = String((resumePreviewPrefersLive ? buildLiveResumePlainText(state) : state?.generatedResume) || state?.generatedResume || buildLiveResumePlainText(state) || '').trim();
   if (!text) return 0;
   return text.split(/\s+/).filter(Boolean).length;
 }
@@ -2087,8 +2547,21 @@ function normalizeResumeTextForCopy(text) {
 }
 
 function formatResumeBodyForCopy(state) {
+  if (resumePreviewPrefersLive || !String(state.generatedResume || '').trim()) {
+    const sections = getLiveResumeSectionsFromState(state);
+    return sections.map((section) => {
+      const header = String(section.title || '').toUpperCase();
+      const lines = section.lines
+        .filter((line) => !isResumeDividerLine(line))
+        .map(normalizeResumeTextForCopy)
+        .filter(Boolean);
+      return [header, '-'.repeat(header.length), ...lines].join('\n');
+    }).filter(Boolean).join('\n\n');
+  }
   const parsed = parseResumeText(state.generatedResume || '');
-  const sections = getRenderableResumeSections(parsed.sections, state);
+  const sections = String(state.generatedResume || '').trim() && !resumePreviewPrefersLive
+    ? getRenderableResumeSections(parsed.sections, state)
+    : getLiveResumeSectionsFromState(state);
   if (!sections.length) return normalizeResumeTextForCopy(state.generatedResume);
   return sections.map((section) => {
     const header = String(section.title || '').toUpperCase();
@@ -2102,7 +2575,8 @@ function formatResumeBodyForCopy(state) {
 }
 
 function buildFormattedResumeText(state) {
-  const placeholders = detectPlaceholders(state.generatedResume);
+  const placeholderSource = resumePreviewPrefersLive ? buildLiveResumePlainText(state) : state.generatedResume;
+  const placeholders = detectPlaceholders(placeholderSource);
   const parts = [];
   if (placeholders.length) {
     parts.push(`\u26A0 REVIEW BEFORE SENDING: This resume contains ${placeholders.length} unfilled placeholder(s). Search for [ to find and replace them.`);
@@ -2127,7 +2601,10 @@ function buildFormattedResumeText(state) {
 }
 
 function confirmResumePlaceholdersBeforeExport() {
-  const placeholders = detectPlaceholders(resumeExportState?.generatedResume || '');
+  const placeholderSource = resumePreviewPrefersLive
+    ? buildLiveResumePlainText(resumeExportState)
+    : resumeExportState?.generatedResume || '';
+  const placeholders = detectPlaceholders(placeholderSource);
   if (!placeholders.length) return true;
   const list = placeholders.slice(0, 8).join('\n');
   return window.confirm(`Your resume contains ${placeholders.length} unfilled placeholder(s):\n${list}\n\nThese will appear in your exported file. Review and fill them in before downloading?\n\nClick OK to continue anyway, or Cancel to go back and fix.`);
@@ -3085,7 +3562,9 @@ function buildDocxChildren(state, profile) {
   }
 
   const parsed = parseResumeText(state.generatedResume || '');
-  const sections = getRenderableResumeSections(parsed.sections, state);
+  const sections = String(state.generatedResume || '').trim() && !resumePreviewPrefersLive
+    ? getRenderableResumeSections(parsed.sections, state)
+    : getLiveResumeSectionsFromState(state);
   sections.forEach((section) => {
     const lines = (section.lines || []).filter((line) => String(line || '').trim() && !isResumeDividerLine(line));
     if (!lines.length) return;
@@ -3112,8 +3591,8 @@ function buildDocxChildren(state, profile) {
 async function downloadResumeDOCX() {
   const state = resumeExportState;
   const btn = document.getElementById('rb-btn-download-docx');
-  if (!state?.generatedResume) {
-    showExportToast('Generate a resume before downloading the DOCX.', 'error');
+  if (!state?.generatedResume && !hasMeaningfulLiveResumeData(state)) {
+    showExportToast('Add resume details before downloading the DOCX.', 'error');
     return;
   }
   if (!confirmResumePlaceholdersBeforeExport()) return;
@@ -3761,7 +4240,7 @@ export async function initResumeBuilderTool(container) {
   };
 
   const atsBaseLabel = 'Analyze Resume';
-  const builderBaseLabel = 'Generate Resume';
+  const builderBaseLabel = 'Polish with AI';
   let atsBusy = false;
   let builderBusy = false;
   let importBusy = false;
@@ -3770,6 +4249,9 @@ export async function initResumeBuilderTool(container) {
   let activeMainTab = 'ats';
   let activeMobileBuilderView = 'edit';
   let previousLiveScore = null;
+  let previewRenderMode = 'live';
+  setupBuilderCanvasLayout(root);
+  bindResumeAccordion(root);
   const previewOriginalPosition = previewWrap
     ? { parent: previewWrap.parentNode, nextSibling: previewWrap.nextSibling }
     : null;
@@ -3780,6 +4262,22 @@ export async function initResumeBuilderTool(container) {
     showSaveIndicator('saving');
     saveToStorage(state);
   }, AUTOSAVE_DELAY);
+  const LIVE_RENDER_DELAY = window.innerWidth < 768 ? 600 : 300;
+  const debouncedLiveRender = debounce(() => {
+    previewRenderMode = 'live';
+    renderLiveResumeFromState(state);
+    updateResumePreviewMeta();
+    syncExportButtons();
+    updateAccordionCompleteness(root, state);
+  }, LIVE_RENDER_DELAY);
+
+  function renderLivePreviewNow() {
+    previewRenderMode = 'live';
+    renderLiveResumeFromState(state);
+    updateResumePreviewMeta();
+    syncExportButtons();
+    updateAccordionCompleteness(root, state);
+  }
   let debouncedRefreshScore = () => {};
   resumeExportState = state;
   resumeExportToastStack = toastStack;
@@ -3815,7 +4313,7 @@ export async function initResumeBuilderTool(container) {
 
   function syncExportButtons() {
     const hasReport = Boolean(state.lastReport);
-    const hasResume = Boolean(state.generatedResume);
+    const hasResume = Boolean(state.generatedResume) || hasMeaningfulLiveResumeData(state);
     copyReportButton.disabled = !hasReport;
     downloadReportButton.disabled = !hasReport;
     copyResumeButton.disabled = !hasResume;
@@ -3828,8 +4326,11 @@ export async function initResumeBuilderTool(container) {
   }
 
   function updateResumePreviewMeta() {
-    if (previewCount) previewCount.textContent = `${String(state.generatedResume || '').length} chars`;
-    if (previewNote) previewNote.textContent = state.generatedResume ? deriveResumeNote(state.generatedResume, state) : 'ATS note pending';
+    const currentText = previewRenderMode === 'generated' && state.generatedResume
+      ? String(state.generatedResume || '')
+      : String(buildLiveResumePlainText(state) || state.generatedResume || '');
+    if (previewCount) previewCount.textContent = `${currentText.length} chars`;
+    if (previewNote) previewNote.textContent = currentText ? deriveResumeNote(currentText, state) : 'ATS note pending';
     updateWordCountDisplay(state);
     syncExportButtons();
   }
@@ -4052,7 +4553,12 @@ export async function initResumeBuilderTool(container) {
     resumeExportState = state;
     populateFormFromState();
     applyTemplate(state.template, { persist: false });
-    renderFormattedPreview(state.generatedResume);
+    if (state.generatedResume) {
+      previewRenderMode = 'generated';
+      renderFormattedPreview(state.generatedResume);
+    } else {
+      renderLivePreviewNow();
+    }
     renderCoverLetterPreview(state.coverLetter, state.coverLetterSettings);
     populateCoverLetterFormFromState();
     updateResumePreviewMeta();
@@ -4835,6 +5341,7 @@ export async function initResumeBuilderTool(container) {
     const field = skillsTextarea || qs(root, '#rb-skills');
     if (field) field.value = state.skills;
     renderBuilderDerivedViews();
+    renderLivePreviewNow();
     state.atsAnalysisResult = null;
     refreshLiveScore();
     updateCompletionBar(state);
@@ -5416,6 +5923,7 @@ export async function initResumeBuilderTool(container) {
 
   function renderReviewSummary() {
     const mount = qs(root, '#rb-review-summary');
+    if (!mount) return;
     clearNode(mount);
 
     const personalCard = createNode('div', 'resume-review-item');
@@ -5592,6 +6100,7 @@ export async function initResumeBuilderTool(container) {
     [order[index], order[targetIndex]] = [order[targetIndex], order[index]];
     state.sectionOrder = order;
     renderSectionOrderList();
+    renderLivePreviewNow();
     markBuilderContentChanged();
     saveToStorage(state);
   }
@@ -5603,6 +6112,8 @@ export async function initResumeBuilderTool(container) {
     updateOptionalSectionUi('projects');
     updateOptionalSectionUi('certifications');
     updateCoverLetterResumeNotice();
+    updateAccordionCompleteness(root, state);
+    debouncedLiveRender();
   }
 
   function populateFormFromState() {
@@ -5627,6 +6138,8 @@ export async function initResumeBuilderTool(container) {
     renderCertificationList();
     renderBuilderDerivedViews();
     applyTemplate(state.template, { persist: false });
+    syncAccordionOpenState(root, state);
+    renderLivePreviewNow();
   }
 
   function updateBuilderFieldBindings() {
@@ -6376,7 +6889,7 @@ export async function initResumeBuilderTool(container) {
     const typing = isTypingTarget(target);
 
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
-      if (state.generatedResume && pdfButton && !pdfButton.disabled) {
+      if ((state.generatedResume || hasMeaningfulLiveResumeData(state)) && pdfButton && !pdfButton.disabled) {
         event.preventDefault();
         pdfButton.click();
       }
@@ -6453,6 +6966,7 @@ export async function initResumeBuilderTool(container) {
       if (input) input.value = improved;
       state.summary = improved;
       renderBuilderDerivedViews();
+      renderLivePreviewNow();
       state.atsAnalysisResult = null;
       refreshLiveScore();
       updateCompletionBar(state);
@@ -6524,6 +7038,7 @@ export async function initResumeBuilderTool(container) {
         experience[key] = value;
       });
       renderBuilderDerivedViews();
+      renderLivePreviewNow();
       state.atsAnalysisResult = null;
       refreshLiveScore();
       updateCompletionBar(state);
@@ -6573,6 +7088,7 @@ export async function initResumeBuilderTool(container) {
       if (input) input.value = improved;
       state.skills = improved;
       renderBuilderDerivedViews();
+      renderLivePreviewNow();
       state.atsAnalysisResult = null;
       refreshLiveScore();
       updateCompletionBar(state);
@@ -6605,8 +7121,8 @@ export async function initResumeBuilderTool(container) {
   }
 
   function handleScoreAnalyzeToggle() {
-    if (!String(state.generatedResume || '').trim()) {
-      showToast(toastStack, 'Generate your resume first, then run the full analysis.', 'info');
+    if (!String(state.generatedResume || buildLiveResumePlainText(state) || '').trim()) {
+      showToast(toastStack, 'Add resume details first, then run the full analysis.', 'info');
       return;
     }
     if (getRemainingCreditsSafe() <= 0) {
@@ -6620,8 +7136,9 @@ export async function initResumeBuilderTool(container) {
   }
 
   async function runBuilderAtsEnrichment() {
-    if (!String(state.generatedResume || '').trim()) {
-      showToast(toastStack, 'Generate your resume first, then run the full analysis.', 'info');
+    const resumeForAnalysis = String(state.generatedResume || buildLiveResumePlainText(state) || '').trim();
+    if (!resumeForAnalysis) {
+      showToast(toastStack, 'Add resume details first, then run the full analysis.', 'info');
       return;
     }
     if (!guardAiCredits()) return;
@@ -6638,7 +7155,7 @@ export async function initResumeBuilderTool(container) {
     setImproveBtnLoading(btn, true);
 
     try {
-      const userContent = `Resume:\n${state.generatedResume}\n\nJob Description:\n${jobDescription}`;
+      const userContent = `Resume:\n${resumeForAnalysis}\n\nJob Description:\n${jobDescription}`;
       const firstAttempt = await callAI({
         tool: TOOL_KEY,
         systemPrompt: ATS_SYSTEM_PROMPT,
@@ -6775,8 +7292,8 @@ export async function initResumeBuilderTool(container) {
 
   async function runResumeBuilder() {
     if (!state.personal.name.trim()) {
-      setBanner(builderBanner, 'Add your full name before generating the resume draft.');
-      showToast(toastStack, 'Add your full name before generating the resume.', 'error');
+      setBanner(builderBanner, 'Add your name and some experience first, then polish.');
+      showToast(toastStack, 'Add your name and some experience first, then polish.', 'info');
       return;
     }
     if (!guardAiCredits()) return;
@@ -6787,10 +7304,9 @@ export async function initResumeBuilderTool(container) {
     syncExportButtons();
     updateQuotaUi();
     setBanner(builderBanner);
-    previewWrap.classList.add('hidden');
     builderLoading.classList.remove('hidden');
     const stopRotation = startStatusRotation(builderStatus, BUILDER_STATUS_MESSAGES);
-    setButtonLoading(generateButton, true, `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`, 'Generating...');
+    setButtonLoading(generateButton, true, `AI ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`, 'Polishing...');
 
     try {
       const result = await callAI({
@@ -6802,6 +7318,7 @@ export async function initResumeBuilderTool(container) {
       });
 
       state.generatedResume = normalizeGeneratedResumeIdentity(result.text.trim(), state);
+      previewRenderMode = 'generated';
       renderFormattedPreview(state.generatedResume);
       updateResumePreviewMeta();
       previewWrap.classList.remove('hidden');
@@ -6811,7 +7328,8 @@ export async function initResumeBuilderTool(container) {
       updateCompletionBar(state);
       updateBackFab();
       saveToStorage(state);
-      setBanner(builderBanner, 'Resume draft ready. Review every metric, date, and claim before you use it.', 'success');
+      setBanner(builderBanner, 'Resume polished with AI. Review every metric, date, and claim before you use it.', 'success');
+      showToast(toastStack, 'Resume polished with AI! The preview now shows the improved version. Download or copy any time.', 'success');
     } catch (error) {
       const message = String(error?.message || error || '');
       if (isRateLimitError(error)) {
@@ -6828,7 +7346,7 @@ export async function initResumeBuilderTool(container) {
       stopRotation();
       builderLoading.classList.add('hidden');
       builderBusy = false;
-      setButtonLoading(generateButton, false, `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`, 'Generating...');
+      setButtonLoading(generateButton, false, `AI ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`, 'Polishing...');
       updateQuotaUi();
       refreshLiveScore();
       updateCompletionBar(state);
@@ -6868,7 +7386,7 @@ export async function initResumeBuilderTool(container) {
     previewWrap.classList.remove('hidden');
     previewCount.textContent = '0 chars';
     previewNote.textContent = 'ATS note pending';
-    renderFormattedPreview('');
+    renderLivePreviewNow();
     renderCoverLetterPreview('', state.coverLetterSettings);
     populateCoverLetterFormFromState();
     if (shareFallback) {
@@ -7111,7 +7629,7 @@ export async function initResumeBuilderTool(container) {
   });
 
   copyResumeButton.addEventListener('click', async () => {
-    if (!state.generatedResume) return;
+    if (!state.generatedResume && !hasMeaningfulLiveResumeData(state)) return;
     try {
       await copyText(
         buildFormattedResumeText(state),
@@ -7124,8 +7642,8 @@ export async function initResumeBuilderTool(container) {
   });
 
   downloadResumeButton.addEventListener('click', () => {
-    if (!state.generatedResume) return;
-    downloadText('tooliest-resume.txt', state.generatedResume);
+    if (!state.generatedResume && !hasMeaningfulLiveResumeData(state)) return;
+    downloadText('tooliest-resume.txt', resumePreviewPrefersLive ? buildLiveResumePlainText(state) : state.generatedResume || buildLiveResumePlainText(state));
   });
 
   if (shareLinkButton) {
@@ -7141,7 +7659,12 @@ export async function initResumeBuilderTool(container) {
   initCoverLetterTab();
   populateFormFromState();
   applyTemplate(state.template, { persist: false });
-  renderFormattedPreview(state.generatedResume);
+  if (state.generatedResume) {
+    previewRenderMode = 'generated';
+    renderFormattedPreview(state.generatedResume);
+  } else {
+    renderLivePreviewNow();
+  }
   updateResumePreviewMeta();
   setStep(1);
   syncExportButtons();

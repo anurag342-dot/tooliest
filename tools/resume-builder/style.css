@@ -4650,3 +4650,394 @@
     min-height: 44px;
   }
 }
+
+/* --- DAY 17 LIVE PREVIEW CANVAS + ACCORDION LAYOUT --- */
+body:has(.resume-tool) .tool-page {
+  width: 100%;
+  max-width: none;
+  padding-inline: clamp(0.5rem, 1vw, 1rem);
+}
+
+body:has(.resume-tool) .tool-workspace {
+  max-width: none;
+}
+
+.resume-tool {
+  width: 100%;
+  max-width: none;
+}
+
+.resume-panel[data-panel="builder"].is-active .rb-builder-canvas {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--rb-radius-xl);
+}
+
+.rb-builder-canvas > .resume-card-head {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--rb-border-default);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(14, 165, 233, 0.06));
+}
+
+.rb-app-layout {
+  display: grid;
+  grid-template-columns: minmax(420px, 45%) minmax(0, 1fr);
+  height: calc(100vh - var(--nav-height, 96px));
+  min-height: 720px;
+  overflow: hidden;
+}
+
+.rb-editor-panel,
+#rb-preview-wrap {
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.rb-editor-panel {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--rb-border-default);
+  background: var(--rb-bg-secondary);
+}
+
+.rb-editor-topbar,
+.rb-editor-bottombar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--rb-bg-secondary) 92%, transparent);
+}
+
+.rb-editor-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  border-bottom: 1px solid var(--rb-border-default);
+}
+
+.rb-editor-bottombar {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  border-top: 1px solid var(--rb-border-default);
+}
+
+.rb-editor-bottombar .resume-action-row.wide {
+  margin: 0;
+}
+
+.rb-accordion {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.rb-accordion-card {
+  overflow: hidden;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-lg);
+  background: var(--rb-bg-tertiary);
+  box-shadow: 0 14px 32px rgba(7, 10, 24, 0.16);
+}
+
+.rb-accordion-header {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  background: transparent;
+  color: var(--rb-text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 0.85rem 1rem;
+  text-align: left;
+}
+
+.rb-accordion-card[data-accordion-locked="true"] .rb-accordion-header {
+  cursor: default;
+}
+
+.rb-accordion-header__left,
+.rb-accordion-header__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.rb-accordion-grip {
+  color: var(--rb-text-tertiary);
+  cursor: grab;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.rb-accordion-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--rb-accent-subtle);
+  color: var(--rb-accent-primary);
+  font-size: 0.85rem;
+}
+
+.rb-accordion-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rb-accordion-chevron {
+  transition: transform var(--rb-transition-base);
+}
+
+.rb-accordion-card.is-open .rb-accordion-chevron {
+  transform: rotate(180deg);
+}
+
+.rb-accordion-body {
+  max-height: 3200px;
+  overflow: hidden;
+  padding: 0 1rem 1rem;
+  opacity: 1;
+  transition: max-height 0.32s ease, opacity 0.22s ease, padding 0.22s ease;
+}
+
+.rb-accordion-card:not(.is-open) .rb-accordion-body {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+}
+
+.rb-section-completeness {
+  border-radius: var(--rb-radius-pill);
+  padding: 0.16rem 0.48rem;
+  font-size: 0.68rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.rb-section-completeness--empty {
+  background: rgba(148, 163, 184, 0.14);
+  color: var(--rb-text-tertiary);
+}
+
+.rb-section-completeness--partial {
+  background: rgba(234, 179, 8, 0.16);
+  color: #eab308;
+}
+
+.rb-section-completeness--complete {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--rb-success);
+}
+
+.rb-add-section-placeholder {
+  min-height: 48px;
+  border: 1px dashed var(--rb-border-default);
+  border-radius: var(--rb-radius-lg);
+  background: transparent;
+  color: var(--rb-text-tertiary);
+  cursor: not-allowed;
+  font: inherit;
+  font-weight: 800;
+}
+
+#rb-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  background-color: var(--rb-bg-tertiary);
+  background-image: radial-gradient(circle, var(--rb-border-default) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+#rb-preview-panel.rb-preview-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  min-height: 100%;
+  padding: 1rem;
+  overflow-y: auto;
+  background: transparent;
+  color: var(--rb-text-primary);
+  border: 0;
+  border-radius: 0;
+}
+
+.rb-preview-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto minmax(120px, 1fr);
+  align-items: center;
+  gap: 1rem;
+  width: min(100%, 920px);
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-lg);
+  background: color-mix(in srgb, var(--rb-bg-secondary) 94%, transparent);
+  padding: 0.75rem;
+}
+
+.rb-preview-title h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.rb-preview-topbar .rb-template-picker {
+  margin: 0;
+  min-width: min(100%, 340px);
+}
+
+.rb-preview-topbar .resume-preview-meta {
+  align-items: flex-end;
+  color: var(--rb-text-secondary);
+}
+
+#rb-preview-pane {
+  display: flex;
+  justify-content: center;
+  width: min(100%, 920px);
+  min-height: 0;
+  padding: 0.5rem 0;
+  background: transparent;
+  color: #111827;
+}
+
+#rb-preview-pane .rb-resume-doc {
+  width: 100%;
+  max-width: 760px;
+  min-height: 980px;
+  margin: 0 auto;
+  background: #ffffff;
+  box-shadow: 0 18px 60px rgba(2, 6, 23, 0.28);
+}
+
+.rb-resume-placeholder {
+  color: #64748b;
+  font-style: italic;
+}
+
+#rb-preview-panel .rb-export-bar,
+#rb-preview-panel > .resume-action-row {
+  width: min(100%, 920px);
+  justify-content: center;
+}
+
+#rb-preview-panel > .resume-action-row {
+  margin: 0 0 1rem;
+}
+
+.rb-preview-hint {
+  color: var(--rb-text-tertiary);
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .rb-app-layout {
+    grid-template-columns: minmax(340px, 40%) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  body:has(.resume-tool) .tool-page {
+    padding-inline: 0.75rem;
+  }
+
+  .resume-panel[data-panel="builder"].is-active .rb-builder-canvas {
+    overflow: visible;
+    border-radius: var(--rb-radius-lg);
+  }
+
+  .rb-app-layout {
+    display: block;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .rb-editor-panel,
+  #rb-preview-wrap {
+    height: auto;
+    overflow: visible;
+  }
+
+  .rb-editor-panel {
+    border-right: 0;
+  }
+
+  .rb-editor-topbar,
+  .rb-editor-bottombar {
+    position: static;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-editor-panel,
+  .resume-panel[data-panel="builder"].rb-mobile-view-score #rb-editor-panel,
+  .resume-panel[data-panel="builder"].rb-mobile-view-edit #rb-preview-wrap,
+  .resume-panel[data-panel="builder"].rb-mobile-view-edit #rb-mobile-score-view {
+    display: none !important;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-mobile-preview-view,
+  .resume-panel[data-panel="builder"].rb-mobile-view-score #rb-mobile-score-view {
+    display: block;
+  }
+
+  .rb-preview-topbar {
+    position: static;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .rb-preview-topbar .resume-preview-meta {
+    align-items: flex-start;
+  }
+
+  #rb-preview-panel.rb-preview-panel {
+    padding: 0.75rem;
+  }
+
+  #rb-preview-pane {
+    justify-content: flex-start;
+    overflow: auto;
+    width: 100%;
+  }
+
+  #rb-preview-pane .rb-resume-doc {
+    min-width: 600px;
+  }
+
+  .rb-accordion-header {
+    min-height: 52px;
+    padding: 0.75rem;
+  }
+
+  .rb-accordion-body {
+    padding: 0 0.75rem 0.75rem;
+  }
+
+  .rb-section-completeness {
+    display: none;
+  }
+}
