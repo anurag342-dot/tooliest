@@ -40,7 +40,10 @@ const SCORE_META = [
   { min: 0, label: 'Needs Work', color: '#ef4444' },
 ];
 const STORAGE_KEY = 'tooliest_resume_draft_v1';
+const USER_ID_KEY = 'tooliest_user_id';
+const ACTIVE_RESUME_KEY = 'tooliest_active_resume_id';
 const AUTOSAVE_DELAY = 1200;
+const CLOUD_SYNC_DELAY = 5000;
 const DOCX_CDN_URLS = [
   'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js',
   'https://unpkg.com/docx@8.5.0/build/index.umd.js',
@@ -73,6 +76,12 @@ let resumeTemplateSave = null;
 let quotaCountdownInterval = 0;
 let resumeQuotaUiController = null;
 let globalErrorBoundaryReady = false;
+let activeResumeId = null;
+let resumeList = [];
+let cloudSyncEnabled = true;
+let cloudSyncTimer = 0;
+let cloudSyncFailureCount = 0;
+let cloudSyncPausedToastShown = false;
 
 function getErrorMessage(error) {
   return String(error?.message || error || '');
@@ -1313,6 +1322,7 @@ function saveToStorage(state) {
   try {
     localStorage.setItem(STORAGE_KEY, serialized);
     showSaveIndicator('saved', state);
+    debouncedCloudSync(state, activeResumeId);
   } catch (error) {
     // Autosave is a convenience layer; storage failures should never block the UI.
     console.warn('Autosave failed:', error?.message || 'localStorage unavailable');
@@ -1326,56 +1336,58 @@ function saveToStorage(state) {
   }
 }
 
+function applyPersistedState(state, saved = {}) {
+  if (!saved || typeof saved !== 'object') return false;
+  if (saved.personal && typeof saved.personal === 'object') {
+    Object.assign(state.personal, saved.personal);
+  }
+  if (typeof saved.targetRole === 'string') {
+    state.targetRole = saved.targetRole;
+  } else if (typeof saved.targetJob === 'string') {
+    state.targetRole = saved.targetJob;
+  }
+  if (typeof saved.summary === 'string') {
+    state.summary = saved.summary;
+  }
+  if (Array.isArray(saved.experiences) && saved.experiences.length > 0) {
+    state.experiences = saved.experiences.slice(0, 5).map(normalizeSavedExperience);
+  }
+  if (Array.isArray(saved.projects) && saved.projects.length > 0) {
+    state.projects = saved.projects.slice(0, 5).map(normalizeSavedProject);
+  }
+  if (Array.isArray(saved.educations) && saved.educations.length > 0) {
+    state.educations = saved.educations.slice(0, 3).map(normalizeSavedEducation);
+  } else if (saved.education && typeof saved.education === 'object') {
+    state.educations = [normalizeSavedEducation(saved.education)];
+  }
+  if (typeof saved.skills === 'string') {
+    state.skills = saved.skills;
+  }
+  if (Array.isArray(saved.certifications)) {
+    state.certifications = saved.certifications.slice(0, 5).map((item) => String(item ?? ''));
+    if (!state.certifications.length) {
+      state.certifications = [createEmptyCertification()];
+    }
+  }
+  state.template = normalizeResumeTemplate(saved.template);
+  state.atsAnalysisResult = normalizeSavedAtsAnalysisResult(saved.atsAnalysisResult);
+  state.generatedResume = typeof saved.generatedResume === 'string' ? saved.generatedResume : '';
+  state.coverLetter = typeof saved.coverLetter === 'string' ? saved.coverLetter : '';
+  state.coverLetterSettings = normalizeCoverLetterSettings(saved.coverLetterSettings);
+  state.sectionsEnabled = normalizeSectionsEnabled(saved.sectionsEnabled);
+  state.sectionOrder = normalizeSectionOrder(saved.sectionOrder);
+  state.lastEditedAt = normalizeTimestamp(saved.lastEditedAt);
+  state.suggestionsDismissed = Boolean(saved.suggestionsDismissed);
+  return true;
+}
+
 function restoreFromStorage(state) {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     const parsed = JSON.parse(raw);
     if (!parsed || parsed.version !== 1 || !parsed.state) return false;
-
-    const saved = parsed.state;
-    if (saved.personal && typeof saved.personal === 'object') {
-      Object.assign(state.personal, saved.personal);
-    }
-    if (typeof saved.targetRole === 'string') {
-      state.targetRole = saved.targetRole;
-    } else if (typeof saved.targetJob === 'string') {
-      state.targetRole = saved.targetJob;
-    }
-    if (typeof saved.summary === 'string') {
-      state.summary = saved.summary;
-    }
-    if (Array.isArray(saved.experiences) && saved.experiences.length > 0) {
-      state.experiences = saved.experiences.slice(0, 5).map(normalizeSavedExperience);
-    }
-    if (Array.isArray(saved.projects) && saved.projects.length > 0) {
-      state.projects = saved.projects.slice(0, 5).map(normalizeSavedProject);
-    }
-    if (Array.isArray(saved.educations) && saved.educations.length > 0) {
-      state.educations = saved.educations.slice(0, 3).map(normalizeSavedEducation);
-    } else if (saved.education && typeof saved.education === 'object') {
-      state.educations = [normalizeSavedEducation(saved.education)];
-    }
-    if (typeof saved.skills === 'string') {
-      state.skills = saved.skills;
-    }
-    if (Array.isArray(saved.certifications)) {
-      state.certifications = saved.certifications.slice(0, 5).map((item) => String(item ?? ''));
-      if (!state.certifications.length) {
-        state.certifications = [createEmptyCertification()];
-      }
-    }
-    state.template = normalizeResumeTemplate(saved.template);
-    state.atsAnalysisResult = normalizeSavedAtsAnalysisResult(saved.atsAnalysisResult);
-    state.generatedResume = typeof saved.generatedResume === 'string' ? saved.generatedResume : '';
-    state.coverLetter = typeof saved.coverLetter === 'string' ? saved.coverLetter : '';
-    state.coverLetterSettings = normalizeCoverLetterSettings(saved.coverLetterSettings);
-    state.sectionsEnabled = normalizeSectionsEnabled(saved.sectionsEnabled);
-    state.sectionOrder = normalizeSectionOrder(saved.sectionOrder);
-    state.lastEditedAt = normalizeTimestamp(saved.lastEditedAt);
-    state.suggestionsDismissed = Boolean(saved.suggestionsDismissed);
-
-    return true;
+    return applyPersistedState(state, parsed.state);
   } catch (_) {
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -1392,6 +1404,192 @@ function clearSavedDraft() {
   } catch (_) {
     // Ignore storage errors.
   }
+}
+
+// --- CLOUD SYNC: USER IDENTITY ---
+function createFallbackUuid() {
+  const template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+  return template.replace(/[xy]/g, (char) => {
+    const random = Math.floor(Math.random() * 16);
+    const value = char === 'x' ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
+function getOrCreateUserId() {
+  try {
+    const existing = String(localStorage.getItem(USER_ID_KEY) || '').trim().toLowerCase();
+    if (/^[0-9a-f-]{36}$/.test(existing)) return existing;
+    const nextId = globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID()
+      : createFallbackUuid();
+    localStorage.setItem(USER_ID_KEY, nextId);
+    return nextId;
+  } catch (_) {
+    return globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : createFallbackUuid();
+  }
+}
+
+function getApiHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'X-Tooliest-User-ID': getOrCreateUserId(),
+  };
+}
+
+function setStoredActiveResumeId(resumeId) {
+  try {
+    if (resumeId) localStorage.setItem(ACTIVE_RESUME_KEY, resumeId);
+    else localStorage.removeItem(ACTIVE_RESUME_KEY);
+  } catch (_) {
+    // Local active-resume memory is a convenience; cloud data remains safe.
+  }
+}
+
+// --- CLOUD SYNC: API CALLS ---
+function getCloudResumeName(state) {
+  const name = String(state?.personal?.name || '').trim();
+  const targetRole = String(state?.targetRole || '').trim();
+  const label = name && targetRole ? `${name} - ${targetRole}` : name || targetRole || 'My Resume';
+  return label.length > 80 ? `${label.slice(0, 77)}...` : label;
+}
+
+function serializeStateForCloud(state) {
+  return {
+    currentStep: 1,
+    lastReport: null,
+    generatedResume: String(state?.generatedResume || ''),
+    personal: { ...(state?.personal || {}) },
+    targetRole: String(state?.targetRole || ''),
+    summary: String(state?.summary || ''),
+    experiences: (state?.experiences || []).map(normalizeSavedExperience).slice(0, 5),
+    educations: (state?.educations || []).map(normalizeSavedEducation).slice(0, 3),
+    projects: (state?.projects || []).map(normalizeSavedProject).slice(0, 5),
+    skills: String(state?.skills || ''),
+    certifications: Array.isArray(state?.certifications)
+      ? state.certifications.slice(0, 5).map((item) => String(item || ''))
+      : [],
+    template: normalizeResumeTemplate(state?.template),
+    atsAnalysisResult: null,
+    coverLetter: String(state?.coverLetter || ''),
+    coverLetterSettings: normalizeCoverLetterSettings(state?.coverLetterSettings),
+    sectionsEnabled: normalizeSectionsEnabled(state?.sectionsEnabled),
+    sectionOrder: normalizeSectionOrder(state?.sectionOrder),
+    lastEditedAt: normalizeTimestamp(state?.lastEditedAt),
+    suggestionsDismissed: false,
+  };
+}
+
+async function loadResumeList() {
+  try {
+    const response = await fetch('/api/resumes', {
+      method: 'GET',
+      headers: getApiHeaders(),
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      console.error('[Resume Cloud Sync] list status:', response.status);
+      return [];
+    }
+    const data = await response.json();
+    resumeList = Array.isArray(data?.resumes) ? data.resumes : [];
+    return resumeList;
+  } catch (error) {
+    console.error('[Resume Cloud Sync] list failed:', error?.name || 'Error');
+    return [];
+  }
+}
+
+async function loadResumeById(resumeId) {
+  if (!resumeId) return null;
+  try {
+    const response = await fetch(`/api/resumes/${encodeURIComponent(resumeId)}`, {
+      method: 'GET',
+      headers: getApiHeaders(),
+      cache: 'no-store',
+    });
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      console.error('[Resume Cloud Sync] load status:', response.status);
+      return null;
+    }
+    const data = await response.json();
+    return data?.state && typeof data.state === 'object' && !Array.isArray(data.state)
+      ? data.state
+      : null;
+  } catch (error) {
+    console.error('[Resume Cloud Sync] load failed:', error?.name || 'Error');
+    return null;
+  }
+}
+
+async function createNewCloudResume(name, currentState) {
+  const response = await fetch('/api/resumes', {
+    method: 'POST',
+    headers: getApiHeaders(),
+    body: JSON.stringify({
+      name: name || 'My Resume',
+      state: serializeStateForCloud(currentState),
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || 'Could not create cloud resume.');
+  }
+  if (!data?.resume?.id) throw new Error('Cloud resume response was incomplete.');
+  resumeList = [...resumeList.filter((item) => item.id !== data.resume.id), data.resume];
+  return data.resume;
+}
+
+async function syncResumeToCloud(resumeId, currentState, name) {
+  if (!cloudSyncEnabled || !resumeId) return;
+  try {
+    const response = await fetch(`/api/resumes/${encodeURIComponent(resumeId)}`, {
+      method: 'PUT',
+      headers: getApiHeaders(),
+      body: JSON.stringify({
+        state: serializeStateForCloud(currentState),
+        name: name || getCloudResumeName(currentState),
+      }),
+    });
+    if (!response.ok) throw new Error(`status ${response.status}`);
+    cloudSyncFailureCount = 0;
+  } catch (error) {
+    cloudSyncFailureCount += 1;
+    console.error('[Resume Cloud Sync] background sync failed:', error?.name || 'Error');
+    if (cloudSyncFailureCount >= 3) {
+      cloudSyncEnabled = false;
+      if (!cloudSyncPausedToastShown) {
+        cloudSyncPausedToastShown = true;
+        showGlobalToast('Cloud sync paused. Your draft is saved locally.', 'info');
+      }
+    }
+  }
+}
+
+async function deleteResumeById(resumeId) {
+  try {
+    const response = await fetch(`/api/resumes/${encodeURIComponent(resumeId)}`, {
+      method: 'DELETE',
+      headers: getApiHeaders(),
+    });
+    if (!response.ok) return false;
+    resumeList = resumeList.filter((item) => item.id !== resumeId);
+    return true;
+  } catch (error) {
+    console.error('[Resume Cloud Sync] delete failed:', error?.name || 'Error');
+    return false;
+  }
+}
+
+function debouncedCloudSync(state, resumeId) {
+  window.clearTimeout(cloudSyncTimer);
+  if (!resumeId || !cloudSyncEnabled) return;
+  const stateSnapshot = serializeStateForCloud(state);
+  const resumeName = getCloudResumeName(state);
+  cloudSyncTimer = window.setTimeout(() => {
+    syncResumeToCloud(resumeId, stateSnapshot, resumeName);
+  }, CLOUD_SYNC_DELAY);
 }
 
 function showSaveIndicator(status, stateForTimestamp = resumeExportState) {
@@ -3524,6 +3722,14 @@ export async function initResumeBuilderTool(container) {
   const industryBadge = qs(root, '#rb-industry-badge');
   const industryBadgeLabel = qs(root, '#rb-industry-badge-label');
   const skillsTextarea = qs(root, '#rb-skills');
+  const resumesHeader = qs(root, '#rb-resumes-header');
+  const myResumesButton = qs(root, '#rb-my-resumes-btn');
+  const resumeCountBadge = qs(root, '#rb-resume-count');
+  const activeResumeName = qs(root, '#rb-active-resume-name');
+  const newResumeButton = qs(root, '#rb-new-resume-btn');
+  const resumesPanel = qs(root, '#rb-resumes-panel');
+  const resumesPanelClose = qs(root, '#rb-resumes-panel-close');
+  const resumesListMount = qs(root, '#rb-resumes-list');
 
   const state = {
     currentStep: 1,
@@ -3575,13 +3781,37 @@ export async function initResumeBuilderTool(container) {
     saveToStorage(state);
   }, AUTOSAVE_DELAY);
   let debouncedRefreshScore = () => {};
-  const sharedLoad = await loadShareableStateFromHash(state);
-  const wasRestored = sharedLoad.loaded ? false : restoreFromStorage(state);
   resumeExportState = state;
   resumeExportToastStack = toastStack;
   resumeTemplateState = state;
   resumeTemplateRoot = root;
   resumeTemplateSave = debouncedSave;
+  getOrCreateUserId();
+  const sharedLoad = await loadShareableStateFromHash(state);
+  let wasRestored = false;
+  let cloudResumeLoaded = false;
+  if (sharedLoad.loaded) {
+    activeResumeId = null;
+  } else {
+    resumeList = await loadResumeList();
+    let savedActiveId = '';
+    try {
+      savedActiveId = String(localStorage.getItem(ACTIVE_RESUME_KEY) || '').trim();
+    } catch (_) {
+      savedActiveId = '';
+    }
+    const activeMeta = resumeList.find((resume) => resume.id === savedActiveId);
+    if (activeMeta) {
+      const cloudState = await loadResumeById(activeMeta.id);
+      if (cloudState && applyPersistedState(state, cloudState)) {
+        activeResumeId = activeMeta.id;
+        cloudResumeLoaded = true;
+      }
+    }
+    if (!cloudResumeLoaded) {
+      wasRestored = restoreFromStorage(state);
+    }
+  }
 
   function syncExportButtons() {
     const hasReport = Boolean(state.lastReport);
@@ -3798,6 +4028,252 @@ export async function initResumeBuilderTool(container) {
       .finally(() => {
         quotaUiSyncPending = false;
       });
+  }
+
+  // --- MY RESUMES DASHBOARD ---
+  let resumePanelOutsideHandler = null;
+
+  function getDisplayResumeName() {
+    return getCloudResumeName(state);
+  }
+
+  function updateResumesHeaderUI() {
+    const count = resumeList.length;
+    if (resumeCountBadge) {
+      resumeCountBadge.textContent = String(count);
+      resumeCountBadge.setAttribute('aria-label', `${count} saved resume${count === 1 ? '' : 's'}`);
+    }
+    const activeMeta = resumeList.find((resume) => resume.id === activeResumeId);
+    const label = activeMeta?.name || getDisplayResumeName() || 'Untitled Resume';
+    if (activeResumeName) activeResumeName.textContent = label.length > 40 ? `${label.slice(0, 37)}...` : label;
+  }
+
+  function hydrateBuilderAfterStateChange({ persist = true } = {}) {
+    resumeExportState = state;
+    populateFormFromState();
+    applyTemplate(state.template, { persist: false });
+    renderFormattedPreview(state.generatedResume);
+    renderCoverLetterPreview(state.coverLetter, state.coverLetterSettings);
+    populateCoverLetterFormFromState();
+    updateResumePreviewMeta();
+    renderBuilderDerivedViews();
+    renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange: false });
+    syncExportButtons();
+    refreshLiveScore();
+    updateCompletionBar(state);
+    updateWordCountDisplay(state);
+    updateBackFab();
+    setStep(1);
+    if (persist) saveToStorage(state);
+    updateResumesHeaderUI();
+  }
+
+  async function renameResumeInline(resume, input) {
+    const nextName = String(input.value || '').trim() || 'My Resume';
+    if (nextName === resume.name) return;
+    const previousName = resume.name;
+    input.disabled = true;
+    try {
+      const resumeState = resume.id === activeResumeId ? serializeStateForCloud(state) : await loadResumeById(resume.id);
+      if (!resumeState) throw new Error('Could not load resume for rename.');
+      const response = await fetch(`/api/resumes/${encodeURIComponent(resume.id)}`, {
+        method: 'PUT',
+        headers: getApiHeaders(),
+        body: JSON.stringify({ state: resumeState, name: nextName }),
+      });
+      if (!response.ok) throw new Error(`status ${response.status}`);
+      resumeList = resumeList.map((item) => (
+        item.id === resume.id ? { ...item, name: nextName, updatedAt: new Date().toISOString() } : item
+      ));
+      renderResumeList(resumeList);
+      updateResumesHeaderUI();
+    } catch (error) {
+      console.error('[Resume Cloud Sync] rename failed:', error?.name || 'Error');
+      input.value = previousName;
+      showToast(toastStack, 'Could not rename resume. Try again.', 'error');
+    } finally {
+      input.disabled = false;
+    }
+  }
+
+  function renderResumeList(list = resumeList) {
+    if (!resumesListMount) return;
+    clearNode(resumesListMount);
+    if (!list.length) {
+      resumesListMount.appendChild(createNode('div', 'rb-resume-list-empty', 'No cloud resumes yet. Create one to save this browser draft across sessions.'));
+      return;
+    }
+    list.forEach((resume) => {
+      const card = createNode('div', `rb-resume-card${resume.id === activeResumeId ? ' is-active' : ''}`);
+      card.setAttribute('role', 'listitem');
+      const avatar = createNode('span', 'rb-resume-avatar', String(resume.name || 'R').trim().charAt(0).toUpperCase() || 'R');
+      const body = createNode('div', 'rb-resume-card__body');
+      const titleRow = createNode('div', 'rb-resume-card__title-row');
+      const nameInput = document.createElement('input');
+      nameInput.className = 'rb-resume-card__name';
+      nameInput.type = 'text';
+      nameInput.value = resume.name || 'My Resume';
+      nameInput.setAttribute('aria-label', `Rename ${resume.name || 'resume'}`);
+      nameInput.addEventListener('change', () => renameResumeInline(resume, nameInput));
+      titleRow.appendChild(nameInput);
+      if (resume.id === activeResumeId) titleRow.appendChild(createNode('span', 'rb-resume-active-badge', 'Active'));
+      const roleText = resume.targetRole || 'No target role yet';
+      const meta = createNode('p', 'rb-resume-card__meta', roleText);
+      const updatedAt = Date.parse(resume.updatedAt || '');
+      const date = createNode('p', 'rb-resume-card__date', updatedAt ? `Updated ${formatLastEdited(updatedAt)}` : 'Updated recently');
+      body.append(titleRow, meta, date);
+      const actions = createNode('div', 'rb-resume-card__actions');
+      const loadBtn = createNode('button', 'rb-resume-action-btn rb-resume-action-btn--primary', 'Load');
+      const duplicateBtn = createNode('button', 'rb-resume-action-btn', 'Duplicate');
+      const deleteBtn = createNode('button', 'rb-resume-action-btn rb-resume-action-btn--danger', 'Delete');
+      [loadBtn, duplicateBtn, deleteBtn].forEach((button) => { button.type = 'button'; });
+      loadBtn.addEventListener('click', async () => {
+        const loaded = await loadResumeById(resume.id);
+        if (!loaded) {
+          showToast(toastStack, 'Could not load resume.', 'error');
+          return;
+        }
+        applyPersistedState(state, loaded);
+        activeResumeId = resume.id;
+        setStoredActiveResumeId(activeResumeId);
+        hydrateBuilderAfterStateChange({ persist: true });
+        closeResumesPanel();
+        showToast(toastStack, 'Resume loaded.', 'success');
+      });
+      duplicateBtn.addEventListener('click', async () => {
+        if (resumeList.length >= 5) {
+          showToast(toastStack, 'Maximum 5 resumes. Delete one first.', 'warning');
+          return;
+        }
+        const loaded = await loadResumeById(resume.id);
+        if (!loaded) {
+          showToast(toastStack, 'Could not duplicate resume.', 'error');
+          return;
+        }
+        try {
+          await createNewCloudResume(`${resume.name || 'My Resume'} (copy)`, loaded);
+          resumeList = await loadResumeList();
+          renderResumeList(resumeList);
+          updateResumesHeaderUI();
+          showToast(toastStack, 'Resume duplicated.', 'success');
+        } catch (error) {
+          showToast(toastStack, error?.message || 'Could not duplicate resume.', 'error');
+        }
+      });
+      deleteBtn.addEventListener('click', async () => {
+        if (!window.confirm('Delete this resume? This cannot be undone.')) return;
+        const deleted = await deleteResumeById(resume.id);
+        if (!deleted) {
+          showToast(toastStack, 'Could not delete resume.', 'error');
+          return;
+        }
+        resumeList = await loadResumeList();
+        if (resume.id === activeResumeId) {
+          const nextResume = resumeList[0];
+          if (nextResume) {
+            const loaded = await loadResumeById(nextResume.id);
+            if (loaded) {
+              applyPersistedState(state, loaded);
+              activeResumeId = nextResume.id;
+              setStoredActiveResumeId(activeResumeId);
+              hydrateBuilderAfterStateChange({ persist: true });
+            }
+          } else {
+            activeResumeId = null;
+            setStoredActiveResumeId(null);
+            resetBuilderState();
+          }
+        }
+        renderResumeList(resumeList);
+        updateResumesHeaderUI();
+        showToast(toastStack, 'Resume deleted.', 'success');
+      });
+      actions.append(loadBtn, duplicateBtn, deleteBtn);
+      card.append(avatar, body, actions);
+      resumesListMount.appendChild(card);
+    });
+  }
+
+  async function openResumesPanel() {
+    if (!resumesPanel) return;
+    resumesPanel.hidden = false;
+    myResumesButton?.setAttribute('aria-expanded', 'true');
+    resumeList = await loadResumeList();
+    renderResumeList(resumeList);
+    updateResumesHeaderUI();
+    resumesPanel.focus();
+    window.setTimeout(() => {
+      resumePanelOutsideHandler = (event) => {
+        if (resumesPanel.hidden) return;
+        if (resumesPanel.contains(event.target) || myResumesButton?.contains(event.target)) return;
+        closeResumesPanel();
+      };
+      document.addEventListener('mousedown', resumePanelOutsideHandler);
+      document.addEventListener('touchstart', resumePanelOutsideHandler, { passive: true });
+    }, 0);
+  }
+
+  function closeResumesPanel() {
+    if (!resumesPanel) return;
+    resumesPanel.hidden = true;
+    myResumesButton?.setAttribute('aria-expanded', 'false');
+    if (resumePanelOutsideHandler) {
+      document.removeEventListener('mousedown', resumePanelOutsideHandler);
+      document.removeEventListener('touchstart', resumePanelOutsideHandler);
+      resumePanelOutsideHandler = null;
+    }
+    myResumesButton?.focus();
+  }
+
+  async function handleNewResume() {
+    if (resumeList.length >= 5) {
+      showToast(toastStack, 'Maximum 5 resumes. Delete one first.', 'warning');
+      return;
+    }
+    if (!window.confirm('Start a new blank resume? Your current resume is saved.')) return;
+    activeResumeId = null;
+    resetBuilderState();
+    try {
+      const created = await createNewCloudResume('My Resume', state);
+      activeResumeId = created.id;
+      setStoredActiveResumeId(activeResumeId);
+      resumeList = await loadResumeList();
+      saveToStorage(state);
+      updateResumesHeaderUI();
+      showToast(toastStack, 'New resume created.', 'success');
+    } catch (error) {
+      showToast(toastStack, error?.message || 'Could not create resume.', 'error');
+    }
+  }
+
+  function showCloudMigrationPrompt() {
+    if (!resumesHeader || root.querySelector('#rb-cloud-migration')) return;
+    const prompt = createNode('div', 'rb-cloud-migration');
+    prompt.id = 'rb-cloud-migration';
+    const text = createNode('span', '', 'Save your current draft to cloud so it is available across sessions in this browser?');
+    const actions = createNode('span', 'rb-cloud-migration__actions');
+    const saveBtn = createNode('button', 'rb-cloud-migration__save', 'Save');
+    const dismissBtn = createNode('button', 'rb-cloud-migration__dismiss', 'Not now');
+    saveBtn.type = 'button';
+    dismissBtn.type = 'button';
+    saveBtn.addEventListener('click', async () => {
+      try {
+        const created = await createNewCloudResume(getCloudResumeName(state), state);
+        activeResumeId = created.id;
+        setStoredActiveResumeId(activeResumeId);
+        resumeList = await loadResumeList();
+        saveToStorage(state);
+        updateResumesHeaderUI();
+        prompt.remove();
+        showToast(toastStack, 'Draft saved to cloud.', 'success');
+      } catch (error) {
+        showToast(toastStack, error?.message || 'Could not save draft to cloud.', 'error');
+      }
+    });
+    dismissBtn.addEventListener('click', () => prompt.remove());
+    actions.append(saveBtn, dismissBtn);
+    prompt.append(text, actions);
+    resumesHeader.insertAdjacentElement('afterend', prompt);
   }
 
   function isMobileLayout() {
@@ -5180,6 +5656,9 @@ export async function initResumeBuilderTool(container) {
         } else if (selector === '#rb-skills') {
           renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange: false });
         }
+        if (selector === '#rb-name' || selector === '#rb-target-role') {
+          updateResumesHeaderUI();
+        }
         markBuilderContentChanged();
         debouncedSave();
       });
@@ -6405,6 +6884,7 @@ export async function initResumeBuilderTool(container) {
     updateCompletionBar(state);
     renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange: false });
     updateBackFab();
+    updateResumesHeaderUI();
     window.clearTimeout(autosaveSettleTimer);
     window.clearInterval(autosaveRefreshTimer);
     const autosaveIndicator = qs(root, '#rb-autosave-indicator');
@@ -6595,6 +7075,14 @@ export async function initResumeBuilderTool(container) {
       saveToStorage(state);
     });
   }
+  if (myResumesButton) myResumesButton.addEventListener('click', openResumesPanel);
+  if (newResumeButton) newResumeButton.addEventListener('click', handleNewResume);
+  if (resumesPanelClose) resumesPanelClose.addEventListener('click', closeResumesPanel);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && resumesPanel && !resumesPanel.hidden) {
+      closeResumesPanel();
+    }
+  });
   root.addEventListener('keydown', handleBuilderKeyboardShortcuts);
   window.addEventListener('resize', handleMobileViewportChange);
   if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);
@@ -6662,6 +7150,8 @@ export async function initResumeBuilderTool(container) {
   updateCompletionBar(state);
   renderCurrentIndustrySuggestions({ resetDismissedOnIndustryChange: false });
   updateBackFab();
+  updateResumesHeaderUI();
+  renderResumeList(resumeList);
   window.requestAnimationFrame(updateQuotaUi);
   window.requestAnimationFrame(() => {
     refreshLiveScore();
@@ -6673,11 +7163,19 @@ export async function initResumeBuilderTool(container) {
       const suffix = sharedLoad.hadStoredDraft ? ' Your previous draft was not overwritten - start fresh or use the shared resume.' : '';
       showToast(toastStack, `\u2713 Resume loaded from shared link! Review the details and make it your own.${suffix}`, 'success');
     }, 400);
+  } else if (cloudResumeLoaded) {
+    if (state.lastEditedAt) showSaveIndicator('saved', state);
+    window.setTimeout(() => {
+      showToast(toastStack, 'Cloud resume loaded.', 'success');
+    }, 400);
   } else if (wasRestored) {
     if (state.lastEditedAt) showSaveIndicator('saved', state);
     window.setTimeout(() => {
       showToast(toastStack, 'Draft restored - your previous work has been loaded.', 'info');
     }, 400);
+    if (!resumeList.length && hasMeaningfulBuilderData()) {
+      window.setTimeout(showCloudMigrationPrompt, 900);
+    }
   }
   } catch (error) {
     console.error('[Resume Builder Init]', error);

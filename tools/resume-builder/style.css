@@ -4262,3 +4262,391 @@
     padding: 0.36rem 0.58rem;
   }
 }
+
+/* --- MY RESUMES DASHBOARD --- */
+.resume-tool {
+  position: relative;
+}
+
+.rb-resumes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-lg);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(14, 165, 233, 0.06));
+  padding: 0.48rem 0.6rem;
+}
+
+.rb-resumes-header__left,
+.rb-resumes-header__right,
+.rb-my-resumes-btn,
+.rb-new-resume-btn {
+  display: inline-flex;
+  align-items: center;
+}
+
+.rb-resumes-header__left {
+  min-width: 0;
+  gap: 0.65rem;
+}
+
+.rb-my-resumes-btn,
+.rb-new-resume-btn {
+  min-height: 40px;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-pill);
+  background: var(--rb-bg-secondary);
+  color: var(--rb-text-primary);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  gap: 0.42rem;
+  transition: transform var(--rb-transition-fast), border-color var(--rb-transition-fast), background var(--rb-transition-fast);
+}
+
+.rb-my-resumes-btn {
+  padding: 0.45rem 0.55rem;
+}
+
+.rb-new-resume-btn {
+  padding: 0.48rem 0.72rem;
+}
+
+.rb-my-resumes-btn:hover,
+.rb-new-resume-btn:hover {
+  border-color: rgba(99, 102, 241, 0.55);
+  background: rgba(99, 102, 241, 0.14);
+  transform: translateY(-1px);
+}
+
+.rb-my-resumes-btn__icon {
+  display: inline-flex;
+}
+
+.rb-my-resumes-btn__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  border-radius: var(--rb-radius-pill);
+  background: var(--rb-accent-primary);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.rb-active-resume-name {
+  min-width: 0;
+  max-width: min(40vw, 420px);
+  overflow: hidden;
+  color: var(--rb-text-secondary);
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rb-resumes-panel {
+  position: absolute;
+  z-index: 180;
+  top: 3.95rem;
+  left: 0;
+  width: min(100%, 700px);
+  max-height: 60vh;
+  overflow-y: auto;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-xl, 20px);
+  background: var(--rb-bg-primary);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+  padding: 1rem;
+  opacity: 1;
+}
+
+.rb-resumes-panel[hidden] {
+  display: none;
+}
+
+.rb-resumes-panel__handle {
+  display: none;
+}
+
+.rb-resumes-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.rb-resumes-panel__title {
+  margin: 0;
+  color: var(--rb-text-primary);
+  font-size: 1rem;
+}
+
+.rb-resumes-panel__subtitle,
+.rb-resumes-panel__privacy {
+  margin: 0.18rem 0 0;
+  color: var(--rb-text-tertiary);
+  font-size: 0.75rem;
+}
+
+.rb-resumes-panel__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-pill);
+  background: var(--rb-bg-secondary);
+  color: var(--rb-text-primary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.rb-resumes-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.rb-resume-list-empty {
+  border: 1px dashed var(--rb-border-default);
+  border-radius: var(--rb-radius-lg);
+  color: var(--rb-text-secondary);
+  padding: 1rem;
+  text-align: center;
+}
+
+.rb-resume-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-lg);
+  background: var(--rb-bg-secondary);
+  padding: 0.78rem;
+  transition: border-color var(--rb-transition-fast), background var(--rb-transition-fast);
+}
+
+.rb-resume-card:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.rb-resume-card.is-active {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.rb-resume-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--rb-accent-primary), var(--rb-accent-secondary));
+  color: #fff;
+  font-weight: 800;
+}
+
+.rb-resume-card__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.rb-resume-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.rb-resume-card__name {
+  border: 0;
+  background: transparent;
+  color: var(--rb-text-primary);
+  padding: 0;
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+  cursor: text;
+}
+
+.rb-resume-card__meta,
+.rb-resume-card__date {
+  margin: 0.12rem 0 0;
+  color: var(--rb-text-tertiary);
+  font-size: 0.73rem;
+}
+
+.rb-resume-active-badge {
+  border-radius: var(--rb-radius-pill);
+  background: rgba(34, 197, 94, 0.16);
+  color: var(--rb-success);
+  padding: 0.16rem 0.45rem;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.rb-resume-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.rb-resume-action-btn {
+  min-height: 34px;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-pill);
+  background: var(--rb-bg-tertiary);
+  color: var(--rb-text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.35rem 0.62rem;
+}
+
+.rb-resume-action-btn--primary {
+  border-color: rgba(99, 102, 241, 0.45);
+  background: rgba(99, 102, 241, 0.18);
+}
+
+.rb-resume-action-btn--danger:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--rb-error);
+}
+
+.rb-resumes-panel__footer {
+  margin-top: 0.85rem;
+  border-top: 1px solid var(--rb-border-default);
+  padding-top: 0.75rem;
+}
+
+.rb-cloud-migration {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: -0.25rem 0 0.75rem;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  border-radius: var(--rb-radius-lg);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--rb-text-secondary);
+  padding: 0.72rem 0.85rem;
+  font-size: 0.78rem;
+}
+
+.rb-cloud-migration__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.rb-cloud-migration__save,
+.rb-cloud-migration__dismiss {
+  min-height: 34px;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-pill);
+  padding: 0.34rem 0.65rem;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rb-cloud-migration__save {
+  border-color: rgba(99, 102, 241, 0.55);
+  background: var(--rb-accent-primary);
+  color: #fff;
+}
+
+.rb-cloud-migration__dismiss {
+  background: transparent;
+  color: var(--rb-text-secondary);
+}
+
+@media (max-width: 767px) {
+  .rb-resumes-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rb-resumes-header__left,
+  .rb-resumes-header__right {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .rb-active-resume-name {
+    max-width: 42vw;
+  }
+
+  .rb-new-resume-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .rb-resumes-panel {
+    position: fixed;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    max-height: 78vh;
+    border-radius: 22px 22px 0 0;
+    padding: 0.8rem;
+  }
+
+  .rb-resumes-panel__handle {
+    display: block;
+    width: 42px;
+    height: 4px;
+    margin: 0 auto 0.8rem;
+    border-radius: var(--rb-radius-pill);
+    background: var(--rb-border-default);
+  }
+
+  .rb-resume-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rb-resume-card__actions {
+    justify-content: stretch;
+  }
+
+  .rb-resume-action-btn {
+    flex: 1 1 30%;
+    min-height: 44px;
+  }
+
+  .rb-cloud-migration {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rb-cloud-migration__actions {
+    justify-content: stretch;
+  }
+
+  .rb-cloud-migration__save,
+  .rb-cloud-migration__dismiss {
+    flex: 1;
+    min-height: 44px;
+  }
+}

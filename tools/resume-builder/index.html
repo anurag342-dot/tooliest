@@ -1,6 +1,85 @@
 <div class="resume-tool" data-resume-tool>
   <div class="resume-toast-stack" id="resume-toast-stack" role="status" aria-live="polite" aria-atomic="true"></div>
 
+  <div class="rb-resumes-header" id="rb-resumes-header">
+    <div class="rb-resumes-header__left">
+      <button
+        type="button"
+        id="rb-my-resumes-btn"
+        class="rb-my-resumes-btn"
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        aria-controls="rb-resumes-panel">
+        <span class="rb-my-resumes-btn__icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </span>
+        <span class="rb-my-resumes-btn__label">My Resumes</span>
+        <span class="rb-my-resumes-btn__count" id="rb-resume-count"
+              aria-label="0 saved resumes">0</span>
+      </button>
+      <span class="rb-active-resume-name" id="rb-active-resume-name"
+            aria-label="Current resume name">
+        Untitled Resume
+      </span>
+    </div>
+    <div class="rb-resumes-header__right">
+      <button
+        type="button"
+        id="rb-new-resume-btn"
+        class="rb-new-resume-btn"
+        aria-label="Create a new resume">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        New Resume
+      </button>
+    </div>
+  </div>
+
+  <div
+    id="rb-resumes-panel"
+    class="rb-resumes-panel"
+    role="dialog"
+    aria-label="My Resumes"
+    aria-modal="true"
+    tabindex="-1"
+    hidden>
+    <div class="rb-resumes-panel__handle" aria-hidden="true"></div>
+    <div class="rb-resumes-panel__header">
+      <div>
+        <h2 class="rb-resumes-panel__title">My Resumes</h2>
+        <p class="rb-resumes-panel__subtitle">
+          Saved across sessions &middot; Max 5 resumes
+        </p>
+      </div>
+      <button
+        type="button"
+        id="rb-resumes-panel-close"
+        class="rb-resumes-panel__close"
+        aria-label="Close My Resumes panel">
+        &times;
+      </button>
+    </div>
+    <div class="rb-resumes-list" id="rb-resumes-list"
+         role="list" aria-label="Your saved resumes">
+    </div>
+    <div class="rb-resumes-panel__footer">
+      <p class="rb-resumes-panel__privacy">
+        &#128274; Resumes are linked to this browser anonymously.
+        Clearing browser data removes access.
+      </p>
+    </div>
+  </div>
+
   <div class="resume-tabs" role="tablist" aria-label="Resume tool modes">
     <button
       type="button"
