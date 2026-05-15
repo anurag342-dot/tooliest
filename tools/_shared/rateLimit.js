@@ -1,21 +1,22 @@
 // NOTE: localStorage here is UI-only (quota bar display).
 // Real enforcement is server-side via Cloudflare KV in ai-proxy.js.
-// A user clearing localStorage can still see wrong counts in the bar
-// but the server will correctly block them at 15 requests.
+// The UI now syncs from the server status endpoint so clearing
+// browser storage cannot make exhausted AI buttons usable again.
 
 const MAX_PER_DAY = 15;
+const quotaStatusPromises = new Map();
 
 function storageKey(tool) {
   return `tlst_rl_${tool}`;
 }
 
-function todayStr() {
-  return new Date().toDateString();
+function quotaPeriodKey(date = new Date()) {
+  return date.toISOString().slice(0, 10);
 }
 
 function getQuotaResetAt() {
   const resetAt = new Date();
-  resetAt.setHours(24, 0, 0, 0);
+  resetAt.setUTCHours(24, 0, 0, 0);
   return resetAt;
 }
 
@@ -39,18 +40,19 @@ function formatResetCountdown(date = getQuotaResetAt()) {
   return `${diffHours}h ${diffMins}m`;
 }
 
-export function getQuotaResetDetails() {
-  const resetAt = getQuotaResetAt();
+export function getQuotaResetDetails(resetAtValue) {
+  const resetAt = resetAtValue ? new Date(resetAtValue) : getQuotaResetAt();
+  const safeResetAt = Number.isNaN(resetAt.getTime()) ? getQuotaResetAt() : resetAt;
   return {
-    resetAt,
-    countdown: formatResetCountdown(resetAt),
-    localTime: formatLocalResetTime(resetAt),
-    label: `Resets in ${formatResetCountdown(resetAt)} at ${formatLocalResetTime(resetAt)} local time`,
+    resetAt: safeResetAt,
+    countdown: formatResetCountdown(safeResetAt),
+    localTime: formatLocalResetTime(safeResetAt),
+    label: `Resets in ${formatResetCountdown(safeResetAt)} at ${formatLocalResetTime(safeResetAt)} local time`,
   };
 }
 
-function createQuotaError(message) {
-  const details = getQuotaResetDetails();
+function createQuotaError(message, tool) {
+  const details = getQuotaResetDetails(tool ? readQuotaState(tool).resetAt : undefined);
   const error = new Error(message || `Daily AI limit reached. ${details.label}.`);
   error.status = 429;
   error.quotaExhausted = true;
@@ -63,36 +65,38 @@ function readQuotaState(tool) {
   try {
     const raw = localStorage.getItem(storageKey(tool));
     if (!raw) {
-      return { date: todayStr(), count: 0 };
+      return { date: quotaPeriodKey(), count: 0, resetAt: getQuotaResetAt().toISOString() };
     }
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object' || parsed.date !== todayStr()) {
-      return { date: todayStr(), count: 0 };
+    if (!parsed || typeof parsed !== 'object' || parsed.date !== quotaPeriodKey()) {
+      return { date: quotaPeriodKey(), count: 0, resetAt: getQuotaResetAt().toISOString() };
     }
     return {
-      date: todayStr(),
+      date: quotaPeriodKey(),
       count: Number.isFinite(parsed.count) ? Math.max(0, Number(parsed.count)) : 0,
+      resetAt: typeof parsed.resetAt === 'string' ? parsed.resetAt : getQuotaResetAt().toISOString(),
     };
   } catch (_) {
-    return { date: todayStr(), count: 0 };
+    return { date: quotaPeriodKey(), count: 0, resetAt: getQuotaResetAt().toISOString() };
   }
 }
 
-function writeQuotaState(tool, count) {
+function writeQuotaState(tool, count, resetAt = getQuotaResetAt().toISOString()) {
   try {
     localStorage.setItem(storageKey(tool), JSON.stringify({
-      date: todayStr(),
+      date: quotaPeriodKey(),
       count: Math.max(0, Number(count) || 0),
+      resetAt,
     }));
   } catch (_) {
     // Storage failures should not break the tool.
   }
 }
 
-function syncQuotaFromRemaining(tool, remaining) {
+function syncQuotaFromRemaining(tool, remaining, resetAt) {
   if (!Number.isFinite(remaining)) return false;
   const normalizedRemaining = Math.max(0, Math.min(MAX_PER_DAY, Math.round(remaining)));
-  writeQuotaState(tool, MAX_PER_DAY - normalizedRemaining);
+  writeQuotaState(tool, MAX_PER_DAY - normalizedRemaining, resetAt || getQuotaResetAt().toISOString());
   return true;
 }
 
@@ -121,17 +125,16 @@ export function isQuotaExhausted(tool) {
 
 export function consume(tool) {
   const state = readQuotaState(tool);
-  writeQuotaState(tool, Math.min(MAX_PER_DAY, state.count + 1));
+  writeQuotaState(tool, Math.min(MAX_PER_DAY, state.count + 1), state.resetAt);
   return true;
 }
 
-export function renderQuota(tool, el) {
-  if (!el) return;
-
+function renderQuotaState(tool, el) {
   const remaining = getRemaining(tool);
   const exhausted = remaining <= 0;
   const pct = (remaining / MAX_PER_DAY) * 100;
   const color = pct > 50 ? '#22c55e' : pct > 20 ? '#f59e0b' : '#ef4444';
+  const state = readQuotaState(tool);
 
   el.textContent = '';
 
@@ -156,11 +159,52 @@ export function renderQuota(tool, el) {
   if (exhausted) {
     const resetNote = document.createElement('span');
     resetNote.className = 'quota-reset-note';
-    resetNote.textContent = `Daily AI limit reached. ${getQuotaResetDetails().label}.`;
+    resetNote.textContent = `Daily AI limit reached. ${getQuotaResetDetails(state.resetAt).label}.`;
     wrapper.appendChild(resetNote);
   }
 
   el.appendChild(wrapper);
+}
+
+export async function refreshQuotaStatus(tool) {
+  if (!tool) return null;
+  if (quotaStatusPromises.has(tool)) {
+    return quotaStatusPromises.get(tool);
+  }
+
+  const promise = (async () => {
+    const response = await fetch(`/api/ai-proxy?tool=${encodeURIComponent(tool)}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      throw new Error('Could not sync AI quota.');
+    }
+    const data = await response.json();
+    const remaining = Number(data?.remaining);
+    const resetAt = typeof data?.reset_at === 'string'
+      ? data.reset_at
+      : response.headers.get('X-RateLimit-Reset');
+    syncQuotaFromRemaining(tool, remaining, resetAt || getQuotaResetAt().toISOString());
+    return {
+      remaining: getRemaining(tool),
+      resetAt: readQuotaState(tool).resetAt,
+    };
+  })().finally(() => {
+    quotaStatusPromises.delete(tool);
+  });
+
+  quotaStatusPromises.set(tool, promise);
+  return promise;
+}
+
+export function renderQuota(tool, el) {
+  if (!el) return;
+  renderQuotaState(tool, el);
+  refreshQuotaStatus(tool)
+    .then(() => renderQuotaState(tool, el))
+    .catch(() => {});
 }
 
 export function getQuotaButtonLabel(baseLabel, tool) {
@@ -178,13 +222,15 @@ export async function callAI({
   chargeQuota = true,
   skipModels = [],
 }) {
-  if (chargeQuota && isQuotaExhausted(tool)) {
-    throw createQuotaError();
+  if (chargeQuota) {
+    await refreshQuotaStatus(tool).catch(() => null);
+    if (isQuotaExhausted(tool)) {
+      throw createQuotaError(null, tool);
+    }
   }
 
   const requestBody = {
     tool,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userContent },
@@ -212,17 +258,18 @@ export async function callAI({
 
   if (chargeQuota) {
     const remainingHeader = Number(response.headers.get('X-RateLimit-Remaining'));
-    const synced = syncQuotaFromRemaining(tool, remainingHeader);
+    const resetHeader = response.headers.get('X-RateLimit-Reset') || getQuotaResetAt().toISOString();
+    const synced = syncQuotaFromRemaining(tool, remainingHeader, resetHeader);
     if (!synced && response.ok) {
       consume(tool);
     }
     if (!synced && response.status === 429) {
-      syncQuotaFromRemaining(tool, 0);
+      syncQuotaFromRemaining(tool, 0, resetHeader);
     }
   }
 
   if (response.status === 429) {
-    throw createQuotaError(data?.message);
+    throw createQuotaError(data?.message, tool);
   }
 
   if (response.status === 403 && /origin/i.test(String(data?.error || data?.message || ''))) {

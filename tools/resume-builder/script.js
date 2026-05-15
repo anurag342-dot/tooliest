@@ -3,6 +3,7 @@ import {
   renderQuota,
   getQuotaButtonLabel,
   getRemaining,
+  refreshQuotaStatus,
 } from '../_shared/rateLimit.js';
 
 const TOOL_KEY = 'resume-builder';
@@ -3769,13 +3770,34 @@ export async function initResumeBuilderTool(container) {
     syncImportCreditState(remaining);
   }
 
-  function updateQuotaUi() {
+  let quotaUiSyncPending = false;
+
+  function renderQuotaMounts() {
     renderQuota(TOOL_KEY, atsQuotaMount);
     renderQuota(TOOL_KEY, builderQuotaMount);
     renderQuota(TOOL_KEY, coverLetterQuotaMount);
+  }
+
+  function applyQuotaLabels() {
     atsButton.textContent = getQuotaButtonLabel(atsBaseLabel, TOOL_KEY);
     generateButton.textContent = `\u26A1 ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`;
     updateCreditsDisplay();
+  }
+
+  function updateQuotaUi() {
+    renderQuotaMounts();
+    applyQuotaLabels();
+    if (quotaUiSyncPending) return;
+    quotaUiSyncPending = true;
+    refreshQuotaStatus(TOOL_KEY)
+      .then(() => {
+        renderQuotaMounts();
+        applyQuotaLabels();
+      })
+      .catch(() => {})
+      .finally(() => {
+        quotaUiSyncPending = false;
+      });
   }
 
   function isMobileLayout() {

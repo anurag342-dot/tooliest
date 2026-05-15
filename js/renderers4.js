@@ -1172,6 +1172,9 @@ async function _syncAIQuota(bindings, tool, baseLabel) {
   if (!bindings) return;
   _ensureAISharedStyles();
   const shared = await _loadSharedAIClient();
+  if (typeof shared.refreshQuotaStatus === 'function') {
+    await shared.refreshQuotaStatus(tool).catch(() => null);
+  }
   const isExhausted = typeof shared.isQuotaExhausted === 'function'
     ? shared.isQuotaExhausted(tool)
     : shared.getRemaining(tool) <= 0;

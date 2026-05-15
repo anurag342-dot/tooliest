@@ -61,7 +61,7 @@ function getAllowedOrigin(request, env) {
 
 function corsHeaders(origin) {
   const headers = {
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Max-Age': '86400',
     'Cache-Control': 'no-store',
@@ -96,43 +96,65 @@ function getClientIP(request) {
   );
 }
 
-function getClientTimeZone(value) {
-  const timeZone = typeof value === 'string' ? value.trim() : '';
-  if (!timeZone || timeZone.length > 80) return 'UTC';
+function getQuotaDateKey(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getQuotaResetAt(date = new Date()) {
+  const resetAt = new Date(date);
+  resetAt.setUTCHours(24, 0, 0, 0);
+  return resetAt;
+}
+
+function getQuotaKey(ip, tool, date = new Date()) {
+  return `rl:${ip}:${tool}:${getQuotaDateKey(date)}`;
+}
+
+function getQuotaExpirationTtl(date = new Date()) {
+  const resetAt = getQuotaResetAt(date);
+  return Math.max(60, Math.ceil((resetAt.getTime() - date.getTime()) / 1000) + 3600);
+}
+
+async function readIPLimit(env, ip, tool) {
+  const resetAt = getQuotaResetAt();
   try {
-    new Intl.DateTimeFormat('en-US', { timeZone }).format(new Date());
-    return timeZone;
-  } catch (_) {
-    return 'UTC';
+    const key = getQuotaKey(ip, tool);
+    const current = parseInt((await env.TOOLIEST_KV.get(key)) || '0', 10);
+    const count = Number.isFinite(current) ? Math.max(0, current) : 0;
+    return {
+      count,
+      remaining: Math.max(0, PER_TOOL_DAILY_LIMIT - count),
+      resetAt,
+      quotaAvailable: true,
+    };
+  } catch (error) {
+    console.error('KV rate limit read error:', error?.message || 'Unknown error');
+    return { count: 0, remaining: -1, resetAt, quotaAvailable: false };
   }
 }
 
-function getDateKeyForTimeZone(timeZone) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(new Date());
-  const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${lookup.year}-${lookup.month}-${lookup.day}`;
-}
-
-async function checkIPLimit(env, ip, tool, timeZone) {
+async function checkIPLimit(env, ip, tool) {
   try {
-    const dateKey = getDateKeyForTimeZone(timeZone);
-    const key = `rl:${ip}:${tool}:${dateKey}`;
-    const current = parseInt((await env.TOOLIEST_KV.get(key)) || '0', 10);
-    if (current >= PER_TOOL_DAILY_LIMIT) {
-      return { allowed: false, remaining: 0 };
+    const quota = await readIPLimit(env, ip, tool);
+    if (quota.remaining <= 0 && quota.remaining !== -1) {
+      return { allowed: false, remaining: 0, resetAt: quota.resetAt };
     }
+    if (!quota.quotaAvailable || quota.remaining === -1) {
+      return { allowed: true, remaining: -1, resetAt: quota.resetAt };
+    }
+    const current = Math.max(0, quota.count);
+    const key = getQuotaKey(ip, tool);
     await env.TOOLIEST_KV.put(key, String(current + 1), {
-      expirationTtl: 86400,
+      expirationTtl: getQuotaExpirationTtl(),
     });
-    return { allowed: true, remaining: PER_TOOL_DAILY_LIMIT - (current + 1) };
+    return {
+      allowed: true,
+      remaining: PER_TOOL_DAILY_LIMIT - (current + 1),
+      resetAt: quota.resetAt,
+    };
   } catch (error) {
     console.error('KV rate limit error:', error?.message || 'Unknown error');
-    return { allowed: true, remaining: -1 };
+    return { allowed: true, remaining: -1, resetAt: getQuotaResetAt() };
   }
 }
 
@@ -173,13 +195,14 @@ function clampTemperature(value) {
   return Math.min(1.2, Math.max(0, parsed));
 }
 
-function buildRateLimitHeaders(remaining) {
+function buildRateLimitHeaders(remaining, resetAt = getQuotaResetAt()) {
   if (!Number.isFinite(remaining) || remaining < 0) {
     return {};
   }
   return {
     'X-RateLimit-Limit': String(PER_TOOL_DAILY_LIMIT),
     'X-RateLimit-Remaining': String(Math.max(0, remaining)),
+    'X-RateLimit-Reset': resetAt.toISOString(),
   };
 }
 
@@ -236,6 +259,42 @@ export async function onRequestOptions(context) {
   });
 }
 
+export async function onRequestGet({ request, env }) {
+  const allowedOrigin = getAllowedOrigin(request, env);
+  const responseOrigin = allowedOrigin || DEFAULT_ALLOWED_ORIGIN;
+  if (!allowedOrigin && getRequestOrigin(request)) {
+    return json({ error: 'Origin not allowed.' }, 403, { origin: DEFAULT_ALLOWED_ORIGIN });
+  }
+
+  const url = new URL(request.url);
+  const tool = String(url.searchParams.get('tool') || '').trim();
+  if (!tool || !CHAINS[tool]) {
+    return json({ error: `Unknown tool: ${tool || 'unknown'}` }, 400, { origin: responseOrigin });
+  }
+
+  const ip = getClientIP(request);
+  const quota = await readIPLimit(env, ip, tool);
+  if (!quota.quotaAvailable || !Number.isFinite(quota.remaining) || quota.remaining < 0) {
+    return json({
+      error: 'Quota unavailable',
+      message: 'AI quota status could not be synced right now.',
+      reset_at: quota.resetAt.toISOString(),
+    }, 503, { origin: responseOrigin });
+  }
+  const remaining = Number.isFinite(quota.remaining)
+    ? Math.max(0, quota.remaining)
+    : PER_TOOL_DAILY_LIMIT;
+  return json({
+    tool,
+    limit: PER_TOOL_DAILY_LIMIT,
+    remaining,
+    reset_at: quota.resetAt.toISOString(),
+  }, 200, {
+    origin: responseOrigin,
+    headers: buildRateLimitHeaders(remaining, quota.resetAt),
+  });
+}
+
 export async function onRequestPost({ request, env }) {
   const allowedOrigin = getAllowedOrigin(request, env);
   const responseOrigin = allowedOrigin || DEFAULT_ALLOWED_ORIGIN;
@@ -251,7 +310,6 @@ export async function onRequestPost({ request, env }) {
   }
 
   const tool = typeof body?.tool === 'string' ? body.tool.trim() : '';
-  const timeZone = getClientTimeZone(body?.timezone);
   const messages = sanitizeMessages(body?.messages);
   const chain = CHAINS[tool];
 
@@ -263,14 +321,14 @@ export async function onRequestPost({ request, env }) {
   }
 
   const ip = getClientIP(request);
-  const { allowed, remaining } = await checkIPLimit(env, ip, tool, timeZone);
-  const rateLimitHeaders = buildRateLimitHeaders(remaining);
+  const { allowed, remaining, resetAt } = await checkIPLimit(env, ip, tool);
+  const rateLimitHeaders = buildRateLimitHeaders(remaining, resetAt);
 
   if (!allowed) {
     return json({
       error: 'Daily limit reached',
-      message: 'You have used all 15 free requests today for this tool. Resets at midnight in your local time.',
-      reset_at: `midnight (${timeZone})`,
+      message: 'You have used all 15 free requests today for this tool.',
+      reset_at: resetAt.toISOString(),
     }, 429, {
       origin: responseOrigin,
       headers: rateLimitHeaders,
