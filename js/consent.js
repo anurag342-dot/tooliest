@@ -177,6 +177,13 @@
     banner.dataset.bound = 'true';
   }
 
+  function handleManageCookies(event) {
+    event?.preventDefault?.();
+    clearSavedConsent();
+    applyConsent(false);
+    showBanner();
+  }
+
   function hideBanner() {
     const banner = document.getElementById('cookie-banner');
     document.body.classList.remove('cookie-banner-open');
@@ -248,11 +255,7 @@
 
   // Expose a reset function for "manage cookies" link
   window.TooliestConsent = {
-    reset: function () {
-      clearSavedConsent();
-      applyConsent(false);
-      showBanner();
-    },
+    reset: handleManageCookies,
     open: function () {
       showBanner();
     },
@@ -263,5 +266,13 @@
       return getSavedConsent();
     }
   };
+
+  document.addEventListener('click', (event) => {
+    const trigger = event.target && event.target.closest
+      ? event.target.closest('[data-consent-reset]')
+      : null;
+    if (!trigger) return;
+    handleManageCookies(event);
+  });
 
 })();

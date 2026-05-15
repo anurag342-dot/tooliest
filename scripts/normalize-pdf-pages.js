@@ -522,10 +522,10 @@ function renderFooter() {
     <div class="footer-bottom">
       <span>&copy; 2026 Tooliest.com - All tools are free and run in your browser.</span>
       <span>
-        <a href="/privacy/" style="color:inherit;opacity:0.7;">Privacy</a> |
-        <a href="/terms/" style="color:inherit;opacity:0.7;">Terms</a> |
-        <a href="/contact/" style="color:inherit;opacity:0.7;">Contact</a> |
-        <button onclick="window.TooliestConsent&&TooliestConsent.reset&&TooliestConsent.reset()" style="background:none;border:none;color:inherit;opacity:0.7;cursor:pointer;font-size:inherit;padding:0;font-family:inherit;">Manage Cookies</button>
+        <a href="/privacy/">Privacy</a> |
+        <a href="/terms/">Terms</a> |
+        <a href="/contact/">Contact</a> |
+        <button type="button" data-consent-reset style="background:none;border:none;cursor:pointer;font-size:inherit;padding:0;font-family:inherit;">Manage Cookies</button>
       </span>
     </div>
   </footer>`;
@@ -550,7 +550,7 @@ function renderMobileSearchOverlay() {
 }
 
 function renderCookieBanner() {
-  return `<div id="cookie-banner" role="dialog" aria-label="Cookie consent" aria-live="polite">
+  return `<div id="cookie-banner" class="banner-hidden" role="dialog" aria-label="Cookie consent" aria-live="polite" aria-hidden="true">
     <div class="cookie-inner">
       <div class="cookie-icon">&#127850;</div>
       <div class="cookie-text">
@@ -563,6 +563,10 @@ function renderCookieBanner() {
       </div>
     </div>
   </div>`;
+}
+
+function renderConsentFallbackScript() {
+  return `<script data-cfasync="false">(function(){if(window.__TOOLIEST_CONSENT_FALLBACK_READY)return;window.__TOOLIEST_CONSENT_FALLBACK_READY=true;var key='tooliest_cookie_consent';var version='2';function read(){try{var raw=localStorage.getItem(key);return raw?JSON.parse(raw):null;}catch(e){return null;}}function save(accepted){try{localStorage.setItem(key,JSON.stringify({accepted:accepted,version:version,timestamp:new Date().toISOString()}));}catch(e){}}function clear(){try{localStorage.removeItem(key);}catch(e){}}function setHeight(px){document.documentElement.style.setProperty('--cookie-banner-height',Math.max(0,Math.round(px||0))+'px');}function banner(){return document.getElementById('cookie-banner');}function show(){var el=banner();if(!el)return;document.body.classList.add('cookie-banner-open');el.classList.remove('banner-hidden','banner-visible');el.setAttribute('aria-hidden','false');window.requestAnimationFrame(function(){el.classList.add('banner-visible');setHeight(el.getBoundingClientRect().height);});}function hide(){var el=banner();document.body.classList.remove('cookie-banner-open');if(el){el.classList.remove('banner-visible');el.classList.add('banner-hidden');el.setAttribute('aria-hidden','true');}setHeight(0);}function accept(){save(true);hide();}function reject(){save(false);hide();}function reset(event){if(event&&event.preventDefault)event.preventDefault();clear();show();}function bind(){var acceptBtn=document.getElementById('cookie-accept-btn');var rejectBtn=document.getElementById('cookie-reject-btn');if(acceptBtn)acceptBtn.addEventListener('click',accept);if(rejectBtn)rejectBtn.addEventListener('click',reject);document.addEventListener('click',function(event){var trigger=event.target&&event.target.closest&&event.target.closest('[data-consent-reset]');if(!trigger)return;var api=window.TooliestConsent;if(api&&api!==fallback&&typeof api.reset==='function'){event.preventDefault();api.reset(event);return;}reset(event);});var saved=read();if(!saved||saved.version!==version)show();}var fallback={reset:reset,open:show,refreshLayout:function(){var el=banner();setHeight(el&&!el.classList.contains('banner-hidden')?el.getBoundingClientRect().height:0);},getStatus:read};window.TooliestConsent=window.TooliestConsent||fallback;if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',bind,{once:true});}else{bind();}})();</script>`;
 }
 
 function getRelatedCategories(tool, categories) {
@@ -959,6 +963,7 @@ function renderPage(tool, categories, tools, originalHtml) {
   ${renderCookieBanner()}
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+  ${renderConsentFallbackScript()}
   <script src="${BUNDLE_PATH}" defer data-cfasync="false"></script>
   ${trailingScripts}
 </body>
