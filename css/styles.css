@@ -2938,6 +2938,50 @@ body.embed-mode.standalone-tool-embed {
   }
 }
 
+@media (min-width: 769px) and (max-width: 1175px) {
+  .nav-links {
+    flex-shrink: 1;
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .nav-links #nav-install-btn {
+    display: none;
+  }
+
+  .nav-links a {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .nav-links .theme-toggle-btn,
+  .nav-links #whats-new-btn {
+    display: inline-flex !important;
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1050px) {
+  .nav-links a[href="/guides/"],
+  .nav-links a[href="/about/"] {
+    display: none;
+  }
+
+  .nav-links a {
+    padding: 8px 8px;
+    font-size: 0.82rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 900px) {
+  .nav-links a[href="/guides/"],
+  .nav-links a[href="/about/"],
+  .nav-links a[href="/category/pdf/"],
+  .nav-links a[href="/category/developer/"] {
+    display: none;
+  }
+}
+
 @media (max-width: 767px) {
   .categories-section {
     padding-bottom: 12px;

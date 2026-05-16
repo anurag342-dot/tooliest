@@ -1777,6 +1777,7 @@ function applyTemplate(templateName, options = {}) {
   }
 
   syncTemplatePicker(template);
+  applyMobilePreviewScale();
 
   if (shouldSave && typeof resumeTemplateSave === 'function') {
     resumeTemplateSave();
@@ -1903,6 +1904,7 @@ function renderFormattedPreview(resumeText) {
       </div>`;
     applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
     updateWordCountDisplay(resumeExportState);
+    applyMobilePreviewScale();
     return;
   }
 
@@ -1944,6 +1946,7 @@ function renderFormattedPreview(resumeText) {
   container.innerHTML = html;
   applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
   updateWordCountDisplay(resumeExportState);
+  applyMobilePreviewScale();
 }
 
 // --- LIVE RESUME RENDERER ---
@@ -2141,6 +2144,7 @@ function renderLiveResumeFromState(state = resumeExportState) {
       </div>`;
     applyTemplate(state?.template || 'classic', { persist: false, animate: false });
     updateWordCountDisplay(state);
+    applyMobilePreviewScale();
     return;
   }
 
@@ -2176,6 +2180,34 @@ function renderLiveResumeFromState(state = resumeExportState) {
   container.innerHTML = html;
   applyTemplate(state.template || 'classic', { persist: false, animate: false });
   updateWordCountDisplay(state);
+  applyMobilePreviewScale();
+}
+
+function applyMobilePreviewScale() {
+  const scaleDocument = (pane, doc, docWidth) => {
+    if (!pane || !doc) return;
+    if (window.innerWidth >= 768) {
+      pane.style.height = '';
+      doc.style.removeProperty('transform');
+      doc.style.removeProperty('transform-origin');
+      return;
+    }
+    const paneWidth = pane.clientWidth || window.innerWidth;
+    const scale = Math.min(1, Math.max(0.25, (paneWidth - 16) / docWidth));
+    doc.style.setProperty('transform', `scale(${scale})`, 'important');
+    doc.style.transformOrigin = 'top left';
+    pane.style.height = `${Math.ceil(doc.scrollHeight * scale)}px`;
+  };
+
+  const previewPane = document.getElementById('rb-preview-pane');
+  const resumeDoc = previewPane?.querySelector('.rb-resume-doc');
+  if (previewPane && !resumeDoc) previewPane.style.height = '';
+  scaleDocument(previewPane, resumeDoc, 816);
+
+  const coverLetterPane = document.querySelector('.cl-preview-pane');
+  const coverLetterDoc = coverLetterPane?.querySelector('.cl-letter-doc');
+  if (coverLetterPane && !coverLetterDoc) coverLetterPane.style.height = '';
+  scaleDocument(coverLetterPane, coverLetterDoc, 816);
 }
 
 function buildAccordionCard(sectionKey, label, nodes, options = {}) {
@@ -2245,7 +2277,9 @@ function setupBuilderCanvasLayout(root) {
   const credits = qs(root, '#rb-credits-bar');
   const quotaBanner = qs(root, '#rb-quota-exhausted-banner');
   const scoreCompact = qs(root, '#rb-live-score-compact');
-  [importCard, completion, credits, quotaBanner, scoreCompact].forEach((node) => moveNode(node, editorTopbar));
+  const topbarRow = createNode('div', 'rb-editor-topbar-row');
+  [credits, scoreCompact].forEach((node) => moveNode(node, topbarRow));
+  [completion, topbarRow, quotaBanner].forEach((node) => moveNode(node, editorTopbar));
 
   const personalGrid = qs(root, '[data-step-panel="1"] .resume-form-grid');
   const summaryField = qs(root, '#rb-summary')?.closest('.resume-field');
@@ -2256,7 +2290,8 @@ function setupBuilderCanvasLayout(root) {
   if (keywordSuggestions && skillsField) skillsField.appendChild(keywordSuggestions);
   if (keywordRestore && skillsField) skillsField.appendChild(keywordRestore);
 
-  accordion.append(
+  const accordionCards = [
+    importCard ? buildAccordionCard('import', 'Import Resume', [importCard], { icon: '&#11014;', open: false }) : null,
     buildAccordionCard('personal', 'Personal Information', [personalGrid, targetRoleField], { icon: '&#128100;', locked: true, open: true }),
     buildAccordionCard('summary', 'Professional Summary', [summaryField], { icon: '&#9998;', open: true }),
     buildAccordionCard('experience', 'Work Experience', [
@@ -2273,7 +2308,8 @@ function setupBuilderCanvasLayout(root) {
     buildAccordionCard('review', 'Review Snapshot', [qs(root, '#rb-review-summary')?.closest('.resume-card')], { icon: '&#128269;', open: false }),
     buildAccordionCard('ats', 'ATS Score & Analysis', [qs(root, '#rb-score-panel-full')], { icon: '&#128202;', open: false }),
     buildAccordionCard('settings', 'Section Order', [qs(root, '#rb-section-order-panel')], { icon: '&#8597;', open: false }),
-  );
+  ].filter(Boolean);
+  accordion.append(...accordionCards);
 
   const addSection = createNode('button', 'rb-add-section-placeholder', '+ Add Section');
   addSection.type = 'button';
@@ -4808,6 +4844,7 @@ export async function initResumeBuilderTool(container) {
     if (isMobileLayout() && activeMobileBuilderView === 'preview') {
       returnNodeToOriginalPosition(scorePanelFull, scoreOriginalPosition);
       mountNodeForMobile(previewWrap, mobilePreviewView);
+      applyMobilePreviewScale();
     } else if (isMobileLayout() && activeMobileBuilderView === 'score') {
       returnNodeToOriginalPosition(previewWrap, previewOriginalPosition);
       mountNodeForMobile(scorePanelFull, mobileScoreView);
@@ -5413,6 +5450,7 @@ export async function initResumeBuilderTool(container) {
         <p>Your cover letter will appear here</p>
         <span>Fill in the details and click Generate</span>
       </div>`;
+    applyMobilePreviewScale();
   }
 
   function renderCoverLetterLoadingState() {
@@ -5427,6 +5465,7 @@ export async function initResumeBuilderTool(container) {
         <span class="cl-letter-skeleton__bar"></span>
         <span class="cl-letter-skeleton__bar short"></span>
       </div>`;
+    applyMobilePreviewScale();
   }
 
   function renderCoverLetterPreview(letterText = state.coverLetter, settings = state.coverLetterSettings) {
@@ -5465,6 +5504,7 @@ export async function initResumeBuilderTool(container) {
         <div class="cl-letter-body">${bodyHtml}</div>
       </div>`;
     setCoverLetterButtonsEnabled(true);
+    applyMobilePreviewScale();
   }
 
   function buildCompleteCoverLetterText(letterText = state.coverLetter, settings = state.coverLetterSettings) {
@@ -7603,6 +7643,7 @@ export async function initResumeBuilderTool(container) {
   });
   root.addEventListener('keydown', handleBuilderKeyboardShortcuts);
   window.addEventListener('resize', handleMobileViewportChange);
+  window.addEventListener('resize', debounce(applyMobilePreviewScale, 200));
   if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);
   if (docxButton) docxButton.addEventListener('click', downloadResumeDOCX);
   if (printButton) printButton.addEventListener('click', printResume);
