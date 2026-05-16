@@ -56,6 +56,10 @@ const LZ_STRING_CDN_URLS = [
   'https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js',
   'https://unpkg.com/lz-string@1.5.0/libs/lz-string.min.js',
 ];
+const SORTABLEJS_CDN_URLS = [
+  'https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.3/Sortable.min.js',
+];
 // PDF.js 3.x exposes a reliable browser global for lazy script loading.
 const PDFJS_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -68,6 +72,8 @@ let docxLoaded = false;
 let mammothLoaded = false;
 let pdfJsLoaded = false;
 let lzStringLoaded = false;
+let sortableJsLoaded = false;
+let sortableInstance = null;
 let autosaveSettleTimer = 0;
 let autosaveRefreshTimer = 0;
 let resumeTemplateState = null;
@@ -177,14 +183,29 @@ const RESUME_TEMPLATE_CLASSES = {
   modern: 'rb-tpl-modern',
   compact: 'rb-tpl-compact',
 };
-const OPTIONAL_RESUME_SECTIONS = ['projects', 'certifications', 'languages'];
-const DEFAULT_SECTION_ORDER = ['experience', 'projects', 'education', 'skills', 'certifications'];
+const OPTIONAL_RESUME_SECTIONS = ['projects', 'certifications', 'languages', 'awards', 'volunteer', 'publications', 'courses'];
+const OPTIONAL_SECTION_DEFAULTS = {
+  projects: true,
+  certifications: true,
+  languages: false,
+  awards: false,
+  volunteer: false,
+  publications: false,
+  courses: false,
+};
+const DEFAULT_SECTION_ORDER = ['experience', 'projects', 'education', 'skills', 'certifications', 'languages', 'awards', 'volunteer', 'publications', 'courses'];
 const SECTION_LABELS = {
   experience: 'Work Experience',
   projects: 'Projects',
   education: 'Education',
   skills: 'Skills',
   certifications: 'Certifications',
+  languages: 'Languages',
+  awards: 'Awards & Honors',
+  volunteer: 'Volunteer Work',
+  publications: 'Publications',
+  courses: 'Courses & Training',
+  custom: 'Custom Section',
 };
 const SECTION_TITLE_TO_KEY = {
   'WORK EXPERIENCE': 'experience',
@@ -194,7 +215,64 @@ const SECTION_TITLE_TO_KEY = {
   SKILLS: 'skills',
   CERTIFICATIONS: 'certifications',
   CERTIFICATION: 'certifications',
+  LANGUAGES: 'languages',
+  'AWARDS & HONORS': 'awards',
+  AWARDS: 'awards',
+  'VOLUNTEER WORK': 'volunteer',
+  VOLUNTEER: 'volunteer',
+  PUBLICATIONS: 'publications',
+  'COURSES & TRAINING': 'courses',
+  COURSES: 'courses',
 };
+const ADD_SECTION_OPTIONS = [
+  {
+    key: 'languages',
+    label: 'Languages',
+    description: 'Add languages and proficiency levels',
+    icon: '\uD83C\uDF0D',
+  },
+  {
+    key: 'awards',
+    label: 'Awards & Honors',
+    description: 'Recognitions, competitions, achievements',
+    icon: '\uD83C\uDFC6',
+  },
+  {
+    key: 'volunteer',
+    label: 'Volunteer Work',
+    description: 'Community service and volunteering roles',
+    icon: '\uD83E\uDD1D',
+  },
+  {
+    key: 'publications',
+    label: 'Publications',
+    description: 'Articles, research papers, books',
+    icon: '\uD83D\uDCDD',
+  },
+  {
+    key: 'courses',
+    label: 'Courses & Training',
+    description: 'Online courses and professional training',
+    icon: '\uD83D\uDCDA',
+  },
+  {
+    key: 'custom',
+    label: 'Custom Section',
+    description: 'Create your own section for anything else',
+    icon: '\uD83E\uDDE9',
+  },
+];
+const CUSTOM_SECTION_LIMIT = 3;
+const CUSTOM_SECTION_ENTRY_LIMIT = 10;
+const SECTION_ENTRY_LIMITS = {
+  languages: 10,
+  awards: 10,
+  volunteer: 5,
+  publications: 10,
+  courses: 10,
+};
+const LANGUAGE_PROFICIENCIES = ['Native', 'Fluent', 'Conversational', 'Basic'];
+const RESUME_BOLD_LINE_PREFIX = '\uE000BOLD:';
 
 // --- INDUSTRY KEYWORD INTELLIGENCE ---
 const INDUSTRY_KEYWORD_MAP = {
@@ -711,6 +789,10 @@ Format rules:
 - Achievements must be quantified wherever possible. If the user has not provided numbers, insert a [PLACEHOLDER — add your specific metric here] tag instead of fabricating numbers. Never invent percentages, dollar amounts, or statistics the user did not provide.
 - If the user provides projects, include a PROJECTS section using only the provided project names, links, technologies, and details. Never invent project links, repositories, metrics, or outcomes.
 - In the EDUCATION section, list all education entries provided by the user.
+- If Languages, Awards & Honors, Volunteer Work, Publications, Courses & Training, or custom sections are provided, include only the provided entries for those sections.
+- Do not invent entries for Languages, Awards, Volunteer Work, Publications, Courses, or custom sections.
+- Use the exact section titles as provided for custom sections.
+- Include only sections for which data has been provided.
 - Follow the requested section order from the user content after PROFESSIONAL SUMMARY. Omit optional sections when they are disabled or not provided.
 - Tailor language to the target job title provided
 - Total length: 450-650 words for junior, 650-900 for senior
@@ -1144,6 +1226,64 @@ function normalizeSavedProject(project = {}) {
   };
 }
 
+function normalizeSavedLanguage(language = {}) {
+  const rawProficiency = String(language.proficiency ?? language.level ?? 'Conversational');
+  return {
+    language: String(language.language ?? language.name ?? ''),
+    proficiency: LANGUAGE_PROFICIENCIES.includes(rawProficiency) ? rawProficiency : 'Conversational',
+  };
+}
+
+function normalizeSavedAward(award = {}) {
+  return {
+    title: String(award.title ?? award.name ?? ''),
+    issuer: String(award.issuer ?? award.organization ?? ''),
+    date: String(award.date ?? award.year ?? ''),
+    description: String(award.description ?? award.details ?? ''),
+  };
+}
+
+function normalizeSavedVolunteer(volunteer = {}) {
+  return {
+    role: String(volunteer.role ?? volunteer.title ?? ''),
+    organization: String(volunteer.organization ?? volunteer.company ?? ''),
+    duration: String(volunteer.duration ?? volunteer.dates ?? ''),
+    description: String(volunteer.description ?? volunteer.details ?? ''),
+  };
+}
+
+function normalizeSavedPublication(publication = {}) {
+  return {
+    title: String(publication.title ?? publication.name ?? ''),
+    publisher: String(publication.publisher ?? publication.journal ?? ''),
+    date: String(publication.date ?? ''),
+    url: String(publication.url ?? publication.link ?? ''),
+  };
+}
+
+function normalizeSavedCourse(course = {}) {
+  return {
+    name: String(course.name ?? course.title ?? ''),
+    institution: String(course.institution ?? course.provider ?? ''),
+    date: String(course.date ?? ''),
+  };
+}
+
+function normalizeSavedCustomSection(section = {}) {
+  const id = String(section.id || `custom_${Date.now().toString(36)}`).trim();
+  const entries = Array.isArray(section.entries)
+    ? section.entries.slice(0, CUSTOM_SECTION_ENTRY_LIMIT).map((entry) => ({
+      heading: String(entry?.heading ?? entry?.title ?? ''),
+      body: String(entry?.body ?? entry?.description ?? entry?.details ?? ''),
+    }))
+    : [];
+  return {
+    id: id.startsWith('custom_') ? id : `custom_${id.replace(/[^a-z0-9_-]/gi, '') || Date.now().toString(36)}`,
+    title: String(section.title ?? section.name ?? ''),
+    entries: entries.length ? entries : [{ heading: '', body: '' }],
+  };
+}
+
 function normalizeSavedEducation(education = {}) {
   return {
     degree: String(education.degree ?? ''),
@@ -1156,7 +1296,7 @@ function normalizeSavedEducation(education = {}) {
 
 function createDefaultSectionsEnabled() {
   return OPTIONAL_RESUME_SECTIONS.reduce((acc, key) => {
-    acc[key] = true;
+    acc[key] = OPTIONAL_SECTION_DEFAULTS[key] !== false;
     return acc;
   }, {});
 }
@@ -1170,17 +1310,27 @@ function normalizeSectionsEnabled(value = {}) {
   return defaults;
 }
 
-function normalizeSectionOrder(value = []) {
+function getCustomSectionIds(customSections = []) {
+  return Array.isArray(customSections)
+    ? customSections.map((section) => String(section?.id || '').trim()).filter((id) => id.startsWith('custom_'))
+    : [];
+}
+
+function normalizeSectionOrder(value = [], customSections = []) {
   const valid = new Set(DEFAULT_SECTION_ORDER);
+  const customIds = getCustomSectionIds(customSections);
   const normalized = [];
   if (Array.isArray(value)) {
     value.forEach((item) => {
       const key = String(item || '').trim();
-      if (valid.has(key) && !normalized.includes(key)) normalized.push(key);
+      if ((valid.has(key) || customIds.includes(key)) && !normalized.includes(key)) normalized.push(key);
     });
   }
   DEFAULT_SECTION_ORDER.forEach((key) => {
     if (!normalized.includes(key)) normalized.push(key);
+  });
+  customIds.forEach((id) => {
+    if (!normalized.includes(id)) normalized.push(id);
   });
   return normalized;
 }
@@ -1300,13 +1450,19 @@ function serializeState(state) {
         educations: (state.educations || []).map(normalizeSavedEducation),
         skills: state.skills,
         certifications: [...state.certifications],
+        languages: (state.languages || []).map(normalizeSavedLanguage),
+        awards: (state.awards || []).map(normalizeSavedAward),
+        volunteer: (state.volunteer || []).map(normalizeSavedVolunteer),
+        publications: (state.publications || []).map(normalizeSavedPublication),
+        courses: (state.courses || []).map(normalizeSavedCourse),
+        customSections: (state.customSections || []).map(normalizeSavedCustomSection),
         generatedResume: String(state.generatedResume || ''),
         template: normalizeResumeTemplate(state.template),
         atsAnalysisResult: normalizeSavedAtsAnalysisResult(state.atsAnalysisResult),
         coverLetter: String(state.coverLetter || ''),
         coverLetterSettings: normalizeCoverLetterSettings(state.coverLetterSettings),
         sectionsEnabled: normalizeSectionsEnabled(state.sectionsEnabled),
-        sectionOrder: normalizeSectionOrder(state.sectionOrder),
+        sectionOrder: normalizeSectionOrder(state.sectionOrder, state.customSections),
         lastEditedAt: normalizeTimestamp(state.lastEditedAt),
         suggestionsDismissed: Boolean(state.suggestionsDismissed),
       },
@@ -1370,13 +1526,31 @@ function applyPersistedState(state, saved = {}) {
       state.certifications = [createEmptyCertification()];
     }
   }
+  state.languages = Array.isArray(saved.languages)
+    ? saved.languages.slice(0, SECTION_ENTRY_LIMITS.languages).map(normalizeSavedLanguage)
+    : [];
+  state.awards = Array.isArray(saved.awards)
+    ? saved.awards.slice(0, SECTION_ENTRY_LIMITS.awards).map(normalizeSavedAward)
+    : [];
+  state.volunteer = Array.isArray(saved.volunteer)
+    ? saved.volunteer.slice(0, SECTION_ENTRY_LIMITS.volunteer).map(normalizeSavedVolunteer)
+    : [];
+  state.publications = Array.isArray(saved.publications)
+    ? saved.publications.slice(0, SECTION_ENTRY_LIMITS.publications).map(normalizeSavedPublication)
+    : [];
+  state.courses = Array.isArray(saved.courses)
+    ? saved.courses.slice(0, SECTION_ENTRY_LIMITS.courses).map(normalizeSavedCourse)
+    : [];
+  state.customSections = Array.isArray(saved.customSections)
+    ? saved.customSections.slice(0, CUSTOM_SECTION_LIMIT).map(normalizeSavedCustomSection)
+    : [];
   state.template = normalizeResumeTemplate(saved.template);
   state.atsAnalysisResult = normalizeSavedAtsAnalysisResult(saved.atsAnalysisResult);
   state.generatedResume = typeof saved.generatedResume === 'string' ? saved.generatedResume : '';
   state.coverLetter = typeof saved.coverLetter === 'string' ? saved.coverLetter : '';
   state.coverLetterSettings = normalizeCoverLetterSettings(saved.coverLetterSettings);
   state.sectionsEnabled = normalizeSectionsEnabled(saved.sectionsEnabled);
-  state.sectionOrder = normalizeSectionOrder(saved.sectionOrder);
+  state.sectionOrder = normalizeSectionOrder(saved.sectionOrder, state.customSections);
   state.lastEditedAt = normalizeTimestamp(saved.lastEditedAt);
   state.suggestionsDismissed = Boolean(saved.suggestionsDismissed);
   return true;
@@ -1470,12 +1644,30 @@ function serializeStateForCloud(state) {
     certifications: Array.isArray(state?.certifications)
       ? state.certifications.slice(0, 5).map((item) => String(item || ''))
       : [],
+    languages: Array.isArray(state?.languages)
+      ? state.languages.map(normalizeSavedLanguage).slice(0, SECTION_ENTRY_LIMITS.languages)
+      : [],
+    awards: Array.isArray(state?.awards)
+      ? state.awards.map(normalizeSavedAward).slice(0, SECTION_ENTRY_LIMITS.awards)
+      : [],
+    volunteer: Array.isArray(state?.volunteer)
+      ? state.volunteer.map(normalizeSavedVolunteer).slice(0, SECTION_ENTRY_LIMITS.volunteer)
+      : [],
+    publications: Array.isArray(state?.publications)
+      ? state.publications.map(normalizeSavedPublication).slice(0, SECTION_ENTRY_LIMITS.publications)
+      : [],
+    courses: Array.isArray(state?.courses)
+      ? state.courses.map(normalizeSavedCourse).slice(0, SECTION_ENTRY_LIMITS.courses)
+      : [],
+    customSections: Array.isArray(state?.customSections)
+      ? state.customSections.map(normalizeSavedCustomSection).slice(0, CUSTOM_SECTION_LIMIT)
+      : [],
     template: normalizeResumeTemplate(state?.template),
     atsAnalysisResult: null,
     coverLetter: String(state?.coverLetter || ''),
     coverLetterSettings: normalizeCoverLetterSettings(state?.coverLetterSettings),
     sectionsEnabled: normalizeSectionsEnabled(state?.sectionsEnabled),
-    sectionOrder: normalizeSectionOrder(state?.sectionOrder),
+    sectionOrder: normalizeSectionOrder(state?.sectionOrder, state?.customSections),
     lastEditedAt: normalizeTimestamp(state?.lastEditedAt),
     suggestionsDismissed: false,
   };
@@ -1859,17 +2051,14 @@ function isBracketOnlySection(section) {
 
 function shouldRenderResumeSection(section, state) {
   const key = getResumeSectionKey(section?.title);
-  if (key === 'projects') {
-    return isSectionEnabled(state, 'projects') && !isBracketOnlySection(section);
-  }
-  if (key === 'certifications') {
-    return isSectionEnabled(state, 'certifications') && !isBracketOnlySection(section);
+  if (key && OPTIONAL_RESUME_SECTIONS.includes(key)) {
+    return isSectionEnabled(state, key) && !isBracketOnlySection(section);
   }
   return true;
 }
 
 function orderResumeSections(sections, state) {
-  const order = normalizeSectionOrder(state?.sectionOrder);
+  const order = normalizeSectionOrder(state?.sectionOrder, state?.customSections);
   const indexed = new Map();
   const unkeyed = [];
   sections.forEach((section) => {
@@ -1965,6 +2154,20 @@ function createResumeSection(title, lines = []) {
   };
 }
 
+function createBoldResumeLine(value) {
+  const text = cleanResumeValue(value);
+  return text ? `${RESUME_BOLD_LINE_PREFIX}${text}` : '';
+}
+
+function isBoldResumeLine(line) {
+  return String(line || '').startsWith(RESUME_BOLD_LINE_PREFIX);
+}
+
+function getResumeLineText(line) {
+  const text = String(line || '');
+  return isBoldResumeLine(text) ? text.slice(RESUME_BOLD_LINE_PREFIX.length) : text;
+}
+
 function createBulletLine(value) {
   const text = cleanResumeValue(value);
   return text ? `\u2022 ${text.replace(/^[\s\u2022-]+/, '')}` : '';
@@ -2035,22 +2238,86 @@ function getLiveResumeSectionsFromState(state = resumeExportState) {
         .filter(Boolean);
       return createResumeSection('CERTIFICATIONS', lines);
     },
-    languages: () => createResumeSection('LANGUAGES', normalizeOptionalList(state.languages)),
-    awards: () => createResumeSection('AWARDS & HONORS', normalizeNameDetailList(state.awards)),
-    volunteer: () => createResumeSection('VOLUNTEER WORK', normalizeRoleLikeList(state.volunteer)),
-    publications: () => createResumeSection('PUBLICATIONS', normalizeNameDetailList(state.publications)),
-    courses: () => createResumeSection('COURSES', normalizeOptionalList(state.courses)),
-    custom: () => createResumeSection(
-      cleanResumeValue(state.customSection?.title || state.custom?.title) || 'CUSTOM SECTION',
-      normalizeOptionalList(state.customSection?.items || state.custom?.items || state.custom),
-    ),
+    languages: () => {
+      if (!isSectionEnabled(state, 'languages')) return createResumeSection('LANGUAGES', []);
+      const lines = (state.languages || [])
+        .filter((item) => cleanResumeValue(item?.language))
+        .map((item) => `${cleanResumeValue(item.language)} \u2014 ${cleanResumeValue(item.proficiency) || 'Conversational'}`);
+      return createResumeSection('LANGUAGES', lines);
+    },
+    awards: () => {
+      if (!isSectionEnabled(state, 'awards')) return createResumeSection('AWARDS & HONORS', []);
+      const lines = [];
+      (state.awards || []).forEach((award) => {
+        const title = cleanResumeValue(award?.title);
+        if (!title) return;
+        lines.push(createBoldResumeLine(title));
+        const meta = [award?.issuer, award?.date].map(cleanResumeValue).filter(Boolean).join(' | ');
+        if (meta) lines.push(meta);
+        if (cleanResumeValue(award?.description)) lines.push(createBulletLine(award.description));
+      });
+      return createResumeSection('AWARDS & HONORS', lines);
+    },
+    volunteer: () => {
+      if (!isSectionEnabled(state, 'volunteer')) return createResumeSection('VOLUNTEER WORK', []);
+      const lines = [];
+      (state.volunteer || []).forEach((item) => {
+        const role = cleanResumeValue(item?.role);
+        if (!role) return;
+        const organization = cleanResumeValue(item?.organization);
+        const duration = cleanResumeValue(item?.duration);
+        const meta = [role, organization].filter(Boolean).join(' | ');
+        lines.push(duration ? `${meta}  ${duration}` : meta);
+        if (cleanResumeValue(item?.description)) lines.push(createBulletLine(item.description));
+      });
+      return createResumeSection('VOLUNTEER WORK', lines);
+    },
+    publications: () => {
+      if (!isSectionEnabled(state, 'publications')) return createResumeSection('PUBLICATIONS', []);
+      const lines = [];
+      (state.publications || []).forEach((publication) => {
+        const title = cleanResumeValue(publication?.title);
+        if (!title) return;
+        lines.push(createBoldResumeLine(title));
+        const meta = [publication?.publisher, publication?.date].map(cleanResumeValue).filter(Boolean).join(' | ');
+        if (meta) lines.push(meta);
+        if (cleanResumeValue(publication?.url)) lines.push(cleanResumeValue(publication.url));
+      });
+      return createResumeSection('PUBLICATIONS', lines);
+    },
+    courses: () => {
+      if (!isSectionEnabled(state, 'courses')) return createResumeSection('COURSES & TRAINING', []);
+      const lines = (state.courses || [])
+        .filter((course) => cleanResumeValue(course?.name))
+        .map((course) => {
+          const name = cleanResumeValue(course.name);
+          const institution = cleanResumeValue(course.institution);
+          const date = cleanResumeValue(course.date);
+          return `${name}${institution ? ` \u2014 ${institution}` : ''}${date ? ` (${date})` : ''}`;
+        });
+      return createResumeSection('COURSES & TRAINING', lines);
+    },
   };
 
-  normalizeSectionOrder(state.sectionOrder).forEach((key) => {
-    const section = renderers[key]?.();
+  normalizeSectionOrder(state.sectionOrder, state.customSections).forEach((key) => {
+    const section = key.startsWith('custom_')
+      ? renderCustomResumeSection(state, key)
+      : renderers[key]?.();
     if (section?.lines?.length) sections.push(section);
   });
   return sections;
+}
+
+function renderCustomResumeSection(state, sectionId) {
+  const customSection = (state.customSections || []).find((section) => section.id === sectionId);
+  if (!customSection) return createResumeSection('CUSTOM SECTION', []);
+  const lines = [];
+  (customSection.entries || []).forEach((entry) => {
+    if (!cleanResumeValue(entry?.body)) return;
+    if (cleanResumeValue(entry.heading)) lines.push(createBoldResumeLine(entry.heading));
+    lines.push(cleanResumeValue(entry.body));
+  });
+  return createResumeSection((cleanResumeValue(customSection.title) || 'CUSTOM SECTION').toUpperCase(), lines);
 }
 
 function normalizeOptionalList(value) {
@@ -2114,7 +2381,19 @@ function hasMeaningfulLiveResumeData(state = resumeExportState) {
     edu?.gpa,
     edu?.courses,
   ]));
-  return Boolean(hasName || hasExperience || hasEducation);
+  const hasOptionalSection = Boolean(
+    cleanResumeValue(state.summary)
+    || cleanResumeValue(state.skills)
+    || (state.projects || []).some((project) => hasAnyResumeValue([project?.name, project?.link, project?.technologies, project?.description]))
+    || (state.certifications || []).some((item) => cleanResumeValue(typeof item === 'string' ? item : item?.name || item?.title))
+    || (state.languages || []).some((item) => cleanResumeValue(item?.language))
+    || (state.awards || []).some((item) => cleanResumeValue(item?.title))
+    || (state.volunteer || []).some((item) => cleanResumeValue(item?.role))
+    || (state.publications || []).some((item) => cleanResumeValue(item?.title))
+    || (state.courses || []).some((item) => cleanResumeValue(item?.name))
+    || (state.customSections || []).some((section) => (section.entries || []).some((entry) => cleanResumeValue(entry?.body)))
+  );
+  return Boolean(hasName || hasExperience || hasEducation || hasOptionalSection);
 }
 
 function buildLiveResumePlainText(state = resumeExportState) {
@@ -2126,7 +2405,7 @@ function buildLiveResumePlainText(state = resumeExportState) {
   if (contact) parts.push(contact);
   getLiveResumeSectionsFromState(state).forEach((section) => {
     parts.push('', String(section.title || '').toUpperCase(), '-'.repeat(32));
-    section.lines.forEach((line) => parts.push(line));
+    section.lines.forEach((line) => parts.push(getResumeLineText(line)));
   });
   return parts.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
@@ -2166,11 +2445,14 @@ function renderLiveResumeFromState(state = resumeExportState) {
         <div class="rb-resume-section-divider"></div>
         <div class="rb-resume-section-body">`;
     section.lines.forEach((line) => {
-      if (line.startsWith('\u2022') || line.startsWith('-')) {
-        const text = normalizeResumeBulletText(line);
+      const textLine = getResumeLineText(line);
+      if (textLine.startsWith('\u2022') || textLine.startsWith('-')) {
+        const text = normalizeResumeBulletText(textLine);
         html += `<p class="rb-resume-bullet"><span class="rb-resume-bullet-marker" aria-hidden="true"></span><span>${escapeHtml(text)}</span></p>`;
+      } else if (isBoldResumeLine(line)) {
+        html += `<p class="rb-resume-line rb-resume-bold"><strong>${escapeHtml(textLine)}</strong></p>`;
       } else {
-        html += `<p class="rb-resume-line">${escapeHtml(line)}</p>`;
+        html += `<p class="rb-resume-line">${escapeHtml(textLine)}</p>`;
       }
     });
     html += '</div></div>';
@@ -2214,17 +2496,25 @@ function buildAccordionCard(sectionKey, label, nodes, options = {}) {
   const card = createNode('section', 'rb-accordion-card');
   const bodyId = `rb-accordion-body-${sectionKey}`;
   card.dataset.accordionSection = sectionKey;
+  if (options.sectionKey !== false) {
+    card.dataset.sectionKey = options.sectionKey || sectionKey;
+  }
   card.classList.toggle('is-open', options.open !== false);
-  if (options.locked) card.dataset.accordionLocked = 'true';
+  if (options.dragLocked || options.locked) card.dataset.accordionLocked = 'true';
+  if (options.collapseLocked || options.locked) card.dataset.accordionCollapseLocked = 'true';
+  if (options.reorderable) card.dataset.reorderable = 'true';
 
-  const header = createNode('button', 'rb-accordion-header');
-  header.type = 'button';
-  header.dataset.accordionTrigger = sectionKey;
-  header.setAttribute('aria-controls', bodyId);
-  header.setAttribute('aria-expanded', String(options.open !== false));
-  header.innerHTML = `
+  const header = createNode('div', 'rb-accordion-header');
+  const grip = createNode('span', options.reorderable ? 'rb-accordion-grip rb-drag-handle' : 'rb-accordion-grip', '\u22EE');
+  grip.setAttribute('aria-hidden', 'true');
+  if (options.reorderable) grip.title = 'Drag to reorder';
+  const trigger = createNode('button', 'rb-accordion-trigger');
+  trigger.type = 'button';
+  trigger.dataset.accordionTrigger = sectionKey;
+  trigger.setAttribute('aria-controls', bodyId);
+  trigger.setAttribute('aria-expanded', String(options.open !== false));
+  trigger.innerHTML = `
     <span class="rb-accordion-header__left">
-      <span class="rb-accordion-grip" aria-hidden="true">&#8942;</span>
       <span class="rb-accordion-icon" aria-hidden="true">${options.icon || '&#9679;'}</span>
       <span class="rb-accordion-title">${escapeHtml(label)}</span>
     </span>
@@ -2232,6 +2522,27 @@ function buildAccordionCard(sectionKey, label, nodes, options = {}) {
       <span class="rb-section-completeness rb-section-completeness--empty" data-section-status="${escapeHtml(sectionKey)}">Empty</span>
       <span class="rb-accordion-chevron" aria-hidden="true">&#8964;</span>
     </span>`;
+  header.append(grip, trigger);
+
+  const actions = createNode('div', 'rb-accordion-actions');
+  if (options.reorderable) {
+    const labelText = String(label || '');
+    const up = createNode('button', 'rb-accordion-move-btn', '\u2191');
+    const down = createNode('button', 'rb-accordion-move-btn', '\u2193');
+    up.type = 'button';
+    down.type = 'button';
+    up.dataset.accordionMove = 'up';
+    down.dataset.accordionMove = 'down';
+    up.dataset.sectionKey = options.sectionKey || sectionKey;
+    down.dataset.sectionKey = options.sectionKey || sectionKey;
+    up.setAttribute('aria-label', `Move ${labelText} up`);
+    down.setAttribute('aria-label', `Move ${labelText} down`);
+    actions.append(up, down);
+  }
+  if (options.headerActions) {
+    actions.appendChild(options.headerActions);
+  }
+  if (actions.childNodes.length) header.appendChild(actions);
 
   const body = createNode('div', 'rb-accordion-body');
   body.id = bodyId;
@@ -2291,30 +2602,32 @@ function setupBuilderCanvasLayout(root) {
   if (keywordRestore && skillsField) skillsField.appendChild(keywordRestore);
 
   const accordionCards = [
-    importCard ? buildAccordionCard('import', 'Import Resume', [importCard], { icon: '&#11014;', open: false }) : null,
+    importCard ? buildAccordionCard('import', 'Import Resume', [importCard], { icon: '&#11014;', open: false, dragLocked: true }) : null,
     buildAccordionCard('personal', 'Personal Information', [personalGrid, targetRoleField], { icon: '&#128100;', locked: true, open: true }),
-    buildAccordionCard('summary', 'Professional Summary', [summaryField], { icon: '&#9998;', open: true }),
+    buildAccordionCard('summary', 'Professional Summary', [summaryField], { icon: '&#9998;', open: true, dragLocked: true }),
     buildAccordionCard('experience', 'Work Experience', [
       qs(root, '#rb-experience-list'),
       qs(root, '#rb-add-experience')?.closest('.resume-action-row'),
-    ], { icon: '&#128188;', open: true }),
+    ], { icon: '&#128188;', open: true, reorderable: true }),
     buildAccordionCard('education', 'Education', [
       qs(root, '#rb-education-list'),
       qs(root, '#rb-add-education')?.closest('.resume-action-row'),
-    ], { icon: '&#127891;', open: false }),
-    buildAccordionCard('skills', 'Skills', [skillsField], { icon: '&#9881;', open: false }),
-    buildAccordionCard('projects', 'Projects', [qs(root, '#rb-project-section')], { icon: '&#128640;', open: false }),
-    buildAccordionCard('certifications', 'Certifications', [qs(root, '#rb-certifications-section')], { icon: '&#127942;', open: false }),
-    buildAccordionCard('review', 'Review Snapshot', [qs(root, '#rb-review-summary')?.closest('.resume-card')], { icon: '&#128269;', open: false }),
-    buildAccordionCard('ats', 'ATS Score & Analysis', [qs(root, '#rb-score-panel-full')], { icon: '&#128202;', open: false }),
-    buildAccordionCard('settings', 'Section Order', [qs(root, '#rb-section-order-panel')], { icon: '&#8597;', open: false }),
+    ], { icon: '&#127891;', open: false, reorderable: true }),
+    buildAccordionCard('skills', 'Skills', [skillsField], { icon: '&#9881;', open: false, reorderable: true }),
+    buildAccordionCard('projects', 'Projects', [qs(root, '#rb-project-section')], { icon: '&#128640;', open: false, reorderable: true }),
+    buildAccordionCard('certifications', 'Certifications', [qs(root, '#rb-certifications-section')], { icon: '&#127942;', open: false, reorderable: true }),
+    buildAccordionCard('review', 'Review Snapshot', [qs(root, '#rb-review-summary')?.closest('.resume-card')], { icon: '&#128269;', open: false, dragLocked: true }),
+    buildAccordionCard('ats', 'ATS Score & Analysis', [qs(root, '#rb-score-panel-full')], { icon: '&#128202;', open: false, dragLocked: true, sectionKey: 'ats-score' }),
+    buildAccordionCard('settings', 'Section Order', [qs(root, '#rb-section-order-panel')], { icon: '&#8597;', open: false, dragLocked: true }),
   ].filter(Boolean);
   accordion.append(...accordionCards);
 
-  const addSection = createNode('button', 'rb-add-section-placeholder', '+ Add Section');
+  const addSection = createNode('button', 'rb-add-section-btn', '+ Add Section');
+  addSection.id = 'rb-add-section-btn';
   addSection.type = 'button';
-  addSection.disabled = true;
-  addSection.title = 'Coming soon: Languages, Awards, Custom Sections';
+  addSection.setAttribute('aria-haspopup', 'dialog');
+  addSection.setAttribute('aria-expanded', 'false');
+  addSection.setAttribute('aria-controls', 'rb-add-section-modal');
   accordion.appendChild(addSection);
 
   const generateRow = qs(root, '#rb-generate')?.closest('.resume-action-row');
@@ -2357,7 +2670,7 @@ function bindResumeAccordion(root) {
     trigger.dataset.accordionBound = 'true';
     trigger.addEventListener('click', () => {
       const card = trigger.closest('.rb-accordion-card');
-      if (!card || card.dataset.accordionLocked === 'true') return;
+      if (!card || card.dataset.accordionCollapseLocked === 'true') return;
       const nextOpen = !card.classList.contains('is-open');
       card.classList.toggle('is-open', nextOpen);
       trigger.setAttribute('aria-expanded', String(nextOpen));
@@ -2368,14 +2681,14 @@ function bindResumeAccordion(root) {
 
 function setAccordionSectionOpen(root, sectionKey, isOpen) {
   const card = root.querySelector(`[data-accordion-section="${sectionKey}"]`);
-  if (!card || card.dataset.accordionLocked === 'true') return;
+  if (!card || card.dataset.accordionCollapseLocked === 'true') return;
   card.classList.toggle('is-open', isOpen);
   card.querySelector('[data-accordion-trigger]')?.setAttribute('aria-expanded', String(isOpen));
   card.querySelector('.rb-accordion-body')?.setAttribute('aria-hidden', String(!isOpen));
 }
 
 function syncAccordionOpenState(root, state) {
-  ['summary', 'experience', 'education', 'skills', 'projects', 'certifications'].forEach((key) => {
+  ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'languages', 'awards', 'volunteer', 'publications', 'courses', ...getCustomSectionIds(state?.customSections)].forEach((key) => {
     const completeness = getSectionCompleteness(state, key);
     if (completeness !== 'empty') setAccordionSectionOpen(root, key, true);
   });
@@ -2419,6 +2732,31 @@ function getSectionCompleteness(state, key) {
     const count = (state.certifications || []).filter(hasFilledCertification).length;
     if (count >= 2) return 'complete';
     return count > 0 ? 'partial' : 'empty';
+  }
+  if (key === 'languages') {
+    return (state.languages || []).some((item) => cleanResumeValue(item?.language)) ? 'complete' : 'empty';
+  }
+  if (key === 'awards') {
+    const filled = (state.awards || []).filter((item) => cleanResumeValue(item?.title));
+    return filled.length ? 'complete' : (state.awards || []).some((item) => hasAnyResumeValue([item?.issuer, item?.date, item?.description])) ? 'partial' : 'empty';
+  }
+  if (key === 'volunteer') {
+    const filled = (state.volunteer || []).filter((item) => cleanResumeValue(item?.role));
+    return filled.length ? 'complete' : (state.volunteer || []).some((item) => hasAnyResumeValue([item?.organization, item?.duration, item?.description])) ? 'partial' : 'empty';
+  }
+  if (key === 'publications') {
+    const filled = (state.publications || []).filter((item) => cleanResumeValue(item?.title));
+    return filled.length ? 'complete' : (state.publications || []).some((item) => hasAnyResumeValue([item?.publisher, item?.date, item?.url])) ? 'partial' : 'empty';
+  }
+  if (key === 'courses') {
+    const filled = (state.courses || []).filter((item) => cleanResumeValue(item?.name));
+    return filled.length ? 'complete' : (state.courses || []).some((item) => hasAnyResumeValue([item?.institution, item?.date])) ? 'partial' : 'empty';
+  }
+  if (String(key || '').startsWith('custom_')) {
+    const customSection = (state.customSections || []).find((section) => section.id === key);
+    const hasBody = (customSection?.entries || []).some((entry) => cleanResumeValue(entry?.body));
+    if (hasBody) return 'complete';
+    return cleanResumeValue(customSection?.title) || (customSection?.entries || []).some((entry) => cleanResumeValue(entry?.heading)) ? 'partial' : 'empty';
   }
   if (key === 'review') {
     return hasMeaningfulLiveResumeData(state) ? 'partial' : 'empty';
@@ -2589,7 +2927,7 @@ function formatResumeBodyForCopy(state) {
       const header = String(section.title || '').toUpperCase();
       const lines = section.lines
         .filter((line) => !isResumeDividerLine(line))
-        .map(normalizeResumeTextForCopy)
+        .map((line) => normalizeResumeTextForCopy(getResumeLineText(line)))
         .filter(Boolean);
       return [header, '-'.repeat(header.length), ...lines].join('\n');
     }).filter(Boolean).join('\n\n');
@@ -2603,7 +2941,7 @@ function formatResumeBodyForCopy(state) {
     const header = String(section.title || '').toUpperCase();
     const lines = section.lines
       .filter((line) => !isResumeDividerLine(line))
-      .map(normalizeResumeTextForCopy)
+      .map((line) => normalizeResumeTextForCopy(getResumeLineText(line)))
       .filter(Boolean)
       .join('\n');
     return `${header}\n${'\u2500'.repeat(20)}\n${lines}`;
@@ -3112,6 +3450,20 @@ async function loadLzString() {
   }
 }
 
+async function loadSortableJS() {
+  if (sortableJsLoaded || window.Sortable) {
+    sortableJsLoaded = true;
+    return;
+  }
+  try {
+    await loadScriptFromUrls(SORTABLEJS_CDN_URLS, () => Boolean(window.Sortable), 'SortableJS');
+    sortableJsLoaded = true;
+  } catch (error) {
+    sortableJsLoaded = false;
+    throw error;
+  }
+}
+
 function buildShareableState(state) {
   const personal = state.personal || {};
   return {
@@ -3143,6 +3495,41 @@ function buildShareableState(state) {
     })),
     sk: state.skills || '',
     ce: Array.isArray(state.certifications) ? [...state.certifications] : [],
+    la: (state.languages || []).map((item) => ({
+      l: item.language || '',
+      p: item.proficiency || 'Conversational',
+    })),
+    aw: (state.awards || []).map((item) => ({
+      t: item.title || '',
+      i: item.issuer || '',
+      d: item.date || '',
+      de: item.description || '',
+    })),
+    vo: (state.volunteer || []).map((item) => ({
+      r: item.role || '',
+      o: item.organization || '',
+      du: item.duration || '',
+      de: item.description || '',
+    })),
+    pu: (state.publications || []).map((item) => ({
+      t: item.title || '',
+      p: item.publisher || '',
+      d: item.date || '',
+      u: item.url || '',
+    })),
+    co: (state.courses || []).map((item) => ({
+      n: item.name || '',
+      i: item.institution || '',
+      d: item.date || '',
+    })),
+    cs: (state.customSections || []).map((section) => ({
+      id: section.id || '',
+      t: section.title || '',
+      e: (section.entries || []).map((entry) => ({
+        h: entry.heading || '',
+        b: entry.body || '',
+      })),
+    })),
     pr: (state.projects || []).map((project) => ({
       n: project.name || '',
       l: project.link || '',
@@ -3151,7 +3538,7 @@ function buildShareableState(state) {
     })),
     tm: normalizeResumeTemplate(state.template),
     se: normalizeSectionsEnabled(state.sectionsEnabled),
-    so: normalizeSectionOrder(state.sectionOrder),
+    so: normalizeSectionOrder(state.sectionOrder, state.customSections),
     gr: state.generatedResume || '',
   };
 }
@@ -3201,9 +3588,55 @@ function applyShareableState(shared, state) {
       details: project?.d,
     }))
     : [createEmptyProject()];
+  state.languages = Array.isArray(shared.la)
+    ? shared.la.slice(0, SECTION_ENTRY_LIMITS.languages).map((item) => normalizeSavedLanguage({
+      language: item?.l,
+      proficiency: item?.p,
+    }))
+    : [];
+  state.awards = Array.isArray(shared.aw)
+    ? shared.aw.slice(0, SECTION_ENTRY_LIMITS.awards).map((item) => normalizeSavedAward({
+      title: item?.t,
+      issuer: item?.i,
+      date: item?.d,
+      description: item?.de,
+    }))
+    : [];
+  state.volunteer = Array.isArray(shared.vo)
+    ? shared.vo.slice(0, SECTION_ENTRY_LIMITS.volunteer).map((item) => normalizeSavedVolunteer({
+      role: item?.r,
+      organization: item?.o,
+      duration: item?.du,
+      description: item?.de,
+    }))
+    : [];
+  state.publications = Array.isArray(shared.pu)
+    ? shared.pu.slice(0, SECTION_ENTRY_LIMITS.publications).map((item) => normalizeSavedPublication({
+      title: item?.t,
+      publisher: item?.p,
+      date: item?.d,
+      url: item?.u,
+    }))
+    : [];
+  state.courses = Array.isArray(shared.co)
+    ? shared.co.slice(0, SECTION_ENTRY_LIMITS.courses).map((item) => normalizeSavedCourse({
+      name: item?.n,
+      institution: item?.i,
+      date: item?.d,
+    }))
+    : [];
+  state.customSections = Array.isArray(shared.cs)
+    ? shared.cs.slice(0, CUSTOM_SECTION_LIMIT).map((section) => normalizeSavedCustomSection({
+      id: section?.id,
+      title: section?.t,
+      entries: Array.isArray(section?.e)
+        ? section.e.map((entry) => ({ heading: entry?.h, body: entry?.b }))
+        : [],
+    }))
+    : [];
   state.template = normalizeResumeTemplate(shared.tm);
   state.sectionsEnabled = normalizeSectionsEnabled(shared.se);
-  state.sectionOrder = normalizeSectionOrder(shared.so);
+  state.sectionOrder = normalizeSectionOrder(shared.so, state.customSections);
   state.generatedResume = String(shared.gr || '');
   state.atsAnalysisResult = null;
   state.lastEditedAt = null;
@@ -3606,12 +4039,14 @@ function buildDocxChildren(state, profile) {
     if (!lines.length) return;
     children.push(createDocxSectionHeader(section.title, profile));
     lines.forEach((line) => {
-      const trimmed = String(line || '').trim();
+      const isBold = isBoldResumeLine(line);
+      const trimmed = getResumeLineText(line).trim();
       if (trimmed.startsWith('\u2022') || trimmed.startsWith('-')) {
         children.push(createDocxBullet(trimmed, profile));
         return;
       }
       children.push(createDocxParagraph(trimmed, {
+        bold: isBold,
         size: profile.bodySize,
         font: profile.font,
         color: profile.textColor,
@@ -3956,6 +4391,56 @@ function createEmptyProject() {
   };
 }
 
+function createEmptyLanguage() {
+  return {
+    language: '',
+    proficiency: 'Conversational',
+  };
+}
+
+function createEmptyAward() {
+  return {
+    title: '',
+    issuer: '',
+    date: '',
+    description: '',
+  };
+}
+
+function createEmptyVolunteer() {
+  return {
+    role: '',
+    organization: '',
+    duration: '',
+    description: '',
+  };
+}
+
+function createEmptyPublication() {
+  return {
+    title: '',
+    publisher: '',
+    date: '',
+    url: '',
+  };
+}
+
+function createEmptyCourse() {
+  return {
+    name: '',
+    institution: '',
+    date: '',
+  };
+}
+
+function createEmptyCustomSection(id = `custom_${Date.now().toString(36)}`) {
+  return {
+    id,
+    title: '',
+    entries: [{ heading: '', body: '' }],
+  };
+}
+
 function formatExperienceBlock(experience) {
   const label = [experience.jobTitle, experience.company].filter(Boolean).join(' @ ');
   return label || 'Untitled experience';
@@ -3963,6 +4448,15 @@ function formatExperienceBlock(experience) {
 
 function formatProjectBlock(project) {
   return project.name || project.link || 'Untitled project';
+}
+
+function getSectionDisplayLabel(key, state = resumeExportState) {
+  const sectionKey = String(key || '').trim();
+  if (sectionKey.startsWith('custom_')) {
+    const customSection = (state?.customSections || []).find((section) => section.id === sectionKey);
+    return cleanResumeValue(customSection?.title) || SECTION_LABELS.custom;
+  }
+  return SECTION_LABELS[sectionKey] || sectionKey;
 }
 
 function buildResumePrompt(state) {
@@ -3977,7 +4471,7 @@ function buildResumePrompt(state) {
     `Target Job Title: ${state.targetRole || 'General professional role'}`,
     `Professional Summary: ${state.summary || ''}`,
     '',
-    `Requested section order after Professional Summary: ${normalizeSectionOrder(state.sectionOrder).map((key) => SECTION_LABELS[key]).join(' -> ')}`,
+    `Requested section order after Professional Summary: ${normalizeSectionOrder(state.sectionOrder, state.customSections).map((key) => getSectionDisplayLabel(key, state)).join(' -> ')}`,
     '',
   ];
 
@@ -4032,9 +4526,82 @@ function buildResumePrompt(state) {
       if (!filledCertifications.length) return;
       parts.push(`Certifications: ${filledCertifications.join(', ')}`);
     },
+    languages() {
+      if (!isSectionEnabled(state, 'languages')) return;
+      const filledLanguages = (state.languages || []).filter((item) => cleanResumeValue(item?.language));
+      if (!filledLanguages.length) return;
+      parts.push('LANGUAGES:');
+      filledLanguages.forEach((item) => {
+        parts.push(`- ${item.language} (${item.proficiency || 'Conversational'})`);
+      });
+      parts.push('');
+    },
+    awards() {
+      if (!isSectionEnabled(state, 'awards')) return;
+      const filledAwards = (state.awards || []).filter((item) => cleanResumeValue(item?.title));
+      if (!filledAwards.length) return;
+      parts.push('AWARDS & HONORS:');
+      filledAwards.forEach((award, index) => {
+        parts.push(`Award ${index + 1}: ${award.title || ''}`);
+        parts.push(`Issuer: ${award.issuer || ''}`);
+        parts.push(`Date: ${award.date || ''}`);
+        parts.push(`Description: ${award.description || ''}`);
+        parts.push('');
+      });
+    },
+    volunteer() {
+      if (!isSectionEnabled(state, 'volunteer')) return;
+      const filledVolunteer = (state.volunteer || []).filter((item) => cleanResumeValue(item?.role));
+      if (!filledVolunteer.length) return;
+      parts.push('VOLUNTEER WORK:');
+      filledVolunteer.forEach((item, index) => {
+        parts.push(`Volunteer Role ${index + 1}:`);
+        parts.push(`Role: ${item.role || ''}`);
+        parts.push(`Organization: ${item.organization || ''}`);
+        parts.push(`Duration: ${item.duration || ''}`);
+        parts.push(`Description: ${item.description || ''}`);
+        parts.push('');
+      });
+    },
+    publications() {
+      if (!isSectionEnabled(state, 'publications')) return;
+      const filledPublications = (state.publications || []).filter((item) => cleanResumeValue(item?.title));
+      if (!filledPublications.length) return;
+      parts.push('PUBLICATIONS:');
+      filledPublications.forEach((item, index) => {
+        parts.push(`Publication ${index + 1}: ${item.title || ''}`);
+        parts.push(`Publisher: ${item.publisher || ''}`);
+        parts.push(`Date: ${item.date || ''}`);
+        parts.push(`URL: ${item.url || ''}`);
+        parts.push('');
+      });
+    },
+    courses() {
+      if (!isSectionEnabled(state, 'courses')) return;
+      const filledCourses = (state.courses || []).filter((item) => cleanResumeValue(item?.name));
+      if (!filledCourses.length) return;
+      parts.push('COURSES & TRAINING:');
+      filledCourses.forEach((item) => {
+        parts.push(`- ${item.name || ''}${item.institution ? ` | ${item.institution}` : ''}${item.date ? ` | ${item.date}` : ''}`);
+      });
+      parts.push('');
+    },
   };
 
-  normalizeSectionOrder(state.sectionOrder).forEach((key) => {
+  normalizeSectionOrder(state.sectionOrder, state.customSections).forEach((key) => {
+    if (key.startsWith('custom_')) {
+      const customSection = (state.customSections || []).find((section) => section.id === key);
+      const filledEntries = (customSection?.entries || []).filter((entry) => cleanResumeValue(entry?.body));
+      if (!filledEntries.length) return;
+      parts.push(`${cleanResumeValue(customSection?.title) || 'Custom Section'}:`);
+      filledEntries.forEach((entry, index) => {
+        parts.push(`Entry ${index + 1}:`);
+        if (cleanResumeValue(entry.heading)) parts.push(`Heading: ${entry.heading}`);
+        parts.push(`Body: ${entry.body || ''}`);
+        parts.push('');
+      });
+      return;
+    }
     sectionWriters[key]?.();
   });
   return parts.join('\n');
@@ -4245,6 +4812,11 @@ export async function initResumeBuilderTool(container) {
   const resumesPanel = qs(root, '#rb-resumes-panel');
   const resumesPanelClose = qs(root, '#rb-resumes-panel-close');
   const resumesListMount = qs(root, '#rb-resumes-list');
+  const addSectionModal = qs(root, '#rb-add-section-modal');
+  const addSectionModalPanel = qs(root, '.rb-add-section-modal__panel');
+  const addSectionModalBackdrop = qs(root, '.rb-add-section-modal__backdrop');
+  const addSectionModalClose = qs(root, '#rb-add-section-modal-close');
+  const addSectionGrid = qs(root, '#rb-add-section-grid');
 
   const state = {
     currentStep: 1,
@@ -4273,6 +4845,12 @@ export async function initResumeBuilderTool(container) {
     lastEditedAt: null,
     suggestionsDismissed: false,
     certifications: [createEmptyCertification()],
+    languages: [],
+    awards: [],
+    volunteer: [],
+    publications: [],
+    courses: [],
+    customSections: [],
   };
 
   const atsBaseLabel = 'Analyze Resume';
@@ -4286,6 +4864,7 @@ export async function initResumeBuilderTool(container) {
   let activeMobileBuilderView = 'edit';
   let previousLiveScore = null;
   let previewRenderMode = 'live';
+  let dragAndDropRequested = false;
   setupBuilderCanvasLayout(root);
   bindResumeAccordion(root);
   const previewOriginalPosition = previewWrap
@@ -6103,15 +6682,710 @@ export async function initResumeBuilderTool(container) {
     updateCompletionBar(state);
   }
 
+  function createField(labelText, control, className = '') {
+    const field = createNode('div', `resume-field${className ? ` ${className}` : ''}`);
+    field.append(createNode('label', '', labelText), control);
+    return field;
+  }
+
+  function markSectionEdited() {
+    renderBuilderDerivedViews();
+    markBuilderContentChanged();
+    debouncedSave();
+  }
+
+  function createHeaderRemoveButton(label, onRemove) {
+    const remove = createNode('button', 'rb-accordion-remove-btn', 'Remove section');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', `Remove ${label}`);
+    remove.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      onRemove();
+    });
+    return remove;
+  }
+
+  function disableOptionalSection(sectionKey) {
+    state.sectionsEnabled = normalizeSectionsEnabled(state.sectionsEnabled);
+    state.sectionsEnabled[sectionKey] = false;
+    renderAccordionSections();
+    renderBuilderDerivedViews();
+    markBuilderContentChanged();
+    saveToStorage(state);
+    showToast(toastStack, `${getSectionDisplayLabel(sectionKey, state)} removed from resume.`, 'info');
+  }
+
+  function createStandardHeaderActions(sectionKey) {
+    return createHeaderRemoveButton(getSectionDisplayLabel(sectionKey, state), () => disableOptionalSection(sectionKey));
+  }
+
+  function createLanguagesCard() {
+    if (!state.languages.length) state.languages = [createEmptyLanguage()];
+    const list = createNode('div', 'rb-compact-list rb-language-list');
+    state.languages.forEach((item, index) => {
+      const row = createNode('div', 'rb-compact-row rb-language-row');
+      const language = document.createElement('input');
+      language.type = 'text';
+      language.placeholder = 'Language';
+      language.value = item.language || '';
+      language.setAttribute('aria-label', `Language ${index + 1}`);
+      language.addEventListener('input', () => {
+        item.language = language.value;
+        markSectionEdited();
+      });
+
+      const proficiency = document.createElement('select');
+      proficiency.setAttribute('aria-label', `Proficiency for language ${index + 1}`);
+      LANGUAGE_PROFICIENCIES.forEach((optionValue) => {
+        const option = document.createElement('option');
+        option.value = optionValue;
+        option.textContent = optionValue;
+        option.selected = (item.proficiency || 'Conversational') === optionValue;
+        proficiency.appendChild(option);
+      });
+      proficiency.addEventListener('change', () => {
+        item.proficiency = proficiency.value;
+        markSectionEdited();
+      });
+
+      const remove = createNode('button', 'resume-remove-btn rb-icon-remove-btn', '\u00D7');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `Remove language ${index + 1}`);
+      remove.disabled = state.languages.length === 1;
+      remove.addEventListener('click', () => {
+        if (state.languages.length === 1) return;
+        state.languages.splice(index, 1);
+        renderAccordionSections();
+        markSectionEdited();
+      });
+      row.append(language, proficiency, remove);
+      list.appendChild(row);
+    });
+
+    const addRow = createNode('div', 'resume-action-row');
+    const add = createNode('button', 'btn btn-secondary', 'Add Language');
+    add.type = 'button';
+    add.disabled = state.languages.length >= SECTION_ENTRY_LIMITS.languages;
+    add.setAttribute('aria-disabled', String(add.disabled));
+    add.addEventListener('click', () => {
+      if (state.languages.length >= SECTION_ENTRY_LIMITS.languages) {
+        showToast(toastStack, 'You can add up to 10 languages.', 'info');
+        return;
+      }
+      state.languages.push(createEmptyLanguage());
+      renderAccordionSections();
+      markSectionEdited();
+    });
+    addRow.appendChild(add);
+    return buildAccordionCard('languages', SECTION_LABELS.languages, [list, addRow], {
+      icon: '&#127760;',
+      open: false,
+      reorderable: true,
+      headerActions: createStandardHeaderActions('languages'),
+    });
+  }
+
+  function createAwardsCard() {
+    const stack = createNode('div', 'resume-stack');
+    (state.awards || []).forEach((award, index) => {
+      const card = createNode('div', 'resume-subcard rb-award-card');
+      const head = createNode('div', 'resume-subcard-head');
+      const title = document.createElement('input');
+      title.type = 'text';
+      title.placeholder = 'Award name';
+      title.value = award.title || '';
+      title.setAttribute('aria-label', `Award ${index + 1} name`);
+      title.addEventListener('input', () => {
+        award.title = title.value;
+        markSectionEdited();
+      });
+      const remove = createNode('button', 'resume-remove-btn', 'Remove');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `Remove award ${index + 1}`);
+      remove.addEventListener('click', () => {
+        state.awards.splice(index, 1);
+        renderAccordionSections();
+        markSectionEdited();
+      });
+      head.append(title, remove);
+      card.appendChild(head);
+
+      const grid = createNode('div', 'resume-form-grid two-col');
+      [
+        ['Issuer', 'issuer', 'text', 'Award issuer'],
+        ['Date', 'date', 'month', 'Award date'],
+      ].forEach(([labelText, key, type, aria]) => {
+        const input = document.createElement('input');
+        input.type = type;
+        input.value = award[key] || '';
+        input.setAttribute('aria-label', `${aria} ${index + 1}`);
+        input.addEventListener('input', () => {
+          award[key] = input.value;
+          markSectionEdited();
+        });
+        grid.appendChild(createField(labelText, input));
+      });
+      card.appendChild(grid);
+
+      const description = document.createElement('textarea');
+      description.rows = 2;
+      description.value = award.description || '';
+      description.setAttribute('aria-label', `Award ${index + 1} description`);
+      description.addEventListener('input', () => {
+        award.description = description.value;
+        markSectionEdited();
+      });
+      card.appendChild(createField('Description', description));
+      stack.appendChild(card);
+    });
+
+    const addRow = createNode('div', 'resume-action-row');
+    const add = createNode('button', 'btn btn-secondary', 'Add Award');
+    add.type = 'button';
+    add.disabled = (state.awards || []).length >= SECTION_ENTRY_LIMITS.awards;
+    add.setAttribute('aria-disabled', String(add.disabled));
+    add.addEventListener('click', () => {
+      if ((state.awards || []).length >= SECTION_ENTRY_LIMITS.awards) {
+        showToast(toastStack, 'You can add up to 10 awards.', 'info');
+        return;
+      }
+      state.awards.push(createEmptyAward());
+      renderAccordionSections();
+      markSectionEdited();
+    });
+    addRow.appendChild(add);
+    return buildAccordionCard('awards', SECTION_LABELS.awards, [stack, addRow], {
+      icon: '&#127942;',
+      open: false,
+      reorderable: true,
+      headerActions: createStandardHeaderActions('awards'),
+    });
+  }
+
+  function createVolunteerCard() {
+    const stack = createNode('div', 'resume-stack');
+    (state.volunteer || []).forEach((item, index) => {
+      const card = createNode('div', 'resume-subcard');
+      const head = createNode('div', 'resume-subcard-head');
+      head.appendChild(createNode('strong', '', `Volunteer Role ${index + 1}`));
+      const remove = createNode('button', 'resume-remove-btn', 'Remove');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `Remove volunteer role ${index + 1}`);
+      remove.addEventListener('click', () => {
+        state.volunteer.splice(index, 1);
+        renderAccordionSections();
+        markSectionEdited();
+      });
+      head.appendChild(remove);
+      card.appendChild(head);
+
+      const grid = createNode('div', 'resume-form-grid two-col');
+      [
+        ['Role', 'role', 'text'],
+        ['Organization', 'organization', 'text'],
+        ['Duration', 'duration', 'text'],
+      ].forEach(([labelText, key, type]) => {
+        const input = document.createElement('input');
+        input.type = type;
+        input.value = item[key] || '';
+        input.setAttribute('aria-label', `${labelText} for volunteer role ${index + 1}`);
+        input.addEventListener('input', () => {
+          item[key] = input.value;
+          markSectionEdited();
+        });
+        grid.appendChild(createField(labelText, input));
+      });
+      card.appendChild(grid);
+
+      const description = document.createElement('textarea');
+      description.rows = 4;
+      description.value = item.description || '';
+      description.setAttribute('aria-label', `Description for volunteer role ${index + 1}`);
+      description.addEventListener('input', () => {
+        item.description = description.value;
+        markSectionEdited();
+      });
+      card.appendChild(createField('Responsibilities / achievements', description));
+      stack.appendChild(card);
+    });
+
+    const addRow = createNode('div', 'resume-action-row');
+    const add = createNode('button', 'btn btn-secondary', 'Add Volunteer Role');
+    add.type = 'button';
+    add.disabled = (state.volunteer || []).length >= SECTION_ENTRY_LIMITS.volunteer;
+    add.setAttribute('aria-disabled', String(add.disabled));
+    add.addEventListener('click', () => {
+      if ((state.volunteer || []).length >= SECTION_ENTRY_LIMITS.volunteer) {
+        showToast(toastStack, 'You can add up to 5 volunteer roles.', 'info');
+        return;
+      }
+      state.volunteer.push(createEmptyVolunteer());
+      renderAccordionSections();
+      markSectionEdited();
+    });
+    addRow.appendChild(add);
+    return buildAccordionCard('volunteer', SECTION_LABELS.volunteer, [stack, addRow], {
+      icon: '&#129309;',
+      open: false,
+      reorderable: true,
+      headerActions: createStandardHeaderActions('volunteer'),
+    });
+  }
+
+  function createPublicationsCard() {
+    const stack = createNode('div', 'resume-stack');
+    (state.publications || []).forEach((publication, index) => {
+      const card = createNode('div', 'resume-subcard');
+      const head = createNode('div', 'resume-subcard-head');
+      head.appendChild(createNode('strong', '', `Publication ${index + 1}`));
+      const remove = createNode('button', 'resume-remove-btn', 'Remove');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `Remove publication ${index + 1}`);
+      remove.addEventListener('click', () => {
+        state.publications.splice(index, 1);
+        renderAccordionSections();
+        markSectionEdited();
+      });
+      head.appendChild(remove);
+      card.appendChild(head);
+
+      const grid = createNode('div', 'resume-form-grid two-col');
+      [
+        ['Title', 'title', 'text', 'Publication title'],
+        ['Publisher', 'publisher', 'text', 'Journal / Conference / Publisher'],
+        ['Date', 'date', 'month', ''],
+        ['URL', 'url', 'url', 'https://doi.org/...'],
+      ].forEach(([labelText, key, type, placeholder]) => {
+        const input = document.createElement('input');
+        input.type = type;
+        input.placeholder = placeholder || '';
+        input.value = publication[key] || '';
+        input.setAttribute('aria-label', `${labelText} for publication ${index + 1}`);
+        input.addEventListener('input', () => {
+          publication[key] = input.value;
+          markSectionEdited();
+        });
+        grid.appendChild(createField(labelText, input));
+      });
+      card.appendChild(grid);
+      stack.appendChild(card);
+    });
+
+    const addRow = createNode('div', 'resume-action-row');
+    const add = createNode('button', 'btn btn-secondary', 'Add Publication');
+    add.type = 'button';
+    add.disabled = (state.publications || []).length >= SECTION_ENTRY_LIMITS.publications;
+    add.setAttribute('aria-disabled', String(add.disabled));
+    add.addEventListener('click', () => {
+      if ((state.publications || []).length >= SECTION_ENTRY_LIMITS.publications) {
+        showToast(toastStack, 'You can add up to 10 publications.', 'info');
+        return;
+      }
+      state.publications.push(createEmptyPublication());
+      renderAccordionSections();
+      markSectionEdited();
+    });
+    addRow.appendChild(add);
+    return buildAccordionCard('publications', SECTION_LABELS.publications, [stack, addRow], {
+      icon: '&#128221;',
+      open: false,
+      reorderable: true,
+      headerActions: createStandardHeaderActions('publications'),
+    });
+  }
+
+  function createCoursesCard() {
+    const list = createNode('div', 'rb-compact-list');
+    (state.courses || []).forEach((course, index) => {
+      const row = createNode('div', 'rb-compact-row rb-course-row');
+      [
+        ['name', 'Course name', 'text'],
+        ['institution', 'Institution', 'text'],
+        ['date', 'Date', 'month'],
+      ].forEach(([key, placeholder, type]) => {
+        const input = document.createElement('input');
+        input.type = type;
+        input.placeholder = placeholder;
+        input.value = course[key] || '';
+        input.setAttribute('aria-label', `${placeholder} ${index + 1}`);
+        input.addEventListener('input', () => {
+          course[key] = input.value;
+          markSectionEdited();
+        });
+        row.appendChild(input);
+      });
+      const remove = createNode('button', 'resume-remove-btn rb-icon-remove-btn', '\u00D7');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `Remove course ${index + 1}`);
+      remove.addEventListener('click', () => {
+        state.courses.splice(index, 1);
+        renderAccordionSections();
+        markSectionEdited();
+      });
+      row.appendChild(remove);
+      list.appendChild(row);
+    });
+
+    const addRow = createNode('div', 'resume-action-row');
+    const add = createNode('button', 'btn btn-secondary', 'Add Course');
+    add.type = 'button';
+    add.disabled = (state.courses || []).length >= SECTION_ENTRY_LIMITS.courses;
+    add.setAttribute('aria-disabled', String(add.disabled));
+    add.addEventListener('click', () => {
+      if ((state.courses || []).length >= SECTION_ENTRY_LIMITS.courses) {
+        showToast(toastStack, 'You can add up to 10 courses.', 'info');
+        return;
+      }
+      state.courses.push(createEmptyCourse());
+      renderAccordionSections();
+      markSectionEdited();
+    });
+    addRow.appendChild(add);
+    return buildAccordionCard('courses', SECTION_LABELS.courses, [list, addRow], {
+      icon: '&#128218;',
+      open: false,
+      reorderable: true,
+      headerActions: createStandardHeaderActions('courses'),
+    });
+  }
+
+  function removeCustomSection(sectionId) {
+    const customSection = state.customSections.find((section) => section.id === sectionId);
+    const label = cleanResumeValue(customSection?.title) || SECTION_LABELS.custom;
+    if (!window.confirm(`Remove "${label}" from your resume?`)) return;
+    state.customSections = state.customSections.filter((section) => section.id !== sectionId);
+    state.sectionOrder = normalizeSectionOrder(
+      state.sectionOrder.filter((key) => key !== sectionId),
+      state.customSections,
+    );
+    renderAccordionSections();
+    renderBuilderDerivedViews();
+    markBuilderContentChanged();
+    saveToStorage(state);
+    showToast(toastStack, 'Custom section removed.', 'success');
+  }
+
+  function createCustomSectionCard(customSection) {
+    const sectionId = customSection.id;
+    const titleField = document.createElement('input');
+    titleField.type = 'text';
+    titleField.className = 'rb-custom-section-title-input';
+    titleField.placeholder = 'e.g. Research, Patents, Speaking, Volunteering';
+    titleField.value = customSection.title || '';
+    titleField.setAttribute('aria-label', 'Custom section name');
+    titleField.addEventListener('input', () => {
+      customSection.title = titleField.value;
+      const card = root.querySelector(`[data-accordion-section="${sectionId}"]`);
+      const label = cleanResumeValue(customSection.title) || SECTION_LABELS.custom;
+      const titleNode = card?.querySelector('.rb-accordion-title');
+      if (titleNode) titleNode.textContent = label;
+      card?.querySelectorAll('[data-accordion-move]').forEach((button) => {
+        const direction = button.dataset.accordionMove === 'up' ? 'up' : 'down';
+        button.setAttribute('aria-label', `Move ${label} ${direction}`);
+      });
+      renderSectionOrderList();
+      markSectionEdited();
+    });
+
+    const stack = createNode('div', 'resume-stack');
+    (customSection.entries || []).forEach((entry, index) => {
+      const card = createNode('div', 'resume-subcard');
+      const head = createNode('div', 'resume-subcard-head');
+      head.appendChild(createNode('strong', '', `Entry ${index + 1}`));
+      const remove = createNode('button', 'resume-remove-btn', 'Remove');
+      remove.type = 'button';
+      remove.setAttribute('aria-label', `Remove custom entry ${index + 1}`);
+      remove.addEventListener('click', () => {
+        customSection.entries.splice(index, 1);
+        renderAccordionSections();
+        markSectionEdited();
+      });
+      head.appendChild(remove);
+      card.appendChild(head);
+
+      const heading = document.createElement('input');
+      heading.type = 'text';
+      heading.placeholder = 'Heading (optional)';
+      heading.value = entry.heading || '';
+      heading.setAttribute('aria-label', `Custom entry ${index + 1} heading`);
+      heading.addEventListener('input', () => {
+        entry.heading = heading.value;
+        markSectionEdited();
+      });
+      card.appendChild(createField('Heading', heading));
+
+      const body = document.createElement('textarea');
+      body.rows = 3;
+      body.value = entry.body || '';
+      body.setAttribute('aria-label', `Custom entry ${index + 1} body`);
+      body.addEventListener('input', () => {
+        entry.body = body.value;
+        markSectionEdited();
+      });
+      card.appendChild(createField('Body', body));
+      stack.appendChild(card);
+    });
+
+    const addRow = createNode('div', 'resume-action-row');
+    const add = createNode('button', 'btn btn-secondary', 'Add Entry');
+    add.type = 'button';
+    add.disabled = (customSection.entries || []).length >= CUSTOM_SECTION_ENTRY_LIMIT;
+    add.setAttribute('aria-disabled', String(add.disabled));
+    add.addEventListener('click', () => {
+      if ((customSection.entries || []).length >= CUSTOM_SECTION_ENTRY_LIMIT) {
+        showToast(toastStack, 'You can add up to 10 entries in a custom section.', 'info');
+        return;
+      }
+      customSection.entries.push({ heading: '', body: '' });
+      renderAccordionSections();
+      markSectionEdited();
+    });
+    addRow.appendChild(add);
+
+    const headerActions = createHeaderRemoveButton(
+      cleanResumeValue(customSection.title) || SECTION_LABELS.custom,
+      () => removeCustomSection(sectionId),
+    );
+    return buildAccordionCard(sectionId, cleanResumeValue(customSection.title) || SECTION_LABELS.custom, [
+      createField('Section Name', titleField, 'rb-custom-section-title-field'),
+      stack,
+      addRow,
+    ], {
+      icon: '&#129513;',
+      open: false,
+      reorderable: true,
+      headerActions,
+    });
+  }
+
+  function shouldShowAccordionSection(key) {
+    if (['experience', 'education', 'skills', 'projects', 'certifications'].includes(key)) return true;
+    if (OPTIONAL_RESUME_SECTIONS.includes(key)) return isSectionEnabled(state, key);
+    return key.startsWith('custom_');
+  }
+
+  function renderAccordionSections() {
+    const accordion = qs(root, '#rb-accordion');
+    if (!accordion) return;
+
+    ['languages', 'awards', 'volunteer', 'publications', 'courses'].forEach((key) => {
+      accordion.querySelector(`[data-accordion-section="${key}"]`)?.remove();
+    });
+    accordion.querySelectorAll('[data-accordion-section^="custom_"]').forEach((card) => card.remove());
+
+    const dynamicCards = new Map();
+    if (isSectionEnabled(state, 'languages')) dynamicCards.set('languages', createLanguagesCard());
+    if (isSectionEnabled(state, 'awards')) dynamicCards.set('awards', createAwardsCard());
+    if (isSectionEnabled(state, 'volunteer')) dynamicCards.set('volunteer', createVolunteerCard());
+    if (isSectionEnabled(state, 'publications')) dynamicCards.set('publications', createPublicationsCard());
+    if (isSectionEnabled(state, 'courses')) dynamicCards.set('courses', createCoursesCard());
+    (state.customSections || []).forEach((section) => {
+      dynamicCards.set(section.id, createCustomSectionCard(section));
+    });
+
+    const getCard = (key) => dynamicCards.get(key) || accordion.querySelector(`[data-accordion-section="${key}"]`);
+    const sectionOrder = normalizeSectionOrder(state.sectionOrder, state.customSections);
+    state.sectionOrder = sectionOrder;
+    const review = accordion.querySelector('[data-accordion-section="review"]');
+    sectionOrder.forEach((key) => {
+      if (!shouldShowAccordionSection(key)) return;
+      const card = getCard(key);
+      if (card) accordion.insertBefore(card, review || null);
+    });
+
+    ['review', 'settings', 'ats'].forEach((key) => {
+      const card = accordion.querySelector(`[data-accordion-section="${key}"]`);
+      if (card) accordion.appendChild(card);
+    });
+    const addButton = qs(root, '#rb-add-section-btn');
+    if (addButton) accordion.appendChild(addButton);
+
+    bindResumeAccordion(root);
+    updateAccordionMoveButtonStates();
+    refreshDragAndDropAfterAccordionRender();
+  }
+
+  async function initDragAndDrop() {
+    const accordion = qs(root, '#rb-accordion');
+    if (!accordion) return;
+    try {
+      await loadSortableJS();
+    } catch (error) {
+      console.error('[Resume Builder] SortableJS failed to load:', error);
+      showToast(toastStack, 'Drag-and-drop reorder could not load. Use the arrow buttons instead.', 'warning');
+      return;
+    }
+
+    if (sortableInstance) {
+      sortableInstance.destroy();
+      sortableInstance = null;
+    }
+
+    sortableInstance = new window.Sortable(accordion, {
+      handle: '.rb-drag-handle',
+      animation: 200,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+      ghostClass: 'rb-accordion-ghost',
+      chosenClass: 'rb-accordion-chosen',
+      dragClass: 'rb-accordion-dragging',
+      draggable: '.rb-accordion-card[data-section-key]:not([data-accordion-locked])',
+      forceFallback: false,
+      scroll: true,
+      scrollSensitivity: 60,
+      scrollSpeed: 10,
+      onEnd() {
+        const cards = document.querySelectorAll('#rb-accordion .rb-accordion-card[data-section-key]');
+        const newOrder = [];
+        cards.forEach((card) => {
+          const key = card.dataset.sectionKey;
+          if (card.dataset.reorderable !== 'true') return;
+          if (key && key !== 'personal' && key !== 'ats-score') newOrder.push(key);
+        });
+        state.sectionOrder = normalizeSectionOrder(newOrder, state.customSections);
+        renderSectionOrderList();
+        updateAccordionMoveButtonStates();
+        saveToStorage(state);
+        syncResumeToCloud(activeResumeId, state, state.personal.name || 'My Resume');
+        debouncedLiveRender();
+      },
+    });
+  }
+
+  function refreshDragAndDropAfterAccordionRender() {
+    if (!dragAndDropRequested || activeMainTab !== 'builder') return;
+    window.requestAnimationFrame(() => {
+      initDragAndDrop();
+    });
+  }
+
+  function ensureBuilderDragAndDrop() {
+    dragAndDropRequested = true;
+    initDragAndDrop();
+  }
+
+  function renderAddSectionGrid() {
+    clearNode(addSectionGrid);
+    if (!addSectionGrid) return;
+    const enabled = normalizeSectionsEnabled(state.sectionsEnabled);
+    ADD_SECTION_OPTIONS.forEach((option) => {
+      if (option.key === 'custom' && state.customSections.length >= CUSTOM_SECTION_LIMIT) return;
+      const item = createNode('div', 'rb-add-section-grid__item');
+      item.setAttribute('role', 'listitem');
+      const button = createNode('button', 'rb-add-section-card');
+      button.type = 'button';
+      button.dataset.sectionKey = option.key;
+      button.setAttribute('role', 'button');
+
+      const isAdded = option.key !== 'custom' && enabled[option.key] === true;
+      button.disabled = isAdded;
+      button.setAttribute('aria-disabled', String(isAdded));
+      button.classList.toggle('is-added', isAdded);
+
+      const icon = createNode('span', 'rb-add-section-card__icon', option.icon);
+      icon.setAttribute('aria-hidden', 'true');
+      const body = createNode('span', 'rb-add-section-card__body');
+      body.append(
+        createNode('span', 'rb-add-section-card__title', option.key === 'custom' ? '+ New custom section' : option.label),
+        createNode('span', 'rb-add-section-card__desc', option.description),
+      );
+      button.append(icon, body);
+      if (isAdded) button.appendChild(createNode('span', 'rb-add-section-card__added', '\u2713 Added'));
+      button.addEventListener('click', () => {
+        if (button.disabled) return;
+        addSection(option.key);
+      });
+      item.appendChild(button);
+      addSectionGrid.appendChild(item);
+    });
+  }
+
+  function openAddSectionModal() {
+    if (!addSectionModal) return;
+    renderAddSectionGrid();
+    addSectionModal.hidden = false;
+    qs(root, '#rb-add-section-btn')?.setAttribute('aria-expanded', 'true');
+    document.addEventListener('keydown', handleAddSectionModalKeydown);
+    window.requestAnimationFrame(() => {
+      addSectionModalPanel?.focus({ preventScroll: true });
+    });
+  }
+
+  function closeAddSectionModal() {
+    if (!addSectionModal || addSectionModal.hidden) return;
+    addSectionModal.hidden = true;
+    qs(root, '#rb-add-section-btn')?.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('keydown', handleAddSectionModalKeydown);
+    qs(root, '#rb-add-section-btn')?.focus({ preventScroll: true });
+  }
+
+  function handleAddSectionModalKeydown(event) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeAddSectionModal();
+    }
+  }
+
+  function openAccordionSectionAndScroll(sectionKey) {
+    window.requestAnimationFrame(() => {
+      const card = root.querySelector(`[data-accordion-section="${sectionKey}"]`);
+      if (!card) return;
+      card.classList.add('is-open');
+      card.querySelector('[data-accordion-trigger]')?.setAttribute('aria-expanded', 'true');
+      card.querySelector('.rb-accordion-body')?.setAttribute('aria-hidden', 'false');
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function addSection(sectionKey) {
+    if (sectionKey === 'custom') {
+      if (state.customSections.length >= CUSTOM_SECTION_LIMIT) {
+        showToast(toastStack, 'You can add up to 3 custom sections.', 'info');
+        return;
+      }
+      const id = `custom_${Date.now().toString(36)}`;
+      const customSection = createEmptyCustomSection(id);
+      state.customSections.push(customSection);
+      state.sectionOrder = normalizeSectionOrder([...state.sectionOrder, id], state.customSections);
+      renderAccordionSections();
+      renderBuilderDerivedViews();
+      markBuilderContentChanged();
+      saveToStorage(state);
+      closeAddSectionModal();
+      openAccordionSectionAndScroll(id);
+      showToast(toastStack, 'Section added!', 'success');
+      return;
+    }
+
+    state.sectionsEnabled = normalizeSectionsEnabled(state.sectionsEnabled);
+    if (state.sectionsEnabled[sectionKey]) return;
+    state.sectionsEnabled[sectionKey] = true;
+    if (!state.sectionOrder.includes(sectionKey)) state.sectionOrder.push(sectionKey);
+    if (sectionKey === 'languages' && !state.languages.length) state.languages = [createEmptyLanguage()];
+    if (sectionKey === 'awards' && !state.awards.length) state.awards = [createEmptyAward()];
+    if (sectionKey === 'volunteer' && !state.volunteer.length) state.volunteer = [createEmptyVolunteer()];
+    if (sectionKey === 'publications' && !state.publications.length) state.publications = [createEmptyPublication()];
+    if (sectionKey === 'courses' && !state.courses.length) state.courses = [createEmptyCourse()];
+    state.sectionOrder = normalizeSectionOrder(state.sectionOrder, state.customSections);
+    renderAccordionSections();
+    renderBuilderDerivedViews();
+    markBuilderContentChanged();
+    saveToStorage(state);
+    closeAddSectionModal();
+    openAccordionSectionAndScroll(sectionKey);
+    showToast(toastStack, 'Section added!', 'success');
+  }
+
   function renderSectionOrderList() {
     clearNode(sectionOrderList);
     if (!sectionOrderList) return;
-    state.sectionOrder = normalizeSectionOrder(state.sectionOrder);
+    state.sectionOrder = normalizeSectionOrder(state.sectionOrder, state.customSections);
     state.sectionOrder.forEach((key, index) => {
       const row = createNode('div', 'rb-section-order-row');
-      const hidden = (key === 'projects' || key === 'certifications') && !isSectionEnabled(state, key);
+      const hidden = OPTIONAL_RESUME_SECTIONS.includes(key) && !isSectionEnabled(state, key);
       row.classList.toggle('is-hidden-section', hidden);
-      const label = createNode('span', 'rb-section-order-label', SECTION_LABELS[key] || key);
+      const labelText = getSectionDisplayLabel(key, state);
+      const label = createNode('span', 'rb-section-order-label', labelText);
       if (hidden) label.appendChild(createNode('span', 'rb-section-order-badge', 'Hidden'));
       const actions = createNode('span', 'rb-section-order-actions');
       const up = createNode('button', 'rb-section-order-btn', '\u2191');
@@ -6124,21 +7398,36 @@ export async function initResumeBuilderTool(container) {
       down.dataset.sectionKey = key;
       up.disabled = index === 0;
       down.disabled = index === state.sectionOrder.length - 1;
-      up.setAttribute('aria-label', `Move ${SECTION_LABELS[key]} up`);
-      down.setAttribute('aria-label', `Move ${SECTION_LABELS[key]} down`);
+      up.setAttribute('aria-label', `Move ${labelText} up`);
+      down.setAttribute('aria-label', `Move ${labelText} down`);
       actions.append(up, down);
       row.append(label, actions);
       sectionOrderList.appendChild(row);
     });
   }
 
+  function updateAccordionMoveButtonStates() {
+    const cards = Array.from(root.querySelectorAll('#rb-accordion .rb-accordion-card[data-reorderable="true"]'));
+    cards.forEach((card, index) => {
+      const key = card.dataset.sectionKey || card.dataset.accordionSection;
+      const label = getSectionDisplayLabel(key, state);
+      card.querySelectorAll('[data-accordion-move]').forEach((button) => {
+        const direction = button.dataset.accordionMove;
+        button.disabled = direction === 'up' ? index === 0 : index === cards.length - 1;
+        button.setAttribute('aria-disabled', String(button.disabled));
+        button.setAttribute('aria-label', `Move ${label} ${direction}`);
+      });
+    });
+  }
+
   function moveSectionOrderItem(key, direction) {
-    const order = normalizeSectionOrder(state.sectionOrder);
+    const order = normalizeSectionOrder(state.sectionOrder, state.customSections);
     const index = order.indexOf(key);
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (index < 0 || targetIndex < 0 || targetIndex >= order.length) return;
     [order[index], order[targetIndex]] = [order[targetIndex], order[index]];
     state.sectionOrder = order;
+    renderAccordionSections();
     renderSectionOrderList();
     renderLivePreviewNow();
     markBuilderContentChanged();
@@ -6153,6 +7442,7 @@ export async function initResumeBuilderTool(container) {
     updateOptionalSectionUi('certifications');
     updateCoverLetterResumeNotice();
     updateAccordionCompleteness(root, state);
+    updateAccordionMoveButtonStates();
     debouncedLiveRender();
   }
 
@@ -6176,6 +7466,7 @@ export async function initResumeBuilderTool(container) {
     renderEducationList();
     renderProjectList();
     renderCertificationList();
+    renderAccordionSections();
     renderBuilderDerivedViews();
     applyTemplate(state.template, { persist: false });
     syncAccordionOpenState(root, state);
@@ -6334,7 +7625,13 @@ export async function initResumeBuilderTool(container) {
       || state.experiences.some(hasAnyResumeValue)
       || state.educations.some(hasAnyResumeValue)
       || state.projects.some(hasAnyResumeValue)
-      || state.certifications.some((certification) => String(certification || '').trim()),
+      || state.certifications.some((certification) => String(certification || '').trim())
+      || state.languages.some(hasAnyResumeValue)
+      || state.awards.some(hasAnyResumeValue)
+      || state.volunteer.some(hasAnyResumeValue)
+      || state.publications.some(hasAnyResumeValue)
+      || state.courses.some(hasAnyResumeValue)
+      || state.customSections.some((section) => String(section?.title || '').trim() || (section?.entries || []).some(hasAnyResumeValue)),
     );
   }
 
@@ -6360,8 +7657,14 @@ export async function initResumeBuilderTool(container) {
     state.coverLetter = '';
     state.coverLetterSettings = createDefaultCoverLetterSettings();
     state.sectionsEnabled = createDefaultSectionsEnabled();
-    state.sectionOrder = normalizeSectionOrder();
     state.certifications = [createEmptyCertification()];
+    state.languages = [];
+    state.awards = [];
+    state.volunteer = [];
+    state.publications = [];
+    state.courses = [];
+    state.customSections = [];
+    state.sectionOrder = normalizeSectionOrder([], state.customSections);
     state.suggestionsDismissed = false;
     lastDetectedIndustry = null;
   }
@@ -7416,9 +8719,15 @@ export async function initResumeBuilderTool(container) {
     state.coverLetter = '';
     state.coverLetterSettings = createDefaultCoverLetterSettings();
     state.sectionsEnabled = createDefaultSectionsEnabled();
-    state.sectionOrder = normalizeSectionOrder();
     state.lastEditedAt = null;
     state.certifications = [createEmptyCertification()];
+    state.languages = [];
+    state.awards = [];
+    state.volunteer = [];
+    state.publications = [];
+    state.courses = [];
+    state.customSections = [];
+    state.sectionOrder = normalizeSectionOrder([], state.customSections);
     state.suggestionsDismissed = false;
     lastDetectedIndustry = null;
     clearSavedDraft();
@@ -7583,6 +8892,7 @@ export async function initResumeBuilderTool(container) {
     activeMainTab = event.detail?.target || 'ats';
     if (activeMainTab === 'builder') {
       setMobileBuilderView(activeMobileBuilderView || 'edit');
+      ensureBuilderDragAndDrop();
     } else {
       returnNodeToOriginalPosition(previewWrap, previewOriginalPosition);
       returnNodeToOriginalPosition(scorePanelFull, scoreOriginalPosition);
@@ -7602,6 +8912,23 @@ export async function initResumeBuilderTool(container) {
   if (toggleCertificationsButton) {
     toggleCertificationsButton.addEventListener('click', () => toggleOptionalSection('certifications'));
   }
+  const accordion = qs(root, '#rb-accordion');
+  if (accordion) {
+    accordion.addEventListener('click', (event) => {
+      const addButton = event.target.closest('#rb-add-section-btn');
+      if (addButton && accordion.contains(addButton)) {
+        openAddSectionModal();
+        return;
+      }
+      const moveButton = event.target.closest('[data-accordion-move]');
+      if (!moveButton || moveButton.disabled) return;
+      event.preventDefault();
+      event.stopPropagation();
+      moveSectionOrderItem(moveButton.dataset.sectionKey, moveButton.dataset.accordionMove);
+    });
+  }
+  if (addSectionModalClose) addSectionModalClose.addEventListener('click', closeAddSectionModal);
+  if (addSectionModalBackdrop) addSectionModalBackdrop.addEventListener('click', closeAddSectionModal);
   if (sectionOrderList) {
     sectionOrderList.addEventListener('click', (event) => {
       const button = event.target.closest('[data-section-order-move]');
@@ -7699,6 +9026,7 @@ export async function initResumeBuilderTool(container) {
   updateBuilderFieldBindings();
   initCoverLetterTab();
   populateFormFromState();
+  if (activeMainTab === 'builder') ensureBuilderDragAndDrop();
   applyTemplate(state.template, { persist: false });
   if (state.generatedResume) {
     previewRenderMode = 'generated';

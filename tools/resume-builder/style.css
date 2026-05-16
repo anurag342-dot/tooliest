@@ -4779,6 +4779,16 @@ body:has(.resume-tool) .tool-workspace {
 }
 
 .rb-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 56px;
+  background: transparent;
+}
+
+.rb-accordion-trigger {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -4786,7 +4796,8 @@ body:has(.resume-tool) .tool-workspace {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   min-height: 56px;
   border: 0;
   background: transparent;
@@ -4794,11 +4805,11 @@ body:has(.resume-tool) .tool-workspace {
   cursor: pointer;
   font: inherit;
   font-weight: 800;
-  padding: 0.85rem 1rem;
+  padding: 0.85rem 0.75rem 0.85rem 0;
   text-align: left;
 }
 
-.rb-accordion-card[data-accordion-locked="true"] .rb-accordion-header {
+.rb-accordion-card[data-accordion-collapse-locked="true"] .rb-accordion-trigger {
   cursor: default;
 }
 
@@ -4813,8 +4824,38 @@ body:has(.resume-tool) .tool-workspace {
 .rb-accordion-grip {
   color: var(--rb-text-tertiary);
   cursor: grab;
+  flex: 0 0 auto;
   font-size: 1.1rem;
   line-height: 1;
+  margin-left: 0.75rem;
+}
+
+.rb-accordion-card[data-accordion-locked="true"] .rb-accordion-grip {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.rb-drag-handle {
+  cursor: grab;
+  color: var(--rb-text-tertiary);
+  padding: 0.25rem;
+  border-radius: 4px;
+  user-select: none;
+  touch-action: none;
+}
+
+.rb-drag-handle:active {
+  cursor: grabbing;
+}
+
+.rb-drag-handle:hover {
+  color: var(--rb-text-secondary);
+  background: var(--rb-bg-hover, rgba(255,255,255,0.05));
+}
+
+.rb-accordion-card[data-accordion-locked="true"] .rb-drag-handle:hover {
+  color: var(--rb-text-tertiary);
+  background: transparent;
 }
 
 .rb-accordion-icon {
@@ -4857,6 +4898,51 @@ body:has(.resume-tool) .tool-workspace {
   opacity: 0;
 }
 
+.rb-accordion-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.35rem;
+  padding-right: 0.85rem;
+}
+
+.rb-accordion-move-btn,
+.rb-accordion-remove-btn {
+  min-width: 30px;
+  min-height: 30px;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--rb-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.rb-accordion-move-btn:hover:not(:disabled),
+.rb-accordion-remove-btn:hover:not(:disabled) {
+  border-color: var(--rb-accent-primary);
+  color: var(--rb-text-primary);
+  background: var(--rb-accent-subtle);
+}
+
+.rb-accordion-move-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.rb-accordion-remove-btn {
+  padding: 0 0.55rem;
+  white-space: nowrap;
+}
+
+.rb-accordion-remove-btn:hover:not(:disabled) {
+  border-color: rgba(239, 68, 68, 0.65);
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.14);
+}
+
 .rb-section-completeness {
   border-radius: var(--rb-radius-pill);
   padding: 0.16rem 0.48rem;
@@ -4880,15 +4966,227 @@ body:has(.resume-tool) .tool-workspace {
   color: var(--rb-success);
 }
 
-.rb-add-section-placeholder {
+.rb-add-section-btn {
   min-height: 48px;
   border: 1px dashed var(--rb-border-default);
   border-radius: var(--rb-radius-lg);
   background: transparent;
   color: var(--rb-text-tertiary);
-  cursor: not-allowed;
+  cursor: pointer;
   font: inherit;
   font-weight: 800;
+}
+
+.rb-add-section-btn:hover {
+  border-color: var(--rb-accent-primary);
+  color: var(--rb-text-primary);
+  background: var(--rb-accent-subtle);
+}
+
+.rb-accordion-ghost {
+  opacity: 0.35;
+  background: var(--rb-accent-subtle, rgba(99,102,241,0.1));
+  outline: 2px dashed var(--rb-accent-primary);
+  outline-offset: -4px;
+}
+
+.rb-accordion-chosen {
+  border-color: var(--rb-accent-primary) !important;
+}
+
+.rb-accordion-dragging {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  opacity: 0.95;
+}
+
+.rb-compact-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.rb-compact-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(130px, 0.55fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rb-course-row {
+  grid-template-columns: minmax(180px, 1.2fr) minmax(130px, 0.8fr) minmax(120px, 0.55fr) auto;
+}
+
+.rb-compact-row input,
+.rb-compact-row select,
+.rb-custom-section-title-input {
+  width: 100%;
+}
+
+.rb-icon-remove-btn {
+  min-width: 36px;
+  padding-inline: 0.45rem;
+}
+
+.rb-custom-section-title-field input {
+  min-height: 44px;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.rb-resume-bold {
+  font-weight: 700;
+}
+
+.rb-add-section-modal[hidden] {
+  display: none;
+}
+
+.rb-add-section-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.rb-add-section-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  animation: rb-modal-fade 200ms ease-out;
+}
+
+.rb-add-section-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(680px, 100%);
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-lg);
+  background: var(--rb-bg-secondary);
+  color: var(--rb-text-primary);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  padding: 1rem;
+  animation: rb-modal-rise 250ms ease-out;
+}
+
+.rb-add-section-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rb-add-section-modal__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.rb-add-section-modal__close {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-sm);
+  background: transparent;
+  color: var(--rb-text-secondary);
+  cursor: pointer;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.rb-add-section-modal__close:hover {
+  border-color: var(--rb-accent-primary);
+  color: var(--rb-text-primary);
+  background: var(--rb-bg-hover);
+}
+
+.rb-add-section-modal__subtitle {
+  margin: 0.35rem 0 1rem;
+  color: var(--rb-text-secondary);
+}
+
+.rb-add-section-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.rb-add-section-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 104px;
+  border: 1px solid var(--rb-border-default);
+  border-radius: var(--rb-radius-md);
+  background: var(--rb-bg-tertiary);
+  color: var(--rb-text-primary);
+  cursor: pointer;
+  padding: 1rem;
+  text-align: left;
+}
+
+.rb-add-section-card:hover:not(:disabled) {
+  border-color: var(--rb-accent-primary);
+  background: var(--rb-accent-subtle);
+}
+
+.rb-add-section-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.rb-add-section-card__icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.rb-add-section-card__body {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.rb-add-section-card__title {
+  font-weight: 900;
+}
+
+.rb-add-section-card__desc {
+  color: var(--rb-text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.rb-add-section-card__added {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  border-radius: var(--rb-radius-pill);
+  background: rgba(34, 197, 94, 0.16);
+  color: var(--rb-success);
+  padding: 0.15rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+@keyframes rb-modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rb-modal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 #rb-preview-wrap {
@@ -5061,9 +5359,23 @@ body:has(.resume-tool) .tool-workspace {
     min-width: 600px;
   }
 
-  .rb-accordion-header {
+  .rb-accordion-trigger {
     min-height: 52px;
-    padding: 0.75rem;
+    padding: 0.75rem 0.5rem 0.75rem 0;
+  }
+
+  .rb-accordion-grip {
+    margin-left: 0.6rem;
+  }
+
+  .rb-accordion-actions {
+    padding-right: 0.6rem;
+  }
+
+  .rb-accordion-remove-btn {
+    max-width: 78px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .rb-accordion-body {
@@ -5072,6 +5384,25 @@ body:has(.resume-tool) .tool-workspace {
 
   .rb-section-completeness {
     display: none;
+  }
+
+  .rb-compact-row,
+  .rb-course-row {
+    grid-template-columns: 1fr;
+  }
+
+  .rb-add-section-modal {
+    align-items: end;
+    padding: 0.75rem;
+  }
+
+  .rb-add-section-modal__panel {
+    width: 100%;
+    max-height: 86vh;
+  }
+
+  .rb-add-section-grid {
+    grid-template-columns: 1fr;
   }
 }
 
