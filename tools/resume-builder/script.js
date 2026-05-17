@@ -2958,6 +2958,7 @@ function setResumeExportReady(isReady) {
 }
 
 let resumePrintFrame = null;
+let resumePdfModulePromise = null;
 
 function getResumeFileBaseName() {
   return (resumeExportState?.personal?.name || 'resume')
@@ -3143,6 +3144,136 @@ function getResumeDocumentHtml() {
   }
 
   return '';
+}
+
+function getResumeDocumentCloneForExport() {
+  let existingDoc = document.querySelector('#rb-preview-pane .rb-resume-doc');
+  if (!existingDoc && resumeExportState?.generatedResume) {
+    renderFormattedPreview(resumeExportState.generatedResume);
+    existingDoc = document.querySelector('#rb-preview-pane .rb-resume-doc');
+  }
+  if (!existingDoc && hasMeaningfulLiveResumeData(resumeExportState)) {
+    renderLiveResumeFromState(resumeExportState);
+    existingDoc = document.querySelector('#rb-preview-pane .rb-resume-doc');
+  }
+  if (!existingDoc) return null;
+
+  const paper = getResumePaperProfile(resumeExportState);
+  const clone = existingDoc.cloneNode(true);
+  applyResumePaperClass(clone, resumeExportState);
+  Object.values(RESUME_TEMPLATE_CLASSES).forEach((className) => clone.classList.remove(className));
+  clone.classList.add(RESUME_TEMPLATE_CLASSES[normalizeResumeTemplate(resumeExportState?.template)]);
+  clone.style.width = `${paper.width}px`;
+  clone.style.maxWidth = `${paper.width}px`;
+  clone.style.minHeight = `${paper.height}px`;
+  clone.style.margin = '0';
+  clone.style.transform = 'none';
+  clone.style.transformOrigin = 'top left';
+  clone.style.boxShadow = 'none';
+  clone.style.borderRadius = '0';
+  clone.style.backgroundColor = '#ffffff';
+  clone.style.backgroundImage = 'none';
+  return clone;
+}
+
+async function loadResumePdfLibraries() {
+  if (!resumePdfModulePromise) {
+    resumePdfModulePromise = Promise.all([
+      import('https://cdn.jsdelivr.net/npm/jspdf@3.0.2/+esm'),
+      import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm'),
+    ]).catch((error) => {
+      resumePdfModulePromise = null;
+      throw error;
+    });
+  }
+  const [jspdfModule, html2canvasModule] = await resumePdfModulePromise;
+  return {
+    jsPDF: jspdfModule.jsPDF || jspdfModule.default?.jsPDF || jspdfModule.default,
+    html2canvas: html2canvasModule.default || html2canvasModule,
+  };
+}
+
+function getResumePdfPageMetrics(state = resumeExportState) {
+  const size = normalizePaperSize(state?.paperSize);
+  if (size === 'a4') {
+    return { format: 'a4', width: 210, height: 297 };
+  }
+  return { format: 'letter', width: 215.9, height: 279.4 };
+}
+
+function createResumePdfRenderSurface() {
+  const clone = getResumeDocumentCloneForExport();
+  if (!clone) return null;
+  const paper = getResumePaperProfile(resumeExportState);
+  const host = document.createElement('div');
+  host.className = 'rb-pdf-render-host';
+  host.setAttribute('aria-hidden', 'true');
+  Object.assign(host.style, {
+    position: 'fixed',
+    left: '-12000px',
+    top: '0',
+    width: `${paper.width}px`,
+    minHeight: `${paper.height}px`,
+    padding: '0',
+    margin: '0',
+    opacity: '1',
+    pointerEvents: 'none',
+    zIndex: '-1',
+  });
+  host.appendChild(clone);
+  document.body.appendChild(host);
+  return {
+    host,
+    preview: clone,
+    cleanup() {
+      host.remove();
+    },
+  };
+}
+
+async function downloadResumePreviewPdf(previewElement, fileName) {
+  const { jsPDF, html2canvas } = await loadResumePdfLibraries();
+  const paper = getResumePaperProfile(resumeExportState);
+  const page = getResumePdfPageMetrics(resumeExportState);
+  const canvas = await html2canvas(previewElement, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    windowWidth: paper.width,
+    windowHeight: Math.max(previewElement.scrollHeight, paper.height),
+    scrollX: 0,
+    scrollY: -window.scrollY,
+  });
+  const pdf = new jsPDF({
+    orientation: 'p',
+    unit: 'mm',
+    format: page.format,
+    compress: true,
+  });
+  const renderedHeight = canvas.height * page.width / canvas.width;
+  if (renderedHeight <= page.height * 1.01) {
+    const imageData = canvas.toDataURL('image/png');
+    pdf.addImage(imageData, 'PNG', 0, 0, page.width, Math.min(page.height, renderedHeight), undefined, 'FAST');
+    pdf.save(fileName);
+    return;
+  }
+
+  const pageHeightPx = Math.floor(canvas.width * (page.height / page.width));
+  let pageIndex = 0;
+  for (let offsetY = 0; offsetY < canvas.height; offsetY += pageHeightPx) {
+    const sliceHeight = Math.min(pageHeightPx, canvas.height - offsetY);
+    const sliceCanvas = document.createElement('canvas');
+    sliceCanvas.width = canvas.width;
+    sliceCanvas.height = sliceHeight;
+    const sliceContext = sliceCanvas.getContext('2d');
+    sliceContext.drawImage(canvas, 0, offsetY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+    const imageData = sliceCanvas.toDataURL('image/png');
+    const renderHeight = sliceHeight * page.width / canvas.width;
+    if (pageIndex > 0) pdf.addPage();
+    pdf.addImage(imageData, 'PNG', 0, 0, page.width, renderHeight, undefined, 'FAST');
+    pageIndex += 1;
+  }
+  pdf.save(fileName);
 }
 
 function removeResumePrintFrame() {
@@ -3493,22 +3624,37 @@ async function downloadResumePDF() {
   const btn = document.getElementById('rb-dl-pdf') || document.getElementById('rb-btn-download-primary');
   if (btn) {
     btn.classList.add('rb-export-btn--loading');
-    btn.setAttribute('aria-label', 'Open save as PDF dialog');
+    btn.setAttribute('aria-label', 'Generating resume PDF');
+    btn.disabled = true;
   }
 
   try {
-    const opened = openResumePrintDialog('pdf');
-    if (opened) {
-      showExportToast('Use Save as PDF in the print dialog for a preview-matched PDF.', 'info');
+    if (!resumeExportState?.generatedResume && !hasMeaningfulLiveResumeData(resumeExportState)) {
+      showExportToast('Add resume details before saving as PDF.', 'error');
+      return;
+    }
+    const exportSurface = createResumePdfRenderSurface();
+    if (!exportSurface?.preview) {
+      showExportToast('Generate a resume before exporting.', 'error');
+      return;
+    }
+    try {
+      const paper = normalizePaperSize(resumeExportState?.paperSize);
+      const templateName = normalizeResumeTemplate(resumeExportState?.template);
+      await downloadResumePreviewPdf(exportSurface.preview, `${getResumeFileBaseName()}_resume_${templateName}_${paper}.pdf`);
+      showExportToast('Resume PDF downloaded.', 'success');
+    } finally {
+      exportSurface.cleanup();
     }
   } catch (error) {
     console.error('[PDF Export]', error);
-    showExportToast('PDF export failed. Check your browser pop-up settings and try again.', 'error');
+    showExportToast('PDF export failed. Please try again.', 'error');
   } finally {
     window.setTimeout(() => {
       if (btn) {
         btn.classList.remove('rb-export-btn--loading');
         btn.setAttribute('aria-label', 'Save resume as PDF');
+        btn.disabled = false;
       }
     }, 800);
   }
@@ -5639,6 +5785,7 @@ export async function initResumeBuilderTool(container) {
   function setMobileBuilderView(view = 'edit') {
     activeMobileBuilderView = ['edit', 'preview', 'score'].includes(view) ? view : 'edit';
     if (!builderPanel) return;
+    closePreviewActionMenus();
 
     builderPanel.classList.toggle('rb-mobile-view-edit', activeMobileBuilderView === 'edit');
     builderPanel.classList.toggle('rb-mobile-view-preview', activeMobileBuilderView === 'preview');
