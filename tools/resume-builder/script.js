@@ -231,20 +231,40 @@ const SECTION_LABELS = {
   custom: 'Custom Section',
 };
 const SECTION_TITLE_TO_KEY = {
+  'PROFESSIONAL SUMMARY': 'summary',
+  SUMMARY: 'summary',
+  OBJECTIVE: 'summary',
+  PROFILE: 'summary',
   'WORK EXPERIENCE': 'experience',
+  'PROFESSIONAL EXPERIENCE': 'experience',
+  'EMPLOYMENT HISTORY': 'experience',
   EXPERIENCE: 'experience',
   PROJECTS: 'projects',
+  'ADDITIONAL PROJECTS': 'projects',
   EDUCATION: 'education',
+  'RELEVANT COURSES': 'education',
   SKILLS: 'skills',
+  'TECHNICAL SKILLS': 'skills',
   CERTIFICATIONS: 'certifications',
   CERTIFICATION: 'certifications',
+  CERTIFICATES: 'certifications',
   LANGUAGES: 'languages',
   'AWARDS & HONORS': 'awards',
+  'AWARDS AND HONORS': 'awards',
+  'HONORS & AWARDS': 'awards',
+  HONORS: 'awards',
   AWARDS: 'awards',
   'VOLUNTEER WORK': 'volunteer',
+  'VOLUNTEER EXPERIENCE': 'volunteer',
+  'COMMUNITY SERVICE': 'volunteer',
   VOLUNTEER: 'volunteer',
   PUBLICATIONS: 'publications',
+  'RESEARCH PUBLICATIONS': 'publications',
+  'PUBLICATIONS & RESEARCH': 'publications',
   'COURSES & TRAINING': 'courses',
+  'COURSES AND TRAINING': 'courses',
+  'PROFESSIONAL DEVELOPMENT': 'courses',
+  TRAINING: 'courses',
   COURSES: 'courses',
 };
 const ADD_SECTION_OPTIONS = [
@@ -826,6 +846,15 @@ Format rules:
 - In the EDUCATION section, list all education entries provided by the user.
 - If Languages, Awards & Honors, Volunteer Work, Publications, Courses & Training, or custom sections are provided, include only the provided entries for those sections.
 - Do not invent entries for Languages, Awards, Volunteer Work, Publications, Courses, or custom sections.
+- Do not invent dates, publishers, issuers, organizations, course providers, URLs, proficiency levels, or custom-section facts.
+- Do not output empty optional section headers. If an optional section is enabled but has no filled entries, omit it entirely.
+- Preserve exact names, dates, URLs, titles, issuers, organizations, institutions, and proficiency levels from the user input. Improve wording around them only when there is descriptive text to polish.
+- Use these exact standard section headers when data exists: WORK EXPERIENCE, PROJECTS, EDUCATION, SKILLS, CERTIFICATIONS, LANGUAGES, AWARDS & HONORS, VOLUNTEER WORK, PUBLICATIONS, COURSES & TRAINING.
+- For LANGUAGES, format each line as "Language - Proficiency".
+- For AWARDS & HONORS, put the award title on its own line, then issuer/date if provided, then one bullet for description if provided.
+- For VOLUNTEER WORK, put role, organization, and duration on one line, then bullets for provided responsibilities.
+- For PUBLICATIONS, put publication title on its own line, publisher/date on the next line if provided, and URL on its own line if provided.
+- For COURSES & TRAINING, put each course on one line with course name, institution, and date only when provided.
 - Use the exact section titles as provided for custom sections.
 - Include only sections for which data has been provided.
 - Follow the requested section order from the user content after PROFESSIONAL SUMMARY. Omit optional sections when they are disabled or not provided.
@@ -1885,21 +1914,56 @@ const RESUME_SECTION_TITLES = new Map([
   ['CERTIFICATIONS', 'CERTIFICATIONS'],
   ['CERTIFICATES', 'CERTIFICATIONS'],
   ['LANGUAGES', 'LANGUAGES'],
+  ['AWARDS & HONORS', 'AWARDS & HONORS'],
+  ['AWARDS AND HONORS', 'AWARDS & HONORS'],
+  ['HONORS & AWARDS', 'AWARDS & HONORS'],
+  ['HONORS', 'AWARDS & HONORS'],
+  ['AWARDS', 'AWARDS & HONORS'],
+  ['VOLUNTEER WORK', 'VOLUNTEER WORK'],
+  ['VOLUNTEER EXPERIENCE', 'VOLUNTEER WORK'],
+  ['COMMUNITY SERVICE', 'VOLUNTEER WORK'],
+  ['VOLUNTEER', 'VOLUNTEER WORK'],
+  ['PUBLICATIONS', 'PUBLICATIONS'],
+  ['RESEARCH PUBLICATIONS', 'PUBLICATIONS'],
+  ['PUBLICATIONS & RESEARCH', 'PUBLICATIONS'],
+  ['COURSES & TRAINING', 'COURSES & TRAINING'],
+  ['COURSES AND TRAINING', 'COURSES & TRAINING'],
+  ['PROFESSIONAL DEVELOPMENT', 'COURSES & TRAINING'],
+  ['TRAINING', 'COURSES & TRAINING'],
+  ['COURSES', 'COURSES & TRAINING'],
   ['ADDITIONAL EXPERIENCE', 'ADDITIONAL EXPERIENCE'],
   ['PROFESSIONAL AFFILIATIONS', 'PROFESSIONAL AFFILIATIONS'],
   ['INTERESTS', 'INTERESTS'],
 ]);
 
-function getResumeSectionTitle(line) {
+function normalizeResumeSectionHeading(value) {
+  return String(value || '')
+    .trim()
+    .replace(/:$/, '')
+    .replace(/\s+/g, ' ')
+    .toUpperCase();
+}
+
+function getCustomResumeSectionTitle(line, state = resumeExportState) {
+  const normalized = normalizeResumeSectionHeading(line);
+  if (!normalized) return null;
+  const match = (state?.customSections || []).find((section) => {
+    const title = normalizeResumeSectionHeading(section?.title);
+    return title && title === normalized;
+  });
+  return match ? normalizeResumeSectionHeading(match.title) : null;
+}
+
+function getResumeSectionTitle(line, state = resumeExportState) {
   const normalized = String(line || '')
     .trim()
     .replace(/:$/, '')
     .replace(/\s+/g, ' ')
     .toUpperCase();
-  return RESUME_SECTION_TITLES.get(normalized) || null;
+  return RESUME_SECTION_TITLES.get(normalized) || getCustomResumeSectionTitle(normalized, state) || null;
 }
 
-function parseResumeText(resumeText) {
+function parseResumeText(resumeText, state = resumeExportState) {
   const lines = resumeText.split('\n').map((line) => line.trimEnd());
   const sections = [];
   let currentSection = null;
@@ -1908,7 +1972,7 @@ function parseResumeText(resumeText) {
 
   for (let i = 0; i < lines.length; i += 1) {
     const trimmed = lines[i].trim();
-    const sectionTitle = getResumeSectionTitle(trimmed);
+    const sectionTitle = getResumeSectionTitle(trimmed, state);
 
     if (!headerParsed) {
       if (sectionTitle && i > 1) {
@@ -2136,8 +2200,16 @@ function isSummarySectionTitle(title) {
   return /^(SUMMARY|OBJECTIVE|PROFILE|PROFESSIONAL SUMMARY)$/i.test(String(title || '').trim());
 }
 
-function getResumeSectionKey(title) {
-  return SECTION_TITLE_TO_KEY[String(title || '').trim().toUpperCase()] || null;
+function getResumeSectionKey(title, state = resumeExportState) {
+  const normalized = normalizeResumeSectionHeading(title);
+  if (!normalized) return null;
+  const staticKey = SECTION_TITLE_TO_KEY[normalized];
+  if (staticKey) return staticKey;
+  const custom = (state?.customSections || []).find((section) => {
+    const customTitle = normalizeResumeSectionHeading(section?.title);
+    return customTitle && customTitle === normalized;
+  });
+  return custom?.id || null;
 }
 
 function isBracketOnlySection(section) {
@@ -2146,9 +2218,13 @@ function isBracketOnlySection(section) {
 }
 
 function shouldRenderResumeSection(section, state) {
-  const key = getResumeSectionKey(section?.title);
+  if (isBracketOnlySection(section)) return false;
+  const key = getResumeSectionKey(section?.title, state);
   if (key && OPTIONAL_RESUME_SECTIONS.includes(key)) {
-    return isSectionEnabled(state, key) && !isBracketOnlySection(section);
+    return isSectionEnabled(state, key);
+  }
+  if (key && key.startsWith('custom_')) {
+    return (state?.customSections || []).some((customSection) => customSection.id === key);
   }
   return true;
 }
@@ -2158,7 +2234,7 @@ function orderResumeSections(sections, state) {
   const indexed = new Map();
   const unkeyed = [];
   sections.forEach((section) => {
-    const key = getResumeSectionKey(section?.title);
+    const key = getResumeSectionKey(section?.title, state);
     if (!key) {
       unkeyed.push(section);
       return;
@@ -2384,7 +2460,7 @@ function renderFormattedPreview(resumeText) {
 
   const { name, contact } = getCanonicalResumeHeader(resumeExportState);
   resumePreviewPrefersLive = false;
-  const parsed = parseResumeText(resumeText);
+  const parsed = parseResumeText(resumeText, resumeExportState);
   const displayName = name || parsed.name;
   const contactParts = getResumeContactParts(resumeExportState, contact || parsed.contact);
   const sections = getRenderableResumeSections(parsed.sections, resumeExportState);
@@ -3296,7 +3372,7 @@ function formatResumeBodyForCopy(state) {
       return [header, '-'.repeat(header.length), ...lines].join('\n');
     }).filter(Boolean).join('\n\n');
   }
-  const parsed = parseResumeText(state.generatedResume || '');
+  const parsed = parseResumeText(state.generatedResume || '', state);
   const sections = String(state.generatedResume || '').trim() && !resumePreviewPrefersLive
     ? getRenderableResumeSections(parsed.sections, state)
     : getLiveResumeSectionsFromState(state);
@@ -3569,19 +3645,22 @@ function getResumePrintStyles() {
     }
 
     .rb-resume-section-title {
-      margin: 0 0 2px;
+      display: block;
+      margin: 0 0 0.035in;
       font-family: "Times New Roman", Georgia, serif;
       font-size: 11pt;
       font-weight: 700;
-      line-height: 1.2;
+      line-height: 1.24;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: #111111;
+      background: #ffffff;
       break-after: avoid;
       page-break-after: avoid;
     }
 
     .rb-resume-section-divider {
+      margin-top: 0;
       margin-bottom: 0.06in;
       border-top: 1.5px solid #111111;
       break-after: avoid;
@@ -3714,6 +3793,7 @@ function getResumePrintStyles() {
     .rb-resume-doc.rb-tpl-compact .rb-resume-section-title {
       font-size: 9.5pt;
       letter-spacing: 0.055em;
+      margin-bottom: 0.025in;
     }
 
     .rb-resume-doc.rb-tpl-compact .rb-resume-section-divider {
@@ -4526,7 +4606,7 @@ function buildDocxChildren(state, profile) {
     }));
   }
 
-  const parsed = parseResumeText(state.generatedResume || '');
+  const parsed = parseResumeText(state.generatedResume || '', state);
   const sections = String(state.generatedResume || '').trim() && !resumePreviewPrefersLive
     ? getRenderableResumeSections(parsed.sections, state)
     : getLiveResumeSectionsFromState(state);
@@ -4955,7 +5035,63 @@ function getSectionDisplayLabel(key, state = resumeExportState) {
   return SECTION_LABELS[sectionKey] || sectionKey;
 }
 
+function promptSectionHasData(key, state = resumeExportState) {
+  if (!state) return false;
+  if (key === 'experience') {
+    return (state.experiences || []).some((item) => hasAnyResumeValue([
+      item?.jobTitle || item?.title,
+      item?.company,
+      item?.duration,
+      item?.achievement1,
+      item?.achievement2,
+      item?.achievement3,
+    ]));
+  }
+  if (key === 'projects') {
+    return isSectionEnabled(state, 'projects') && (state.projects || []).some(hasFilledProject);
+  }
+  if (key === 'education') {
+    return (state.educations || []).some((item) => hasAnyResumeValue([
+      item?.degree,
+      item?.institution,
+      item?.year,
+      item?.gpa,
+      item?.courses,
+    ]));
+  }
+  if (key === 'skills') return parseCommaList(state.skills).length > 0;
+  if (key === 'certifications') {
+    return isSectionEnabled(state, 'certifications') && (state.certifications || []).some(hasFilledCertification);
+  }
+  if (key === 'languages') {
+    return isSectionEnabled(state, 'languages') && (state.languages || []).some((item) => cleanResumeValue(item?.language));
+  }
+  if (key === 'awards') {
+    return isSectionEnabled(state, 'awards') && (state.awards || []).some((item) => cleanResumeValue(item?.title));
+  }
+  if (key === 'volunteer') {
+    return isSectionEnabled(state, 'volunteer') && (state.volunteer || []).some((item) => cleanResumeValue(item?.role));
+  }
+  if (key === 'publications') {
+    return isSectionEnabled(state, 'publications') && (state.publications || []).some((item) => cleanResumeValue(item?.title));
+  }
+  if (key === 'courses') {
+    return isSectionEnabled(state, 'courses') && (state.courses || []).some((item) => cleanResumeValue(item?.name));
+  }
+  if (String(key || '').startsWith('custom_')) {
+    const customSection = (state.customSections || []).find((section) => section.id === key);
+    return Boolean(customSection && (customSection.entries || []).some((entry) => cleanResumeValue(entry?.body)));
+  }
+  return false;
+}
+
+function getPromptSectionOrder(state = resumeExportState) {
+  return normalizeSectionOrder(state?.sectionOrder, state?.customSections)
+    .filter((key) => promptSectionHasData(key, state));
+}
+
 function buildResumePrompt(state) {
+  const requestedSectionOrder = getPromptSectionOrder(state);
   const parts = [
     `Name: ${state.personal.name || ''}`,
     `Email: ${state.personal.email || ''}`,
@@ -4967,7 +5103,8 @@ function buildResumePrompt(state) {
     `Target Job Title: ${state.targetRole || 'General professional role'}`,
     `Professional Summary: ${state.summary || ''}`,
     '',
-    `Requested section order after Professional Summary: ${normalizeSectionOrder(state.sectionOrder, state.customSections).map((key) => getSectionDisplayLabel(key, state)).join(' -> ')}`,
+    `Requested section order after Professional Summary: ${requestedSectionOrder.map((key) => getSectionDisplayLabel(key, state)).join(' -> ') || 'No additional filled sections'}`,
+    'Only include section blocks listed below. Do not add a section just because it appears in the UI if it has no filled entries.',
     '',
   ];
 
@@ -5028,7 +5165,7 @@ function buildResumePrompt(state) {
       if (!filledLanguages.length) return;
       parts.push('LANGUAGES:');
       filledLanguages.forEach((item) => {
-        parts.push(`- ${item.language} (${item.proficiency || 'Conversational'})`);
+        parts.push(`- ${cleanResumeValue(item.language)} - ${cleanResumeValue(item.proficiency) || 'Conversational'}`);
       });
       parts.push('');
     },
@@ -5084,7 +5221,7 @@ function buildResumePrompt(state) {
     },
   };
 
-  normalizeSectionOrder(state.sectionOrder, state.customSections).forEach((key) => {
+  requestedSectionOrder.forEach((key) => {
     if (key.startsWith('custom_')) {
       const customSection = (state.customSections || []).find((section) => section.id === key);
       const filledEntries = (customSection?.entries || []).filter((entry) => cleanResumeValue(entry?.body));
@@ -7349,6 +7486,7 @@ export async function initResumeBuilderTool(container) {
       }
       state.languages.push(createEmptyLanguage());
       renderAccordionSections();
+      keepRenderedSectionOpen('languages', { lastGroupSelector: '.rb-language-row' });
       markSectionEdited();
     });
     addRow.appendChild(add);
@@ -7426,6 +7564,7 @@ export async function initResumeBuilderTool(container) {
       }
       state.awards.push(createEmptyAward());
       renderAccordionSections();
+      keepRenderedSectionOpen('awards', { lastGroupSelector: '.rb-award-card' });
       markSectionEdited();
     });
     addRow.appendChild(add);
@@ -7440,7 +7579,7 @@ export async function initResumeBuilderTool(container) {
   function createVolunteerCard() {
     const stack = createNode('div', 'resume-stack');
     (state.volunteer || []).forEach((item, index) => {
-      const card = createNode('div', 'resume-subcard');
+      const card = createNode('div', 'resume-subcard rb-volunteer-card');
       const head = createNode('div', 'resume-subcard-head');
       head.appendChild(createNode('strong', '', `Volunteer Role ${index + 1}`));
       const remove = createNode('button', 'resume-remove-btn', 'Remove');
@@ -7496,6 +7635,7 @@ export async function initResumeBuilderTool(container) {
       }
       state.volunteer.push(createEmptyVolunteer());
       renderAccordionSections();
+      keepRenderedSectionOpen('volunteer', { lastGroupSelector: '.rb-volunteer-card' });
       markSectionEdited();
     });
     addRow.appendChild(add);
@@ -7510,7 +7650,7 @@ export async function initResumeBuilderTool(container) {
   function createPublicationsCard() {
     const stack = createNode('div', 'resume-stack');
     (state.publications || []).forEach((publication, index) => {
-      const card = createNode('div', 'resume-subcard');
+      const card = createNode('div', 'resume-subcard rb-publication-card');
       const head = createNode('div', 'resume-subcard-head');
       head.appendChild(createNode('strong', '', `Publication ${index + 1}`));
       const remove = createNode('button', 'resume-remove-btn', 'Remove');
@@ -7558,6 +7698,7 @@ export async function initResumeBuilderTool(container) {
       }
       state.publications.push(createEmptyPublication());
       renderAccordionSections();
+      keepRenderedSectionOpen('publications', { lastGroupSelector: '.rb-publication-card' });
       markSectionEdited();
     });
     addRow.appendChild(add);
@@ -7578,6 +7719,8 @@ export async function initResumeBuilderTool(container) {
         ['institution', 'Institution', 'text'],
         ['date', 'Date', 'month'],
       ].forEach(([key, placeholder, type]) => {
+        const field = createNode('label', `rb-compact-field rb-compact-field--${key}`);
+        field.appendChild(createNode('span', 'rb-compact-field__label', placeholder));
         const input = document.createElement('input');
         input.type = type;
         input.placeholder = placeholder;
@@ -7587,7 +7730,8 @@ export async function initResumeBuilderTool(container) {
           course[key] = input.value;
           markSectionEdited();
         });
-        row.appendChild(input);
+        field.appendChild(input);
+        row.appendChild(field);
       });
       const remove = createNode('button', 'resume-remove-btn rb-icon-remove-btn', '\u00D7');
       remove.type = 'button';
@@ -7613,6 +7757,7 @@ export async function initResumeBuilderTool(container) {
       }
       state.courses.push(createEmptyCourse());
       renderAccordionSections();
+      keepRenderedSectionOpen('courses', { lastGroupSelector: '.rb-course-row' });
       markSectionEdited();
     });
     addRow.appendChild(add);
@@ -7664,7 +7809,7 @@ export async function initResumeBuilderTool(container) {
 
     const stack = createNode('div', 'resume-stack');
     (customSection.entries || []).forEach((entry, index) => {
-      const card = createNode('div', 'resume-subcard');
+      const card = createNode('div', 'resume-subcard rb-custom-entry-card');
       const head = createNode('div', 'resume-subcard-head');
       head.appendChild(createNode('strong', '', `Entry ${index + 1}`));
       const remove = createNode('button', 'resume-remove-btn', 'Remove');
@@ -7713,6 +7858,7 @@ export async function initResumeBuilderTool(container) {
       }
       customSection.entries.push({ heading: '', body: '' });
       renderAccordionSections();
+      keepRenderedSectionOpen(sectionId, { lastGroupSelector: '.rb-custom-entry-card' });
       markSectionEdited();
     });
     addRow.appendChild(add);
@@ -7912,6 +8058,23 @@ export async function initResumeBuilderTool(container) {
       card.querySelector('[data-accordion-trigger]')?.setAttribute('aria-expanded', 'true');
       card.querySelector('.rb-accordion-body')?.setAttribute('aria-hidden', 'false');
       card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function keepRenderedSectionOpen(sectionKey, options = {}) {
+    window.requestAnimationFrame(() => {
+      setAccordionSectionOpen(root, sectionKey, true);
+      const card = root.querySelector(`[data-accordion-section="${sectionKey}"]`);
+      if (!card) return;
+      card.scrollIntoView({ behavior: 'smooth', block: options.block || 'nearest' });
+      const groups = options.lastGroupSelector ? Array.from(card.querySelectorAll(options.lastGroupSelector)) : [];
+      const focusScope = options.lastGroupSelector
+        ? groups[groups.length - 1]
+        : card;
+      const focusTarget = focusScope?.querySelector(options.focusSelector || 'input, textarea, select');
+      const focusNewControl = () => focusTarget?.focus({ preventScroll: true });
+      focusNewControl();
+      window.setTimeout(focusNewControl, 80);
     });
   }
 
@@ -9213,6 +9376,55 @@ export async function initResumeBuilderTool(container) {
     }
   }
 
+  function getPolishMissingRequiredFields() {
+    const missing = [];
+    if (cleanResumeValue(state.personal.name).length < 3) {
+      missing.push({
+        label: 'Full name',
+        section: 'personal',
+        selector: '#rb-name',
+      });
+    }
+    if (cleanResumeValue(state.summary).length < 20) {
+      missing.push({
+        label: 'Professional summary',
+        section: 'summary',
+        selector: '#rb-summary',
+      });
+    }
+    const hasExperienceTitle = (state.experiences || []).some((experience) => cleanResumeValue(experience?.jobTitle || experience?.title));
+    if (!hasExperienceTitle) {
+      missing.push({
+        label: 'At least one work experience title',
+        section: 'experience',
+        selector: '#rb-experience-list input, #rb-experience-list textarea',
+      });
+    }
+    return missing;
+  }
+
+  function focusMissingPolishField(missingField) {
+    if (!missingField) return;
+    setAccordionSectionOpen(root, missingField.section, true);
+    window.requestAnimationFrame(() => {
+      const card = root.querySelector(`[data-accordion-section="${missingField.section}"]`);
+      card?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const control = missingField.selector ? qs(root, missingField.selector) : null;
+      control?.focus({ preventScroll: true });
+    });
+  }
+
+  function validatePolishReadiness() {
+    const missing = getPolishMissingRequiredFields();
+    if (!missing.length) return true;
+    const labels = missing.map((item) => item.label).join(', ');
+    const message = `Complete these required fields before polishing: ${labels}.`;
+    setBanner(builderBanner, message, 'warning');
+    showToast(toastStack, message, 'warning');
+    focusMissingPolishField(missing[0]);
+    return false;
+  }
+
   async function runResumeBuilder() {
     const polishBtn = document.getElementById('rb-generate');
     const previewPane = document.getElementById('rb-preview-pane');
@@ -9222,10 +9434,8 @@ export async function initResumeBuilderTool(container) {
       if (polishBtn) polishBtn.disabled = false;
       previewPane?.classList.remove('rb-preview-generating');
     };
-    if (!state.personal.name.trim()) {
+    if (!validatePolishReadiness()) {
       restorePolishButton();
-      setBanner(builderBanner, 'Add your name and some experience first, then polish.');
-      showToast(toastStack, 'Add your name and some experience first, then polish.', 'info');
       return;
     }
     if (!guardAiCredits()) {

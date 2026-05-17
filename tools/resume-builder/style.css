@@ -1211,15 +1211,19 @@
   }
 
   body.rb-printing .rb-resume-section-title {
+    display: block;
     font-size: 11pt;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    margin-bottom: 2pt;
+    line-height: 1.24;
+    margin-bottom: 0.035in;
     margin-top: 10pt;
+    background: #ffffff;
   }
 
   body.rb-printing .rb-resume-section-divider {
+    margin-top: 0;
     border-top: 1pt solid #000000;
     margin-bottom: 5pt;
   }
@@ -5012,13 +5016,51 @@ body:has(.resume-tool) .tool-workspace {
 }
 
 .rb-course-row {
-  grid-template-columns: minmax(180px, 1.2fr) minmax(130px, 0.8fr) minmax(120px, 0.55fr) auto;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(130px, 0.8fr) minmax(150px, 0.65fr) auto;
 }
 
 .rb-compact-row input,
 .rb-compact-row select,
 .rb-custom-section-title-input {
   width: 100%;
+}
+
+.rb-compact-field {
+  display: grid;
+  min-width: 0;
+  gap: 0.28rem;
+}
+
+.rb-compact-field__label {
+  color: var(--rb-text-tertiary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rb-compact-field input {
+  min-width: 0;
+}
+
+.rb-compact-field input[type="month"],
+.resume-field input[type="month"] {
+  min-height: 42px;
+  color: var(--rb-text-primary);
+  background: var(--rb-input-bg, rgba(8, 10, 20, 0.86));
+  color-scheme: dark;
+}
+
+.rb-compact-field input[type="month"]::-webkit-datetime-edit,
+.resume-field input[type="month"]::-webkit-datetime-edit {
+  color: var(--rb-text-primary);
+}
+
+.rb-compact-field input[type="month"]::-webkit-calendar-picker-indicator,
+.resume-field input[type="month"]::-webkit-calendar-picker-indicator {
+  opacity: 0.85;
+  filter: invert(1);
 }
 
 .rb-icon-remove-btn {
@@ -6768,6 +6810,43 @@ body:has(.resume-tool) .tool-workspace {
   position: relative !important;
   overflow: hidden !important;
   transform: none !important;
+}
+
+.rb-resume-doc .rb-resume-section-title,
+.rb-resume-pagination-measure .rb-resume-section-title,
+.rb-pdf-render-host .rb-resume-section-title {
+  display: block;
+  margin: 0 0 0.035in;
+  line-height: 1.24;
+  background: #ffffff;
+}
+
+.rb-resume-doc .rb-resume-section-divider,
+.rb-resume-pagination-measure .rb-resume-section-divider,
+.rb-pdf-render-host .rb-resume-section-divider {
+  margin-top: 0;
+}
+
+.rb-resume-doc.rb-tpl-compact .rb-resume-section-title,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-compact .rb-resume-section-title,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-compact .rb-resume-section-title {
+  margin-bottom: 0.025in;
+}
+
+@media (min-width: 768px) and (max-width: 1180px) {
+  .rb-course-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .rb-course-row .rb-compact-field--name {
+    grid-column: 1 / -1;
+  }
+
+  .rb-course-row .rb-icon-remove-btn {
+    grid-column: 1 / -1;
+    min-height: 40px;
+  }
 }
 
 @media (max-width: 1180px) {
