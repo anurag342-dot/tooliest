@@ -2565,26 +2565,51 @@ function renderLiveResumeFromState(state = resumeExportState) {
 function applyMobilePreviewScale() {
   const scaleDocument = (pane, doc, docWidth, options = {}) => {
     if (!pane || !doc) return;
-    if (window.innerWidth >= 768) {
+    if (window.innerWidth >= 768 && !options.scaleToContainer) {
       pane.style.height = '';
       doc.style.removeProperty('transform');
       doc.style.removeProperty('transform-origin');
       return;
     }
-    const paneWidth = options.fitViewport ? window.innerWidth : (pane.clientWidth || window.innerWidth);
-    const padding = options.fitViewport ? 0 : 16;
-    const scale = Math.min(1, Math.max(0.25, (paneWidth - padding) / docWidth));
+
+    const paneRect = pane.getBoundingClientRect();
+    const viewportWidth = Math.min(window.innerWidth || 0, document.documentElement?.clientWidth || window.innerWidth || 0) || window.innerWidth;
+    const measuredPaneWidth = pane.clientWidth || paneRect.width || viewportWidth || window.innerWidth;
+    const paneWidth = options.fitViewport
+      ? Math.min(viewportWidth, measuredPaneWidth)
+      : measuredPaneWidth;
+    const padding = typeof options.padding === 'number'
+      ? options.padding
+      : (options.fitViewport ? 0 : (window.innerWidth < 768 ? 16 : 24));
+    const availableWidth = Math.max(260, paneWidth - padding);
+    const minScale = typeof options.minScale === 'number' ? options.minScale : 0.25;
+    const scale = Math.min(1, Math.max(minScale, availableWidth / docWidth));
+
+    if (scale >= 0.995) {
+      pane.style.height = '';
+      doc.style.removeProperty('transform');
+      doc.style.removeProperty('transform-origin');
+      return;
+    }
+
     doc.style.setProperty('transform', `scale(${scale})`, 'important');
     doc.style.transformOrigin = options.center ? 'top center' : 'top left';
-    pane.style.height = `${Math.ceil(doc.scrollHeight * scale) + (options.fitViewport ? 32 : 0)}px`;
+    const naturalHeight = Math.max(doc.scrollHeight, Number(options.docHeight) || 0);
+    pane.style.height = `${Math.ceil(naturalHeight * scale) + (options.fitViewport ? 32 : 24)}px`;
   };
 
   const previewPane = document.getElementById('rb-preview-pane');
   const resumeDoc = previewPane?.querySelector('.rb-resume-doc');
+  const resumePaper = getResumePaperProfile(resumeExportState);
+  const isMobilePreview = document.getElementById('resume-panel-builder')?.classList.contains('rb-mobile-view-preview');
   if (previewPane && !resumeDoc) previewPane.style.height = '';
-  scaleDocument(previewPane, resumeDoc, getResumePaperProfile(resumeExportState).width, {
-    center: true,
-    fitViewport: document.getElementById('resume-panel-builder')?.classList.contains('rb-mobile-view-preview'),
+  scaleDocument(previewPane, resumeDoc, resumePaper.width, {
+    center: !isMobilePreview,
+    docHeight: resumePaper.height,
+    minScale: isMobilePreview ? 0.25 : 0.35,
+    padding: isMobilePreview ? 0 : 24,
+    scaleToContainer: true,
+    fitViewport: isMobilePreview,
   });
 
   const coverLetterPane = document.querySelector('.cl-preview-pane');
@@ -2757,9 +2782,24 @@ function setupBuilderCanvasLayout(root) {
   const previewPane = qs(root, '#rb-preview-pane');
   const previewHint = qs(root, '#rb-preview-hint');
   const previewTopbar = createNode('div', 'rb-preview-topbar');
+  const previewControls = createNode('div', 'rb-preview-controls');
+  const styleCard = createNode('section', 'rb-preview-control-card rb-preview-style-card');
+  styleCard.setAttribute('aria-label', 'Resume style and paper size');
+  const styleHeader = createNode('div', 'rb-preview-card-header');
+  styleHeader.innerHTML = '<div><p class="rb-preview-card-kicker">Resume Style</p><p class="rb-preview-card-subtitle">Choose a style for your resume</p></div>';
+  const styleBody = createNode('div', 'rb-preview-style-body');
+  [templatePicker, paperSizeToggle].forEach((node) => moveNode(node, styleBody));
+  styleCard.append(styleHeader, styleBody);
+
+  const statsCard = createNode('section', 'rb-preview-control-card rb-preview-stats-card');
+  statsCard.setAttribute('aria-label', 'Resume preview details and actions');
+  const statsContent = createNode('div', 'rb-preview-stats-content');
   const previewTitle = createNode('div', 'rb-preview-title');
   previewTitle.innerHTML = '<p class="resume-eyebrow">Resume Preview</p><h3>Live canvas</h3>';
-  [previewTitle, templatePicker, paperSizeToggle, previewMeta, previewActions].forEach((node) => moveNode(node, previewTopbar));
+  [previewTitle, previewMeta].forEach((node) => moveNode(node, statsContent));
+  [statsContent, previewActions].forEach((node) => moveNode(node, statsCard));
+  [styleCard, statsCard].forEach((node) => previewControls.appendChild(node));
+  previewTopbar.appendChild(previewControls);
   if (previewPanel) {
     previewPanel.append(previewTopbar, mobilePreviewClose, previewPane, mobilePreviewDownload, previewHint);
   }
@@ -4831,6 +4871,7 @@ export async function initResumeBuilderTool(container) {
   const pdfButton = qs(root, '#rb-dl-pdf');
   const docxButton = qs(root, '#rb-dl-docx');
   const shareLinkButton = qs(root, '#rb-dl-copy-url');
+  const shareInlineButton = qs(root, '#rb-btn-share-inline');
   const shareFallback = qs(root, '#rb-share-fallback');
   const shareFallbackUrl = qs(root, '#rb-share-fallback-url');
   const paperSizeToggle = qs(root, '#rb-paper-size-toggle');
@@ -5574,6 +5615,27 @@ export async function initResumeBuilderTool(container) {
     if (mobilePreviewDownloadBar) mobilePreviewDownloadBar.style.display = show ? 'block' : 'none';
   }
 
+  function resetMobileViewScroll(view) {
+    if (!isMobileLayout()) return;
+    window.requestAnimationFrame(() => {
+      const target = view === 'score'
+        ? mobileScoreView
+        : view === 'preview'
+          ? mobilePreviewView
+          : builderPanel;
+      if (target && typeof target.scrollTo === 'function') {
+        target.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      }
+      if (view === 'score' && mobileScoreView) {
+        mobileScoreView.scrollIntoView({ block: 'start', behavior: 'auto' });
+        return;
+      }
+      if (view === 'edit' && builderPanel) {
+        builderPanel.scrollIntoView({ block: 'start', behavior: 'auto' });
+      }
+    });
+  }
+
   function setMobileBuilderView(view = 'edit') {
     activeMobileBuilderView = ['edit', 'preview', 'score'].includes(view) ? view : 'edit';
     if (!builderPanel) return;
@@ -5597,6 +5659,7 @@ export async function initResumeBuilderTool(container) {
     syncMobilePreviewChrome();
     applyMobilePreviewScale();
     updateMobileNavState();
+    resetMobileViewScroll(activeMobileBuilderView);
   }
 
   function updateMobileNavState() {
@@ -9252,6 +9315,12 @@ export async function initResumeBuilderTool(container) {
 
   if (shareLinkButton) {
     shareLinkButton.addEventListener('click', () => {
+      closePreviewActionMenus();
+      copyShareLink();
+    });
+  }
+  if (shareInlineButton) {
+    shareInlineButton.addEventListener('click', () => {
       closePreviewActionMenus();
       copyShareLink();
     });

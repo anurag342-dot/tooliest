@@ -6098,3 +6098,380 @@ body:has(.resume-tool) .tool-workspace {
     border-radius: 0;
   }
 }
+
+/* --- DAY 20 RESPONSIVE PREVIEW REPAIR --- */
+.rb-preview-topbar {
+  display: block;
+  width: min(100%, 1080px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  white-space: normal;
+  overflow: visible;
+}
+
+.rb-preview-controls {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(300px, 0.8fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.rb-preview-control-card {
+  min-width: 0;
+  border: 1px solid var(--rb-border-default);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--rb-bg-secondary) 92%, #0f172a 8%);
+  box-shadow: 0 14px 42px rgba(2, 6, 23, 0.22);
+  padding: 1rem;
+}
+
+.rb-preview-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.rb-preview-card-kicker {
+  margin: 0 0 0.25rem;
+  color: var(--rb-text-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.rb-preview-card-subtitle {
+  margin: 0;
+  color: var(--rb-text-tertiary);
+  font-size: 0.78rem;
+}
+
+.rb-preview-style-body {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.rb-preview-style-card .rb-template-picker {
+  position: static;
+  z-index: auto;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.rb-preview-style-card .rb-template-picker__label {
+  display: none;
+}
+
+.rb-preview-style-card .rb-template-picker__options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.rb-preview-style-card .rb-template-option {
+  min-height: 9.5rem;
+  border-color: color-mix(in srgb, var(--rb-border-default) 80%, #ffffff 20%);
+  background: #ffffff;
+}
+
+.rb-preview-style-card .rb-template-option__name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rb-preview-style-card .rb-paper-size-toggle {
+  justify-content: flex-start;
+  white-space: normal;
+}
+
+.rb-preview-stats-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-content: center;
+}
+
+.rb-preview-stats-content {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.rb-preview-title {
+  min-width: 0;
+  margin: 0;
+}
+
+.rb-preview-title .resume-eyebrow {
+  margin: 0 0 0.3rem;
+}
+
+.rb-preview-title h3 {
+  margin: 0;
+  color: var(--rb-text-primary);
+  font-size: 1rem;
+}
+
+.rb-preview-topbar .resume-preview-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: 0.35rem 0.85rem;
+  align-items: start;
+  justify-content: start;
+  min-width: 0;
+  color: var(--rb-text-secondary);
+}
+
+.rb-preview-topbar #rb-preview-count {
+  color: var(--rb-text-primary);
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.rb-preview-topbar #rb-ats-note {
+  grid-column: 1 / -1;
+  max-width: 32ch;
+  overflow: hidden;
+  color: var(--rb-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.rb-preview-topbar .rb-page-count {
+  justify-self: start;
+}
+
+.rb-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.rb-download-btn-group {
+  min-width: 0;
+}
+
+.rb-btn-download-primary,
+.rb-preview-share-btn {
+  min-height: 2.5rem;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.rb-preview-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--rb-border-default);
+  background: color-mix(in srgb, var(--rb-bg-secondary) 82%, #ffffff 8%);
+  color: var(--rb-text-primary);
+  cursor: pointer;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.rb-preview-share-btn:hover {
+  border-color: var(--rb-border-strong, var(--rb-border-default));
+  background: var(--rb-bg-hover, rgba(255, 255, 255, 0.06));
+}
+
+#rb-preview-pane {
+  flex: 0 0 auto;
+  width: min(100%, 1080px);
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+#rb-preview-pane .rb-resume-doc {
+  will-change: transform;
+}
+
+#rb-mobile-score-view {
+  scroll-margin-top: calc(var(--nav-height, 72px) + 0.75rem);
+}
+
+@media (max-width: 1180px) {
+  .rb-preview-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .rb-preview-stats-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .rb-preview-actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 900px) {
+  .rb-preview-style-card .rb-template-option {
+    min-height: 8.25rem;
+    padding: 0.45rem 0.35rem;
+  }
+
+  .rb-preview-style-card .rb-tpl-thumb {
+    width: 3.4rem;
+    height: 4.3rem;
+  }
+
+  .rb-preview-stats-card {
+    grid-template-columns: 1fr;
+  }
+
+  .rb-preview-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 767px) {
+  .rb-preview-topbar {
+    position: static;
+    width: 100%;
+    overflow: visible;
+    white-space: normal;
+  }
+
+  .rb-preview-controls {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .rb-preview-control-card {
+    border-radius: 10px;
+    padding: 0.85rem;
+    box-shadow: none;
+  }
+
+  .rb-preview-card-header {
+    margin-bottom: 0.65rem;
+  }
+
+  .rb-preview-style-card .rb-template-picker,
+  .rb-preview-title,
+  .rb-preview-topbar .resume-preview-meta,
+  .rb-paper-size-toggle,
+  .rb-preview-actions {
+    flex: initial;
+  }
+
+  .rb-preview-style-card .rb-template-picker__options {
+    gap: 0.55rem;
+  }
+
+  .rb-preview-style-card .rb-template-option {
+    min-height: 7.4rem;
+    border-radius: 9px;
+  }
+
+  .rb-preview-style-card .rb-tpl-thumb {
+    width: 3rem;
+    height: 3.8rem;
+    padding: 0.35rem;
+  }
+
+  .rb-preview-topbar .resume-preview-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem 0.75rem;
+  }
+
+  .rb-preview-topbar #rb-preview-count {
+    font-size: 1.1rem;
+  }
+
+  .rb-preview-topbar #rb-ats-note {
+    max-width: none;
+    -webkit-line-clamp: 2;
+  }
+
+  .rb-preview-actions {
+    width: 100%;
+  }
+
+  .rb-download-btn-group {
+    flex: 1 1 auto;
+  }
+
+  .rb-btn-download-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .rb-preview-share-btn {
+    flex: 1 1 auto;
+  }
+
+  #rb-preview-pane {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  #rb-preview-pane .rb-resume-doc {
+    min-width: 0;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-preview-pane,
+  #rb-mobile-preview-view #rb-preview-pane {
+    justify-content: flex-start;
+    padding: 16px 0;
+    overflow-x: hidden;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-preview-panel {
+    align-items: stretch;
+  }
+
+  #rb-mobile-preview-close,
+  #rb-mobile-preview-download {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-preview-pane .rb-resume-doc,
+  #rb-mobile-preview-view #rb-preview-pane .rb-resume-doc {
+    margin-inline: auto;
+    transform-origin: top center;
+  }
+}
+
+@media (max-width: 430px) {
+  .rb-preview-style-card .rb-template-picker__options {
+    gap: 0.45rem;
+  }
+
+  .rb-preview-style-card .rb-template-option {
+    min-height: 6.6rem;
+    padding: 0.4rem 0.25rem;
+  }
+
+  .rb-preview-style-card .rb-tpl-thumb {
+    width: 2.55rem;
+    height: 3.25rem;
+  }
+
+  .rb-template-option__name {
+    font-size: 0.68rem;
+  }
+
+  .rb-paper-size-btn {
+    padding-inline: 0.5rem;
+  }
+}
