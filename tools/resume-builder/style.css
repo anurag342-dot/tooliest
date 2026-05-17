@@ -1001,35 +1001,29 @@
   page-break-inside: avoid;
 }
 
-.rb-resume-section-heading {
-  display: flex;
-  align-items: center;
-  gap: 0.12in;
-  margin: 0 0 0.06in;
-  break-after: avoid;
-  page-break-after: avoid;
-}
-
 .rb-resume-section-title {
-  flex: 0 0 auto;
+  display: block;
   font-family: 'Times New Roman', Georgia, serif;
   font-size: 11pt;
   font-weight: 700;
-  line-height: 1.24;
+  line-height: 1.25;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #111111;
-  margin: 0;
+  margin: 0 0 0.05in;
   background: #ffffff;
   break-after: avoid;
   page-break-after: avoid;
 }
 
 .rb-resume-section-divider {
-  flex: 1 1 auto;
-  min-width: 0.35in;
+  display: block;
+  width: 100%;
+  height: 0;
+  border: 0;
   border-top: 1.5px solid #111111;
-  margin: 0;
+  margin: 0 0 0.075in;
+  clear: both;
   break-after: avoid;
   page-break-after: avoid;
 }
@@ -1223,31 +1217,25 @@
     margin-bottom: 14pt;
   }
 
-  body.rb-printing .rb-resume-section-heading {
-    display: flex;
-    align-items: center;
-    gap: 0.12in;
-    margin: 10pt 0 5pt;
-  }
-
   body.rb-printing .rb-resume-section-title {
     display: block;
-    flex: 0 0 auto;
     font-size: 11pt;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    line-height: 1.24;
-    margin: 0;
+    line-height: 1.25;
+    margin: 10pt 0 4pt;
     background: #ffffff;
   }
 
   body.rb-printing .rb-resume-section-divider {
-    flex: 1 1 auto;
-    min-width: 0.35in;
-    margin-top: 0;
+    display: block;
+    width: 100%;
+    height: 0;
+    border: 0;
     border-top: 1pt solid #000000;
-    margin-bottom: 0;
+    margin: 0 0 6pt;
+    clear: both;
   }
 
   body.rb-printing .rb-resume-bullet,
@@ -1614,6 +1602,7 @@
 
 .rb-resume-doc.rb-tpl-classic .rb-resume-section-divider {
   border-top: 1.5px solid var(--rb-template-rule);
+  margin-bottom: 0.075in;
 }
 
 .rb-resume-doc.rb-tpl-classic .rb-resume-line,
@@ -1673,12 +1662,13 @@
   font-size: 10pt;
   letter-spacing: 0.055em;
   color: #24364f;
+  margin-bottom: 0.045in;
 }
 
 .rb-resume-doc.rb-tpl-modern .rb-resume-section-divider {
-  flex: 0 0 1.1in;
   width: 1.1in;
   border-top: 2px solid var(--rb-template-accent);
+  margin-bottom: 0.065in;
 }
 
 .rb-resume-doc.rb-tpl-modern .rb-resume-line,
@@ -1742,10 +1732,12 @@
   font-size: 9.5pt;
   letter-spacing: 0.055em;
   color: var(--rb-template-text);
+  margin-bottom: 0.035in;
 }
 
 .rb-resume-doc.rb-tpl-compact .rb-resume-section-divider {
   border-top: 0.75px solid var(--rb-template-rule);
+  margin-bottom: 0.05in;
 }
 
 .rb-resume-doc.rb-tpl-compact .rb-resume-line,
@@ -6836,18 +6828,39 @@ body:has(.resume-tool) .tool-workspace {
 .rb-resume-pagination-measure .rb-resume-section-title,
 .rb-pdf-render-host .rb-resume-section-title {
   display: block;
-  flex: 0 0 auto;
-  margin: 0;
-  line-height: 1.24;
+  margin: 0 0 0.05in;
+  line-height: 1.25;
   background: #ffffff;
 }
 
 .rb-resume-doc .rb-resume-section-divider,
 .rb-resume-pagination-measure .rb-resume-section-divider,
 .rb-pdf-render-host .rb-resume-section-divider {
-  flex: 1 1 auto;
-  min-width: 0.35in;
-  margin: 0;
+  display: block;
+  width: 100%;
+  height: 0;
+  min-width: 0;
+  margin: 0 0 0.075in;
+  clear: both;
+}
+
+.rb-resume-doc.rb-tpl-modern .rb-resume-section-divider,
+.rb-resume-pagination-measure.rb-tpl-modern .rb-resume-section-divider,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-modern .rb-resume-section-divider {
+  width: 1.1in;
+  margin-bottom: 0.065in;
+}
+
+.rb-resume-doc.rb-tpl-compact .rb-resume-section-title,
+.rb-resume-pagination-measure.rb-tpl-compact .rb-resume-section-title,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-compact .rb-resume-section-title {
+  margin-bottom: 0.035in;
+}
+
+.rb-resume-doc.rb-tpl-compact .rb-resume-section-divider,
+.rb-resume-pagination-measure.rb-tpl-compact .rb-resume-section-divider,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-compact .rb-resume-section-divider {
+  margin-bottom: 0.05in;
 }
 
 @media (min-width: 768px) and (max-width: 1180px) {

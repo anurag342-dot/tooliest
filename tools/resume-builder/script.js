@@ -2475,10 +2475,8 @@ function renderFormattedPreview(resumeText) {
   for (const section of sections) {
     html += `
       <div class="rb-resume-section">
-        <div class="rb-resume-section-heading">
-          <h2 class="rb-resume-section-title">${escapeHtml(section.title)}</h2>
-          <div class="rb-resume-section-divider" aria-hidden="true"></div>
-        </div>
+        <h2 class="rb-resume-section-title">${escapeHtml(section.title)}</h2>
+        <div class="rb-resume-section-divider" aria-hidden="true"></div>
         <div class="rb-resume-section-body">`;
 
     for (const line of section.lines) {
@@ -2807,10 +2805,8 @@ function renderLiveResumeFromState(state = resumeExportState) {
   getLiveResumeSectionsFromState(state).forEach((section) => {
     html += `
       <div class="rb-resume-section">
-        <div class="rb-resume-section-heading">
-          <h2 class="rb-resume-section-title">${escapeHtml(section.title)}</h2>
-          <div class="rb-resume-section-divider" aria-hidden="true"></div>
-        </div>
+        <h2 class="rb-resume-section-title">${escapeHtml(section.title)}</h2>
+        <div class="rb-resume-section-divider" aria-hidden="true"></div>
         <div class="rb-resume-section-body">`;
     section.lines.forEach((line) => {
       const textLine = getResumeLineText(line);
@@ -3648,23 +3644,13 @@ function getResumePrintStyles() {
       page-break-inside: avoid;
     }
 
-    .rb-resume-section-heading {
-      display: flex;
-      align-items: center;
-      gap: 0.12in;
-      margin: 0 0 0.06in;
-      break-after: avoid;
-      page-break-after: avoid;
-    }
-
     .rb-resume-section-title {
       display: block;
-      flex: 0 0 auto;
-      margin: 0;
+      margin: 0 0 0.05in;
       font-family: "Times New Roman", Georgia, serif;
       font-size: 11pt;
       font-weight: 700;
-      line-height: 1.24;
+      line-height: 1.25;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: #111111;
@@ -3674,11 +3660,13 @@ function getResumePrintStyles() {
     }
 
     .rb-resume-section-divider {
-      flex: 1 1 auto;
-      min-width: 0.35in;
-      margin-top: 0;
-      margin-bottom: 0;
+      display: block;
+      width: 100%;
+      height: 0;
+      margin: 0 0 0.075in;
+      border: 0;
       border-top: 1.5px solid #111111;
+      clear: both;
       break-after: avoid;
       page-break-after: avoid;
     }
@@ -3751,12 +3739,13 @@ function getResumePrintStyles() {
       font-size: 10pt;
       letter-spacing: 0.055em;
       color: #24364f;
+      margin-bottom: 0.045in;
     }
 
     .rb-resume-doc.rb-tpl-modern .rb-resume-section-divider {
-      flex: 0 0 1.1in;
       width: 1.1in;
       border-top: 2pt solid #3b4f6b;
+      margin-bottom: 0.065in;
     }
 
     .rb-resume-doc.rb-tpl-modern .rb-resume-line,
@@ -3809,10 +3798,12 @@ function getResumePrintStyles() {
     .rb-resume-doc.rb-tpl-compact .rb-resume-section-title {
       font-size: 9.5pt;
       letter-spacing: 0.055em;
+      margin-bottom: 0.035in;
     }
 
     .rb-resume-doc.rb-tpl-compact .rb-resume-section-divider {
       border-top: 0.75pt solid #333333;
+      margin-bottom: 0.05in;
     }
 
     .rb-resume-doc.rb-tpl-compact .rb-resume-line,
