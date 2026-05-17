@@ -5966,7 +5966,7 @@ body:has(.resume-tool) .tool-workspace {
 
   .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-mobile-preview-view {
     position: fixed;
-    inset: 0;
+    inset: var(--nav-height, 60px) 0 0 0;
     z-index: 1300;
     display: flex;
     flex-direction: column;
@@ -6650,7 +6650,7 @@ body:has(.resume-tool) .tool-workspace {
 
 #rb-preview-pane .rb-resume-doc.rb-paper-letter::after,
 #rb-preview-pane .rb-resume-doc.rb-paper-a4::after {
-  content: "";
+  content: none;
   position: absolute;
   inset: 0;
   z-index: 3;
@@ -6692,6 +6692,82 @@ body:has(.resume-tool) .tool-workspace {
   box-shadow: none !important;
   border-radius: 0 !important;
   background-image: none !important;
+}
+
+#rb-preview-pane {
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rb-resume-page-shell {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--rb-page-width, 816px);
+  height: var(--rb-page-height, 1056px);
+  background: #ffffff;
+  box-shadow: 0 18px 60px rgba(2, 6, 23, 0.28);
+}
+
+.rb-resume-page-shell .rb-resume-doc {
+  position: absolute;
+  inset: 0 auto auto 0;
+  overflow: hidden;
+  box-shadow: none !important;
+}
+
+#rb-preview-pane .rb-resume-doc.rb-tpl-classic,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-classic,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-classic {
+  padding: 0.75in 0.85in;
+  font-size: 10.5pt;
+}
+
+#rb-preview-pane .rb-resume-doc.rb-tpl-classic .rb-resume-name,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-classic .rb-resume-name,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-classic .rb-resume-name {
+  font-size: 18pt;
+}
+
+#rb-preview-pane .rb-resume-doc.rb-tpl-modern,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-modern,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-modern {
+  padding: 0.65in 0.72in;
+  font-size: 10pt;
+}
+
+#rb-preview-pane .rb-resume-doc.rb-tpl-modern .rb-resume-name,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-modern .rb-resume-name,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-modern .rb-resume-name {
+  font-size: 20pt;
+}
+
+#rb-preview-pane .rb-resume-doc.rb-tpl-compact,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-compact,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-compact {
+  padding: 0.55in 0.62in;
+  font-size: 9.5pt;
+}
+
+#rb-preview-pane .rb-resume-doc.rb-tpl-compact .rb-resume-name,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-compact .rb-resume-name,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-compact .rb-resume-name {
+  font-size: 15pt;
+}
+
+.rb-resume-page-shell .rb-resume-section {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.rb-pdf-render-host {
+  display: grid;
+  gap: 0;
+}
+
+.rb-pdf-render-host .rb-resume-doc {
+  position: relative !important;
+  overflow: hidden !important;
+  transform: none !important;
 }
 
 @media (max-width: 1180px) {
@@ -6807,14 +6883,31 @@ body:has(.resume-tool) .tool-workspace {
 
   .rb-download-dropdown,
   .rb-more-dropdown {
-    position: static;
+    position: absolute;
     right: auto;
-    top: auto;
-    width: 100%;
+    top: calc(100% + 0.4rem);
+    width: min(13.5rem, calc(100vw - 2rem));
     min-width: 0;
-    flex: 1 0 100%;
+    flex: none;
     margin-top: 0.35rem;
     order: 5;
+    z-index: 30;
+  }
+
+  .rb-download-dropdown {
+    left: 0;
+  }
+
+  .rb-more-dropdown {
+    right: 0;
+  }
+
+  .rb-preview-actions {
+    position: relative;
+  }
+
+  .rb-download-btn-group {
+    position: relative;
   }
 }
 

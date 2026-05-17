@@ -1994,8 +1994,9 @@ function applyTemplate(templateName, options = {}) {
   }
 
   const root = resumeTemplateRoot || document;
-  const doc = root.querySelector('#rb-preview-pane .rb-resume-doc') || document.querySelector('#rb-preview-pane .rb-resume-doc');
-  if (doc) {
+  const docs = root.querySelectorAll('#rb-preview-pane .rb-resume-doc');
+  const targetDocs = docs.length ? Array.from(docs) : Array.from(document.querySelectorAll('#rb-preview-pane .rb-resume-doc'));
+  targetDocs.forEach((doc) => {
     Object.values(RESUME_TEMPLATE_CLASSES).forEach((className) => doc.classList.remove(className));
     doc.classList.add(RESUME_TEMPLATE_CLASSES[template]);
     applyResumePaperClass(doc, resumeTemplateState || resumeExportState);
@@ -2005,7 +2006,7 @@ function applyTemplate(templateName, options = {}) {
       doc.classList.add('rb-template-fade');
       window.setTimeout(() => doc.classList.remove('rb-template-fade'), 280);
     }
-  }
+  });
 
   syncTemplatePicker(template);
   syncPaperSizeToggle(resumeTemplateState || resumeExportState);
@@ -2039,24 +2040,26 @@ function syncPaperSizeToggle(state = resumeExportState) {
 function updateResumePageCount(state = resumeExportState) {
   const badge = document.getElementById('rb-page-count');
   if (!badge) return;
-  const doc = document.querySelector('#rb-preview-pane .rb-resume-doc');
+  const previewPane = document.getElementById('rb-preview-pane');
+  const pagedDocs = previewPane ? previewPane.querySelectorAll('.rb-resume-page-shell .rb-resume-doc') : [];
+  const doc = previewPane?.querySelector('.rb-resume-doc');
   if (!doc) {
     badge.hidden = true;
     badge.textContent = 'Page 1 of 1';
     return;
   }
   const profile = getResumePaperProfile(state);
-  const pages = Math.max(1, Math.ceil(doc.scrollHeight / profile.height));
+  const pages = pagedDocs.length || Math.max(1, Math.ceil(doc.scrollHeight / profile.height));
   badge.hidden = false;
   badge.textContent = `Page 1 of ${pages}`;
 }
 
 function renderPagedPreview(state = resumeExportState) {
-  const doc = document.querySelector('#rb-preview-pane .rb-resume-doc');
-  if (doc) applyResumePaperClass(doc, state);
-  syncPaperSizeToggle(state);
-  updateResumePageCount(state);
-  applyMobilePreviewScale();
+  if (resumePreviewPrefersLive || !state?.generatedResume) {
+    renderLiveResumeFromState(state);
+  } else {
+    renderFormattedPreview(state.generatedResume);
+  }
 }
 
 function getScrollbarWidth() {
@@ -2173,6 +2176,194 @@ function normalizeResumeBulletText(line) {
   return String(line || '').trim().replace(/^(?:[\u2022-]\s*)+/, '').trim();
 }
 
+function prepareResumePageDoc(doc, state = resumeExportState) {
+  if (!doc) return;
+  const paper = getResumePaperProfile(state);
+  Object.values(RESUME_TEMPLATE_CLASSES).forEach((className) => doc.classList.remove(className));
+  doc.classList.add(RESUME_TEMPLATE_CLASSES[normalizeResumeTemplate(state?.template)]);
+  applyResumePaperClass(doc, state);
+  doc.style.width = `${paper.width}px`;
+  doc.style.maxWidth = `${paper.width}px`;
+  doc.style.minWidth = `${paper.width}px`;
+  doc.style.height = `${paper.height}px`;
+  doc.style.minHeight = `${paper.height}px`;
+  doc.style.margin = '0';
+  doc.style.transform = 'none';
+  doc.style.transformOrigin = 'top left';
+  doc.dataset.paginatedResumePage = 'true';
+}
+
+function createResumePageShell(doc, state = resumeExportState) {
+  const paper = getResumePaperProfile(state);
+  const shell = document.createElement('div');
+  shell.className = 'rb-resume-page-shell';
+  shell.style.setProperty('--rb-page-width', `${paper.width}px`);
+  shell.style.setProperty('--rb-page-height', `${paper.height}px`);
+  shell.appendChild(doc);
+  return shell;
+}
+
+function getResumeDocContentBottom(doc) {
+  if (!doc) return 0;
+  const docRect = doc.getBoundingClientRect();
+  const style = window.getComputedStyle(doc);
+  const paddingBottom = parseFloat(style.paddingBottom) || 0;
+  let bottom = 0;
+  Array.from(doc.children).forEach((child) => {
+    const rect = child.getBoundingClientRect();
+    bottom = Math.max(bottom, rect.bottom - docRect.top);
+  });
+  return Math.ceil(bottom + paddingBottom);
+}
+
+function resumePageFits(doc, state = resumeExportState) {
+  const paper = getResumePaperProfile(state);
+  return getResumeDocContentBottom(doc) <= paper.height + 2;
+}
+
+function cloneResumeSectionFrame(section, options = {}) {
+  const clone = section.cloneNode(false);
+  Array.from(section.children).forEach((child) => {
+    if (child.classList?.contains('rb-resume-section-body')) {
+      const body = child.cloneNode(false);
+      clone.appendChild(body);
+      return;
+    }
+    clone.appendChild(child.cloneNode(true));
+  });
+  if (options.continued) {
+    const title = clone.querySelector('.rb-resume-section-title');
+    if (title && !/\(continued\)$/i.test(title.textContent || '')) {
+      title.textContent = `${title.textContent || 'Section'} (continued)`;
+    }
+  }
+  if (!clone.querySelector('.rb-resume-section-body')) {
+    const body = document.createElement('div');
+    body.className = 'rb-resume-section-body';
+    clone.appendChild(body);
+  }
+  return clone;
+}
+
+function paginateOversizedResumeSection(section, context) {
+  const sourceBody = section.querySelector('.rb-resume-section-body');
+  const lineNodes = sourceBody ? Array.from(sourceBody.children) : [];
+  if (!lineNodes.length) {
+    context.currentDoc.appendChild(section.cloneNode(true));
+    return;
+  }
+
+  let segment = null;
+  let segmentBody = null;
+  const startSegment = (continued = false) => {
+    segment = cloneResumeSectionFrame(section, { continued });
+    segmentBody = segment.querySelector('.rb-resume-section-body');
+    context.currentDoc.appendChild(segment);
+  };
+
+  if (context.currentDoc.querySelector('.rb-resume-section')) {
+    context.startPage();
+  }
+  startSegment(false);
+
+  lineNodes.forEach((lineNode) => {
+    const lineClone = lineNode.cloneNode(true);
+    segmentBody.appendChild(lineClone);
+    if (resumePageFits(context.currentDoc, context.state)) return;
+
+    lineClone.remove();
+    if (segmentBody.children.length === 0) {
+      segmentBody.appendChild(lineClone);
+      return;
+    }
+
+    context.startPage();
+    startSegment(true);
+    segmentBody.appendChild(lineClone);
+  });
+}
+
+function paginateResumePreview(state = resumeExportState) {
+  const container = document.getElementById('rb-preview-pane');
+  const sourceDoc = container?.querySelector(':scope > .rb-resume-doc');
+  if (!container || !sourceDoc) return;
+
+  const paper = getResumePaperProfile(state);
+  const sourceClone = sourceDoc.cloneNode(true);
+  prepareResumePageDoc(sourceClone, state);
+  sourceClone.style.position = 'relative';
+  sourceClone.style.overflow = 'visible';
+
+  const measureHost = document.createElement('div');
+  measureHost.className = 'rb-resume-pagination-measure';
+  measureHost.setAttribute('aria-hidden', 'true');
+  Object.assign(measureHost.style, {
+    position: 'fixed',
+    left: '-12000px',
+    top: '0',
+    width: `${paper.width}px`,
+    pointerEvents: 'none',
+    visibility: 'hidden',
+    zIndex: '-1',
+  });
+  document.body.appendChild(measureHost);
+
+  const pages = [];
+  let currentDoc = null;
+
+  const makePageDoc = () => {
+    const pageDoc = sourceClone.cloneNode(false);
+    prepareResumePageDoc(pageDoc, state);
+    pageDoc.style.position = 'relative';
+    pageDoc.style.overflow = 'hidden';
+    return pageDoc;
+  };
+
+  const startPage = () => {
+    currentDoc = makePageDoc();
+    pages.push(currentDoc);
+    measureHost.appendChild(createResumePageShell(currentDoc, state));
+    return currentDoc;
+  };
+
+  startPage();
+  const header = sourceClone.querySelector(':scope > .rb-resume-header');
+  if (header) currentDoc.appendChild(header.cloneNode(true));
+
+  const context = {
+    state,
+    get currentDoc() {
+      return currentDoc;
+    },
+    startPage,
+  };
+
+  Array.from(sourceClone.querySelectorAll(':scope > .rb-resume-section')).forEach((section) => {
+    const sectionClone = section.cloneNode(true);
+    currentDoc.appendChild(sectionClone);
+    if (resumePageFits(currentDoc, state)) return;
+
+    sectionClone.remove();
+    if (currentDoc.querySelector('.rb-resume-section')) {
+      startPage();
+    }
+
+    const nextSectionClone = section.cloneNode(true);
+    currentDoc.appendChild(nextSectionClone);
+    if (resumePageFits(currentDoc, state)) return;
+
+    nextSectionClone.remove();
+    paginateOversizedResumeSection(section, context);
+  });
+
+  measureHost.remove();
+  container.innerHTML = '';
+  pages.forEach((pageDoc) => {
+    prepareResumePageDoc(pageDoc, state);
+    container.appendChild(createResumePageShell(pageDoc, state));
+  });
+}
+
 function renderFormattedPreview(resumeText) {
   const container = document.getElementById('rb-preview-pane');
   if (!container) return;
@@ -2228,6 +2419,7 @@ function renderFormattedPreview(resumeText) {
   html += '</div>';
   container.innerHTML = html;
   applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
+  paginateResumePreview(resumeExportState);
   updateWordCountDisplay(resumeExportState);
   updateResumePageCount(resumeExportState);
   applyMobilePreviewScale();
@@ -2557,21 +2749,14 @@ function renderLiveResumeFromState(state = resumeExportState) {
   html += '</div>';
   container.innerHTML = html;
   applyTemplate(state.template || 'classic', { persist: false, animate: false });
+  paginateResumePreview(state);
   updateWordCountDisplay(state);
   updateResumePageCount(state);
   applyMobilePreviewScale();
 }
 
 function applyMobilePreviewScale() {
-  const scaleDocument = (pane, doc, docWidth, options = {}) => {
-    if (!pane || !doc) return;
-    if (window.innerWidth >= 768 && !options.scaleToContainer) {
-      pane.style.height = '';
-      doc.style.removeProperty('transform');
-      doc.style.removeProperty('transform-origin');
-      return;
-    }
-
+  const getScaleForPane = (pane, docWidth, options = {}) => {
     const paneRect = pane.getBoundingClientRect();
     const viewportWidth = Math.min(window.innerWidth || 0, document.documentElement?.clientWidth || window.innerWidth || 0) || window.innerWidth;
     const measuredPaneWidth = pane.clientWidth || paneRect.width || viewportWidth || window.innerWidth;
@@ -2583,7 +2768,19 @@ function applyMobilePreviewScale() {
       : (options.fitViewport ? 0 : (window.innerWidth < 768 ? 16 : 24));
     const availableWidth = Math.max(260, paneWidth - padding);
     const minScale = typeof options.minScale === 'number' ? options.minScale : 0.25;
-    const scale = Math.min(1, Math.max(minScale, availableWidth / docWidth));
+    return Math.min(1, Math.max(minScale, availableWidth / docWidth));
+  };
+
+  const scaleDocument = (pane, doc, docWidth, options = {}) => {
+    if (!pane || !doc) return;
+    if (window.innerWidth >= 768 && !options.scaleToContainer) {
+      pane.style.height = '';
+      doc.style.removeProperty('transform');
+      doc.style.removeProperty('transform-origin');
+      return;
+    }
+
+    const scale = getScaleForPane(pane, docWidth, options);
 
     if (scale >= 0.995) {
       pane.style.height = '';
@@ -2599,18 +2796,35 @@ function applyMobilePreviewScale() {
   };
 
   const previewPane = document.getElementById('rb-preview-pane');
-  const resumeDoc = previewPane?.querySelector('.rb-resume-doc');
+  const resumePageShells = previewPane ? Array.from(previewPane.querySelectorAll('.rb-resume-page-shell')) : [];
   const resumePaper = getResumePaperProfile(resumeExportState);
   const isMobilePreview = document.getElementById('resume-panel-builder')?.classList.contains('rb-mobile-view-preview');
-  if (previewPane && !resumeDoc) previewPane.style.height = '';
-  scaleDocument(previewPane, resumeDoc, resumePaper.width, {
+  const resumeScaleOptions = {
     center: !isMobilePreview,
     docHeight: resumePaper.height,
     minScale: isMobilePreview ? 0.25 : 0.35,
     padding: isMobilePreview ? 0 : 24,
     scaleToContainer: true,
     fitViewport: isMobilePreview,
-  });
+  };
+  if (previewPane && resumePageShells.length) {
+    const scale = getScaleForPane(previewPane, resumePaper.width, resumeScaleOptions);
+    previewPane.style.height = '';
+    resumePageShells.forEach((shell) => {
+      const doc = shell.querySelector('.rb-resume-doc');
+      shell.style.width = `${Math.ceil(resumePaper.width * scale)}px`;
+      shell.style.height = `${Math.ceil(resumePaper.height * scale)}px`;
+      shell.style.setProperty('--rb-page-width', `${resumePaper.width}px`);
+      shell.style.setProperty('--rb-page-height', `${resumePaper.height}px`);
+      if (!doc) return;
+      doc.style.setProperty('transform', `scale(${scale})`, 'important');
+      doc.style.transformOrigin = 'top left';
+    });
+  } else {
+    const resumeDoc = previewPane?.querySelector('.rb-resume-doc');
+    if (previewPane && !resumeDoc) previewPane.style.height = '';
+    scaleDocument(previewPane, resumeDoc, resumePaper.width, resumeScaleOptions);
+  }
 
   const coverLetterPane = document.querySelector('.cl-preview-pane');
   const coverLetterDoc = coverLetterPane?.querySelector('.cl-letter-doc');
@@ -3135,45 +3349,45 @@ function confirmResumePlaceholdersBeforeExport() {
 }
 
 function getResumeDocumentHtml() {
-  const existingDoc = document.querySelector('#rb-preview-pane .rb-resume-doc');
-  if (existingDoc) return existingDoc.outerHTML;
+  const existingDocs = document.querySelectorAll('#rb-preview-pane .rb-resume-doc');
+  if (existingDocs.length) return Array.from(existingDocs).map((doc) => doc.outerHTML).join('');
 
   if (resumeExportState?.generatedResume) {
     renderFormattedPreview(resumeExportState.generatedResume);
-    return document.querySelector('#rb-preview-pane .rb-resume-doc')?.outerHTML || '';
+    return Array.from(document.querySelectorAll('#rb-preview-pane .rb-resume-doc')).map((doc) => doc.outerHTML).join('');
   }
 
   return '';
 }
 
-function getResumeDocumentCloneForExport() {
-  let existingDoc = document.querySelector('#rb-preview-pane .rb-resume-doc');
-  if (!existingDoc && resumeExportState?.generatedResume) {
-    renderFormattedPreview(resumeExportState.generatedResume);
-    existingDoc = document.querySelector('#rb-preview-pane .rb-resume-doc');
-  }
-  if (!existingDoc && hasMeaningfulLiveResumeData(resumeExportState)) {
-    renderLiveResumeFromState(resumeExportState);
-    existingDoc = document.querySelector('#rb-preview-pane .rb-resume-doc');
-  }
-  if (!existingDoc) return null;
-
+function sanitizeResumePageCloneForExport(doc) {
+  if (!doc) return null;
   const paper = getResumePaperProfile(resumeExportState);
-  const clone = existingDoc.cloneNode(true);
-  applyResumePaperClass(clone, resumeExportState);
-  Object.values(RESUME_TEMPLATE_CLASSES).forEach((className) => clone.classList.remove(className));
-  clone.classList.add(RESUME_TEMPLATE_CLASSES[normalizeResumeTemplate(resumeExportState?.template)]);
-  clone.style.width = `${paper.width}px`;
-  clone.style.maxWidth = `${paper.width}px`;
-  clone.style.minHeight = `${paper.height}px`;
-  clone.style.margin = '0';
-  clone.style.transform = 'none';
-  clone.style.transformOrigin = 'top left';
+  const clone = doc.cloneNode(true);
+  prepareResumePageDoc(clone, resumeExportState);
+  clone.style.position = 'relative';
+  clone.style.overflow = 'hidden';
   clone.style.boxShadow = 'none';
   clone.style.borderRadius = '0';
   clone.style.backgroundColor = '#ffffff';
   clone.style.backgroundImage = 'none';
   return clone;
+}
+
+function getResumeDocumentClonesForExport() {
+  let existingDocs = Array.from(document.querySelectorAll('#rb-preview-pane .rb-resume-page-shell .rb-resume-doc'));
+  if (!existingDocs.length) {
+    existingDocs = Array.from(document.querySelectorAll('#rb-preview-pane .rb-resume-doc'));
+  }
+  if (!existingDocs.length && resumeExportState?.generatedResume) {
+    renderFormattedPreview(resumeExportState.generatedResume);
+    existingDocs = Array.from(document.querySelectorAll('#rb-preview-pane .rb-resume-page-shell .rb-resume-doc, #rb-preview-pane .rb-resume-doc'));
+  }
+  if (!existingDocs.length && hasMeaningfulLiveResumeData(resumeExportState)) {
+    renderLiveResumeFromState(resumeExportState);
+    existingDocs = Array.from(document.querySelectorAll('#rb-preview-pane .rb-resume-page-shell .rb-resume-doc, #rb-preview-pane .rb-resume-doc'));
+  }
+  return existingDocs.map(sanitizeResumePageCloneForExport).filter(Boolean);
 }
 
 async function loadResumePdfLibraries() {
@@ -3202,8 +3416,8 @@ function getResumePdfPageMetrics(state = resumeExportState) {
 }
 
 function createResumePdfRenderSurface() {
-  const clone = getResumeDocumentCloneForExport();
-  if (!clone) return null;
+  const clones = getResumeDocumentClonesForExport();
+  if (!clones.length) return null;
   const paper = getResumePaperProfile(resumeExportState);
   const host = document.createElement('div');
   host.className = 'rb-pdf-render-host';
@@ -3220,58 +3434,42 @@ function createResumePdfRenderSurface() {
     pointerEvents: 'none',
     zIndex: '-1',
   });
-  host.appendChild(clone);
+  clones.forEach((clone) => host.appendChild(clone));
   document.body.appendChild(host);
   return {
     host,
-    preview: clone,
+    pages: clones,
     cleanup() {
       host.remove();
     },
   };
 }
 
-async function downloadResumePreviewPdf(previewElement, fileName) {
+async function downloadResumePreviewPdf(previewPages, fileName) {
   const { jsPDF, html2canvas } = await loadResumePdfLibraries();
   const paper = getResumePaperProfile(resumeExportState);
   const page = getResumePdfPageMetrics(resumeExportState);
-  const canvas = await html2canvas(previewElement, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: '#ffffff',
-    windowWidth: paper.width,
-    windowHeight: Math.max(previewElement.scrollHeight, paper.height),
-    scrollX: 0,
-    scrollY: -window.scrollY,
-  });
+  const pages = Array.isArray(previewPages) ? previewPages : [previewPages].filter(Boolean);
+  if (!pages.length) return;
   const pdf = new jsPDF({
     orientation: 'p',
     unit: 'mm',
     format: page.format,
     compress: true,
   });
-  const renderedHeight = canvas.height * page.width / canvas.width;
-  if (renderedHeight <= page.height * 1.01) {
-    const imageData = canvas.toDataURL('image/png');
-    pdf.addImage(imageData, 'PNG', 0, 0, page.width, Math.min(page.height, renderedHeight), undefined, 'FAST');
-    pdf.save(fileName);
-    return;
-  }
-
-  const pageHeightPx = Math.floor(canvas.width * (page.height / page.width));
-  let pageIndex = 0;
-  for (let offsetY = 0; offsetY < canvas.height; offsetY += pageHeightPx) {
-    const sliceHeight = Math.min(pageHeightPx, canvas.height - offsetY);
-    const sliceCanvas = document.createElement('canvas');
-    sliceCanvas.width = canvas.width;
-    sliceCanvas.height = sliceHeight;
-    const sliceContext = sliceCanvas.getContext('2d');
-    sliceContext.drawImage(canvas, 0, offsetY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
-    const imageData = sliceCanvas.toDataURL('image/png');
-    const renderHeight = sliceHeight * page.width / canvas.width;
-    if (pageIndex > 0) pdf.addPage();
-    pdf.addImage(imageData, 'PNG', 0, 0, page.width, renderHeight, undefined, 'FAST');
-    pageIndex += 1;
+  for (let index = 0; index < pages.length; index += 1) {
+    const pageElement = pages[index];
+    const canvas = await html2canvas(pageElement, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      windowWidth: paper.width,
+      windowHeight: paper.height,
+      scrollX: 0,
+      scrollY: -window.scrollY,
+    });
+    if (index > 0) pdf.addPage(page.format, 'p');
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, page.width, page.height, undefined, 'FAST');
   }
   pdf.save(fileName);
 }
@@ -3634,14 +3832,14 @@ async function downloadResumePDF() {
       return;
     }
     const exportSurface = createResumePdfRenderSurface();
-    if (!exportSurface?.preview) {
+    if (!exportSurface?.pages?.length) {
       showExportToast('Generate a resume before exporting.', 'error');
       return;
     }
     try {
       const paper = normalizePaperSize(resumeExportState?.paperSize);
       const templateName = normalizeResumeTemplate(resumeExportState?.template);
-      await downloadResumePreviewPdf(exportSurface.preview, `${getResumeFileBaseName()}_resume_${templateName}_${paper}.pdf`);
+      await downloadResumePreviewPdf(exportSurface.pages, `${getResumeFileBaseName()}_resume_${templateName}_${paper}.pdf`);
       showExportToast('Resume PDF downloaded.', 'success');
     } finally {
       exportSurface.cleanup();
@@ -9240,6 +9438,7 @@ export async function initResumeBuilderTool(container) {
       const button = event.target.closest('[data-resume-template]');
       if (!button || !templatePicker.contains(button)) return;
       applyTemplate(button.dataset.resumeTemplate);
+      renderPagedPreview(state);
     });
   }
   if (paperSizeToggle) {
