@@ -183,6 +183,29 @@ const RESUME_TEMPLATE_CLASSES = {
   modern: 'rb-tpl-modern',
   compact: 'rb-tpl-compact',
 };
+const RESUME_PAPER_SIZES = {
+  letter: {
+    key: 'letter',
+    label: 'Letter',
+    className: 'rb-paper-letter',
+    width: 816,
+    height: 1056,
+    printSize: 'letter',
+    printWidth: '8.5in',
+    printHeight: '11in',
+  },
+  a4: {
+    key: 'a4',
+    label: 'A4',
+    className: 'rb-paper-a4',
+    width: 794,
+    height: 1123,
+    printSize: 'A4',
+    printWidth: '210mm',
+    printHeight: '297mm',
+  },
+};
+const RESUME_PAPER_OPTIONS = Object.keys(RESUME_PAPER_SIZES);
 const OPTIONAL_RESUME_SECTIONS = ['projects', 'certifications', 'languages', 'awards', 'volunteer', 'publications', 'courses'];
 const OPTIONAL_SECTION_DEFAULTS = {
   projects: true,
@@ -745,6 +768,18 @@ function getAlreadyAddedKeywords(state = resumeExportState) {
 
 function normalizeResumeTemplate(template) {
   return RESUME_TEMPLATE_OPTIONS.includes(template) ? template : 'classic';
+}
+
+function normalizePaperSize(size) {
+  return RESUME_PAPER_OPTIONS.includes(size) ? size : 'letter';
+}
+
+function getResumePaperProfile(state = resumeExportState) {
+  return RESUME_PAPER_SIZES[normalizePaperSize(state?.paperSize)] || RESUME_PAPER_SIZES.letter;
+}
+
+function getResumePaperClass(state = resumeExportState) {
+  return getResumePaperProfile(state).className;
 }
 
 const ATS_SYSTEM_PROMPT = `You are an elite ATS (Applicant Tracking System) resume expert and HR consultant
@@ -1458,6 +1493,7 @@ function serializeState(state) {
         customSections: (state.customSections || []).map(normalizeSavedCustomSection),
         generatedResume: String(state.generatedResume || ''),
         template: normalizeResumeTemplate(state.template),
+        paperSize: normalizePaperSize(state.paperSize),
         atsAnalysisResult: normalizeSavedAtsAnalysisResult(state.atsAnalysisResult),
         coverLetter: String(state.coverLetter || ''),
         coverLetterSettings: normalizeCoverLetterSettings(state.coverLetterSettings),
@@ -1545,6 +1581,7 @@ function applyPersistedState(state, saved = {}) {
     ? saved.customSections.slice(0, CUSTOM_SECTION_LIMIT).map(normalizeSavedCustomSection)
     : [];
   state.template = normalizeResumeTemplate(saved.template);
+  state.paperSize = normalizePaperSize(saved.paperSize);
   state.atsAnalysisResult = normalizeSavedAtsAnalysisResult(saved.atsAnalysisResult);
   state.generatedResume = typeof saved.generatedResume === 'string' ? saved.generatedResume : '';
   state.coverLetter = typeof saved.coverLetter === 'string' ? saved.coverLetter : '';
@@ -1663,6 +1700,7 @@ function serializeStateForCloud(state) {
       ? state.customSections.map(normalizeSavedCustomSection).slice(0, CUSTOM_SECTION_LIMIT)
       : [],
     template: normalizeResumeTemplate(state?.template),
+    paperSize: normalizePaperSize(state?.paperSize),
     atsAnalysisResult: null,
     coverLetter: String(state?.coverLetter || ''),
     coverLetterSettings: normalizeCoverLetterSettings(state?.coverLetterSettings),
@@ -1960,6 +1998,7 @@ function applyTemplate(templateName, options = {}) {
   if (doc) {
     Object.values(RESUME_TEMPLATE_CLASSES).forEach((className) => doc.classList.remove(className));
     doc.classList.add(RESUME_TEMPLATE_CLASSES[template]);
+    applyResumePaperClass(doc, resumeTemplateState || resumeExportState);
     if (options.animate !== false) {
       doc.classList.remove('rb-template-fade');
       void doc.offsetWidth;
@@ -1969,6 +2008,8 @@ function applyTemplate(templateName, options = {}) {
   }
 
   syncTemplatePicker(template);
+  syncPaperSizeToggle(resumeTemplateState || resumeExportState);
+  updateResumePageCount(resumeTemplateState || resumeExportState);
   applyMobilePreviewScale();
 
   if (shouldSave && typeof resumeTemplateSave === 'function') {
@@ -1976,6 +2017,58 @@ function applyTemplate(templateName, options = {}) {
   }
 
   return template;
+}
+
+function applyResumePaperClass(doc, state = resumeExportState) {
+  if (!doc) return;
+  Object.values(RESUME_PAPER_SIZES).forEach((profile) => doc.classList.remove(profile.className));
+  doc.classList.add(getResumePaperClass(state));
+}
+
+function syncPaperSizeToggle(state = resumeExportState) {
+  const toggle = document.getElementById('rb-paper-size-toggle');
+  if (!toggle) return;
+  const size = normalizePaperSize(state?.paperSize);
+  toggle.querySelectorAll('.rb-paper-size-btn').forEach((button) => {
+    const active = button.dataset.size === size;
+    button.classList.toggle('rb-paper-size-btn--active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function updateResumePageCount(state = resumeExportState) {
+  const badge = document.getElementById('rb-page-count');
+  if (!badge) return;
+  const doc = document.querySelector('#rb-preview-pane .rb-resume-doc');
+  if (!doc) {
+    badge.hidden = true;
+    badge.textContent = 'Page 1 of 1';
+    return;
+  }
+  const profile = getResumePaperProfile(state);
+  const pages = Math.max(1, Math.ceil(doc.scrollHeight / profile.height));
+  badge.hidden = false;
+  badge.textContent = `Page 1 of ${pages}`;
+}
+
+function renderPagedPreview(state = resumeExportState) {
+  const doc = document.querySelector('#rb-preview-pane .rb-resume-doc');
+  if (doc) applyResumePaperClass(doc, state);
+  syncPaperSizeToggle(state);
+  updateResumePageCount(state);
+  applyMobilePreviewScale();
+}
+
+function getScrollbarWidth() {
+  const outer = document.createElement('div');
+  outer.style.cssText = 'visibility:hidden;overflow:scroll;position:absolute;top:-9999px;width:100px;height:100px;';
+  document.body.appendChild(outer);
+  const inner = document.createElement('div');
+  inner.style.width = '100%';
+  outer.appendChild(inner);
+  const width = outer.offsetWidth - inner.offsetWidth;
+  outer.remove();
+  return width;
 }
 
 function normalizeGeneratedResumeIdentity(resumeText, state) {
@@ -2093,6 +2186,7 @@ function renderFormattedPreview(resumeText) {
       </div>`;
     applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
     updateWordCountDisplay(resumeExportState);
+    updateResumePageCount(resumeExportState);
     applyMobilePreviewScale();
     return;
   }
@@ -2103,7 +2197,7 @@ function renderFormattedPreview(resumeText) {
   const displayName = name || parsed.name;
   const contactParts = getResumeContactParts(resumeExportState, contact || parsed.contact);
   const sections = getRenderableResumeSections(parsed.sections, resumeExportState);
-  let html = '<div class="rb-resume-doc">';
+  let html = `<div class="rb-resume-doc ${getResumePaperClass(resumeExportState)}">`;
 
   html += `
     <div class="rb-resume-header">
@@ -2135,6 +2229,7 @@ function renderFormattedPreview(resumeText) {
   container.innerHTML = html;
   applyTemplate(resumeTemplateState?.template || resumeExportState?.template || 'classic', { persist: false });
   updateWordCountDisplay(resumeExportState);
+  updateResumePageCount(resumeExportState);
   applyMobilePreviewScale();
 }
 
@@ -2423,13 +2518,14 @@ function renderLiveResumeFromState(state = resumeExportState) {
       </div>`;
     applyTemplate(state?.template || 'classic', { persist: false, animate: false });
     updateWordCountDisplay(state);
+    updateResumePageCount(state);
     applyMobilePreviewScale();
     return;
   }
 
   const name = cleanResumeValue(state.personal?.name) || 'Your Name';
   const contactParts = getResumeContactParts(state);
-  let html = '<div class="rb-resume-doc">';
+  let html = `<div class="rb-resume-doc ${getResumePaperClass(state)}">`;
   html += `
     <div class="rb-resume-header">
       <h1 class="rb-resume-name">${escapeHtml(name)}</h1>
@@ -2462,11 +2558,12 @@ function renderLiveResumeFromState(state = resumeExportState) {
   container.innerHTML = html;
   applyTemplate(state.template || 'classic', { persist: false, animate: false });
   updateWordCountDisplay(state);
+  updateResumePageCount(state);
   applyMobilePreviewScale();
 }
 
 function applyMobilePreviewScale() {
-  const scaleDocument = (pane, doc, docWidth) => {
+  const scaleDocument = (pane, doc, docWidth, options = {}) => {
     if (!pane || !doc) return;
     if (window.innerWidth >= 768) {
       pane.style.height = '';
@@ -2474,17 +2571,21 @@ function applyMobilePreviewScale() {
       doc.style.removeProperty('transform-origin');
       return;
     }
-    const paneWidth = pane.clientWidth || window.innerWidth;
-    const scale = Math.min(1, Math.max(0.25, (paneWidth - 16) / docWidth));
+    const paneWidth = options.fitViewport ? window.innerWidth : (pane.clientWidth || window.innerWidth);
+    const padding = options.fitViewport ? 0 : 16;
+    const scale = Math.min(1, Math.max(0.25, (paneWidth - padding) / docWidth));
     doc.style.setProperty('transform', `scale(${scale})`, 'important');
-    doc.style.transformOrigin = 'top left';
-    pane.style.height = `${Math.ceil(doc.scrollHeight * scale)}px`;
+    doc.style.transformOrigin = options.center ? 'top center' : 'top left';
+    pane.style.height = `${Math.ceil(doc.scrollHeight * scale) + (options.fitViewport ? 32 : 0)}px`;
   };
 
   const previewPane = document.getElementById('rb-preview-pane');
   const resumeDoc = previewPane?.querySelector('.rb-resume-doc');
   if (previewPane && !resumeDoc) previewPane.style.height = '';
-  scaleDocument(previewPane, resumeDoc, 816);
+  scaleDocument(previewPane, resumeDoc, getResumePaperProfile(resumeExportState).width, {
+    center: true,
+    fitViewport: document.getElementById('resume-panel-builder')?.classList.contains('rb-mobile-view-preview'),
+  });
 
   const coverLetterPane = document.querySelector('.cl-preview-pane');
   const coverLetterDoc = coverLetterPane?.querySelector('.cl-letter-doc');
@@ -2630,27 +2731,37 @@ function setupBuilderCanvasLayout(root) {
   addSection.setAttribute('aria-controls', 'rb-add-section-modal');
   accordion.appendChild(addSection);
 
-  const generateRow = qs(root, '#rb-generate')?.closest('.resume-action-row');
-  const quotaWrap = qs(root, '[data-resume-quota="shared-builder"]');
-  const builderBanner = qs(root, '#rb-banner');
-  const builderLoading = qs(root, '#rb-loading');
-  [generateRow, quotaWrap, builderBanner, builderLoading].forEach((node) => moveNode(node, editorBottombar));
+  const polishSection = qs(root, '#rb-polish-section');
+  if (polishSection) {
+    moveNode(polishSection, editorBottombar);
+  } else {
+    const generateRow = qs(root, '#rb-generate')?.closest('.resume-action-row');
+    const quotaWrap = qs(root, '[data-resume-quota="shared-builder"]');
+    const builderBanner = qs(root, '#rb-banner');
+    const builderLoading = qs(root, '#rb-loading');
+    const fallbackPolishSection = createNode('div', 'rb-polish-section rb-polish-section--hidden');
+    fallbackPolishSection.id = 'rb-polish-section';
+    [generateRow, quotaWrap, builderBanner, builderLoading].forEach((node) => moveNode(node, fallbackPolishSection));
+    editorBottombar.appendChild(fallbackPolishSection);
+  }
   editorPanel.append(editorTopbar, accordion, editorBottombar);
 
   const previewWrap = qs(root, '#rb-preview-wrap');
   const previewHead = previewWrap?.querySelector('.resume-preview-head');
   const templatePicker = qs(root, '#rb-template-picker');
+  const paperSizeToggle = qs(root, '#rb-paper-size-toggle');
   const previewMeta = previewHead?.querySelector('.resume-preview-meta');
+  const previewActions = qs(root, '#rb-preview-actions');
+  const mobilePreviewClose = qs(root, '#rb-mobile-preview-close');
+  const mobilePreviewDownload = qs(root, '#rb-mobile-preview-download');
   const previewPane = qs(root, '#rb-preview-pane');
   const previewHint = qs(root, '#rb-preview-hint');
-  const exportBar = qs(root, '#rb-export-bar');
-  const previewActions = previewWrap?.querySelector(':scope > .resume-action-row');
   const previewTopbar = createNode('div', 'rb-preview-topbar');
   const previewTitle = createNode('div', 'rb-preview-title');
   previewTitle.innerHTML = '<p class="resume-eyebrow">Resume Preview</p><h3>Live canvas</h3>';
-  [previewTitle, templatePicker, previewMeta].forEach((node) => moveNode(node, previewTopbar));
+  [previewTitle, templatePicker, paperSizeToggle, previewMeta, previewActions].forEach((node) => moveNode(node, previewTopbar));
   if (previewPanel) {
-    previewPanel.append(previewTopbar, previewPane, previewHint, exportBar, previewActions);
+    previewPanel.append(previewTopbar, mobilePreviewClose, previewPane, mobilePreviewDownload, previewHint);
   }
   if (previewHead) previewHead.remove();
 
@@ -2785,27 +2896,25 @@ function showExportToast(message, type = 'info') {
 }
 
 function setResumeExportReady(isReady) {
-  const exportBar = document.getElementById('rb-export-bar');
-  const pdfBtn = document.getElementById('rb-btn-download-pdf');
-  const docxBtn = document.getElementById('rb-btn-download-docx');
-  const printBtn = document.getElementById('rb-btn-print');
-  const shareHint = document.getElementById('rb-share-hint');
-  if (exportBar) {
-    exportBar.removeAttribute('hidden');
+  const primaryBtn = document.getElementById('rb-btn-download-primary');
+  const pdfBtn = document.getElementById('rb-dl-pdf');
+  const docxBtn = document.getElementById('rb-dl-docx');
+  const copyTextBtn = document.getElementById('rb-dl-copy-text');
+  const txtBtn = document.getElementById('rb-dl-txt');
+  if (primaryBtn) {
+    primaryBtn.disabled = false;
+    primaryBtn.setAttribute('aria-disabled', 'false');
   }
-  if (shareHint) shareHint.hidden = Boolean(isReady);
-  if (pdfBtn) {
-    pdfBtn.disabled = !isReady;
-    pdfBtn.setAttribute('aria-disabled', String(!isReady));
-  }
-  if (docxBtn) {
-    docxBtn.disabled = !isReady;
-    docxBtn.setAttribute('aria-disabled', String(!isReady));
-  }
-  if (printBtn) {
-    printBtn.disabled = !isReady;
-    printBtn.setAttribute('aria-disabled', String(!isReady));
-  }
+  [pdfBtn, docxBtn].forEach((button) => {
+    if (!button) return;
+    button.disabled = false;
+    button.setAttribute('aria-disabled', 'false');
+  });
+  [copyTextBtn, txtBtn].forEach((button) => {
+    if (!button) return;
+    button.disabled = !isReady;
+    button.setAttribute('aria-disabled', String(!isReady));
+  });
 }
 
 let resumePrintFrame = null;
@@ -3004,9 +3113,10 @@ function removeResumePrintFrame() {
 }
 
 function getResumePrintStyles() {
+  const paper = getResumePaperProfile(resumeExportState);
   return `
     @page {
-      size: letter portrait;
+      size: ${paper.printSize} portrait;
       margin: 0;
     }
 
@@ -3016,8 +3126,8 @@ function getResumePrintStyles() {
 
     html,
     body {
-      width: 8.5in;
-      min-height: 11in;
+      width: ${paper.printWidth};
+      min-height: ${paper.printHeight};
       margin: 0;
       padding: 0;
       background: #ffffff;
@@ -3029,9 +3139,9 @@ function getResumePrintStyles() {
     }
 
     .rb-resume-doc {
-      width: 8.5in;
+      width: ${paper.printWidth};
       max-width: none;
-      min-height: 11in;
+      min-height: ${paper.printHeight};
       margin: 0 auto;
       padding: 0.75in 0.85in;
       font-family: "Times New Roman", Georgia, serif;
@@ -3271,8 +3381,8 @@ function getResumePrintStyles() {
 }
 
 function openResumePrintDialog(intent = 'print') {
-  if (!resumeExportState?.generatedResume) {
-    showExportToast(`Generate a resume before ${intent === 'pdf' ? 'saving as PDF' : 'printing'}.`, 'error');
+  if (!resumeExportState?.generatedResume && !hasMeaningfulLiveResumeData(resumeExportState)) {
+    showExportToast(`Add resume details before ${intent === 'pdf' ? 'saving as PDF' : 'exporting'}.`, 'error');
     return false;
   }
 
@@ -3340,7 +3450,7 @@ function openResumePrintDialog(intent = 'print') {
 
 async function downloadResumePDF() {
   if (!confirmResumePlaceholdersBeforeExport()) return;
-  const btn = document.getElementById('rb-btn-download-pdf');
+  const btn = document.getElementById('rb-dl-pdf') || document.getElementById('rb-btn-download-primary');
   if (btn) {
     btn.classList.add('rb-export-btn--loading');
     btn.setAttribute('aria-label', 'Open save as PDF dialog');
@@ -3353,7 +3463,7 @@ async function downloadResumePDF() {
     }
   } catch (error) {
     console.error('[PDF Export]', error);
-    showExportToast('PDF export failed. Try the Print option or check your browser pop-up settings.', 'error');
+    showExportToast('PDF export failed. Check your browser pop-up settings and try again.', 'error');
   } finally {
     window.setTimeout(() => {
       if (btn) {
@@ -3537,6 +3647,7 @@ function buildShareableState(state) {
       d: project.details || project.description || '',
     })),
     tm: normalizeResumeTemplate(state.template),
+    ps: normalizePaperSize(state.paperSize),
     se: normalizeSectionsEnabled(state.sectionsEnabled),
     so: normalizeSectionOrder(state.sectionOrder, state.customSections),
     gr: state.generatedResume || '',
@@ -3635,6 +3746,7 @@ function applyShareableState(shared, state) {
     }))
     : [];
   state.template = normalizeResumeTemplate(shared.tm);
+  state.paperSize = normalizePaperSize(shared.ps);
   state.sectionsEnabled = normalizeSectionsEnabled(shared.se);
   state.sectionOrder = normalizeSectionOrder(shared.so, state.customSections);
   state.generatedResume = String(shared.gr || '');
@@ -4061,7 +4173,7 @@ function buildDocxChildren(state, profile) {
 
 async function downloadResumeDOCX() {
   const state = resumeExportState;
-  const btn = document.getElementById('rb-btn-download-docx');
+  const btn = document.getElementById('rb-dl-docx') || document.getElementById('rb-btn-download-primary');
   if (!state?.generatedResume && !hasMeaningfulLiveResumeData(state)) {
     showExportToast('Add resume details before downloading the DOCX.', 'error');
     return;
@@ -4710,15 +4822,22 @@ export async function initResumeBuilderTool(container) {
   const previewCount = qs(root, '#rb-preview-count');
   const previewNote = qs(root, '#rb-ats-note');
   const generateButton = qs(root, '#rb-generate');
-  const copyResumeButton = qs(root, '#rb-copy');
-  const downloadResumeButton = qs(root, '#rb-download');
-  const pdfButton = qs(root, '#rb-btn-download-pdf');
-  const docxButton = qs(root, '#rb-btn-download-docx');
-  const printButton = qs(root, '#rb-btn-print');
-  const shareLinkButton = qs(root, '#rb-btn-share-link');
+  const downloadPrimaryButton = qs(root, '#rb-btn-download-primary');
+  const downloadDropdown = qs(root, '#rb-download-dropdown');
+  const moreDropdown = qs(root, '#rb-more-dropdown');
+  const moreOptionsButton = qs(root, '#rb-preview-more-btn');
+  const copyResumeButton = qs(root, '#rb-dl-copy-text');
+  const downloadResumeButton = qs(root, '#rb-dl-txt');
+  const pdfButton = qs(root, '#rb-dl-pdf');
+  const docxButton = qs(root, '#rb-dl-docx');
+  const shareLinkButton = qs(root, '#rb-dl-copy-url');
   const shareFallback = qs(root, '#rb-share-fallback');
   const shareFallbackUrl = qs(root, '#rb-share-fallback-url');
-  const shareHint = qs(root, '#rb-share-hint');
+  const paperSizeToggle = qs(root, '#rb-paper-size-toggle');
+  const mobilePreviewCloseBar = qs(root, '#rb-mobile-preview-close');
+  const mobilePreviewDownloadBar = qs(root, '#rb-mobile-preview-download');
+  const mobilePreviewCloseButton = qs(root, '#rb-mobile-preview-close-btn');
+  const mobileDownloadButton = qs(root, '#rb-mobile-dl-btn');
   const wordCountWrap = qs(root, '#rb-word-count');
   const completionFill = qs(root, '#rb-completion-fill');
   const clearDraftButton = qs(root, '#rb-btn-clear-draft');
@@ -4837,6 +4956,7 @@ export async function initResumeBuilderTool(container) {
     skills: '',
     targetRole: '',
     template: 'classic',
+    paperSize: 'letter',
     atsAnalysisResult: null,
     coverLetter: '',
     coverLetterSettings: createDefaultCoverLetterSettings(),
@@ -4875,6 +4995,7 @@ export async function initResumeBuilderTool(container) {
     : null;
   const debouncedSave = debounce(() => {
     showSaveIndicator('saving');
+    checkPolishVisibility();
     saveToStorage(state);
   }, AUTOSAVE_DELAY);
   const LIVE_RENDER_DELAY = window.innerWidth < 768 ? 600 : 300;
@@ -4931,13 +5052,33 @@ export async function initResumeBuilderTool(container) {
     const hasResume = Boolean(state.generatedResume) || hasMeaningfulLiveResumeData(state);
     copyReportButton.disabled = !hasReport;
     downloadReportButton.disabled = !hasReport;
-    copyResumeButton.disabled = !hasResume;
-    downloadResumeButton.disabled = !hasResume;
     copyReportButton.setAttribute('aria-disabled', String(!hasReport));
     downloadReportButton.setAttribute('aria-disabled', String(!hasReport));
-    copyResumeButton.setAttribute('aria-disabled', String(!hasResume));
-    downloadResumeButton.setAttribute('aria-disabled', String(!hasResume));
+    if (copyResumeButton) {
+      copyResumeButton.disabled = !hasResume;
+      copyResumeButton.setAttribute('aria-disabled', String(!hasResume));
+    }
+    if (downloadResumeButton) {
+      downloadResumeButton.disabled = !hasResume;
+      downloadResumeButton.setAttribute('aria-disabled', String(!hasResume));
+    }
+    if (downloadPrimaryButton) {
+      downloadPrimaryButton.disabled = false;
+      downloadPrimaryButton.setAttribute('aria-disabled', 'false');
+    }
     setResumeExportReady(hasResume);
+  }
+
+  function checkPolishVisibility() {
+    const polishSection = qs(root, '#rb-polish-section');
+    if (!polishSection) return;
+    const hasName = String(state.personal?.name || '').trim().length >= 3;
+    const hasSummary = String(state.summary || '').trim().length >= 20;
+    const hasExperience = (state.experiences || []).some((experience) => String(experience?.jobTitle || '').trim());
+    const shouldShow = hasName && hasSummary && hasExperience;
+    polishSection.classList.toggle('rb-polish-section--hidden', !shouldShow);
+    polishSection.classList.toggle('rb-polish-section--visible', shouldShow);
+    polishSection.parentElement?.classList.toggle('rb-editor-bottombar--hidden', !shouldShow);
   }
 
   function updateResumePreviewMeta() {
@@ -4989,6 +5130,21 @@ export async function initResumeBuilderTool(container) {
       console.error('[Resume Builder] Share link failed:', error);
       showToast(toastStack, 'Could not create a share link. Please try again.', 'error');
     }
+  }
+
+  function closePreviewActionMenus() {
+    if (downloadDropdown) downloadDropdown.hidden = true;
+    if (moreDropdown) moreDropdown.hidden = true;
+    downloadPrimaryButton?.setAttribute('aria-expanded', 'false');
+    moreOptionsButton?.setAttribute('aria-expanded', 'false');
+  }
+
+  function togglePreviewActionMenu(menu, button) {
+    if (!menu) return;
+    const willOpen = menu.hidden;
+    closePreviewActionMenus();
+    menu.hidden = !willOpen;
+    button?.setAttribute('aria-expanded', String(willOpen));
   }
 
   function getAiActionButtons() {
@@ -5412,6 +5568,12 @@ export async function initResumeBuilderTool(container) {
     target.appendChild(node);
   }
 
+  function syncMobilePreviewChrome() {
+    const show = isMobileLayout() && activeMobileBuilderView === 'preview';
+    if (mobilePreviewCloseBar) mobilePreviewCloseBar.style.display = show ? 'flex' : 'none';
+    if (mobilePreviewDownloadBar) mobilePreviewDownloadBar.style.display = show ? 'block' : 'none';
+  }
+
   function setMobileBuilderView(view = 'edit') {
     activeMobileBuilderView = ['edit', 'preview', 'score'].includes(view) ? view : 'edit';
     if (!builderPanel) return;
@@ -5432,6 +5594,8 @@ export async function initResumeBuilderTool(container) {
       returnNodeToOriginalPosition(scorePanelFull, scoreOriginalPosition);
     }
 
+    syncMobilePreviewChrome();
+    applyMobilePreviewScale();
     updateMobileNavState();
   }
 
@@ -5489,6 +5653,7 @@ export async function initResumeBuilderTool(container) {
     if (!isMobileLayout()) {
       setMobileBuilderView('edit');
     }
+    syncMobilePreviewChrome();
     updateMobileNavState();
   }
 
@@ -5852,6 +6017,7 @@ export async function initResumeBuilderTool(container) {
 
   function markBuilderContentChanged() {
     state.atsAnalysisResult = null;
+    checkPolishVisibility();
     debouncedRefreshScore();
     updateCoverLetterResumeNotice();
   }
@@ -7304,6 +7470,8 @@ export async function initResumeBuilderTool(container) {
     if (!addSectionModal) return;
     renderAddSectionGrid();
     addSectionModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    document.body.style.paddingRight = `${getScrollbarWidth()}px`;
     qs(root, '#rb-add-section-btn')?.setAttribute('aria-expanded', 'true');
     document.addEventListener('keydown', handleAddSectionModalKeydown);
     window.requestAnimationFrame(() => {
@@ -7314,6 +7482,8 @@ export async function initResumeBuilderTool(container) {
   function closeAddSectionModal() {
     if (!addSectionModal || addSectionModal.hidden) return;
     addSectionModal.hidden = true;
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
     qs(root, '#rb-add-section-btn')?.setAttribute('aria-expanded', 'false');
     document.removeEventListener('keydown', handleAddSectionModalKeydown);
     qs(root, '#rb-add-section-btn')?.focus({ preventScroll: true });
@@ -7471,6 +7641,8 @@ export async function initResumeBuilderTool(container) {
     applyTemplate(state.template, { persist: false });
     syncAccordionOpenState(root, state);
     renderLivePreviewNow();
+    syncPaperSizeToggle(state);
+    checkPolishVisibility();
   }
 
   function updateBuilderFieldBindings() {
@@ -8634,12 +8806,24 @@ export async function initResumeBuilderTool(container) {
   }
 
   async function runResumeBuilder() {
+    const polishBtn = document.getElementById('rb-generate');
+    const previewPane = document.getElementById('rb-preview-pane');
+    if (polishBtn?.disabled || builderBusy) return;
+    if (polishBtn) polishBtn.disabled = true;
+    const restorePolishButton = () => {
+      if (polishBtn) polishBtn.disabled = false;
+      previewPane?.classList.remove('rb-preview-generating');
+    };
     if (!state.personal.name.trim()) {
+      restorePolishButton();
       setBanner(builderBanner, 'Add your name and some experience first, then polish.');
       showToast(toastStack, 'Add your name and some experience first, then polish.', 'info');
       return;
     }
-    if (!guardAiCredits()) return;
+    if (!guardAiCredits()) {
+      restorePolishButton();
+      return;
+    }
 
     builderBusy = true;
     state.generatedResume = '';
@@ -8648,6 +8832,7 @@ export async function initResumeBuilderTool(container) {
     updateQuotaUi();
     setBanner(builderBanner);
     builderLoading.classList.remove('hidden');
+    previewPane?.classList.add('rb-preview-generating');
     const stopRotation = startStatusRotation(builderStatus, BUILDER_STATUS_MESSAGES);
     setButtonLoading(generateButton, true, `AI ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`, 'Polishing...');
 
@@ -8690,6 +8875,7 @@ export async function initResumeBuilderTool(container) {
       builderLoading.classList.add('hidden');
       builderBusy = false;
       setButtonLoading(generateButton, false, `AI ${getQuotaButtonLabel(builderBaseLabel, TOOL_KEY)}`, 'Polishing...');
+      restorePolishButton();
       updateQuotaUi();
       refreshLiveScore();
       updateCompletionBar(state);
@@ -8715,6 +8901,7 @@ export async function initResumeBuilderTool(container) {
     state.skills = '';
     state.targetRole = '';
     state.template = 'classic';
+    state.paperSize = 'letter';
     state.atsAnalysisResult = null;
     state.coverLetter = '';
     state.coverLetterSettings = createDefaultCoverLetterSettings();
@@ -8845,6 +9032,16 @@ export async function initResumeBuilderTool(container) {
       applyTemplate(button.dataset.resumeTemplate);
     });
   }
+  if (paperSizeToggle) {
+    paperSizeToggle.addEventListener('click', (event) => {
+      const button = event.target.closest('.rb-paper-size-btn');
+      if (!button || !paperSizeToggle.contains(button)) return;
+      state.paperSize = normalizePaperSize(button.dataset.size);
+      syncPaperSizeToggle(state);
+      renderPagedPreview(state);
+      debouncedSave();
+    });
+  }
   if (importToggleButton) {
     importToggleButton.addEventListener('click', () => {
       setImportExpanded(true);
@@ -8971,9 +9168,42 @@ export async function initResumeBuilderTool(container) {
   root.addEventListener('keydown', handleBuilderKeyboardShortcuts);
   window.addEventListener('resize', handleMobileViewportChange);
   window.addEventListener('resize', debounce(applyMobilePreviewScale, 200));
-  if (pdfButton) pdfButton.addEventListener('click', downloadResumePDF);
-  if (docxButton) docxButton.addEventListener('click', downloadResumeDOCX);
-  if (printButton) printButton.addEventListener('click', printResume);
+  if (downloadPrimaryButton) {
+    downloadPrimaryButton.addEventListener('click', (event) => {
+      event.stopPropagation();
+      togglePreviewActionMenu(downloadDropdown, downloadPrimaryButton);
+    });
+  }
+  if (moreOptionsButton) {
+    moreOptionsButton.addEventListener('click', (event) => {
+      event.stopPropagation();
+      togglePreviewActionMenu(moreDropdown, moreOptionsButton);
+    });
+  }
+  if (pdfButton) {
+    pdfButton.addEventListener('click', () => {
+      closePreviewActionMenus();
+      downloadResumePDF();
+    });
+  }
+  if (docxButton) {
+    docxButton.addEventListener('click', () => {
+      closePreviewActionMenus();
+      downloadResumeDOCX();
+    });
+  }
+  document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    if (!target || (!target.closest('.rb-download-btn-group') && !target.closest('#rb-more-dropdown') && !target.closest('#rb-preview-more-btn'))) {
+      closePreviewActionMenus();
+    }
+  });
+  if (mobilePreviewCloseButton) {
+    mobilePreviewCloseButton.addEventListener('click', () => setMobileBuilderView('edit'));
+  }
+  if (mobileDownloadButton) {
+    mobileDownloadButton.addEventListener('click', downloadResumePDF);
+  }
   if (clearDraftButton) {
     clearDraftButton.addEventListener('click', () => {
       const confirmed = window.confirm('Start fresh? This will clear all saved form data and cannot be undone.');
@@ -8996,26 +9226,35 @@ export async function initResumeBuilderTool(container) {
     downloadText('tooliest-ats-report.txt', buildReportMarkdown(state.lastReport));
   });
 
-  copyResumeButton.addEventListener('click', async () => {
-    if (!state.generatedResume && !hasMeaningfulLiveResumeData(state)) return;
-    try {
-      await copyText(
-        buildFormattedResumeText(state),
-        toastStack,
-        'Resume copied as formatted text! Remember to review before pasting to a job application.',
-      );
-    } catch (error) {
-      console.error('[Resume Builder] Resume copy failed:', error);
-    }
-  });
+  if (copyResumeButton) {
+    copyResumeButton.addEventListener('click', async () => {
+      closePreviewActionMenus();
+      if (!state.generatedResume && !hasMeaningfulLiveResumeData(state)) return;
+      try {
+        await copyText(
+          buildFormattedResumeText(state),
+          toastStack,
+          'Resume copied as formatted text! Remember to review before pasting to a job application.',
+        );
+      } catch (error) {
+        console.error('[Resume Builder] Resume copy failed:', error);
+      }
+    });
+  }
 
-  downloadResumeButton.addEventListener('click', () => {
-    if (!state.generatedResume && !hasMeaningfulLiveResumeData(state)) return;
-    downloadText('tooliest-resume.txt', resumePreviewPrefersLive ? buildLiveResumePlainText(state) : state.generatedResume || buildLiveResumePlainText(state));
-  });
+  if (downloadResumeButton) {
+    downloadResumeButton.addEventListener('click', () => {
+      closePreviewActionMenus();
+      if (!state.generatedResume && !hasMeaningfulLiveResumeData(state)) return;
+      downloadText('tooliest-resume.txt', resumePreviewPrefersLive ? buildLiveResumePlainText(state) : state.generatedResume || buildLiveResumePlainText(state));
+    });
+  }
 
   if (shareLinkButton) {
-    shareLinkButton.addEventListener('click', copyShareLink);
+    shareLinkButton.addEventListener('click', () => {
+      closePreviewActionMenus();
+      copyShareLink();
+    });
   }
 
   bindCounter(atsResume, atsResumeCount, 5000, atsWarn, 4500);

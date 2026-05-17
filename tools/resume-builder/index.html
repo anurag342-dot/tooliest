@@ -613,20 +613,22 @@
             </div>
           </div>
 
-          <div class="resume-action-row wide">
-            <p class="rb-generate-readiness" id="rb-generate-readiness" hidden></p>
-            <button type="button" class="btn btn-primary resume-primary-btn" id="rb-generate" aria-label="Polish resume with AI">&#10022; Polish with AI</button>
-            <p class="rb-shortcut-hint">AI improves your content. The preview updates as you type.</p>
-          </div>
-          <div class="resume-quota-wrap" data-resume-quota="shared-builder"></div>
-          <div class="resume-inline-banner hidden" id="rb-banner"></div>
-
-          <div class="resume-loading hidden" id="rb-loading" aria-live="polite">
-            <div class="resume-skeleton-grid">
-              <div class="resume-skeleton-card tall"></div>
-              <div class="resume-skeleton-card tall"></div>
+          <div id="rb-polish-section" class="rb-polish-section rb-polish-section--hidden">
+            <div class="resume-action-row wide">
+              <p class="rb-generate-readiness" id="rb-generate-readiness" hidden></p>
+              <button type="button" class="btn btn-primary resume-primary-btn" id="rb-generate" aria-label="Polish resume with AI">&#10022; Polish with AI</button>
+              <p class="rb-shortcut-hint">AI improves your content. Preview updates as you type.</p>
             </div>
-            <p class="resume-status-text" id="rb-status">Preparing your resume draft...</p>
+            <div class="resume-quota-wrap" data-resume-quota="shared-builder"></div>
+            <div class="resume-inline-banner hidden" id="rb-banner"></div>
+
+            <div class="resume-loading hidden" id="rb-loading" aria-live="polite">
+              <div class="resume-skeleton-grid">
+                <div class="resume-skeleton-card tall"></div>
+                <div class="resume-skeleton-card tall"></div>
+              </div>
+              <p class="resume-status-text" id="rb-status">Preparing your resume draft...</p>
+            </div>
           </div>
 
           <div class="resume-preview-wrap" id="rb-preview-wrap">
@@ -642,79 +644,10 @@
                   <span id="rb-word-count-label" class="rb-word-count-label"></span>
                 </div>
                 <span id="rb-ats-note">ATS note pending</span>
+                <span id="rb-page-count" class="rb-page-count" hidden>Page 1 of 1</span>
               </div>
             </div>
             <div class="resume-preview-panel" id="rb-preview-panel">
-              <div class="rb-export-bar" id="rb-export-bar" hidden>
-                <span class="rb-export-bar__label">Export your resume:</span>
-                <div class="rb-export-bar__actions">
-                  <button
-                    type="button"
-                    id="rb-btn-download-pdf"
-                    class="rb-export-btn rb-export-btn--primary"
-                    aria-label="Save resume as PDF"
-                    disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                         stroke-linejoin="round" aria-hidden="true">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                      <polyline points="7 10 12 15 17 10"/>
-                      <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                    Save as PDF
-                  </button>
-                  <button
-                    type="button"
-                    id="rb-btn-download-docx"
-                    class="rb-export-btn rb-export-btn--secondary"
-                    aria-label="Download resume as DOCX"
-                    disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                         stroke-linejoin="round" aria-hidden="true">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                      <path d="M14 2l6 6"/>
-                      <path d="M16 13H8"/>
-                      <path d="M16 17H8"/>
-                      <path d="M10 9H8"/>
-                    </svg>
-                    Download DOCX
-                  </button>
-                  <button
-                    type="button"
-                    id="rb-btn-print"
-                    class="rb-export-btn rb-export-btn--secondary"
-                    aria-label="Print resume"
-                    disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                         stroke-linejoin="round" aria-hidden="true">
-                      <polyline points="6 9 6 2 18 2 18 9"/>
-                      <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
-                      <rect x="6" y="14" width="12" height="8"/>
-                    </svg>
-                    Print
-                  </button>
-                  <button
-                    type="button"
-                    id="rb-btn-share-link"
-                    class="rb-export-btn rb-export-btn--secondary"
-                    aria-label="Copy shareable resume link">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                         stroke-linejoin="round" aria-hidden="true">
-                      <path d="M10 13a5 5 0 007.07 0l2.83-2.83a5 5 0 00-7.07-7.07L11.5 4.43"/>
-                      <path d="M14 11a5 5 0 00-7.07 0L4.1 13.83a5 5 0 007.07 7.07l1.33-1.33"/>
-                    </svg>
-                    Copy share link
-                  </button>
-                </div>
-                <p class="rb-share-hint" id="rb-share-hint">Share includes form data only until you generate a resume.</p>
-                <div class="rb-share-fallback" id="rb-share-fallback" hidden>
-                  <label class="sr-only" for="rb-share-fallback-url">Shareable resume link</label>
-                  <input id="rb-share-fallback-url" type="text" readonly aria-label="Shareable resume link">
-                </div>
-              </div>
               <div class="rb-template-picker" id="rb-template-picker" aria-label="Resume style selector">
                 <p class="rb-template-picker__label">Resume Style</p>
                 <div class="rb-template-picker__options" role="group" aria-label="Choose resume template">
@@ -748,6 +681,62 @@
                   </button>
                 </div>
               </div>
+              <div class="rb-paper-size-toggle" id="rb-paper-size-toggle">
+                <span class="rb-paper-size-toggle__label">Size:</span>
+                <button type="button" class="rb-paper-size-btn rb-paper-size-btn--active" data-size="letter" aria-pressed="true">Letter</button>
+                <button type="button" class="rb-paper-size-btn" data-size="a4" aria-pressed="false">A4</button>
+              </div>
+              <div class="rb-preview-actions" id="rb-preview-actions">
+                <div class="rb-download-btn-group">
+                  <button type="button" id="rb-btn-download-primary" class="rb-btn-download-primary" aria-haspopup="menu" aria-expanded="false">
+                    &#11015; Download
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                  <div class="rb-download-dropdown" id="rb-download-dropdown" hidden role="menu" aria-label="Download options">
+                    <button type="button" class="rb-download-option" id="rb-dl-pdf" role="menuitem">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                           stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <path d="M14 2l6 6"/>
+                        <path d="M12 18v-6"/>
+                        <path d="M9 15l3 3 3-3"/>
+                      </svg>
+                      Save as PDF
+                    </button>
+                    <button type="button" class="rb-download-option" id="rb-dl-docx" role="menuitem">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                           stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                           stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <path d="M14 2l6 6"/>
+                        <path d="M16 13H8"/>
+                        <path d="M16 17H8"/>
+                        <path d="M10 9H8"/>
+                      </svg>
+                      Download DOCX
+                    </button>
+                  </div>
+                </div>
+                <button type="button" id="rb-preview-more-btn" class="rb-preview-more-btn" aria-label="More options" aria-haspopup="menu" aria-expanded="false">&middot;&middot;&middot;</button>
+                <div class="rb-more-dropdown" id="rb-more-dropdown" hidden role="menu" aria-label="More resume options">
+                  <button type="button" class="rb-more-option" id="rb-dl-copy-url" role="menuitem">&#128279; Copy Share Link</button>
+                  <button type="button" class="rb-more-option" id="rb-dl-copy-text" role="menuitem">&#128203; Copy as Text</button>
+                  <button type="button" class="rb-more-option" id="rb-dl-txt" role="menuitem">&#11015; Download as TXT</button>
+                </div>
+                <div class="rb-share-fallback" id="rb-share-fallback" hidden>
+                  <label class="sr-only" for="rb-share-fallback-url">Shareable resume link</label>
+                  <input id="rb-share-fallback-url" type="text" readonly aria-label="Shareable resume link">
+                </div>
+              </div>
+              <div id="rb-mobile-preview-close" style="display:none;">
+                <span style="color:white;font-size:0.82rem;opacity:0.7;">Resume Preview</span>
+                <button type="button" class="rb-preview-close-btn" id="rb-mobile-preview-close-btn" aria-label="Close preview">&#10005;</button>
+              </div>
               <div
                 id="rb-preview-pane"
                 class="rb-preview-pane"
@@ -758,11 +747,10 @@
                   <p>Your resume will appear here as you fill in your details</p>
                 </div>
               </div>
+              <div id="rb-mobile-preview-download" style="display:none;">
+                <button type="button" id="rb-mobile-dl-btn">&#11015; Download Resume</button>
+              </div>
               <p class="rb-preview-hint" id="rb-preview-hint">Pinch to zoom &middot; Scroll to read</p>
-            </div>
-            <div class="resume-action-row">
-              <button type="button" class="btn btn-secondary" id="rb-copy" aria-label="Copy generated resume" disabled>&#128203; Copy as Text</button>
-              <button type="button" class="btn btn-secondary" id="rb-download" aria-label="Download generated resume" disabled>&#11015;&#65039; Download as TXT</button>
             </div>
           </div>
         </section>

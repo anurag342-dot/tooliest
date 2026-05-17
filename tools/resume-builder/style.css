@@ -5510,3 +5510,591 @@ body:has(.resume-tool) .tool-workspace {
     overflow: hidden;
   }
 }
+
+/* --- DAY 19 UI/UX POLISH --- */
+.resume-tool .rb-app-layout,
+.rb-app-layout {
+  max-width: 1440px;
+  margin-inline: auto;
+}
+
+.resume-panel[data-panel="builder"].is-active .resume-card {
+  max-width: 1440px;
+  margin-inline: auto;
+}
+
+#rb-editor-panel.rb-editor-panel {
+  width: 100%;
+  max-width: 680px;
+}
+
+@media (min-width: 1280px) {
+  .rb-app-layout {
+    grid-template-columns: minmax(400px, 580px) 1fr;
+  }
+}
+
+@media (min-width: 1440px) {
+  .rb-app-layout {
+    grid-template-columns: minmax(440px, 620px) 1fr;
+  }
+}
+
+@media (min-width: 1600px) {
+  .resume-tool,
+  #tool-workspace .resume-tool {
+    padding-inline: 2rem;
+  }
+}
+
+.rb-polish-section {
+  margin: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--rb-border-default);
+  border-radius: 12px;
+  background: var(--rb-bg-secondary);
+}
+
+.rb-editor-bottombar--hidden {
+  display: none;
+}
+
+.rb-polish-section--hidden {
+  display: none;
+}
+
+.rb-polish-section.rb-polish-section--visible {
+  display: block;
+  animation: rb-fadeIn 0.3s ease-out;
+}
+
+@keyframes rb-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rb-accordion-card {
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--rb-border-default);
+  border-radius: 12px;
+  background: var(--rb-bg-card, rgba(255, 255, 255, 0.04));
+  box-shadow: none;
+  transition: border-color 150ms ease;
+}
+
+.rb-accordion-card:hover {
+  border-color: var(--rb-border-strong, rgba(255, 255, 255, 0.12));
+}
+
+.rb-accordion-header {
+  min-height: 54px;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rb-accordion-header:hover {
+  background: var(--rb-bg-hover, rgba(255, 255, 255, 0.03));
+}
+
+.rb-accordion-trigger {
+  min-height: 54px;
+  padding: 0.85rem 0.5rem 0.85rem 0;
+  font-weight: 600;
+}
+
+.rb-accordion-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--rb-accent-subtle, rgba(99, 102, 241, 0.15));
+  color: var(--rb-accent-primary, #6366f1);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.rb-accordion-title {
+  flex: 1;
+  color: var(--rb-text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.rb-section-completeness,
+.rb-accordion-badge {
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.rb-accordion-chevron {
+  color: var(--rb-text-tertiary);
+  transition: transform 220ms ease;
+  flex-shrink: 0;
+}
+
+.rb-accordion-body {
+  border-top: 1px solid var(--rb-border-default);
+  padding: 0 1rem 1rem;
+}
+
+.rb-accordion-body input,
+.rb-accordion-body textarea,
+.rb-accordion-body select {
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.rb-section-type-label {
+  margin-bottom: 0.25rem;
+  color: var(--rb-text-tertiary);
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.rb-preview-topbar {
+  display: flex;
+  grid-template-columns: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.rb-preview-title {
+  min-width: 120px;
+  margin-right: auto;
+}
+
+.rb-preview-topbar .rb-template-picker {
+  min-width: 260px;
+}
+
+.rb-preview-topbar .resume-preview-meta {
+  align-items: flex-end;
+  min-width: 110px;
+}
+
+#rb-preview-pane {
+  overflow: auto;
+}
+
+.rb-page-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--rb-border-default);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  color: var(--rb-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.rb-paper-size-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.rb-paper-size-toggle__label {
+  color: var(--rb-text-secondary);
+  font-size: 0.72rem;
+}
+
+.rb-paper-size-btn {
+  border: 1px solid var(--rb-border-default);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--rb-text-secondary);
+  cursor: pointer;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.72rem;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.rb-paper-size-btn.rb-paper-size-btn--active,
+.rb-paper-size-btn[aria-pressed="true"] {
+  border-color: var(--rb-accent-primary);
+  background: var(--rb-accent-primary);
+  color: #ffffff;
+}
+
+.rb-preview-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rb-download-btn-group {
+  position: relative;
+}
+
+.rb-btn-download-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--rb-accent-primary, #4f6ef7);
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.45rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: opacity 150ms ease;
+}
+
+.rb-btn-download-primary:hover {
+  opacity: 0.9;
+}
+
+.rb-btn-download-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.rb-download-dropdown,
+.rb-more-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  min-width: 180px;
+  border: 1px solid var(--rb-border-default);
+  border-radius: 8px;
+  background: var(--rb-bg-secondary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  padding: 0.35rem;
+}
+
+.rb-download-dropdown[hidden],
+.rb-more-dropdown[hidden] {
+  display: none;
+}
+
+.rb-download-option,
+.rb-more-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--rb-text-primary);
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+  text-align: left;
+  transition: background 120ms ease;
+}
+
+.rb-download-option:hover,
+.rb-more-option:hover {
+  background: var(--rb-bg-hover, rgba(255, 255, 255, 0.06));
+}
+
+.rb-download-option:disabled,
+.rb-more-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.rb-preview-more-btn {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--rb-border-default);
+  border-radius: 6px;
+  background: var(--rb-bg-secondary);
+  color: var(--rb-text-primary);
+  cursor: pointer;
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.rb-preview-more-btn:hover {
+  background: var(--rb-bg-hover);
+}
+
+#rb-preview-pane .rb-resume-doc.rb-paper-letter {
+  flex: 0 0 auto;
+  width: 816px;
+  max-width: 816px;
+  min-height: 1056px;
+  background-color: #ffffff;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #ffffff 0,
+    #ffffff 1055px,
+    rgba(0, 0, 0, 0.08) 1055px,
+    rgba(0, 0, 0, 0.08) 1056px
+  );
+}
+
+#rb-preview-pane .rb-resume-doc.rb-paper-a4 {
+  flex: 0 0 auto;
+  width: 794px;
+  max-width: 794px;
+  min-height: 1123px;
+  background-color: #ffffff;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #ffffff 0,
+    #ffffff 1122px,
+    rgba(0, 0, 0, 0.08) 1122px,
+    rgba(0, 0, 0, 0.08) 1123px
+  );
+}
+
+.rb-preview-pane.rb-preview-generating {
+  position: relative;
+}
+
+.rb-preview-pane.rb-preview-generating::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(1px);
+  pointer-events: none;
+}
+
+.rb-preview-pane.rb-preview-generating::before {
+  content: '\2726 Generating resume...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 6;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--rb-border-default);
+  border-radius: 999px;
+  background: var(--rb-bg-secondary, #1a1a2e);
+  color: var(--rb-text-primary);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.rb-add-section-modal {
+  z-index: 1400;
+}
+
+.rb-add-section-modal__backdrop {
+  z-index: 1399;
+}
+
+.rb-add-section-modal__panel {
+  z-index: 1401;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.resume-panel[data-panel="ats"] {
+  max-width: 900px;
+  margin-inline: auto;
+  padding: 1.5rem;
+}
+
+.resume-panel[data-panel="ats"] textarea {
+  min-height: 200px;
+  max-height: 360px;
+}
+
+.resume-panel[data-panel="ats"] #resume-ats-submit,
+.resume-panel[data-panel="ats"] .ats-analyze-btn {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 767px) {
+  #rb-editor-panel.rb-editor-panel {
+    max-width: none;
+    padding-bottom: calc(var(--rb-mobile-nav-height, 70px) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .rb-preview-topbar {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    width: 100%;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rb-preview-topbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rb-preview-topbar .rb-template-picker,
+  .rb-preview-title,
+  .rb-preview-topbar .resume-preview-meta,
+  .rb-paper-size-toggle,
+  .rb-preview-actions {
+    flex: 0 0 auto;
+  }
+
+  #rb-add-section-btn {
+    min-height: 52px;
+    margin: 0.5rem 0;
+    border-radius: 12px;
+    font-size: 0.9rem;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-mobile-preview-view {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    display: flex;
+    flex-direction: column;
+    background: #1a1a1a;
+    overflow-y: auto;
+    padding: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-preview-panel {
+    position: static;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    background: #1a1a1a;
+    overflow: visible;
+    padding: 0;
+  }
+
+  #rb-mobile-preview-close {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    padding: 0.6rem 1rem;
+  }
+
+  #rb-mobile-preview-close .rb-preview-close-btn {
+    display: flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-preview-pane,
+  #rb-mobile-preview-view #rb-preview-pane {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: visible;
+    padding: 16px 0;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-preview-pane .rb-resume-doc,
+  #rb-mobile-preview-view #rb-preview-pane .rb-resume-doc {
+    max-width: none;
+    margin: 0 auto;
+    box-shadow: none;
+    transform-origin: top center;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-preview-pane .rb-resume-doc.rb-paper-letter,
+  #rb-mobile-preview-view #rb-preview-pane .rb-resume-doc.rb-paper-letter {
+    width: 816px;
+    min-width: 816px;
+  }
+
+  .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-preview-pane .rb-resume-doc.rb-paper-a4,
+  #rb-mobile-preview-view #rb-preview-pane .rb-resume-doc.rb-paper-a4 {
+    width: 794px;
+    min-width: 794px;
+  }
+
+  #rb-mobile-preview-download {
+    position: sticky;
+    bottom: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    padding: 0.75rem 1rem;
+  }
+
+  #rb-mobile-preview-download button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--rb-accent-primary, #4f6ef7);
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .rb-add-section-modal {
+    align-items: end;
+    padding: 0;
+  }
+
+  .rb-add-section-modal__panel {
+    position: fixed;
+    right: 0;
+    bottom: calc(var(--rb-mobile-nav-height, 70px) + env(safe-area-inset-bottom, 0px));
+    left: 0;
+    width: 100%;
+    max-height: calc(100vh - var(--rb-mobile-nav-height, 70px) - 24px);
+    border-radius: 16px 16px 0 0;
+    overflow-y: auto;
+  }
+
+  .rb-add-section-modal__backdrop {
+    position: fixed;
+    inset: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .rb-accordion-card {
+    border-right: none;
+    border-left: none;
+    border-radius: 0;
+  }
+}

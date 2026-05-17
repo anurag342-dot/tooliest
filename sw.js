@@ -1,4 +1,4 @@
-const ASSET_VERSION = '20260516-5701df28';
+const ASSET_VERSION = '20260517-f17eb473';
 // [TOOLIEST AUDIT] Tie the offline cache name to the asset version so old release caches are purged automatically.
 const CACHE_NAME = `tooliest-${ASSET_VERSION}-offline`;
 const EXTERNAL_TOOL_MODULES = [
