@@ -3661,7 +3661,7 @@ function getResumePrintStyles() {
     .rb-resume-section-title {
       display: block;
       margin: 0;
-      padding-bottom: 0.055in;
+      padding-bottom: 0.075in;
       font-family: "Times New Roman", Georgia, serif;
       font-size: 11pt;
       font-weight: 700;
@@ -3670,15 +3670,25 @@ function getResumePrintStyles() {
       text-transform: uppercase;
       color: #111111;
       background: #ffffff;
+      border: 0;
+      box-shadow: none;
+      text-decoration: none;
       break-after: avoid;
       page-break-after: avoid;
+    }
+
+    .rb-resume-section-title::before,
+    .rb-resume-section-title::after {
+      content: none;
+      display: none;
     }
 
     .rb-resume-section-divider {
       display: block;
       width: 100%;
       height: 0;
-      margin: 0 0 0.085in;
+      margin: 0 0 0.1in;
+      padding: 0;
       border: 0;
       border-top: 1.5px solid #111111;
       clear: both;
@@ -3754,13 +3764,13 @@ function getResumePrintStyles() {
       font-size: 10pt;
       letter-spacing: 0.055em;
       color: #24364f;
-      padding-bottom: 0.05in;
+      padding-bottom: 0.075in;
     }
 
     .rb-resume-doc.rb-tpl-modern .rb-resume-section-divider {
       width: 1.1in;
       border-top: 2pt solid #3b4f6b;
-      margin-bottom: 0.075in;
+      margin-bottom: 0.09in;
     }
 
     .rb-resume-doc.rb-tpl-modern .rb-resume-line,
@@ -3813,12 +3823,12 @@ function getResumePrintStyles() {
     .rb-resume-doc.rb-tpl-compact .rb-resume-section-title {
       font-size: 9.5pt;
       letter-spacing: 0.055em;
-      padding-bottom: 0.04in;
+      padding-bottom: 0.065in;
     }
 
     .rb-resume-doc.rb-tpl-compact .rb-resume-section-divider {
       border-top: 0.75pt solid #333333;
-      margin-bottom: 0.06in;
+      margin-bottom: 0.075in;
     }
 
     .rb-resume-doc.rb-tpl-compact .rb-resume-line,
