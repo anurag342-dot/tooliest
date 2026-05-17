@@ -1895,6 +1895,24 @@ function isResumeDividerLine(line) {
     && /^[-_=\u2010\u2011\u2012\u2013\u2014\u2015\u2212\u2500\u2501\u2550]+$/.test(compact);
 }
 
+const RESUME_DIVIDER_CHARS_PATTERN = '[-_=\\u2010\\u2011\\u2012\\u2013\\u2014\\u2015\\u2212\\u2500\\u2501\\u2550]';
+const RESUME_TRAILING_DIVIDER_RE = new RegExp(`(?:\\s|^)(?:${RESUME_DIVIDER_CHARS_PATTERN}){3,}\\s*$`, 'u');
+const RESUME_LEADING_DIVIDER_RE = new RegExp(`^\\s*(?:${RESUME_DIVIDER_CHARS_PATTERN}){3,}(?:\\s|$)`, 'u');
+
+function stripResumeDividerDecoration(value) {
+  let cleaned = String(value || '').trim();
+  let previous = '';
+  while (cleaned && cleaned !== previous) {
+    previous = cleaned;
+    cleaned = cleaned
+      .replace(RESUME_TRAILING_DIVIDER_RE, '')
+      .replace(RESUME_LEADING_DIVIDER_RE, '')
+      .replace(/[\s:|]+$/g, '')
+      .trim();
+  }
+  return cleaned;
+}
+
 const RESUME_SECTION_TITLES = new Map([
   ['SUMMARY', 'PROFESSIONAL SUMMARY'],
   ['OBJECTIVE', 'PROFESSIONAL SUMMARY'],
@@ -1937,9 +1955,9 @@ const RESUME_SECTION_TITLES = new Map([
 ]);
 
 function normalizeResumeSectionHeading(value) {
-  return String(value || '')
+  return stripResumeDividerDecoration(value)
     .trim()
-    .replace(/:$/, '')
+    .replace(/[\s:|]+$/, '')
     .replace(/\s+/g, ' ')
     .toUpperCase();
 }
@@ -1955,11 +1973,7 @@ function getCustomResumeSectionTitle(line, state = resumeExportState) {
 }
 
 function getResumeSectionTitle(line, state = resumeExportState) {
-  const normalized = String(line || '')
-    .trim()
-    .replace(/:$/, '')
-    .replace(/\s+/g, ' ')
-    .toUpperCase();
+  const normalized = normalizeResumeSectionHeading(line);
   return RESUME_SECTION_TITLES.get(normalized) || getCustomResumeSectionTitle(normalized, state) || null;
 }
 
@@ -3646,7 +3660,8 @@ function getResumePrintStyles() {
 
     .rb-resume-section-title {
       display: block;
-      margin: 0 0 0.05in;
+      margin: 0;
+      padding-bottom: 0.055in;
       font-family: "Times New Roman", Georgia, serif;
       font-size: 11pt;
       font-weight: 700;
@@ -3663,7 +3678,7 @@ function getResumePrintStyles() {
       display: block;
       width: 100%;
       height: 0;
-      margin: 0 0 0.075in;
+      margin: 0 0 0.085in;
       border: 0;
       border-top: 1.5px solid #111111;
       clear: both;
@@ -3739,13 +3754,13 @@ function getResumePrintStyles() {
       font-size: 10pt;
       letter-spacing: 0.055em;
       color: #24364f;
-      margin-bottom: 0.045in;
+      padding-bottom: 0.05in;
     }
 
     .rb-resume-doc.rb-tpl-modern .rb-resume-section-divider {
       width: 1.1in;
       border-top: 2pt solid #3b4f6b;
-      margin-bottom: 0.065in;
+      margin-bottom: 0.075in;
     }
 
     .rb-resume-doc.rb-tpl-modern .rb-resume-line,
@@ -3798,12 +3813,12 @@ function getResumePrintStyles() {
     .rb-resume-doc.rb-tpl-compact .rb-resume-section-title {
       font-size: 9.5pt;
       letter-spacing: 0.055em;
-      margin-bottom: 0.035in;
+      padding-bottom: 0.04in;
     }
 
     .rb-resume-doc.rb-tpl-compact .rb-resume-section-divider {
       border-top: 0.75pt solid #333333;
-      margin-bottom: 0.05in;
+      margin-bottom: 0.06in;
     }
 
     .rb-resume-doc.rb-tpl-compact .rb-resume-line,
