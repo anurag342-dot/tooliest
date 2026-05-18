@@ -1672,6 +1672,7 @@ function getOrCreateUserId() {
 }
 
 let _cachedFingerprint = null;
+let _cachedDeviceFingerprint = null;
 
 function djb2Hash(str) {
   let hash = 5381;
@@ -1705,6 +1706,36 @@ function generateBrowserFingerprint() {
   return djb2Hash(signals);
 }
 
+function getScreenShape(scr) {
+  const width = Number(scr.width || 0);
+  const height = Number(scr.height || 0);
+  if (!width || !height) return '0x0';
+  return `${Math.max(width, height)}x${Math.min(width, height)}`;
+}
+
+function generateDeviceFingerprint() {
+  const nav = typeof navigator === 'undefined' ? {} : navigator;
+  const scr = typeof screen === 'undefined' ? {} : screen;
+  let timeZone = '';
+  try {
+    timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  } catch (_) {
+    timeZone = '';
+  }
+  const signals = [
+    nav.language || '',
+    String(nav.hardwareConcurrency || 0),
+    String(nav.deviceMemory || 0),
+    String(scr.colorDepth || 0),
+    getScreenShape(scr),
+    String(new Date().getTimezoneOffset()),
+    timeZone,
+    nav.platform || '',
+    nav.userAgentData?.platform || '',
+  ].join('|');
+  return djb2Hash(signals);
+}
+
 function getCachedFingerprint() {
   if (!_cachedFingerprint) {
     _cachedFingerprint = generateBrowserFingerprint();
@@ -1712,10 +1743,18 @@ function getCachedFingerprint() {
   return _cachedFingerprint;
 }
 
+function getCachedDeviceFingerprint() {
+  if (!_cachedDeviceFingerprint) {
+    _cachedDeviceFingerprint = generateDeviceFingerprint();
+  }
+  return _cachedDeviceFingerprint;
+}
+
 function getAiProxyHeaders() {
   return {
     'X-Tooliest-User-ID': getOrCreateUserId(),
     'X-Tooliest-FP': getCachedFingerprint(),
+    'X-Tooliest-Device-FP': getCachedDeviceFingerprint(),
   };
 }
 

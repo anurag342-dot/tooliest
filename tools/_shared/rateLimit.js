@@ -173,6 +173,7 @@ function quotaStatusKey(tool, extraHeaders = {}) {
     tool,
     String(extraHeaders['X-Tooliest-User-ID'] || ''),
     String(extraHeaders['X-Tooliest-FP'] || ''),
+    String(extraHeaders['X-Tooliest-Device-FP'] || ''),
   ].join(':');
 }
 

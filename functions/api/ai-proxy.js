@@ -63,7 +63,7 @@ function getAllowedOrigin(request, env) {
 function corsHeaders(origin) {
   const headers = {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Accept, X-Tooliest-User-ID, X-Tooliest-FP',
+    'Access-Control-Allow-Headers': 'Content-Type, Accept, X-Tooliest-User-ID, X-Tooliest-FP, X-Tooliest-Device-FP',
     'Access-Control-Max-Age': '86400',
     'Cache-Control': 'no-store',
     'Content-Type': 'application/json',
@@ -111,12 +111,20 @@ function getQuotaKey(ip, tool, date = new Date()) {
   return `rl:${ip}:${tool}:${getQuotaDateKey(date)}`;
 }
 
+function getNetworkQuotaKey(network, tool, date = new Date()) {
+  return `rl_net:${encodeQuotaPart(network)}:${encodeQuotaPart(tool)}:${getQuotaDateKey(date)}`;
+}
+
 function getUserQuotaKey(userId, date = new Date()) {
   return `rl_uid:${userId}:${getQuotaDateKey(date)}`;
 }
 
 function getFingerprintQuotaKey(fingerprint, date = new Date()) {
   return `rl_fp:${fingerprint}:${getQuotaDateKey(date)}`;
+}
+
+function getDeviceFingerprintQuotaKey(deviceFingerprint, date = new Date()) {
+  return `rl_dfp:${deviceFingerprint}:${getQuotaDateKey(date)}`;
 }
 
 function encodeQuotaPart(value) {
@@ -127,12 +135,20 @@ function getIPUsagePrefix(ip, tool, date = new Date()) {
   return `rl_evt:ip:${encodeQuotaPart(ip)}:${encodeQuotaPart(tool)}:${getQuotaDateKey(date)}:`;
 }
 
+function getNetworkUsagePrefix(network, tool, date = new Date()) {
+  return `rl_evt:net:${encodeQuotaPart(network)}:${encodeQuotaPart(tool)}:${getQuotaDateKey(date)}:`;
+}
+
 function getUserUsagePrefix(userId, date = new Date()) {
   return `rl_evt:uid:${userId}:${getQuotaDateKey(date)}:`;
 }
 
 function getFingerprintUsagePrefix(fingerprint, date = new Date()) {
   return `rl_evt:fp:${fingerprint}:${getQuotaDateKey(date)}:`;
+}
+
+function getDeviceFingerprintUsagePrefix(deviceFingerprint, date = new Date()) {
+  return `rl_evt:dfp:${deviceFingerprint}:${getQuotaDateKey(date)}:`;
 }
 
 function parseRateLimitCount(data) {
@@ -144,10 +160,30 @@ function parseRateLimitCount(data) {
 function getRateLimitIdentity(request) {
   const rawUserId = String(request.headers.get('X-Tooliest-User-ID') || '').trim().toLowerCase();
   const rawFingerprint = String(request.headers.get('X-Tooliest-FP') || '').trim().toLowerCase();
+  const rawDeviceFingerprint = String(request.headers.get('X-Tooliest-Device-FP') || '').trim().toLowerCase();
   return {
     userId: /^[0-9a-f-]{36}$/i.test(rawUserId) ? rawUserId : '',
     fingerprint: /^[0-9a-f]{8}$/i.test(rawFingerprint) ? rawFingerprint : '',
+    deviceFingerprint: /^[0-9a-f]{8}$/i.test(rawDeviceFingerprint) ? rawDeviceFingerprint : '',
   };
+}
+
+function getIPNetworkBucket(ip) {
+  const value = String(ip || '').trim().toLowerCase();
+  const ipv4 = value.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const octets = ipv4.slice(1).map((part) => Number(part));
+    if (octets.every((part) => Number.isInteger(part) && part >= 0 && part <= 255)) {
+      return `v4:${octets[0]}.${octets[1]}.${octets[2]}.0/24`;
+    }
+  }
+
+  if (value.includes(':')) {
+    const hextets = value.split(':').filter(Boolean).slice(0, 3);
+    if (hextets.length) return `v6:${hextets.join(':')}::/48`;
+  }
+
+  return '';
 }
 
 function getRateLimitEntries(ip, tool, identity = {}, date = new Date()) {
@@ -156,6 +192,14 @@ function getRateLimitEntries(ip, tool, identity = {}, date = new Date()) {
     key: getQuotaKey(ip, tool, date),
     usagePrefix: getIPUsagePrefix(ip, tool, date),
   }];
+  const network = getIPNetworkBucket(ip);
+  if (network) {
+    entries.push({
+      signal: 'network',
+      key: getNetworkQuotaKey(network, tool, date),
+      usagePrefix: getNetworkUsagePrefix(network, tool, date),
+    });
+  }
   if (identity.userId) {
     entries.push({
       signal: 'uid',
@@ -168,6 +212,13 @@ function getRateLimitEntries(ip, tool, identity = {}, date = new Date()) {
       signal: 'fp',
       key: getFingerprintQuotaKey(identity.fingerprint, date),
       usagePrefix: getFingerprintUsagePrefix(identity.fingerprint, date),
+    });
+  }
+  if (identity.deviceFingerprint) {
+    entries.push({
+      signal: 'dfp',
+      key: getDeviceFingerprintQuotaKey(identity.deviceFingerprint, date),
+      usagePrefix: getDeviceFingerprintUsagePrefix(identity.deviceFingerprint, date),
     });
   }
   return entries;
