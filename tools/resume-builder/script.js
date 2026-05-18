@@ -1671,6 +1671,54 @@ function getOrCreateUserId() {
   }
 }
 
+let _cachedFingerprint = null;
+
+function djb2Hash(str) {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i += 1) {
+    hash = ((hash << 5) + hash) ^ str.charCodeAt(i);
+    hash = hash >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0').slice(-8);
+}
+
+function generateBrowserFingerprint() {
+  const nav = typeof navigator === 'undefined' ? {} : navigator;
+  const scr = typeof screen === 'undefined' ? {} : screen;
+  let timeZone = '';
+  try {
+    timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  } catch (_) {
+    timeZone = '';
+  }
+  const signals = [
+    nav.userAgent || '',
+    nav.language || '',
+    (nav.languages || []).join(','),
+    String(nav.hardwareConcurrency || 0),
+    String(scr.colorDepth || 0),
+    String(scr.width || 0),
+    String(scr.height || 0),
+    String(new Date().getTimezoneOffset()),
+    timeZone,
+  ].join('|');
+  return djb2Hash(signals);
+}
+
+function getCachedFingerprint() {
+  if (!_cachedFingerprint) {
+    _cachedFingerprint = generateBrowserFingerprint();
+  }
+  return _cachedFingerprint;
+}
+
+function getAiProxyHeaders() {
+  return {
+    'X-Tooliest-User-ID': getOrCreateUserId(),
+    'X-Tooliest-FP': getCachedFingerprint(),
+  };
+}
+
 function getApiHeaders() {
   return {
     'Content-Type': 'application/json',
@@ -5827,9 +5875,10 @@ export async function initResumeBuilderTool(container) {
   let quotaUiSyncPending = false;
 
   function renderQuotaMounts() {
-    renderQuota(TOOL_KEY, atsQuotaMount);
-    renderQuota(TOOL_KEY, builderQuotaMount);
-    renderQuota(TOOL_KEY, coverLetterQuotaMount);
+    const aiHeaders = getAiProxyHeaders();
+    renderQuota(TOOL_KEY, atsQuotaMount, aiHeaders);
+    renderQuota(TOOL_KEY, builderQuotaMount, aiHeaders);
+    renderQuota(TOOL_KEY, coverLetterQuotaMount, aiHeaders);
   }
 
   function applyQuotaLabels() {
@@ -5843,7 +5892,7 @@ export async function initResumeBuilderTool(container) {
     applyQuotaLabels();
     if (quotaUiSyncPending) return;
     quotaUiSyncPending = true;
-    refreshQuotaStatus(TOOL_KEY)
+    refreshQuotaStatus(TOOL_KEY, getAiProxyHeaders())
       .then(() => {
         renderQuotaMounts();
         applyQuotaLabels();
@@ -7014,6 +7063,7 @@ export async function initResumeBuilderTool(container) {
         userContent: buildCoverLetterPrompt(settings),
         maxTokens: 1200,
         temperature: 0.65,
+        extraHeaders: getAiProxyHeaders(),
       });
       const letter = getAIResultText(result);
       if (!letter) throw new Error('The AI returned an empty cover letter.');
@@ -8567,6 +8617,7 @@ export async function initResumeBuilderTool(container) {
         userContent,
         maxTokens: 1800,
         temperature: 0.1,
+        extraHeaders: getAiProxyHeaders(),
       });
 
       let parsed = parseImportJsonResponse(getAIResultText(firstAttempt));
@@ -8579,6 +8630,7 @@ export async function initResumeBuilderTool(container) {
           temperature: 0,
           chargeQuota: false,
           skipModels: firstAttempt.model ? [firstAttempt.model] : [],
+          extraHeaders: getAiProxyHeaders(),
         });
         parsed = parseImportJsonResponse(getAIResultText(retryAttempt));
       }
@@ -9075,6 +9127,7 @@ export async function initResumeBuilderTool(container) {
         userContent: `Target Role: ${getTargetRoleValue()}\n\nCurrent Summary:\n${currentSummary}`,
         maxTokens: 350,
         temperature: 0.4,
+        extraHeaders: getAiProxyHeaders(),
       });
       const improved = getAIResultText(result);
       if (!improved) throw new Error('The AI returned an empty summary.');
@@ -9138,6 +9191,7 @@ export async function initResumeBuilderTool(container) {
         userContent: `Job Title: ${jobTitle}\nCompany: ${company}\n\nCurrent Bullets:\n${bullets.map((bullet, index) => `${index + 1}. ${bullet}`).join('\n')}`,
         maxTokens: 400,
         temperature: 0.35,
+        extraHeaders: getAiProxyHeaders(),
       });
       const improvedBullets = parseImprovedBulletResponse(getAIResultText(result)).slice(0, 3);
       if (!improvedBullets.length) throw new Error('The AI returned no usable bullets.');
@@ -9197,6 +9251,7 @@ export async function initResumeBuilderTool(container) {
         userContent: `Target Role: ${getTargetRoleValue()}\n\nCurrent Skills:\n${currentSkills}`,
         maxTokens: 300,
         temperature: 0.3,
+        extraHeaders: getAiProxyHeaders(),
       });
       const improved = normalizeSkillsText(getAIResultText(result));
       if (!improved) throw new Error('The AI returned an empty skills response.');
@@ -9278,6 +9333,7 @@ export async function initResumeBuilderTool(container) {
         userContent,
         maxTokens: 1800,
         temperature: 0.2,
+        extraHeaders: getAiProxyHeaders(),
       });
 
       let parsed = parsePossiblyWrappedJson(getAIResultText(firstAttempt));
@@ -9290,6 +9346,7 @@ export async function initResumeBuilderTool(container) {
           temperature: 0.15,
           chargeQuota: false,
           skipModels: firstAttempt.model ? [firstAttempt.model] : [],
+          extraHeaders: getAiProxyHeaders(),
         });
         parsed = parsePossiblyWrappedJson(getAIResultText(retryAttempt));
       }
@@ -9356,6 +9413,7 @@ export async function initResumeBuilderTool(container) {
         userContent,
         maxTokens: 1800,
         temperature: 0.2,
+        extraHeaders: getAiProxyHeaders(),
       });
 
       let parsed = parsePossiblyWrappedJson(firstAttempt.text);
@@ -9370,6 +9428,7 @@ export async function initResumeBuilderTool(container) {
           temperature: 0.15,
           chargeQuota: false,
           skipModels: firstAttempt.model ? [firstAttempt.model] : [],
+          extraHeaders: getAiProxyHeaders(),
         });
         parsed = parsePossiblyWrappedJson(retryAttempt.text);
       }
@@ -9491,6 +9550,7 @@ export async function initResumeBuilderTool(container) {
         userContent: buildResumePrompt(state),
         maxTokens: 1800,
         temperature: 0.55,
+        extraHeaders: getAiProxyHeaders(),
       });
 
       state.generatedResume = normalizeGeneratedResumeIdentity(result.text.trim(), state);

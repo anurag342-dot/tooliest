@@ -9,6 +9,7 @@ const MAX_TOKENS_DEFAULT = 2048;
 const MAX_TOKENS_LIMIT = 4096;
 const DEFAULT_TEMPERATURE = 0.7;
 const PER_TOOL_DAILY_LIMIT = 15;
+const RATE_LIMIT_TTL_SECONDS = 86400;
 
 const CHAINS = {
   'resume-builder': ['openai/gpt-oss-120b:free', 'nvidia/nemotron-3-super-120b-a12b:free', 'meta-llama/llama-3.3-70b-instruct:free'],
@@ -62,7 +63,7 @@ function getAllowedOrigin(request, env) {
 function corsHeaders(origin) {
   const headers = {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Accept, X-Tooliest-User-ID, X-Tooliest-FP',
     'Access-Control-Max-Age': '86400',
     'Cache-Control': 'no-store',
     'Content-Type': 'application/json',
@@ -110,52 +111,111 @@ function getQuotaKey(ip, tool, date = new Date()) {
   return `rl:${ip}:${tool}:${getQuotaDateKey(date)}`;
 }
 
-function getQuotaExpirationTtl(date = new Date()) {
-  const resetAt = getQuotaResetAt(date);
-  return Math.max(60, Math.ceil((resetAt.getTime() - date.getTime()) / 1000) + 3600);
+function getUserQuotaKey(userId, date = new Date()) {
+  return `rl_uid:${userId}:${getQuotaDateKey(date)}`;
 }
 
-async function readIPLimit(env, ip, tool) {
-  const resetAt = getQuotaResetAt();
+function getFingerprintQuotaKey(fingerprint, date = new Date()) {
+  return `rl_fp:${fingerprint}:${getQuotaDateKey(date)}`;
+}
+
+function parseRateLimitCount(data) {
+  if (!data) return 0;
+  const parsed = parseInt(data, 10);
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+}
+
+function getRateLimitIdentity(request) {
+  const rawUserId = String(request.headers.get('X-Tooliest-User-ID') || '').trim().toLowerCase();
+  const rawFingerprint = String(request.headers.get('X-Tooliest-FP') || '').trim().toLowerCase();
+  return {
+    userId: /^[0-9a-f-]{36}$/i.test(rawUserId) ? rawUserId : '',
+    fingerprint: /^[0-9a-f]{8}$/i.test(rawFingerprint) ? rawFingerprint : '',
+  };
+}
+
+function getRateLimitEntries(ip, tool, identity = {}, date = new Date()) {
+  const entries = [{ signal: 'ip', key: getQuotaKey(ip, tool, date) }];
+  if (identity.userId) {
+    entries.push({ signal: 'uid', key: getUserQuotaKey(identity.userId, date) });
+  }
+  if (identity.fingerprint) {
+    entries.push({ signal: 'fp', key: getFingerprintQuotaKey(identity.fingerprint, date) });
+  }
+  return entries;
+}
+
+async function readRateLimitStatus(env, ip, tool, identity = {}) {
+  const now = new Date();
+  const resetAt = getQuotaResetAt(now);
+  const entries = getRateLimitEntries(ip, tool, identity, now);
   try {
-    const key = getQuotaKey(ip, tool);
-    const current = parseInt((await env.TOOLIEST_KV.get(key)) || '0', 10);
-    const count = Number.isFinite(current) ? Math.max(0, current) : 0;
+    const values = await Promise.all(entries.map((entry) => env.TOOLIEST_KV.get(entry.key)));
+    const counters = entries.map((entry, index) => ({
+      ...entry,
+      count: parseRateLimitCount(values[index]),
+    }));
+    const maxCount = counters.reduce((max, entry) => Math.max(max, entry.count), 0);
+    const blocked = counters.some((entry) => entry.count >= PER_TOOL_DAILY_LIMIT);
     return {
-      count,
-      remaining: Math.max(0, PER_TOOL_DAILY_LIMIT - count),
-      resetAt,
+      blocked,
+      counters,
+      maxCount,
       quotaAvailable: true,
+      remaining: Math.max(0, PER_TOOL_DAILY_LIMIT - maxCount),
+      resetAt,
     };
   } catch (error) {
     console.error('KV rate limit read error:', error?.message || 'Unknown error');
-    return { count: 0, remaining: -1, resetAt, quotaAvailable: false };
+    return {
+      blocked: false,
+      counters: entries.map((entry) => ({ ...entry, count: 0 })),
+      maxCount: 0,
+      quotaAvailable: false,
+      remaining: -1,
+      resetAt,
+    };
   }
 }
 
-async function checkIPLimit(env, ip, tool) {
+async function incrementRateLimitStatus(env, quota) {
+  if (!quota?.quotaAvailable) {
+    return { remaining: -1, resetAt: quota?.resetAt || getQuotaResetAt() };
+  }
   try {
-    const quota = await readIPLimit(env, ip, tool);
-    if (quota.remaining <= 0 && quota.remaining !== -1) {
-      return { allowed: false, remaining: 0, resetAt: quota.resetAt };
-    }
-    if (!quota.quotaAvailable || quota.remaining === -1) {
-      return { allowed: true, remaining: -1, resetAt: quota.resetAt };
-    }
-    const current = Math.max(0, quota.count);
-    const key = getQuotaKey(ip, tool);
-    await env.TOOLIEST_KV.put(key, String(current + 1), {
-      expirationTtl: getQuotaExpirationTtl(),
-    });
+    await Promise.all(quota.counters.map((entry) => (
+      env.TOOLIEST_KV.put(entry.key, String(entry.count + 1), {
+        expirationTtl: RATE_LIMIT_TTL_SECONDS,
+      })
+    )));
+    const nextMax = quota.counters.reduce((max, entry) => Math.max(max, entry.count + 1), 0);
     return {
-      allowed: true,
-      remaining: PER_TOOL_DAILY_LIMIT - (current + 1),
+      remaining: Math.max(0, PER_TOOL_DAILY_LIMIT - nextMax),
       resetAt: quota.resetAt,
     };
   } catch (error) {
-    console.error('KV rate limit error:', error?.message || 'Unknown error');
-    return { allowed: true, remaining: -1, resetAt: getQuotaResetAt() };
+    console.error('KV rate limit write error:', error?.message || 'Unknown error');
+    return {
+      remaining: -1,
+      resetAt: quota.resetAt || getQuotaResetAt(),
+    };
   }
+}
+
+function rateLimitExceededResponse(origin, resetAt = getQuotaResetAt()) {
+  return json({
+    error: 'Daily AI limit reached. Try again tomorrow.',
+    message: 'Daily AI limit reached. Try again tomorrow.',
+    remaining: 0,
+    reset_at: resetAt.toISOString(),
+  }, 429, {
+    origin,
+    headers: {
+      'X-RateLimit-Remaining': '0',
+      'X-RateLimit-Reset': resetAt.toISOString(),
+      ...buildRateLimitHeaders(0, resetAt),
+    },
+  });
 }
 
 function sanitizeMessages(messages) {
@@ -273,7 +333,8 @@ export async function onRequestGet({ request, env }) {
   }
 
   const ip = getClientIP(request);
-  const quota = await readIPLimit(env, ip, tool);
+  const identity = getRateLimitIdentity(request);
+  const quota = await readRateLimitStatus(env, ip, tool, identity);
   if (!quota.quotaAvailable || !Number.isFinite(quota.remaining) || quota.remaining < 0) {
     return json({
       error: 'Quota unavailable',
@@ -321,18 +382,12 @@ export async function onRequestPost({ request, env }) {
   }
 
   const ip = getClientIP(request);
-  const { allowed, remaining, resetAt } = await checkIPLimit(env, ip, tool);
-  const rateLimitHeaders = buildRateLimitHeaders(remaining, resetAt);
+  const identity = getRateLimitIdentity(request);
+  const quota = await readRateLimitStatus(env, ip, tool, identity);
+  const rateLimitHeaders = buildRateLimitHeaders(quota.remaining, quota.resetAt);
 
-  if (!allowed) {
-    return json({
-      error: 'Daily limit reached',
-      message: 'You have used all 15 free requests today for this tool.',
-      reset_at: resetAt.toISOString(),
-    }, 429, {
-      origin: responseOrigin,
-      headers: rateLimitHeaders,
-    });
+  if (quota.quotaAvailable && quota.blocked) {
+    return rateLimitExceededResponse(responseOrigin, quota.resetAt);
   }
 
   const apiKey = env.OPENROUTER_API_KEY;
@@ -360,9 +415,10 @@ export async function onRequestPost({ request, env }) {
   for (const model of modelsToTry) {
     try {
       const result = await tryModel(model, messages, maxTokens, temperature, apiKey);
+      const updatedQuota = await incrementRateLimitStatus(env, quota);
       return json(result, 200, {
         origin: responseOrigin,
-        headers: rateLimitHeaders,
+        headers: buildRateLimitHeaders(updatedQuota.remaining, updatedQuota.resetAt),
       });
     } catch (error) {
       const retryable = error?.retryable || error?.code === 429 || (Number.isInteger(error?.code) && error.code >= 500);

@@ -166,16 +166,25 @@ function renderQuotaState(tool, el) {
   el.appendChild(wrapper);
 }
 
-export async function refreshQuotaStatus(tool) {
+function quotaStatusKey(tool, extraHeaders = {}) {
+  return [
+    tool,
+    String(extraHeaders['X-Tooliest-User-ID'] || ''),
+    String(extraHeaders['X-Tooliest-FP'] || ''),
+  ].join(':');
+}
+
+export async function refreshQuotaStatus(tool, extraHeaders = {}) {
   if (!tool) return null;
-  if (quotaStatusPromises.has(tool)) {
-    return quotaStatusPromises.get(tool);
+  const promiseKey = quotaStatusKey(tool, extraHeaders);
+  if (quotaStatusPromises.has(promiseKey)) {
+    return quotaStatusPromises.get(promiseKey);
   }
 
   const promise = (async () => {
     const response = await fetch(`/api/ai-proxy?tool=${encodeURIComponent(tool)}`, {
       method: 'GET',
-      headers: { Accept: 'application/json' },
+      headers: { Accept: 'application/json', ...extraHeaders },
       cache: 'no-store',
     });
     if (!response.ok) {
@@ -192,17 +201,17 @@ export async function refreshQuotaStatus(tool) {
       resetAt: readQuotaState(tool).resetAt,
     };
   })().finally(() => {
-    quotaStatusPromises.delete(tool);
+    quotaStatusPromises.delete(promiseKey);
   });
 
-  quotaStatusPromises.set(tool, promise);
+  quotaStatusPromises.set(promiseKey, promise);
   return promise;
 }
 
-export function renderQuota(tool, el) {
+export function renderQuota(tool, el, extraHeaders = {}) {
   if (!el) return;
   renderQuotaState(tool, el);
-  refreshQuotaStatus(tool)
+  refreshQuotaStatus(tool, extraHeaders)
     .then(() => renderQuotaState(tool, el))
     .catch(() => {});
 }
@@ -221,9 +230,10 @@ export async function callAI({
   temperature = 0.7,
   chargeQuota = true,
   skipModels = [],
+  extraHeaders = {},
 }) {
   if (chargeQuota) {
-    await refreshQuotaStatus(tool).catch(() => null);
+    await refreshQuotaStatus(tool, extraHeaders).catch(() => null);
     if (isQuotaExhausted(tool)) {
       throw createQuotaError(null, tool);
     }
@@ -242,7 +252,10 @@ export async function callAI({
 
   const response = await fetch('/api/ai-proxy', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...extraHeaders,
+    },
     body: JSON.stringify(requestBody),
   });
 
