@@ -119,6 +119,22 @@ function getFingerprintQuotaKey(fingerprint, date = new Date()) {
   return `rl_fp:${fingerprint}:${getQuotaDateKey(date)}`;
 }
 
+function encodeQuotaPart(value) {
+  return encodeURIComponent(String(value || 'unknown'));
+}
+
+function getIPUsagePrefix(ip, tool, date = new Date()) {
+  return `rl_evt:ip:${encodeQuotaPart(ip)}:${encodeQuotaPart(tool)}:${getQuotaDateKey(date)}:`;
+}
+
+function getUserUsagePrefix(userId, date = new Date()) {
+  return `rl_evt:uid:${userId}:${getQuotaDateKey(date)}:`;
+}
+
+function getFingerprintUsagePrefix(fingerprint, date = new Date()) {
+  return `rl_evt:fp:${fingerprint}:${getQuotaDateKey(date)}:`;
+}
+
 function parseRateLimitCount(data) {
   if (!data) return 0;
   const parsed = parseInt(data, 10);
@@ -135,14 +151,46 @@ function getRateLimitIdentity(request) {
 }
 
 function getRateLimitEntries(ip, tool, identity = {}, date = new Date()) {
-  const entries = [{ signal: 'ip', key: getQuotaKey(ip, tool, date) }];
+  const entries = [{
+    signal: 'ip',
+    key: getQuotaKey(ip, tool, date),
+    usagePrefix: getIPUsagePrefix(ip, tool, date),
+  }];
   if (identity.userId) {
-    entries.push({ signal: 'uid', key: getUserQuotaKey(identity.userId, date) });
+    entries.push({
+      signal: 'uid',
+      key: getUserQuotaKey(identity.userId, date),
+      usagePrefix: getUserUsagePrefix(identity.userId, date),
+    });
   }
   if (identity.fingerprint) {
-    entries.push({ signal: 'fp', key: getFingerprintQuotaKey(identity.fingerprint, date) });
+    entries.push({
+      signal: 'fp',
+      key: getFingerprintQuotaKey(identity.fingerprint, date),
+      usagePrefix: getFingerprintUsagePrefix(identity.fingerprint, date),
+    });
   }
   return entries;
+}
+
+async function countUsageRecords(env, prefix) {
+  let count = 0;
+  let cursor;
+  do {
+    const options = { prefix, limit: PER_TOOL_DAILY_LIMIT + 1 };
+    if (cursor) options.cursor = cursor;
+    const page = await env.TOOLIEST_KV.list(options);
+    count += Array.isArray(page?.keys) ? page.keys.length : 0;
+    if (count >= PER_TOOL_DAILY_LIMIT) return count;
+    cursor = page?.cursor;
+    if (page?.list_complete !== false) break;
+  } while (cursor);
+  return count;
+}
+
+function createUsageRecordId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
 async function readRateLimitStatus(env, ip, tool, identity = {}) {
@@ -150,10 +198,15 @@ async function readRateLimitStatus(env, ip, tool, identity = {}) {
   const resetAt = getQuotaResetAt(now);
   const entries = getRateLimitEntries(ip, tool, identity, now);
   try {
-    const values = await Promise.all(entries.map((entry) => env.TOOLIEST_KV.get(entry.key)));
-    const counters = entries.map((entry, index) => ({
-      ...entry,
-      count: parseRateLimitCount(values[index]),
+    const counters = await Promise.all(entries.map(async (entry) => {
+      const [counterValue, usageCount] = await Promise.all([
+        env.TOOLIEST_KV.get(entry.key),
+        countUsageRecords(env, entry.usagePrefix),
+      ]);
+      return {
+        ...entry,
+        count: Math.max(parseRateLimitCount(counterValue), usageCount),
+      };
     }));
     const maxCount = counters.reduce((max, entry) => Math.max(max, entry.count), 0);
     const blocked = counters.some((entry) => entry.count >= PER_TOOL_DAILY_LIMIT);
@@ -178,27 +231,40 @@ async function readRateLimitStatus(env, ip, tool, identity = {}) {
   }
 }
 
-async function incrementRateLimitStatus(env, quota) {
+async function reserveRateLimitUsage(env, quota) {
   if (!quota?.quotaAvailable) {
-    return { remaining: -1, resetAt: quota?.resetAt || getQuotaResetAt() };
+    return { keys: [], remaining: -1, resetAt: quota?.resetAt || getQuotaResetAt() };
   }
+  const usageRecordId = createUsageRecordId();
+  const keys = quota.counters.map((entry) => `${entry.usagePrefix}${usageRecordId}`);
   try {
-    await Promise.all(quota.counters.map((entry) => (
-      env.TOOLIEST_KV.put(entry.key, String(entry.count + 1), {
+    await Promise.all(keys.map((key) => (
+      env.TOOLIEST_KV.put(key, '1', {
         expirationTtl: RATE_LIMIT_TTL_SECONDS,
       })
     )));
     const nextMax = quota.counters.reduce((max, entry) => Math.max(max, entry.count + 1), 0);
     return {
+      keys,
       remaining: Math.max(0, PER_TOOL_DAILY_LIMIT - nextMax),
       resetAt: quota.resetAt,
     };
   } catch (error) {
-    console.error('KV rate limit write error:', error?.message || 'Unknown error');
+    console.error('KV rate limit reservation error:', error?.message || 'Unknown error');
     return {
+      keys: [],
       remaining: -1,
       resetAt: quota.resetAt || getQuotaResetAt(),
     };
+  }
+}
+
+async function releaseRateLimitUsage(env, reservation) {
+  if (!reservation?.keys?.length) return;
+  try {
+    await Promise.all(reservation.keys.map((key) => env.TOOLIEST_KV.delete(key)));
+  } catch (error) {
+    console.error('KV rate limit release error:', error?.message || 'Unknown error');
   }
 }
 
@@ -412,13 +478,15 @@ export async function onRequestPost({ request, env }) {
     });
   }
 
+  const reservation = await reserveRateLimitUsage(env, quota);
+  const reservedRateLimitHeaders = buildRateLimitHeaders(reservation.remaining, reservation.resetAt);
+
   for (const model of modelsToTry) {
     try {
       const result = await tryModel(model, messages, maxTokens, temperature, apiKey);
-      const updatedQuota = await incrementRateLimitStatus(env, quota);
       return json(result, 200, {
         origin: responseOrigin,
-        headers: buildRateLimitHeaders(updatedQuota.remaining, updatedQuota.resetAt),
+        headers: reservedRateLimitHeaders,
       });
     } catch (error) {
       const retryable = error?.retryable || error?.code === 429 || (Number.isInteger(error?.code) && error.code >= 500);
@@ -428,6 +496,7 @@ export async function onRequestPost({ request, env }) {
     }
   }
 
+  await releaseRateLimitUsage(env, reservation);
   return json({ error: 'All models are busy. Please wait 60 seconds and retry.' }, 503, {
     origin: responseOrigin,
     headers: rateLimitHeaders,

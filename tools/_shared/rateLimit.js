@@ -96,7 +96,9 @@ function writeQuotaState(tool, count, resetAt = getQuotaResetAt().toISOString())
 function syncQuotaFromRemaining(tool, remaining, resetAt) {
   if (!Number.isFinite(remaining)) return false;
   const normalizedRemaining = Math.max(0, Math.min(MAX_PER_DAY, Math.round(remaining)));
-  writeQuotaState(tool, MAX_PER_DAY - normalizedRemaining, resetAt || getQuotaResetAt().toISOString());
+  const serverCount = MAX_PER_DAY - normalizedRemaining;
+  const current = readQuotaState(tool);
+  writeQuotaState(tool, Math.max(current.count, serverCount), resetAt || getQuotaResetAt().toISOString());
   return true;
 }
 
@@ -272,8 +274,11 @@ export async function callAI({
   if (chargeQuota) {
     const remainingHeader = Number(response.headers.get('X-RateLimit-Remaining'));
     const resetHeader = response.headers.get('X-RateLimit-Reset') || getQuotaResetAt().toISOString();
+    if (response.ok) {
+      consume(tool);
+    }
     const synced = syncQuotaFromRemaining(tool, remainingHeader, resetHeader);
-    if (!synced && response.ok) {
+    if (!synced && response.ok && getRemaining(tool) === MAX_PER_DAY) {
       consume(tool);
     }
     if (!synced && response.status === 429) {
