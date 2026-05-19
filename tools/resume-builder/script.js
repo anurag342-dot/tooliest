@@ -177,11 +177,12 @@ function setupGlobalErrorBoundary() {
 
 setupGlobalErrorBoundary();
 
-const RESUME_TEMPLATE_OPTIONS = ['classic', 'modern', 'compact'];
+const RESUME_TEMPLATE_OPTIONS = ['classic', 'modern', 'compact', 'meridian'];
 const RESUME_TEMPLATE_CLASSES = {
   classic: 'rb-tpl-classic',
   modern: 'rb-tpl-modern',
   compact: 'rb-tpl-compact',
+  meridian: 'rb-tpl-meridian',
 };
 const RESUME_PAPER_SIZES = {
   letter: {
@@ -788,6 +789,10 @@ function getAlreadyAddedKeywords(state = resumeExportState) {
 
 function normalizeResumeTemplate(template) {
   return RESUME_TEMPLATE_OPTIONS.includes(template) ? template : 'classic';
+}
+
+function isMeridianTemplate(template) {
+  return normalizeResumeTemplate(template) === 'meridian';
 }
 
 function normalizePaperSize(size) {
@@ -2192,8 +2197,10 @@ function renderContactParts(parts) {
 
 function syncTemplatePicker(template) {
   const root = resumeTemplateRoot || document;
+  const normalizedTemplate = normalizeResumeTemplate(template);
+  const fullTemplateActive = isMeridianTemplate(normalizedTemplate);
   root.querySelectorAll('[data-resume-template]').forEach((button) => {
-    const active = button.dataset.resumeTemplate === template;
+    const active = button.dataset.resumeTemplate === normalizedTemplate;
     const wasActive = button.classList.contains('is-active');
     button.classList.toggle('is-active', active);
     button.setAttribute('aria-pressed', String(active));
@@ -2201,6 +2208,9 @@ function syncTemplatePicker(template) {
       button.classList.add('rb-template-pop');
       window.setTimeout(() => button.classList.remove('rb-template-pop'), 220);
     }
+  });
+  root.querySelectorAll('.rb-template-picker').forEach((picker) => {
+    picker.classList.toggle('rb-template-picker--full-template-active', fullTemplateActive);
   });
 }
 
@@ -2274,6 +2284,10 @@ function updateResumePageCount(state = resumeExportState) {
 }
 
 function renderPagedPreview(state = resumeExportState) {
+  if (isMeridianTemplate(state?.template)) {
+    renderLiveResumeFromState(state);
+    return;
+  }
   if (resumePreviewPrefersLive || !state?.generatedResume) {
     renderLiveResumeFromState(state);
   } else {
@@ -2452,6 +2466,186 @@ function resumePageFits(doc, state = resumeExportState) {
   return getResumeDocContentBottom(doc) <= paper.height + 2;
 }
 
+function meridianZoneFits(zone) {
+  if (!zone) return true;
+  return zone.scrollHeight <= zone.clientHeight + 2;
+}
+
+function createMeridianPageFromSource(sourceDoc, state, pageIndex) {
+  const sourceLayout = sourceDoc.querySelector('.rb-meridian-layout');
+  const sourceSidebar = sourceDoc.querySelector('.rb-meridian-sidebar');
+  const sourceMain = sourceDoc.querySelector('.rb-meridian-main');
+  const pageDoc = sourceDoc.cloneNode(false);
+  prepareResumePageDoc(pageDoc, state);
+  pageDoc.classList.add('rb-tpl-meridian');
+  pageDoc.style.position = 'relative';
+  pageDoc.style.overflow = 'hidden';
+
+  const layout = sourceLayout ? sourceLayout.cloneNode(false) : document.createElement('div');
+  layout.className = sourceLayout?.className || 'rb-meridian-layout';
+
+  const sidebar = sourceSidebar ? sourceSidebar.cloneNode(false) : document.createElement('aside');
+  sidebar.className = sourceSidebar?.className || 'rb-meridian-sidebar';
+  const main = sourceMain ? sourceMain.cloneNode(false) : document.createElement('main');
+  main.className = sourceMain?.className || 'rb-meridian-main';
+
+  const sourceSidebarHead = sourceSidebar?.querySelector('.rb-meridian-sidebar-head');
+  const sourceMainHead = sourceMain?.querySelector('.rb-meridian-main-head');
+  if (pageIndex === 0 && sourceSidebarHead) sidebar.appendChild(sourceSidebarHead.cloneNode(true));
+  if (pageIndex === 0 && sourceMainHead) main.appendChild(sourceMainHead.cloneNode(true));
+
+  const sidebarBody = document.createElement('div');
+  sidebarBody.className = 'rb-meridian-sidebar-body';
+  const mainBody = document.createElement('div');
+  mainBody.className = 'rb-meridian-main-body';
+  sidebar.appendChild(sidebarBody);
+  main.appendChild(mainBody);
+  layout.appendChild(sidebar);
+  layout.appendChild(main);
+  pageDoc.appendChild(layout);
+
+  return { pageDoc, sidebarBody, mainBody };
+}
+
+function splitMeridianMainSection(section, appendNode) {
+  const sourceContent = section.querySelector('.rb-meridian-main-content');
+  const items = sourceContent ? Array.from(sourceContent.children) : [];
+  if (items.length < 2) {
+    appendNode(section);
+    return;
+  }
+
+  let segment = null;
+  let segmentContent = null;
+  const startSegment = () => {
+    segment = section.cloneNode(false);
+    Array.from(section.children).forEach((child) => {
+      if (child.classList?.contains('rb-meridian-main-content')) {
+        segmentContent = child.cloneNode(false);
+        segment.appendChild(segmentContent);
+      } else {
+        segment.appendChild(child.cloneNode(true));
+      }
+    });
+    if (!segmentContent) {
+      segmentContent = document.createElement('div');
+      segmentContent.className = 'rb-meridian-main-content';
+      segment.appendChild(segmentContent);
+    }
+  };
+
+  startSegment();
+  items.forEach((item) => {
+    const clone = item.cloneNode(true);
+    segmentContent.appendChild(clone);
+    if (appendNode(segment, { probeOnly: true })) return;
+
+    clone.remove();
+    if (segmentContent.children.length) {
+      appendNode(segment);
+      startSegment();
+      segmentContent.appendChild(clone);
+      return;
+    }
+
+    segmentContent.appendChild(clone);
+  });
+
+  if (segmentContent?.children.length) appendNode(segment);
+}
+
+function paginateMeridianResumePreview(state = resumeExportState) {
+  const container = document.getElementById('rb-preview-pane');
+  const sourceDoc = container?.querySelector(':scope > .rb-resume-doc.rb-tpl-meridian');
+  if (!container || !sourceDoc) return;
+
+  const paper = getResumePaperProfile(state);
+  const sourceClone = sourceDoc.cloneNode(true);
+  prepareResumePageDoc(sourceClone, state);
+  sourceClone.style.position = 'relative';
+  sourceClone.style.overflow = 'hidden';
+
+  const measureHost = document.createElement('div');
+  measureHost.className = 'rb-resume-pagination-measure rb-meridian-pagination-measure';
+  measureHost.setAttribute('aria-hidden', 'true');
+  Object.assign(measureHost.style, {
+    position: 'fixed',
+    left: '-12000px',
+    top: '0',
+    width: `${paper.width}px`,
+    pointerEvents: 'none',
+    visibility: 'hidden',
+    zIndex: '-1',
+  });
+  document.body.appendChild(measureHost);
+
+  const pages = [];
+  const ensurePage = (index) => {
+    while (pages.length <= index) {
+      const page = createMeridianPageFromSource(sourceClone, state, pages.length);
+      pages.push(page);
+      measureHost.appendChild(createResumePageShell(page.pageDoc, state));
+    }
+    return pages[index];
+  };
+
+  const appendToZone = (node, zoneName, options = {}) => {
+    const pageIndex = zoneName === 'sidebar' ? appendToZone.sidebarIndex : appendToZone.mainIndex;
+    const page = ensurePage(pageIndex);
+    const body = zoneName === 'sidebar' ? page.sidebarBody : page.mainBody;
+    const zone = zoneName === 'sidebar' ? page.sidebarBody.parentElement : page.mainBody.parentElement;
+    const clone = node.cloneNode(true);
+    body.appendChild(clone);
+    const fits = meridianZoneFits(zone);
+    if (options.probeOnly) {
+      clone.remove();
+      return fits;
+    }
+    if (fits) return true;
+
+    clone.remove();
+    if (body.children.length === 0) {
+      body.appendChild(clone);
+      return false;
+    }
+
+    if (zoneName === 'sidebar') appendToZone.sidebarIndex += 1;
+    else appendToZone.mainIndex += 1;
+    return appendToZone(node, zoneName);
+  };
+  appendToZone.sidebarIndex = 0;
+  appendToZone.mainIndex = 0;
+
+  Array.from(sourceClone.querySelectorAll('.rb-meridian-sidebar-body > .rb-meridian-side-section'))
+    .forEach((section) => appendToZone(section, 'sidebar'));
+
+  Array.from(sourceClone.querySelectorAll('.rb-meridian-main-body > .rb-meridian-main-section'))
+    .forEach((section) => {
+      const page = ensurePage(appendToZone.mainIndex);
+      const zone = page.mainBody.parentElement;
+      const bodyWasEmpty = page.mainBody.children.length === 0;
+      const testClone = section.cloneNode(true);
+      page.mainBody.appendChild(testClone);
+      const fits = meridianZoneFits(zone);
+      testClone.remove();
+      if (fits || bodyWasEmpty) {
+        if (fits || section.querySelectorAll('.rb-meridian-main-content > *').length < 2) {
+          appendToZone(section, 'main');
+          return;
+        }
+      }
+      splitMeridianMainSection(section, (node, options = {}) => appendToZone(node, 'main', options));
+    });
+
+  measureHost.remove();
+  container.innerHTML = '';
+  pages.forEach((page) => {
+    prepareResumePageDoc(page.pageDoc, state);
+    page.pageDoc.classList.add('rb-tpl-meridian');
+    container.appendChild(createResumePageShell(page.pageDoc, state));
+  });
+}
+
 function cloneResumeSectionFrame(section, options = {}) {
   const clone = section.cloneNode(false);
   Array.from(section.children).forEach((child) => {
@@ -2518,6 +2712,10 @@ function paginateResumePreview(state = resumeExportState) {
   const container = document.getElementById('rb-preview-pane');
   const sourceDoc = container?.querySelector(':scope > .rb-resume-doc');
   if (!container || !sourceDoc) return;
+  if (sourceDoc.classList.contains('rb-tpl-meridian')) {
+    paginateMeridianResumePreview(state);
+    return;
+  }
 
   const paper = getResumePaperProfile(state);
   const sourceClone = sourceDoc.cloneNode(true);
@@ -2598,6 +2796,11 @@ function paginateResumePreview(state = resumeExportState) {
 function renderFormattedPreview(resumeText) {
   const container = document.getElementById('rb-preview-pane');
   if (!container) return;
+
+  if (isMeridianTemplate(resumeExportState?.template) && (hasMeaningfulLiveResumeData(resumeExportState) || String(resumeText || '').trim())) {
+    renderMeridianResumeFromState(resumeExportState);
+    return;
+  }
 
   if (!resumeText || !resumeText.trim()) {
     resumePreviewPrefersLive = true;
@@ -2838,6 +3041,338 @@ function renderCustomResumeSection(state, sectionId) {
   return createResumeSection((cleanResumeValue(customSection.title) || 'CUSTOM SECTION').toUpperCase(), lines);
 }
 
+const MERIDIAN_SIDEBAR_KEYS = new Set(['skills', 'languages', 'certifications', 'courses', 'awards']);
+const MERIDIAN_MAIN_KEYS = new Set(['experience', 'projects', 'education', 'volunteer', 'publications']);
+const MERIDIAN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatMeridianDate(value) {
+  const text = cleanResumeValue(value);
+  const match = text.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return text;
+  const monthIndex = Number(match[2]) - 1;
+  if (monthIndex < 0 || monthIndex > 11) return text;
+  return `${MERIDIAN_MONTHS[monthIndex]} ${match[1]}`;
+}
+
+function renderMeridianTextLine(value, className = 'rb-meridian-text') {
+  const text = cleanResumeValue(value);
+  return text ? `<p class="${className}">${escapeHtml(text)}</p>` : '';
+}
+
+function getMeridianDescriptionLines(value) {
+  return cleanResumeValue(value)
+    .split(/\n+/)
+    .map((line) => line.trim().replace(/^[\s\u2022-]+/, '').trim())
+    .filter(Boolean);
+}
+
+function renderMeridianBullets(value) {
+  const lines = Array.isArray(value) ? value : getMeridianDescriptionLines(value);
+  const bullets = lines.map((line) => cleanResumeValue(line)).filter(Boolean);
+  if (!bullets.length) return '';
+  return `<ul class="rb-meridian-bullets">${bullets.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul>`;
+}
+
+function renderMeridianSideSection(title, body, key = '') {
+  const content = String(body || '').trim();
+  if (!content) return '';
+  return `
+    <section class="rb-meridian-side-section" data-meridian-section="${escapeHtml(key || title)}">
+      <h2 class="rb-meridian-side-title">${escapeHtml(title)}</h2>
+      <div class="rb-meridian-side-rule" aria-hidden="true"></div>
+      <div class="rb-meridian-side-content">${content}</div>
+    </section>`;
+}
+
+function renderMeridianMainSection(title, body, key = '') {
+  const content = String(body || '').trim();
+  if (!content) return '';
+  return `
+    <section class="rb-meridian-main-section" data-meridian-section="${escapeHtml(key || title)}">
+      <h2 class="rb-meridian-main-title">${escapeHtml(title)}</h2>
+      <div class="rb-meridian-main-rule" aria-hidden="true"></div>
+      <div class="rb-meridian-main-content">${content}</div>
+    </section>`;
+}
+
+function renderMeridianContactSection(state) {
+  const parts = [
+    state.personal?.email,
+    state.personal?.phone,
+    state.personal?.location,
+    state.personal?.linkedin,
+    state.personal?.portfolio,
+  ].map(cleanResumeValue).filter(Boolean);
+  if (!parts.length) return '';
+  const body = parts.map((part) => `<p class="rb-meridian-contact-line">${escapeHtml(part)}</p>`).join('');
+  return renderMeridianSideSection('CONTACT', body, 'contact');
+}
+
+function renderMeridianSkillsSection(state) {
+  const skills = parseCommaList(state.skills).map(cleanResumeValue).filter(Boolean);
+  if (!skills.length) return '';
+  const visible = skills.slice(0, 16);
+  const extra = skills.length - visible.length;
+  const body = [
+    ...visible.map((skill) => `<p class="rb-meridian-side-line">${escapeHtml(skill)}</p>`),
+    extra > 0 ? `<p class="rb-meridian-side-muted">+ ${extra} more</p>` : '',
+  ].join('');
+  return renderMeridianSideSection('CORE SKILLS', body, 'skills');
+}
+
+function renderMeridianLanguagesSection(state) {
+  if (!isSectionEnabled(state, 'languages')) return '';
+  const items = (state.languages || []).filter((item) => cleanResumeValue(item?.language));
+  if (!items.length) return '';
+  const body = items.map((item) => {
+    const language = cleanResumeValue(item.language);
+    const proficiency = cleanResumeValue(item.proficiency);
+    return `<p class="rb-meridian-side-line">${escapeHtml(language)}${proficiency ? ` <span>${escapeHtml(proficiency)}</span>` : ''}</p>`;
+  }).join('');
+  return renderMeridianSideSection('LANGUAGES', body, 'languages');
+}
+
+function renderMeridianCertificationsSection(state) {
+  if (!isSectionEnabled(state, 'certifications')) return '';
+  const items = (state.certifications || []).map((item) => {
+    if (typeof item === 'string') return { name: cleanResumeValue(item), meta: '' };
+    const name = cleanResumeValue(item?.name || item?.title);
+    const meta = [item?.issuer, item?.date].map(cleanResumeValue).filter(Boolean).join(', ');
+    return { name, meta };
+  }).filter((item) => item.name);
+  if (!items.length) return '';
+  const body = items.map((item) => `
+    <div class="rb-meridian-side-item">
+      <p class="rb-meridian-side-strong">${escapeHtml(item.name)}</p>
+      ${item.meta ? `<p class="rb-meridian-side-muted">${escapeHtml(item.meta)}</p>` : ''}
+    </div>`).join('');
+  return renderMeridianSideSection('CERTIFICATIONS', body, 'certifications');
+}
+
+function renderMeridianCoursesSection(state) {
+  if (!isSectionEnabled(state, 'courses')) return '';
+  const items = (state.courses || []).filter((course) => cleanResumeValue(course?.name));
+  if (!items.length) return '';
+  const body = items.map((course) => {
+    const name = cleanResumeValue(course.name);
+    const meta = [course.institution, formatMeridianDate(course.date)].map(cleanResumeValue).filter(Boolean).join(', ');
+    return `
+      <div class="rb-meridian-side-item">
+        <p class="rb-meridian-side-strong">${escapeHtml(name)}</p>
+        ${meta ? `<p class="rb-meridian-side-muted">${escapeHtml(meta)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderMeridianSideSection('COURSES', body, 'courses');
+}
+
+function renderMeridianAwardsSection(state) {
+  if (!isSectionEnabled(state, 'awards')) return '';
+  const items = (state.awards || []).filter((award) => cleanResumeValue(award?.title));
+  if (!items.length) return '';
+  const body = items.map((award) => {
+    const title = cleanResumeValue(award.title);
+    const meta = [award.issuer, formatMeridianDate(award.date)].map(cleanResumeValue).filter(Boolean).join(', ');
+    return `
+      <div class="rb-meridian-side-item">
+        <p class="rb-meridian-side-strong">${escapeHtml(title)}</p>
+        ${meta ? `<p class="rb-meridian-side-muted">${escapeHtml(meta)}</p>` : ''}
+        ${renderMeridianTextLine(award.description, 'rb-meridian-side-line')}
+      </div>`;
+  }).join('');
+  return renderMeridianSideSection('AWARDS', body, 'awards');
+}
+
+function renderMeridianSummarySection(state) {
+  const summary = cleanResumeValue(state.summary);
+  return summary ? renderMeridianMainSection('PROFESSIONAL SUMMARY', `<p class="rb-meridian-paragraph">${escapeHtml(summary)}</p>`, 'summary') : '';
+}
+
+function renderMeridianExperienceSection(state) {
+  const items = (state.experiences || []).filter((exp) => cleanResumeValue(exp?.jobTitle || exp?.title));
+  if (!items.length) return '';
+  const body = items.map((exp) => {
+    const role = cleanResumeValue(exp.jobTitle || exp.title);
+    const company = cleanResumeValue(exp.company);
+    const duration = cleanResumeValue(exp.duration || exp.dates);
+    const bullets = [exp.achievement1, exp.achievement2, exp.achievement3].map(cleanResumeValue).filter(Boolean);
+    return `
+      <div class="rb-meridian-item rb-meridian-flow-item">
+        <div class="rb-meridian-row">
+          <strong>${escapeHtml(role)}</strong>
+          ${duration ? `<span>${escapeHtml(duration)}</span>` : ''}
+        </div>
+        ${company ? `<div class="rb-meridian-row rb-meridian-row--meta"><strong>${escapeHtml(company)}</strong><span></span></div>` : ''}
+        ${renderMeridianBullets(bullets)}
+      </div>`;
+  }).join('');
+  return renderMeridianMainSection('PROFESSIONAL EXPERIENCE', body, 'experience');
+}
+
+function renderMeridianEducationSection(state) {
+  const items = (state.educations || []).filter((edu) => cleanResumeValue(edu?.degree));
+  if (!items.length) return '';
+  const body = items.map((edu) => {
+    const degree = cleanResumeValue(edu.degree);
+    const institution = cleanResumeValue(edu.institution);
+    const year = cleanResumeValue(edu.year);
+    const details = [edu.gpa ? `GPA ${cleanResumeValue(edu.gpa)}` : '', edu.courses ? `Coursework: ${cleanResumeValue(edu.courses)}` : '']
+      .filter(Boolean)
+      .join(' | ');
+    return `
+      <div class="rb-meridian-item rb-meridian-flow-item">
+        <div class="rb-meridian-row">
+          <strong>${escapeHtml(degree)}</strong>
+          ${year ? `<span>${escapeHtml(year)}</span>` : ''}
+        </div>
+        ${institution ? `<p class="rb-meridian-school">${escapeHtml(institution)}</p>` : ''}
+        ${details ? `<p class="rb-meridian-detail">${escapeHtml(details)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderMeridianMainSection('EDUCATION', body, 'education');
+}
+
+function renderMeridianProjectsSection(state) {
+  if (!isSectionEnabled(state, 'projects')) return '';
+  const items = (state.projects || []).filter((project) => cleanResumeValue(project?.name));
+  if (!items.length) return '';
+  const body = items.map((project) => {
+    const name = cleanResumeValue(project.name);
+    const link = cleanResumeValue(project.link);
+    const technologies = cleanResumeValue(project.technologies);
+    const description = cleanResumeValue(project.description || project.details);
+    return `
+      <div class="rb-meridian-item rb-meridian-flow-item">
+        <p class="rb-meridian-item-title">${escapeHtml(name)}</p>
+        ${link ? `<p class="rb-meridian-link">${escapeHtml(link)}</p>` : ''}
+        ${technologies ? `<p class="rb-meridian-tech">${escapeHtml(technologies)}</p>` : ''}
+        ${renderMeridianBullets(description)}
+      </div>`;
+  }).join('');
+  return renderMeridianMainSection('PROJECTS', body, 'projects');
+}
+
+function renderMeridianPublicationsSection(state) {
+  if (!isSectionEnabled(state, 'publications')) return '';
+  const items = (state.publications || []).filter((publication) => cleanResumeValue(publication?.title));
+  if (!items.length) return '';
+  const body = items.map((publication) => {
+    const title = cleanResumeValue(publication.title);
+    const meta = [publication.publisher, formatMeridianDate(publication.date)].map(cleanResumeValue).filter(Boolean).join(' | ');
+    const url = cleanResumeValue(publication.url);
+    return `
+      <div class="rb-meridian-item rb-meridian-flow-item">
+        <p class="rb-meridian-item-title">${escapeHtml(title)}</p>
+        ${meta ? `<p class="rb-meridian-muted-line">${escapeHtml(meta)}</p>` : ''}
+        ${url ? `<p class="rb-meridian-link">${escapeHtml(url)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderMeridianMainSection('PUBLICATIONS', body, 'publications');
+}
+
+function renderMeridianVolunteerSection(state) {
+  if (!isSectionEnabled(state, 'volunteer')) return '';
+  const items = (state.volunteer || []).filter((item) => cleanResumeValue(item?.role));
+  if (!items.length) return '';
+  const body = items.map((item) => {
+    const role = cleanResumeValue(item.role);
+    const organization = cleanResumeValue(item.organization);
+    const duration = cleanResumeValue(item.duration);
+    return `
+      <div class="rb-meridian-item rb-meridian-flow-item">
+        <div class="rb-meridian-row">
+          <strong>${escapeHtml(role)}</strong>
+          ${duration ? `<span>${escapeHtml(duration)}</span>` : ''}
+        </div>
+        ${organization ? `<p class="rb-meridian-company">${escapeHtml(organization)}</p>` : ''}
+        ${renderMeridianBullets(item.description)}
+      </div>`;
+  }).join('');
+  return renderMeridianMainSection('VOLUNTEER WORK', body, 'volunteer');
+}
+
+function renderMeridianCustomSection(state, sectionId) {
+  const customSection = (state.customSections || []).find((section) => section.id === sectionId);
+  if (!customSection) return '';
+  const title = cleanResumeValue(customSection.title) || 'CUSTOM SECTION';
+  const entries = (customSection.entries || []).filter((entry) => cleanResumeValue(entry?.body));
+  if (!entries.length) return '';
+  const body = entries.map((entry) => `
+    <div class="rb-meridian-item rb-meridian-flow-item">
+      ${cleanResumeValue(entry.heading) ? `<p class="rb-meridian-item-title">${escapeHtml(cleanResumeValue(entry.heading))}</p>` : ''}
+      <p class="rb-meridian-paragraph">${escapeHtml(cleanResumeValue(entry.body))}</p>
+    </div>`).join('');
+  return renderMeridianMainSection(title.toUpperCase(), body, sectionId);
+}
+
+function renderMeridianSidebarSections(state) {
+  const renderers = {
+    skills: renderMeridianSkillsSection,
+    languages: renderMeridianLanguagesSection,
+    certifications: renderMeridianCertificationsSection,
+    courses: renderMeridianCoursesSection,
+    awards: renderMeridianAwardsSection,
+  };
+  const ordered = normalizeSectionOrder(state.sectionOrder, state.customSections)
+    .filter((key) => MERIDIAN_SIDEBAR_KEYS.has(key))
+    .map((key) => renderers[key]?.(state) || '')
+    .filter(Boolean);
+  return [renderMeridianContactSection(state), ...ordered].filter(Boolean).join('');
+}
+
+function renderMeridianMainSections(state) {
+  const renderers = {
+    experience: renderMeridianExperienceSection,
+    projects: renderMeridianProjectsSection,
+    education: renderMeridianEducationSection,
+    volunteer: renderMeridianVolunteerSection,
+    publications: renderMeridianPublicationsSection,
+  };
+  const ordered = normalizeSectionOrder(state.sectionOrder, state.customSections)
+    .filter((key) => MERIDIAN_MAIN_KEYS.has(key) || key.startsWith('custom_'))
+    .map((key) => (key.startsWith('custom_') ? renderMeridianCustomSection(state, key) : renderers[key]?.(state) || ''))
+    .filter(Boolean);
+  return [renderMeridianSummarySection(state), ...ordered].filter(Boolean).join('');
+}
+
+function renderMeridianResumeFromState(state = resumeExportState) {
+  const container = document.getElementById('rb-preview-pane');
+  if (!container) return;
+  resumePreviewPrefersLive = true;
+
+  const name = cleanResumeValue(state.personal?.name) || 'Your Name';
+  const role = cleanResumeValue(state.targetRole) || 'Target Role';
+  const sidebarSections = renderMeridianSidebarSections(state);
+  const mainSections = renderMeridianMainSections(state);
+
+  container.innerHTML = `
+    <div class="rb-resume-doc ${getResumePaperClass(state)} rb-tpl-meridian">
+      <div class="rb-meridian-layout">
+        <aside class="rb-meridian-sidebar">
+          <div class="rb-meridian-sidebar-head">
+            <h1 class="rb-meridian-sidebar-name">${escapeHtml(name)}</h1>
+            <p class="rb-meridian-sidebar-role">${escapeHtml(role.toUpperCase())}</p>
+            <div class="rb-meridian-sidebar-head-rule" aria-hidden="true"></div>
+          </div>
+          <div class="rb-meridian-sidebar-body">${sidebarSections}</div>
+        </aside>
+        <main class="rb-meridian-main">
+          <div class="rb-meridian-main-head">
+            <h1 class="rb-meridian-name">${escapeHtml(name)}</h1>
+            <p class="rb-meridian-role">${escapeHtml(role)}</p>
+            <div class="rb-meridian-header-rule" aria-hidden="true"></div>
+          </div>
+          <div class="rb-meridian-main-body">${mainSections}</div>
+        </main>
+      </div>
+    </div>`;
+
+  applyTemplate('meridian', { persist: false, animate: false });
+  paginateResumePreview(state);
+  updateWordCountDisplay(state);
+  updateResumePageCount(state);
+  applyMobilePreviewScale();
+}
+
 function normalizeOptionalList(value) {
   if (Array.isArray(value)) {
     return value.map((item) => {
@@ -2943,6 +3478,11 @@ function renderLiveResumeFromState(state = resumeExportState) {
     updateWordCountDisplay(state);
     updateResumePageCount(state);
     applyMobilePreviewScale();
+    return;
+  }
+
+  if (isMeridianTemplate(state?.template)) {
+    renderMeridianResumeFromState(state);
     return;
   }
 
@@ -3418,8 +3958,25 @@ function detectPlaceholders(text) {
   return [...new Set(matches.map((item) => item.trim()).filter(Boolean))];
 }
 
+function getRenderedResumeText() {
+  const docs = Array.from(document.querySelectorAll('#rb-preview-pane .rb-resume-doc'));
+  return docs
+    .map((doc) => String(doc.textContent || '').replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n\n')
+    .trim();
+}
+
+function getResumeCountSourceText(state = resumeExportState) {
+  if (isMeridianTemplate(state?.template)) {
+    const rendered = getRenderedResumeText();
+    if (rendered) return rendered;
+  }
+  return String((resumePreviewPrefersLive ? buildLiveResumePlainText(state) : state?.generatedResume) || state?.generatedResume || buildLiveResumePlainText(state) || '').trim();
+}
+
 function getResumeWordCount(state = resumeExportState) {
-  const text = String((resumePreviewPrefersLive ? buildLiveResumePlainText(state) : state?.generatedResume) || state?.generatedResume || buildLiveResumePlainText(state) || '').trim();
+  const text = getResumeCountSourceText(state);
   if (!text) return 0;
   return text.split(/\s+/).filter(Boolean).length;
 }
@@ -4653,6 +5210,32 @@ function getDocxTemplateProfile(templateName) {
       bulletIndent: { left: 316, hanging: 158 },
       margins: { top: 792, right: 893, bottom: 792, left: 893 },
     },
+    meridian: {
+      template,
+      font: 'Helvetica',
+      textColor: '1A1A2E',
+      mutedColor: '6B7799',
+      accentColor: 'C9A84C',
+      nameTransform: (value) => value,
+      nameSize: 40,
+      nameAlign: 'left',
+      nameAfter: 60,
+      contactSize: 18,
+      contactAlign: 'left',
+      contactAfter: 260,
+      contactSeparator: ' | ',
+      contactBorder: true,
+      sectionSize: 20,
+      sectionBefore: 150,
+      sectionAfter: 90,
+      sectionBorderSize: 8,
+      bodySize: 20,
+      bodyAfter: 80,
+      lineSpacing: 258,
+      bulletPrefix: '\u2022 ',
+      bulletIndent: { left: 360, hanging: 180 },
+      margins: { top: 936, right: 1037, bottom: 936, left: 1037 },
+    },
   };
 
   return profiles[template];
@@ -5775,7 +6358,9 @@ export async function initResumeBuilderTool(container) {
   }
 
   function updateResumePreviewMeta() {
-    const currentText = previewRenderMode === 'generated' && state.generatedResume
+    const currentText = isMeridianTemplate(state.template)
+      ? getResumeCountSourceText(state)
+      : previewRenderMode === 'generated' && state.generatedResume
       ? String(state.generatedResume || '')
       : String(buildLiveResumePlainText(state) || state.generatedResume || '');
     if (previewCount) previewCount.textContent = `${currentText.length} chars`;

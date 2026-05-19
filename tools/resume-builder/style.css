@@ -7070,3 +7070,385 @@ body:has(.resume-tool) .tool-workspace {
     grid-template-columns: 1fr;
   }
 }
+
+/* --- MERIDIAN EXECUTIVE TEMPLATE --- */
+.rb-template-picker__label--templates {
+  display: block !important;
+  margin-top: 0.35rem;
+  margin-bottom: 0.15rem;
+  color: var(--rb-text-tertiary);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.rb-template-picker__templates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.rb-template-picker--full-template-active .rb-template-picker__options .rb-template-option:not(.is-active) {
+  opacity: 0.52;
+  filter: grayscale(0.25);
+}
+
+.rb-template-option__text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.rb-template-option__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1rem;
+  padding: 0.08rem 0.32rem;
+  border-radius: 999px;
+  background: rgba(201, 168, 76, 0.16);
+  color: #6f5815;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rb-tpl-thumb--meridian {
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.rb-tpl-thumb--meridian .rb-tpl-thumb__sidebar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 32%;
+  background: #1b2a4a;
+}
+
+.rb-tpl-thumb--meridian .rb-tpl-thumb__sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.18rem;
+  background: #c9a84c;
+}
+
+.rb-tpl-thumb--meridian .rb-tpl-thumb__name,
+.rb-tpl-thumb--meridian .rb-tpl-thumb__accent,
+.rb-tpl-thumb--meridian .rb-tpl-thumb__line {
+  margin-left: 42%;
+}
+
+.rb-tpl-thumb--meridian .rb-tpl-thumb__accent {
+  width: 34%;
+  background: #c9a84c;
+}
+
+#rb-preview-pane .rb-resume-doc.rb-tpl-meridian,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-meridian,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-meridian {
+  padding: 0 !important;
+  overflow: hidden;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #1a1a2e;
+  font-family: Helvetica, Arial, sans-serif;
+  line-height: 1.25;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.rb-resume-doc.rb-tpl-meridian *,
+.rb-resume-doc.rb-tpl-meridian *::before,
+.rb-resume-doc.rb-tpl-meridian *::after {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.rb-meridian-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  background: #ffffff;
+}
+
+.rb-meridian-sidebar {
+  position: relative;
+  flex: 0 0 29.75%;
+  width: 29.75%;
+  height: 100%;
+  overflow: hidden;
+  padding: 0.56in 0.19in 0.26in;
+  background: #1b2a4a;
+  color: #ffffff;
+}
+
+.rb-meridian-sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: #c9a84c;
+}
+
+.rb-meridian-main {
+  flex: 1 1 auto;
+  height: 100%;
+  overflow: hidden;
+  padding: 0.66in 0.52in 0.44in 0.24in;
+  background: #ffffff;
+}
+
+.rb-meridian-sidebar-head {
+  margin-bottom: 0.16in;
+}
+
+.rb-meridian-sidebar-name {
+  margin: 0 0 0.12in;
+  color: #ffffff;
+  font-size: 18pt;
+  font-weight: 800;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.rb-meridian-sidebar-role {
+  margin: 0 0 0.1in;
+  color: #c9a84c;
+  font-size: 8pt;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.rb-meridian-sidebar-head-rule,
+.rb-meridian-side-rule {
+  height: 1px;
+  background: #2d4070;
+}
+
+.rb-meridian-side-section {
+  margin: 0 0 0.17in;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.rb-meridian-side-title {
+  margin: 0 0 0.055in;
+  color: #c9a84c;
+  font-size: 7pt;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.rb-meridian-side-rule {
+  margin-bottom: 0.09in;
+}
+
+.rb-meridian-side-content,
+.rb-meridian-contact-line,
+.rb-meridian-side-line {
+  color: #ffffff;
+  font-size: 8pt;
+  line-height: 1.32;
+}
+
+.rb-meridian-contact-line,
+.rb-meridian-side-line,
+.rb-meridian-side-strong,
+.rb-meridian-side-muted {
+  margin: 0 0 0.045in;
+  overflow-wrap: anywhere;
+}
+
+.rb-meridian-side-line {
+  padding-left: 0.04in;
+}
+
+.rb-meridian-side-line span,
+.rb-meridian-side-muted {
+  color: #a0aec0;
+}
+
+.rb-meridian-side-item {
+  margin-bottom: 0.1in;
+}
+
+.rb-meridian-side-strong {
+  color: #ffffff;
+  font-size: 7.5pt;
+  font-weight: 800;
+  line-height: 1.24;
+}
+
+.rb-meridian-side-muted {
+  font-size: 7pt;
+  line-height: 1.24;
+}
+
+.rb-meridian-main-head {
+  margin-bottom: 0.16in;
+}
+
+.rb-meridian-name {
+  margin: 0 0 0.035in;
+  color: #1b2a4a;
+  font-size: 26pt;
+  font-weight: 800;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.rb-meridian-role {
+  margin: 0 0 0.08in;
+  color: #6b7799;
+  font-size: 10.5pt;
+  line-height: 1.2;
+}
+
+.rb-meridian-header-rule {
+  height: 1px;
+  background: #e8eaf0;
+}
+
+.rb-meridian-main-section {
+  margin: 0 0 0.2in;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.rb-meridian-main-title {
+  margin: 0;
+  color: #1b2a4a;
+  font-size: 8pt;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.rb-meridian-main-rule {
+  position: relative;
+  height: 4px;
+  margin: 0.045in 0 0.095in;
+  border-top: 0.5px solid #1b2a4a;
+}
+
+.rb-meridian-main-rule::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 30%;
+  border-top: 2px solid #c9a84c;
+}
+
+.rb-meridian-main-content,
+.rb-meridian-paragraph,
+.rb-meridian-text {
+  color: #1a1a2e;
+  font-size: 9pt;
+  line-height: 1.35;
+}
+
+.rb-meridian-paragraph,
+.rb-meridian-text,
+.rb-meridian-item-title,
+.rb-meridian-company,
+.rb-meridian-school,
+.rb-meridian-detail,
+.rb-meridian-muted-line,
+.rb-meridian-link,
+.rb-meridian-tech {
+  margin: 0 0 0.055in;
+  overflow-wrap: anywhere;
+}
+
+.rb-meridian-item {
+  margin-bottom: 0.145in;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.rb-meridian-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.2in;
+  align-items: baseline;
+  color: #1a1a2e;
+  font-size: 9.5pt;
+  line-height: 1.25;
+}
+
+.rb-meridian-row strong,
+.rb-meridian-item-title {
+  color: #1a1a2e;
+  font-weight: 800;
+}
+
+.rb-meridian-row span,
+.rb-meridian-muted-line,
+.rb-meridian-detail,
+.rb-meridian-link {
+  color: #6b7799;
+  font-size: 8pt;
+}
+
+.rb-meridian-row--meta strong,
+.rb-meridian-company {
+  color: #c9a84c;
+  font-size: 8.5pt;
+  font-weight: 800;
+}
+
+.rb-meridian-school {
+  color: #1b2a4a;
+  font-size: 8.5pt;
+  font-weight: 800;
+}
+
+.rb-meridian-detail,
+.rb-meridian-tech {
+  color: #6b7799;
+  font-size: 8pt;
+  font-style: italic;
+}
+
+.rb-meridian-link {
+  word-break: break-word;
+}
+
+.rb-meridian-bullets {
+  margin: 0.04in 0 0 0.16in;
+  padding: 0;
+  color: #1a1a2e;
+  font-size: 8.5pt;
+  line-height: 1.32;
+}
+
+.rb-meridian-bullets li {
+  margin: 0 0 0.035in;
+  padding-left: 0.02in;
+}
+
+@media (max-width: 700px) {
+  .rb-preview-style-card .rb-template-picker__templates {
+    width: 100%;
+  }
+
+  .rb-template-option__text {
+    flex-wrap: wrap;
+  }
+}
