@@ -63,7 +63,7 @@ function getAllowedOrigin(request, env) {
 function corsHeaders(origin) {
   const headers = {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Accept, X-Tooliest-User-ID, X-Tooliest-FP, X-Tooliest-Device-FP',
+    'Access-Control-Allow-Headers': 'Content-Type, Accept, X-Tooliest-User-ID, X-Tooliest-FP, X-Tooliest-Device-FP, X-Tooliest-Coarse-FP',
     'Access-Control-Max-Age': '86400',
     'Cache-Control': 'no-store',
     'Content-Type': 'application/json',
@@ -127,6 +127,10 @@ function getDeviceFingerprintQuotaKey(deviceFingerprint, date = new Date()) {
   return `rl_dfp:${deviceFingerprint}:${getQuotaDateKey(date)}`;
 }
 
+function getCoarseFingerprintQuotaKey(coarseFingerprint, date = new Date()) {
+  return `rl_cfp:${coarseFingerprint}:${getQuotaDateKey(date)}`;
+}
+
 function encodeQuotaPart(value) {
   return encodeURIComponent(String(value || 'unknown'));
 }
@@ -151,6 +155,10 @@ function getDeviceFingerprintUsagePrefix(deviceFingerprint, date = new Date()) {
   return `rl_evt:dfp:${deviceFingerprint}:${getQuotaDateKey(date)}:`;
 }
 
+function getCoarseFingerprintUsagePrefix(coarseFingerprint, date = new Date()) {
+  return `rl_evt:cfp:${coarseFingerprint}:${getQuotaDateKey(date)}:`;
+}
+
 function parseRateLimitCount(data) {
   if (!data) return 0;
   const parsed = parseInt(data, 10);
@@ -161,10 +169,12 @@ function getRateLimitIdentity(request) {
   const rawUserId = String(request.headers.get('X-Tooliest-User-ID') || '').trim().toLowerCase();
   const rawFingerprint = String(request.headers.get('X-Tooliest-FP') || '').trim().toLowerCase();
   const rawDeviceFingerprint = String(request.headers.get('X-Tooliest-Device-FP') || '').trim().toLowerCase();
+  const rawCoarseFingerprint = String(request.headers.get('X-Tooliest-Coarse-FP') || '').trim().toLowerCase();
   return {
     userId: /^[0-9a-f-]{36}$/i.test(rawUserId) ? rawUserId : '',
     fingerprint: /^[0-9a-f]{8}$/i.test(rawFingerprint) ? rawFingerprint : '',
     deviceFingerprint: /^[0-9a-f]{8}$/i.test(rawDeviceFingerprint) ? rawDeviceFingerprint : '',
+    coarseFingerprint: /^[0-9a-f]{8}$/i.test(rawCoarseFingerprint) ? rawCoarseFingerprint : '',
   };
 }
 
@@ -219,6 +229,13 @@ function getRateLimitEntries(ip, tool, identity = {}, date = new Date()) {
       signal: 'dfp',
       key: getDeviceFingerprintQuotaKey(identity.deviceFingerprint, date),
       usagePrefix: getDeviceFingerprintUsagePrefix(identity.deviceFingerprint, date),
+    });
+  }
+  if (identity.coarseFingerprint) {
+    entries.push({
+      signal: 'cfp',
+      key: getCoarseFingerprintQuotaKey(identity.coarseFingerprint, date),
+      usagePrefix: getCoarseFingerprintUsagePrefix(identity.coarseFingerprint, date),
     });
   }
   return entries;

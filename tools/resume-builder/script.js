@@ -1673,6 +1673,7 @@ function getOrCreateUserId() {
 
 let _cachedFingerprint = null;
 let _cachedDeviceFingerprint = null;
+let _cachedCoarseFingerprint = null;
 
 function djb2Hash(str) {
   let hash = 5381;
@@ -1713,6 +1714,30 @@ function getScreenShape(scr) {
   return `${Math.max(width, height)}x${Math.min(width, height)}`;
 }
 
+function getPrimaryLanguage(nav) {
+  return String(nav.language || '').split('-')[0].toLowerCase();
+}
+
+function bucketConcurrency(value) {
+  const count = Number(value) || 0;
+  if (count >= 8) return '8+';
+  if (count >= 6) return '6';
+  if (count >= 4) return '4';
+  if (count >= 2) return '2';
+  if (count >= 1) return '1';
+  return '0';
+}
+
+function normalizeFingerprintPlatform(nav) {
+  const source = String(nav.platform || nav.userAgentData?.platform || '').toLowerCase();
+  if (/iphone|ipad|ipod/.test(source)) return 'ios';
+  if (/android/.test(source)) return 'android';
+  if (/win/.test(source)) return 'windows';
+  if (/mac/.test(source)) return 'mac';
+  if (/linux/.test(source)) return 'linux';
+  return 'other';
+}
+
 function generateDeviceFingerprint() {
   const nav = typeof navigator === 'undefined' ? {} : navigator;
   const scr = typeof screen === 'undefined' ? {} : screen;
@@ -1736,6 +1761,27 @@ function generateDeviceFingerprint() {
   return djb2Hash(signals);
 }
 
+function generateCoarseFingerprint() {
+  const nav = typeof navigator === 'undefined' ? {} : navigator;
+  const scr = typeof screen === 'undefined' ? {} : screen;
+  let timeZone = '';
+  try {
+    timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  } catch (_) {
+    timeZone = '';
+  }
+  const signals = [
+    getPrimaryLanguage(nav),
+    bucketConcurrency(nav.hardwareConcurrency),
+    String(scr.colorDepth || 0),
+    getScreenShape(scr),
+    String(new Date().getTimezoneOffset()),
+    timeZone,
+    normalizeFingerprintPlatform(nav),
+  ].join('|');
+  return djb2Hash(signals);
+}
+
 function getCachedFingerprint() {
   if (!_cachedFingerprint) {
     _cachedFingerprint = generateBrowserFingerprint();
@@ -1750,11 +1796,19 @@ function getCachedDeviceFingerprint() {
   return _cachedDeviceFingerprint;
 }
 
+function getCachedCoarseFingerprint() {
+  if (!_cachedCoarseFingerprint) {
+    _cachedCoarseFingerprint = generateCoarseFingerprint();
+  }
+  return _cachedCoarseFingerprint;
+}
+
 function getAiProxyHeaders() {
   return {
     'X-Tooliest-User-ID': getOrCreateUserId(),
     'X-Tooliest-FP': getCachedFingerprint(),
     'X-Tooliest-Device-FP': getCachedDeviceFingerprint(),
+    'X-Tooliest-Coarse-FP': getCachedCoarseFingerprint(),
   };
 }
 
