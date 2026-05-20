@@ -177,12 +177,13 @@ function setupGlobalErrorBoundary() {
 
 setupGlobalErrorBoundary();
 
-const RESUME_TEMPLATE_OPTIONS = ['classic', 'modern', 'compact', 'meridian'];
+const RESUME_TEMPLATE_OPTIONS = ['classic', 'modern', 'compact', 'meridian', 'prism'];
 const RESUME_TEMPLATE_CLASSES = {
   classic: 'rb-tpl-classic',
   modern: 'rb-tpl-modern',
   compact: 'rb-tpl-compact',
   meridian: 'rb-tpl-meridian',
+  prism: 'rb-tpl-prism',
 };
 const RESUME_PAPER_SIZES = {
   letter: {
@@ -795,8 +796,13 @@ function isMeridianTemplate(template) {
   return normalizeResumeTemplate(template) === 'meridian';
 }
 
+function isPrismTemplate(template) {
+  return normalizeResumeTemplate(template) === 'prism';
+}
+
 function isFullResumeTemplate(template) {
-  return isMeridianTemplate(template);
+  const normalized = normalizeResumeTemplate(template);
+  return normalized === 'meridian' || normalized === 'prism';
 }
 
 function normalizePaperSize(size) {
@@ -1086,21 +1092,38 @@ function delay(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+function splitDelimitedList(value) {
+  const items = [];
+  let current = '';
+  let depth = 0;
+  String(value || '').split('').forEach((char) => {
+    if ('([{'.includes(char)) depth += 1;
+    if (')]}'.includes(char)) depth = Math.max(0, depth - 1);
+    if ((char === ',' || char === ';' || char === '\n') && depth === 0) {
+      if (current.trim()) items.push(current.trim());
+      current = '';
+      return;
+    }
+    current += char;
+  });
+  if (current.trim()) items.push(current.trim());
+  return items;
+}
+
 function parseCommaList(value) {
-  return String(value || '')
-    .split(',')
+  return splitDelimitedList(value)
     .map((item) => item.trim())
     .filter(Boolean);
 }
 
 function normalizeSkillsText(value) {
   const seen = new Set();
-  return String(value || '')
+  const cleaned = String(value || '')
     .replace(/```(?:text)?|```/gi, '')
     .replace(/\[\?\]/g, '')
     .replace(/\[(?:verify|verification needed|suggested)\]/gi, '')
-    .replace(/\b(?:Technical Skills|Soft Skills|Tools & Platforms|Tools|Platforms|Programming Languages|Data Skills)\s*:/gi, '')
-    .split(/[,;\n]+/)
+    .replace(/\b(?:Technical Skills|Soft Skills|Tools & Platforms|Tools|Platforms|Programming Languages|Data Skills)\s*:/gi, '');
+  return splitDelimitedList(cleaned)
     .map((item) => item
       .replace(/^\s*(?:[-*]|\u2022)\s*/, '')
       .replace(/\s+/g, ' ')
@@ -2205,7 +2228,11 @@ function renderContactParts(parts) {
 function syncTemplatePicker(template) {
   const root = resumeTemplateRoot || document;
   const normalizedTemplate = normalizeResumeTemplate(template);
-  const fullTemplateActive = isMeridianTemplate(normalizedTemplate);
+  const fullTemplateActive = isFullResumeTemplate(normalizedTemplate);
+  const templateNotice = {
+    meridian: 'MERIDIAN uses fixed sidebar and main-column zones. Section order still follows the editor.',
+    prism: 'PRISM uses fixed left and right columns. Section order still follows the editor within each column.',
+  }[normalizedTemplate] || '';
   root.querySelectorAll('[data-resume-template]').forEach((button) => {
     const active = button.dataset.resumeTemplate === normalizedTemplate;
     const wasActive = button.classList.contains('is-active');
@@ -2221,6 +2248,7 @@ function syncTemplatePicker(template) {
   });
   root.querySelectorAll('#rb-template-lock-note').forEach((note) => {
     note.hidden = !fullTemplateActive;
+    note.textContent = templateNotice;
   });
 }
 
@@ -2294,7 +2322,7 @@ function updateResumePageCount(state = resumeExportState) {
 }
 
 function renderPagedPreview(state = resumeExportState) {
-  if (isMeridianTemplate(state?.template)) {
+  if (isPrismTemplate(state?.template) || isMeridianTemplate(state?.template)) {
     renderLiveResumeFromState(state);
     return;
   }
@@ -2360,11 +2388,11 @@ function getRenderableResumeSections(sections, state) {
   const preparedSections = (sections || []).filter((section) => shouldRenderResumeSection(section, state));
   const parsedSummarySections = preparedSections.filter((section) => isSummarySectionTitle(section.title));
   const nonSummarySections = preparedSections.filter((section) => !isSummarySectionTitle(section.title));
-  const orderedSections = orderResumeSections(nonSummarySections, state).map((section) => {
+  const orderedSections = mergeRenderableResumeSections(orderResumeSections(nonSummarySections, state).map((section) => {
     if (getResumeSectionKey(section?.title, state) !== 'skills') return section;
     const groupedLines = getSkillGroupLines(state?.skills || section.lines.join(', '));
     return groupedLines.length ? { ...section, title: 'TECHNICAL SKILLS', lines: groupedLines } : section;
-  });
+  }), state);
 
   if (summary) {
     return [
@@ -2377,6 +2405,29 @@ function getRenderableResumeSections(sections, state) {
     ...parsedSummarySections,
     ...orderedSections,
   ];
+}
+
+function mergeRenderableResumeSections(sections, state) {
+  const merged = [];
+  const indexByKey = new Map();
+  (sections || []).forEach((section) => {
+    const title = cleanResumeValue(section?.title);
+    const lines = Array.isArray(section?.lines) ? section.lines.filter((line) => cleanResumeValue(line)) : [];
+    if (!title || !lines.length) return;
+    const key = getResumeSectionKey(title, state) || normalizeResumeSectionHeading(title);
+    if (!key || String(key).startsWith('custom_')) {
+      merged.push({ ...section, title, lines });
+      return;
+    }
+    if (!indexByKey.has(key)) {
+      indexByKey.set(key, merged.length);
+      merged.push({ ...section, title, lines: [...lines] });
+      return;
+    }
+    const existing = merged[indexByKey.get(key)];
+    existing.lines.push(...lines);
+  });
+  return merged;
 }
 
 function isSummarySectionTitle(title) {
@@ -2660,6 +2711,191 @@ function paginateMeridianResumePreview(state = resumeExportState) {
   });
 }
 
+function prismZoneFits(zone) {
+  if (!zone) return true;
+  return zone.scrollHeight <= zone.clientHeight + 2;
+}
+
+function createPrismPageFromSource(sourceDoc, state, pageIndex) {
+  const sourceBody = sourceDoc.querySelector('.rb-prism-body');
+  const sourceMain = sourceDoc.querySelector('.rb-prism-main-body');
+  const sourceSide = sourceDoc.querySelector('.rb-prism-side-body');
+  const pageDoc = sourceDoc.cloneNode(false);
+  prepareResumePageDoc(pageDoc, state);
+  pageDoc.classList.add('rb-tpl-prism');
+  if (pageIndex > 0) pageDoc.classList.add('rb-prism-page--continuation');
+  pageDoc.style.position = 'relative';
+  pageDoc.style.overflow = 'hidden';
+
+  if (pageIndex === 0) {
+    const header = sourceDoc.querySelector('.rb-prism-header');
+    const strip = sourceDoc.querySelector('.rb-prism-strip');
+    if (header) pageDoc.appendChild(header.cloneNode(true));
+    if (strip) pageDoc.appendChild(strip.cloneNode(true));
+  } else {
+    const strip = document.createElement('div');
+    strip.className = 'rb-prism-continuation-strip';
+    strip.setAttribute('aria-hidden', 'true');
+    pageDoc.appendChild(strip);
+  }
+
+  const body = sourceBody ? sourceBody.cloneNode(false) : document.createElement('div');
+  body.className = sourceBody?.className || 'rb-prism-body';
+  if (pageIndex > 0) body.classList.add('rb-prism-body--continuation');
+
+  const mainBody = sourceMain ? sourceMain.cloneNode(false) : document.createElement('main');
+  mainBody.className = sourceMain?.className || 'rb-prism-column rb-prism-main-body';
+  body.appendChild(mainBody);
+
+  let sideBody = null;
+  if (sourceSide) {
+    sideBody = sourceSide.cloneNode(false);
+    sideBody.className = sourceSide.className || 'rb-prism-column rb-prism-side-body';
+    body.appendChild(sideBody);
+  }
+  pageDoc.appendChild(body);
+  return { pageDoc, mainBody, sideBody };
+}
+
+function splitPrismSection(section, appendNode) {
+  const sourceContent = section.querySelector('.rb-prism-section-content');
+  const items = sourceContent ? Array.from(sourceContent.children) : [];
+  if (items.length < 2) {
+    appendNode(section);
+    return;
+  }
+
+  let segment = null;
+  let segmentContent = null;
+  const startSegment = () => {
+    segment = section.cloneNode(false);
+    Array.from(section.children).forEach((child) => {
+      if (child.classList?.contains('rb-prism-section-content')) {
+        segmentContent = child.cloneNode(false);
+        segment.appendChild(segmentContent);
+      } else {
+        segment.appendChild(child.cloneNode(true));
+      }
+    });
+    if (!segmentContent) {
+      segmentContent = document.createElement('div');
+      segmentContent.className = 'rb-prism-section-content';
+      segment.appendChild(segmentContent);
+    }
+  };
+
+  startSegment();
+  items.forEach((item) => {
+    const clone = item.cloneNode(true);
+    segmentContent.appendChild(clone);
+    if (appendNode(segment, { probeOnly: true })) return;
+
+    clone.remove();
+    if (segmentContent.children.length) {
+      appendNode(segment);
+      startSegment();
+      segmentContent.appendChild(clone);
+      return;
+    }
+
+    segmentContent.appendChild(clone);
+  });
+
+  if (segmentContent?.children.length) appendNode(segment);
+}
+
+function paginatePrismResumePreview(state = resumeExportState) {
+  const container = document.getElementById('rb-preview-pane');
+  const sourceDoc = container?.querySelector(':scope > .rb-resume-doc.rb-tpl-prism');
+  if (!container || !sourceDoc) return;
+
+  const paper = getResumePaperProfile(state);
+  const sourceClone = sourceDoc.cloneNode(true);
+  prepareResumePageDoc(sourceClone, state);
+  sourceClone.style.position = 'relative';
+  sourceClone.style.overflow = 'hidden';
+
+  const measureHost = document.createElement('div');
+  measureHost.className = 'rb-resume-pagination-measure rb-prism-pagination-measure';
+  measureHost.setAttribute('aria-hidden', 'true');
+  Object.assign(measureHost.style, {
+    position: 'fixed',
+    left: '-12000px',
+    top: '0',
+    width: `${paper.width}px`,
+    pointerEvents: 'none',
+    visibility: 'hidden',
+    zIndex: '-1',
+  });
+  document.body.appendChild(measureHost);
+
+  const pages = [];
+  const ensurePage = (index) => {
+    while (pages.length <= index) {
+      const page = createPrismPageFromSource(sourceClone, state, pages.length);
+      pages.push(page);
+      measureHost.appendChild(createResumePageShell(page.pageDoc, state));
+    }
+    return pages[index];
+  };
+
+  const appendToZone = (node, zoneName, options = {}) => {
+    const pageIndex = zoneName === 'side' ? appendToZone.sideIndex : appendToZone.mainIndex;
+    const page = ensurePage(pageIndex);
+    const body = zoneName === 'side' ? page.sideBody : page.mainBody;
+    const zone = body;
+    if (!body) return false;
+    const clone = node.cloneNode(true);
+    body.appendChild(clone);
+    const fits = prismZoneFits(zone);
+    if (options.probeOnly) {
+      clone.remove();
+      return fits;
+    }
+    if (fits) return true;
+
+    clone.remove();
+    if (body.children.length === 0) {
+      body.appendChild(clone);
+      return false;
+    }
+
+    if (zoneName === 'side') appendToZone.sideIndex += 1;
+    else appendToZone.mainIndex += 1;
+    return appendToZone(node, zoneName);
+  };
+  appendToZone.mainIndex = 0;
+  appendToZone.sideIndex = 0;
+
+  Array.from(sourceClone.querySelectorAll('.rb-prism-main-body > .rb-prism-section'))
+    .forEach((section) => {
+      const page = ensurePage(appendToZone.mainIndex);
+      const bodyWasEmpty = page.mainBody.children.length === 0;
+      const testClone = section.cloneNode(true);
+      page.mainBody.appendChild(testClone);
+      const fits = prismZoneFits(page.mainBody);
+      testClone.remove();
+      if (fits || bodyWasEmpty) {
+        if (fits || section.querySelectorAll('.rb-prism-section-content > *').length < 2) {
+          appendToZone(section, 'main');
+          return;
+        }
+      }
+      splitPrismSection(section, (node, options = {}) => appendToZone(node, 'main', options));
+    });
+
+  Array.from(sourceClone.querySelectorAll('.rb-prism-side-body > .rb-prism-section'))
+    .forEach((section) => appendToZone(section, 'side'));
+
+  measureHost.remove();
+  container.innerHTML = '';
+  pages.forEach((page) => {
+    prepareResumePageDoc(page.pageDoc, state);
+    page.pageDoc.classList.add('rb-tpl-prism');
+    container.appendChild(createResumePageShell(page.pageDoc, state));
+  });
+}
+
 function cloneResumeSectionFrame(section, options = {}) {
   const clone = section.cloneNode(false);
   Array.from(section.children).forEach((child) => {
@@ -2726,6 +2962,10 @@ function paginateResumePreview(state = resumeExportState) {
   const container = document.getElementById('rb-preview-pane');
   const sourceDoc = container?.querySelector(':scope > .rb-resume-doc');
   if (!container || !sourceDoc) return;
+  if (sourceDoc.classList.contains('rb-tpl-prism')) {
+    paginatePrismResumePreview(state);
+    return;
+  }
   if (sourceDoc.classList.contains('rb-tpl-meridian')) {
     paginateMeridianResumePreview(state);
     return;
@@ -2810,6 +3050,11 @@ function paginateResumePreview(state = resumeExportState) {
 function renderFormattedPreview(resumeText) {
   const container = document.getElementById('rb-preview-pane');
   if (!container) return;
+
+  if (isPrismTemplate(resumeExportState?.template) && (hasMeaningfulLiveResumeData(resumeExportState) || String(resumeText || '').trim())) {
+    renderPrismResumeFromState(resumeExportState);
+    return;
+  }
 
   if (isMeridianTemplate(resumeExportState?.template) && (hasMeaningfulLiveResumeData(resumeExportState) || String(resumeText || '').trim())) {
     renderMeridianResumeFromState(resumeExportState);
@@ -2931,7 +3176,15 @@ const SKILL_CATEGORY_DEFINITIONS = [
   },
   {
     label: 'Design',
-    terms: ['figma', 'ui', 'ux', 'ui/ux', 'wireframe', 'prototyping', 'prototype'],
+    terms: ['figma', 'ui', 'ux', 'ui/ux', 'wireframe', 'prototyping', 'prototype', 'adobe', 'photoshop', 'illustrator', 'indesign', 'canva'],
+  },
+  {
+    label: 'Product & Strategy',
+    terms: ['product strategy', 'product management', 'roadmapping', 'okr', 'okr frameworks', 'stakeholder management', 'stakeholder mgmt', 'user research', 'market research', 'go-to-market', 'brand strategy', 'content strategy'],
+  },
+  {
+    label: 'Marketing & Creative',
+    terms: ['seo', 'copywriting', 'content marketing', 'email marketing', 'social media', 'google analytics', 'branding', 'brand management', 'campaigns', 'creative direction'],
   },
   {
     label: 'Tools & Practices',
@@ -2988,6 +3241,13 @@ function getCategorizedSkillGroups(skillsInput) {
 function getSkillGroupLines(skillsInput) {
   return getCategorizedSkillGroups(skillsInput)
     .map((group) => `${group.label}: ${group.items.join(', ')}`);
+}
+
+function shouldRenderTemplateSkillsInMain(state) {
+  const skills = parseCommaList(state?.skills).map(cleanResumeValue).filter(Boolean);
+  if (!skills.length) return false;
+  const groupedLines = getSkillGroupLines(state.skills);
+  return skills.length > 16 || groupedLines.some((line) => line.length > 48) || skills.some((skill) => skill.length > 24);
 }
 
 function splitSkillGroupLine(line) {
@@ -3238,10 +3498,7 @@ function renderMeridianSkillsSection(state) {
 }
 
 function shouldRenderMeridianSkillsInMain(state) {
-  const skills = parseCommaList(state?.skills).map(cleanResumeValue).filter(Boolean);
-  if (!skills.length) return false;
-  const groupedLines = getSkillGroupLines(state.skills);
-  return skills.length > 16 || groupedLines.some((line) => line.length > 48) || skills.some((skill) => skill.length > 24);
+  return shouldRenderTemplateSkillsInMain(state);
 }
 
 function renderMeridianMainSkillsSection(state) {
@@ -3484,11 +3741,6 @@ function renderMeridianResumeFromState(state = resumeExportState) {
     <div class="rb-resume-doc ${getResumePaperClass(state)} rb-tpl-meridian">
       <div class="rb-meridian-layout">
         <aside class="rb-meridian-sidebar">
-          <div class="rb-meridian-sidebar-head">
-            <h1 class="rb-meridian-sidebar-name">${escapeHtml(name)}</h1>
-            <p class="rb-meridian-sidebar-role">${escapeHtml(role.toUpperCase())}</p>
-            <div class="rb-meridian-sidebar-head-rule" aria-hidden="true"></div>
-          </div>
           <div class="rb-meridian-sidebar-body">${sidebarSections}</div>
         </aside>
         <main class="rb-meridian-main">
@@ -3503,6 +3755,326 @@ function renderMeridianResumeFromState(state = resumeExportState) {
     </div>`;
 
   applyTemplate('meridian', { persist: false, animate: false });
+  paginateResumePreview(state);
+  updateWordCountDisplay(state);
+  updateResumePageCount(state);
+  applyMobilePreviewScale();
+}
+
+const PRISM_LEFT_KEYS = new Set(['experience', 'projects', 'publications', 'volunteer']);
+const PRISM_RIGHT_KEYS = new Set(['skills', 'education', 'certifications', 'courses', 'awards', 'languages']);
+const PRISM_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatPrismDate(value) {
+  const text = cleanResumeValue(value);
+  const match = text.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return text;
+  const monthIndex = Number(match[2]) - 1;
+  if (monthIndex < 0 || monthIndex > 11) return text;
+  return `${PRISM_MONTHS[monthIndex]} ${match[1]}`;
+}
+
+function getPrismDescriptionLines(value) {
+  return cleanResumeValue(value)
+    .split(/\n+/)
+    .map((line) => line.trim().replace(/^[\s\u2022\u25B8-]+/, '').trim())
+    .filter(Boolean);
+}
+
+function renderPrismSection(title, body, key = '', extraClass = '') {
+  const content = String(body || '').trim();
+  if (!content) return '';
+  return `
+    <section class="rb-prism-section ${extraClass}" data-prism-section="${escapeHtml(key || title)}">
+      <div class="rb-prism-section-head">
+        <span class="rb-prism-section-mark" aria-hidden="true"></span>
+        <h2 class="rb-prism-section-title">${escapeHtml(title)}</h2>
+      </div>
+      <div class="rb-prism-section-rule" aria-hidden="true"></div>
+      <div class="rb-prism-section-content">${content}</div>
+    </section>`;
+}
+
+function renderPrismBullets(value) {
+  const lines = Array.isArray(value) ? value : getPrismDescriptionLines(value);
+  const bullets = lines.map(cleanResumeValue).filter(Boolean);
+  if (!bullets.length) return '';
+  return `<ul class="rb-prism-bullets">${bullets.map((line) => `<li><span aria-hidden="true">&#9656;</span>${escapeHtml(line)}</li>`).join('')}</ul>`;
+}
+
+function renderPrismSummarySection(state) {
+  const summary = cleanResumeValue(state.summary);
+  return summary ? renderPrismSection('PROFESSIONAL SUMMARY', `<p class="rb-prism-paragraph">${escapeHtml(summary)}</p>`, 'summary') : '';
+}
+
+function renderPrismExperienceSection(state) {
+  const items = (state.experiences || []).filter((exp) => cleanResumeValue(exp?.jobTitle || exp?.title));
+  if (!items.length) return '';
+  const body = items.map((exp) => {
+    const role = cleanResumeValue(exp.jobTitle || exp.title);
+    const company = cleanResumeValue(exp.company);
+    const duration = cleanResumeValue(exp.duration || exp.dates);
+    const bullets = [exp.achievement1, exp.achievement2, exp.achievement3].map(cleanResumeValue).filter(Boolean);
+    return `
+      <div class="rb-prism-item rb-prism-flow-item">
+        <div class="rb-prism-row"><strong>${escapeHtml(role)}</strong>${duration ? `<span>${escapeHtml(duration)}</span>` : ''}</div>
+        ${company ? `<div class="rb-prism-row rb-prism-row--meta"><strong>${escapeHtml(company)}</strong><span></span></div>` : ''}
+        ${renderPrismBullets(bullets)}
+      </div>`;
+  }).join('');
+  return renderPrismSection('WORK EXPERIENCE', body, 'experience');
+}
+
+function renderPrismProjectsSection(state) {
+  if (!isSectionEnabled(state, 'projects')) return '';
+  const items = (state.projects || []).filter((project) => cleanResumeValue(project?.name));
+  if (!items.length) return '';
+  const manyProjects = items.length > 3;
+  const body = items.map((project, index) => {
+    const name = cleanResumeValue(project.name);
+    const link = cleanResumeValue(project.link);
+    const technologies = cleanResumeValue(project.technologies);
+    const description = cleanResumeValue(project.description || project.details);
+    return `
+      <div class="rb-prism-item rb-prism-flow-item ${manyProjects && index > 0 ? 'rb-prism-item--divided' : ''}">
+        <p class="rb-prism-item-title">${escapeHtml(name)}${link ? ` <span>(${escapeHtml(link)})</span>` : ''}</p>
+        ${technologies ? `<p class="rb-prism-tech"><strong>Tech:</strong> ${escapeHtml(technologies)}</p>` : ''}
+        ${renderPrismBullets(description)}
+      </div>`;
+  }).join('');
+  return renderPrismSection('PROJECTS', body, 'projects');
+}
+
+function renderPrismPublicationsSection(state) {
+  if (!isSectionEnabled(state, 'publications')) return '';
+  const items = (state.publications || []).filter((publication) => cleanResumeValue(publication?.title));
+  if (!items.length) return '';
+  const body = items.map((publication) => {
+    const title = cleanResumeValue(publication.title);
+    const meta = [publication.publisher, formatPrismDate(publication.date)].map(cleanResumeValue).filter(Boolean).join(' - ');
+    const url = cleanResumeValue(publication.url);
+    return `
+      <div class="rb-prism-item rb-prism-flow-item">
+        <p class="rb-prism-item-title">${escapeHtml(title)}</p>
+        ${meta ? `<p class="rb-prism-muted">${escapeHtml(meta)}</p>` : ''}
+        ${url ? `<p class="rb-prism-link">${escapeHtml(url)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderPrismSection('PUBLICATIONS', body, 'publications');
+}
+
+function renderPrismVolunteerSection(state) {
+  if (!isSectionEnabled(state, 'volunteer')) return '';
+  const items = (state.volunteer || []).filter((item) => cleanResumeValue(item?.role));
+  if (!items.length) return '';
+  const body = items.map((item) => {
+    const role = cleanResumeValue(item.role);
+    const organization = cleanResumeValue(item.organization);
+    const duration = cleanResumeValue(item.duration);
+    return `
+      <div class="rb-prism-item rb-prism-flow-item">
+        <div class="rb-prism-row"><strong>${escapeHtml(role)}</strong></div>
+        ${organization || duration ? `<div class="rb-prism-row rb-prism-row--meta"><strong>${escapeHtml(organization)}</strong>${duration ? `<span>${escapeHtml(duration)}</span>` : ''}</div>` : ''}
+        ${renderPrismBullets(item.description)}
+      </div>`;
+  }).join('');
+  return renderPrismSection('VOLUNTEER WORK', body, 'volunteer');
+}
+
+function renderPrismCustomSection(state, sectionId) {
+  const customSection = (state.customSections || []).find((section) => section.id === sectionId);
+  if (!customSection) return '';
+  const title = cleanResumeValue(customSection.title) || 'CUSTOM SECTION';
+  const entries = (customSection.entries || []).filter((entry) => cleanResumeValue(entry?.body));
+  if (!entries.length) return '';
+  const body = entries.map((entry) => `
+    <div class="rb-prism-item rb-prism-flow-item">
+      ${cleanResumeValue(entry.heading) ? `<p class="rb-prism-item-title">${escapeHtml(cleanResumeValue(entry.heading))}</p>` : ''}
+      <p class="rb-prism-paragraph">${escapeHtml(cleanResumeValue(entry.body))}</p>
+    </div>`).join('');
+  return renderPrismSection(title.toUpperCase(), body, sectionId);
+}
+
+function renderPrismSkillList(skills) {
+  return skills.map((skill) => `<p class="rb-prism-skill-bullet"><span aria-hidden="true">&#9656;</span>${escapeHtml(skill)}</p>`).join('');
+}
+
+function renderPrismSkillsBody(state, placement = 'side') {
+  const groups = getCategorizedSkillGroups(state?.skills);
+  if (!groups.length) return '';
+  if (groups.length === 1) {
+    return `<div class="rb-prism-skills-flat">${renderPrismSkillList(groups[0].items)}</div>`;
+  }
+  return groups.map((group) => `
+    <div class="rb-prism-skill-group ${placement === 'main' ? 'rb-prism-skill-group--main' : ''}">
+      <p class="rb-prism-skill-label">${escapeHtml(group.label)}</p>
+      ${renderPrismSkillList(group.items)}
+    </div>`).join('');
+}
+
+function renderPrismSkillsSection(state, placement = 'side') {
+  const body = renderPrismSkillsBody(state, placement);
+  if (!body) return '';
+  return renderPrismSection(placement === 'main' ? 'TECHNICAL SKILLS' : 'SKILLS', body, 'skills', placement === 'main' ? 'rb-prism-section--skills-main' : '');
+}
+
+function renderPrismEducationSection(state) {
+  const items = (state.educations || []).filter((edu) => cleanResumeValue(edu?.degree));
+  if (!items.length) return '';
+  const body = items.map((edu) => {
+    const degree = cleanResumeValue(edu.degree);
+    const institution = cleanResumeValue(edu.institution);
+    const year = cleanResumeValue(edu.year);
+    const details = [edu.gpa ? `GPA ${cleanResumeValue(edu.gpa)}` : '', edu.courses ? cleanResumeValue(edu.courses) : '']
+      .filter(Boolean)
+      .join(' | ');
+    return `
+      <div class="rb-prism-side-item rb-prism-flow-item">
+        <p class="rb-prism-side-title">${escapeHtml(degree)}</p>
+        ${institution ? `<p class="rb-prism-side-teal">${escapeHtml(institution)}</p>` : ''}
+        ${year ? `<p class="rb-prism-side-muted rb-prism-side-italic">${escapeHtml(year)}</p>` : ''}
+        ${details ? `<p class="rb-prism-side-muted">${escapeHtml(details)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderPrismSection('EDUCATION', body, 'education');
+}
+
+function renderPrismCertificationsSection(state) {
+  if (!isSectionEnabled(state, 'certifications')) return '';
+  const items = (state.certifications || []).map((item) => {
+    if (typeof item === 'string') return { name: cleanResumeValue(item), meta: '' };
+    return {
+      name: cleanResumeValue(item?.name || item?.title),
+      meta: [item?.issuer, formatPrismDate(item?.date)].map(cleanResumeValue).filter(Boolean).join(', '),
+    };
+  }).filter((item) => item.name);
+  if (!items.length) return '';
+  const body = items.map((item) => `
+    <div class="rb-prism-side-item rb-prism-flow-item">
+      <p class="rb-prism-side-title">${escapeHtml(item.name)}</p>
+      ${item.meta ? `<p class="rb-prism-side-muted">${escapeHtml(item.meta)}</p>` : ''}
+    </div>`).join('');
+  return renderPrismSection('CERTIFICATIONS', body, 'certifications');
+}
+
+function renderPrismCoursesSection(state) {
+  if (!isSectionEnabled(state, 'courses')) return '';
+  const items = (state.courses || []).filter((course) => cleanResumeValue(course?.name));
+  if (!items.length) return '';
+  const body = items.map((course) => {
+    const name = cleanResumeValue(course.name);
+    const meta = [course.institution, formatPrismDate(course.date)].map(cleanResumeValue).filter(Boolean).join(', ');
+    return `
+      <div class="rb-prism-side-item rb-prism-flow-item">
+        <p class="rb-prism-side-title">${escapeHtml(name)}</p>
+        ${meta ? `<p class="rb-prism-side-muted">${escapeHtml(meta)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderPrismSection('COURSES & TRAINING', body, 'courses');
+}
+
+function renderPrismAwardsSection(state) {
+  if (!isSectionEnabled(state, 'awards')) return '';
+  const items = (state.awards || []).filter((award) => cleanResumeValue(award?.title));
+  if (!items.length) return '';
+  const body = items.map((award) => {
+    const title = cleanResumeValue(award.title);
+    const issuer = cleanResumeValue(award.issuer);
+    const date = formatPrismDate(award.date);
+    const description = cleanResumeValue(award.description);
+    return `
+      <div class="rb-prism-side-item rb-prism-flow-item">
+        <p class="rb-prism-side-title">${escapeHtml(title)}</p>
+        ${issuer ? `<p class="rb-prism-side-coral">${escapeHtml(issuer)}</p>` : ''}
+        ${date || description ? `<p class="rb-prism-side-muted">${escapeHtml([date, description].filter(Boolean).join(' - '))}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderPrismSection('AWARDS & HONORS', body, 'awards');
+}
+
+function renderPrismLanguagesSection(state) {
+  if (!isSectionEnabled(state, 'languages')) return '';
+  const items = (state.languages || []).filter((item) => cleanResumeValue(item?.language));
+  if (!items.length) return '';
+  const body = items.map((item) => {
+    const language = cleanResumeValue(item.language);
+    const proficiency = cleanResumeValue(item.proficiency);
+    return `<p class="rb-prism-language"><strong>${escapeHtml(language)}</strong>${proficiency ? ` <span>- ${escapeHtml(proficiency)}</span>` : ''}</p>`;
+  }).join('');
+  return renderPrismSection('LANGUAGES', body, 'languages');
+}
+
+function renderPrismLeftSections(state) {
+  const renderers = {
+    experience: renderPrismExperienceSection,
+    projects: renderPrismProjectsSection,
+    publications: renderPrismPublicationsSection,
+    volunteer: renderPrismVolunteerSection,
+  };
+  const skillSection = shouldRenderTemplateSkillsInMain(state) ? renderPrismSkillsSection(state, 'main') : '';
+  const ordered = normalizeSectionOrder(state.sectionOrder, state.customSections)
+    .filter((key) => PRISM_LEFT_KEYS.has(key) || key.startsWith('custom_'))
+    .map((key) => (key.startsWith('custom_') ? renderPrismCustomSection(state, key) : renderers[key]?.(state) || ''))
+    .filter(Boolean);
+  return [renderPrismSummarySection(state), skillSection, ...ordered].filter(Boolean).join('');
+}
+
+function renderPrismRightSections(state) {
+  const renderers = {
+    skills: shouldRenderTemplateSkillsInMain(state) ? null : (currentState) => renderPrismSkillsSection(currentState, 'side'),
+    education: renderPrismEducationSection,
+    certifications: renderPrismCertificationsSection,
+    courses: renderPrismCoursesSection,
+    awards: renderPrismAwardsSection,
+    languages: renderPrismLanguagesSection,
+  };
+  return normalizeSectionOrder(state.sectionOrder, state.customSections)
+    .filter((key) => PRISM_RIGHT_KEYS.has(key))
+    .map((key) => renderers[key]?.(state) || '')
+    .filter(Boolean)
+    .join('');
+}
+
+function renderPrismContactRow(state) {
+  const parts = [
+    state.personal?.email,
+    state.personal?.phone,
+    state.personal?.location,
+    state.personal?.linkedin,
+    state.personal?.portfolio,
+  ].map(cleanResumeValue).filter(Boolean);
+  if (!parts.length) return '';
+  return parts.map((part, index) => `${index ? '<span class="rb-prism-contact-sep">|</span>' : ''}<span>${escapeHtml(part)}</span>`).join('');
+}
+
+function renderPrismResumeFromState(state = resumeExportState) {
+  const container = document.getElementById('rb-preview-pane');
+  if (!container) return;
+  resumePreviewPrefersLive = true;
+
+  const name = cleanResumeValue(state.personal?.name) || 'Your Name';
+  const role = cleanResumeValue(state.targetRole) || 'Target Role';
+  const leftSections = renderPrismLeftSections(state);
+  const rightSections = renderPrismRightSections(state);
+  const contact = renderPrismContactRow(state);
+  const bodyClass = !leftSections || !rightSections ? 'rb-prism-body rb-prism-body--single' : 'rb-prism-body';
+  const bodyHtml = leftSections && rightSections
+    ? `<main class="rb-prism-column rb-prism-main-body">${leftSections}</main><aside class="rb-prism-column rb-prism-side-body">${rightSections}</aside>`
+    : `<main class="rb-prism-column rb-prism-main-body rb-prism-main-body--single">${leftSections || rightSections}</main>`;
+
+  container.innerHTML = `
+    <div class="rb-resume-doc ${getResumePaperClass(state)} rb-tpl-prism">
+      <header class="rb-prism-header">
+        <div class="rb-prism-corner" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <h1 class="rb-prism-name">${escapeHtml(name)}</h1>
+        <p class="rb-prism-role">${escapeHtml(role)}</p>
+        ${contact ? `<p class="rb-prism-contact">${contact}</p>` : ''}
+      </header>
+      <div class="rb-prism-strip" aria-hidden="true"></div>
+      <div class="${bodyClass}">${bodyHtml}</div>
+    </div>`;
+
+  applyTemplate('prism', { persist: false, animate: false });
   paginateResumePreview(state);
   updateWordCountDisplay(state);
   updateResumePageCount(state);
@@ -3614,6 +4186,11 @@ function renderLiveResumeFromState(state = resumeExportState) {
     updateWordCountDisplay(state);
     updateResumePageCount(state);
     applyMobilePreviewScale();
+    return;
+  }
+
+  if (isPrismTemplate(state?.template)) {
+    renderPrismResumeFromState(state);
     return;
   }
 
@@ -4102,7 +4679,7 @@ function getRenderedResumeText() {
 }
 
 function getResumeCountSourceText(state = resumeExportState) {
-  if (isMeridianTemplate(state?.template)) {
+  if (isFullResumeTemplate(state?.template)) {
     const rendered = getRenderedResumeText();
     if (rendered) return rendered;
   }

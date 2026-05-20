@@ -7169,6 +7169,51 @@ body:has(.resume-tool) .tool-workspace {
   background: #c9a84c;
 }
 
+.rb-tpl-thumb--prism {
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.rb-tpl-thumb--prism .rb-tpl-thumb__header {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 32%;
+  background: #1a5f7a;
+}
+
+.rb-tpl-thumb--prism .rb-tpl-thumb__accent {
+  position: absolute;
+  top: 32%;
+  left: 0;
+  right: 0;
+  height: 0.14rem;
+  background: #d9624c;
+}
+
+.rb-tpl-thumb--prism .rb-tpl-thumb__side {
+  position: absolute;
+  top: 42%;
+  right: 12%;
+  width: 26%;
+  height: 44%;
+  border-radius: 3px;
+  background: rgba(26, 95, 122, 0.16);
+}
+
+.rb-tpl-thumb--prism .rb-tpl-thumb__line {
+  margin-left: 12%;
+  margin-top: 40%;
+  width: 42%;
+  background: #1a5f7a;
+}
+
+.rb-tpl-thumb--prism .rb-tpl-thumb__line.short {
+  margin-top: 0.18rem;
+  width: 31%;
+  background: #d9624c;
+}
+
 #rb-preview-pane .rb-resume-doc.rb-tpl-meridian,
 .rb-resume-pagination-measure .rb-resume-doc.rb-tpl-meridian,
 .rb-pdf-render-host .rb-resume-doc.rb-tpl-meridian {
@@ -7473,6 +7518,370 @@ body:has(.resume-tool) .tool-workspace {
 .rb-meridian-bullets li {
   margin: 0 0 0.035in;
   padding-left: 0.02in;
+}
+
+/* --- PRISM CREATIVE TEMPLATE --- */
+#rb-preview-pane .rb-resume-doc.rb-tpl-prism,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-prism,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-prism {
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+  overflow: hidden;
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #1c1c1c;
+  font-family: Helvetica, Arial, sans-serif;
+  line-height: 1.25;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.rb-resume-doc.rb-tpl-prism *,
+.rb-resume-doc.rb-tpl-prism *::before,
+.rb-resume-doc.rb-tpl-prism *::after {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.rb-prism-header {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 1.12in;
+  padding: 0.31in 0.42in 0.18in;
+  background: #1a5f7a;
+  color: #ffffff;
+}
+
+.rb-prism-strip {
+  flex: 0 0 4px;
+  height: 4px;
+  background: #d9624c;
+}
+
+.rb-prism-continuation-strip {
+  flex: 0 0 4px;
+  height: 4px;
+  background: #1a5f7a;
+}
+
+.rb-prism-corner {
+  position: absolute;
+  top: 0.2in;
+  right: 0.25in;
+  display: grid;
+  grid-template-columns: repeat(2, 10px);
+  gap: 2px;
+}
+
+.rb-prism-corner span {
+  width: 10px;
+  height: 10px;
+  background: #b8dde9;
+}
+
+.rb-prism-corner span:nth-child(1),
+.rb-prism-corner span:nth-child(4) {
+  background: #d9624c;
+}
+
+.rb-prism-name {
+  max-width: 6.4in;
+  margin: 0 0 0.045in;
+  color: #ffffff;
+  font-size: clamp(24pt, 4.1vw, 30pt);
+  font-weight: 800;
+  line-height: 1.04;
+  overflow-wrap: anywhere;
+}
+
+.rb-prism-role {
+  margin: 0 0 0.075in;
+  color: #b8dde9;
+  font-size: 11pt;
+  line-height: 1.2;
+}
+
+.rb-prism-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.02in 0;
+  max-width: 6.75in;
+  margin: 0;
+  color: #cce9f2;
+  font-size: 8pt;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.rb-prism-contact-sep {
+  color: #d9624c;
+  padding: 0 0.08in;
+  font-weight: 800;
+}
+
+.rb-prism-body {
+  display: grid;
+  grid-template-columns: minmax(0, 62fr) minmax(0, 35fr);
+  gap: 0.2in;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0.2in 0.42in 0.34in;
+  background: #ffffff;
+}
+
+.rb-prism-body--continuation {
+  padding-top: 0.28in;
+}
+
+.rb-prism-body--single {
+  display: block;
+}
+
+.rb-prism-main-body--single {
+  width: min(100%, 5.9in);
+  margin: 0 auto;
+}
+
+.rb-prism-column {
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.rb-prism-section {
+  margin: 0 0 0.18in;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.rb-prism-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.07in;
+  min-height: 0.14in;
+}
+
+.rb-prism-section-mark {
+  width: 3px;
+  height: 10px;
+  background: #d9624c;
+  flex: 0 0 auto;
+}
+
+.rb-prism-section-title {
+  margin: 0;
+  color: #1a5f7a;
+  font-size: 8.5pt;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.rb-prism-section-rule {
+  height: 0;
+  margin: 0.055in 0 0.09in;
+  border-top: 0.5px solid #d1e8ef;
+}
+
+.rb-prism-paragraph,
+.rb-prism-section-content {
+  color: #1c1c1c;
+  font-size: 9pt;
+  line-height: 1.42;
+}
+
+.rb-prism-paragraph,
+.rb-prism-item-title,
+.rb-prism-muted,
+.rb-prism-link,
+.rb-prism-tech,
+.rb-prism-side-title,
+.rb-prism-side-teal,
+.rb-prism-side-muted,
+.rb-prism-side-coral,
+.rb-prism-language,
+.rb-prism-skill-bullet,
+.rb-prism-skill-label {
+  margin: 0 0 0.045in;
+  overflow-wrap: anywhere;
+}
+
+.rb-prism-item {
+  margin-bottom: 0.14in;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.rb-prism-item--divided {
+  padding-top: 0.1in;
+  border-top: 0.5px solid #d1e8ef;
+}
+
+.rb-prism-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.18in;
+  color: #1c1c1c;
+  font-size: 9.5pt;
+  line-height: 1.25;
+}
+
+.rb-prism-row strong,
+.rb-prism-item-title {
+  color: #1c1c1c;
+  font-weight: 800;
+}
+
+.rb-prism-row span,
+.rb-prism-muted {
+  color: #6b7280;
+  font-size: 8.5pt;
+}
+
+.rb-prism-row--meta strong {
+  color: #d9624c;
+  font-size: 8.5pt;
+  font-weight: 800;
+}
+
+.rb-prism-item-title {
+  font-size: 9pt;
+  line-height: 1.25;
+}
+
+.rb-prism-item-title span,
+.rb-prism-link {
+  color: #1a5f7a;
+  font-size: 8pt;
+  font-weight: 500;
+}
+
+.rb-prism-tech {
+  color: #6b7280;
+  font-size: 8pt;
+  font-style: italic;
+}
+
+.rb-prism-tech strong {
+  color: #1c1c1c;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.rb-prism-bullets {
+  margin: 0.04in 0 0 0.13in;
+  padding: 0;
+  list-style: none;
+  color: #1c1c1c;
+  font-size: 8.5pt;
+  line-height: 1.34;
+}
+
+.rb-prism-bullets li {
+  position: relative;
+  margin: 0 0 0.035in;
+  padding-left: 0.12in;
+}
+
+.rb-prism-bullets li span {
+  position: absolute;
+  left: 0;
+  color: #d9624c;
+  font-size: 7pt;
+}
+
+.rb-prism-side-body .rb-prism-section {
+  margin-bottom: 0.16in;
+}
+
+.rb-prism-side-item {
+  margin-bottom: 0.105in;
+}
+
+.rb-prism-side-title {
+  color: #1c1c1c;
+  font-size: 8pt;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.rb-prism-side-teal {
+  color: #1a5f7a;
+  font-size: 8pt;
+  line-height: 1.24;
+}
+
+.rb-prism-side-muted {
+  color: #6b7280;
+  font-size: 7.5pt;
+  line-height: 1.25;
+}
+
+.rb-prism-side-italic {
+  font-style: italic;
+}
+
+.rb-prism-side-coral {
+  color: #d9624c;
+  font-size: 7.5pt;
+  line-height: 1.25;
+}
+
+.rb-prism-language {
+  color: #1c1c1c;
+  font-size: 8.5pt;
+  line-height: 1.28;
+}
+
+.rb-prism-language span {
+  color: #6b7280;
+}
+
+.rb-prism-skill-group {
+  margin-bottom: 0.09in;
+}
+
+.rb-prism-skill-label {
+  color: #1a5f7a;
+  font-size: 8pt;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.rb-prism-skill-bullet {
+  position: relative;
+  padding-left: 0.12in;
+  color: #1c1c1c;
+  font-size: 8.5pt;
+  line-height: 1.28;
+}
+
+.rb-prism-skill-bullet span {
+  position: absolute;
+  left: 0;
+  color: #d9624c;
+  font-size: 7pt;
+}
+
+.rb-prism-section--skills-main .rb-prism-section-content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 0.22in;
+  row-gap: 0.06in;
+}
+
+.rb-prism-section--skills-main .rb-prism-skills-flat {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 0.22in;
+}
+
+.rb-prism-section--skills-main .rb-prism-skill-group {
+  margin-bottom: 0.04in;
 }
 
 @media (max-width: 700px) {
