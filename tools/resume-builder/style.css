@@ -1051,6 +1051,10 @@
   color: #111111;
 }
 
+.rb-resume-skill-group strong {
+  font-weight: 800;
+}
+
 .rb-resume-bullet {
   font-family: 'Times New Roman', Georgia, serif;
   margin: 0 0 2px 0.15in;
@@ -7089,6 +7093,22 @@ body:has(.resume-tool) .tool-workspace {
   gap: 0.35rem;
 }
 
+.rb-template-lock-note {
+  margin: 0.4rem 0 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  border-radius: 8px;
+  background: rgba(201, 168, 76, 0.08);
+  color: var(--rb-text-secondary, #64748b);
+  font-size: 0.68rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.rb-template-lock-note[hidden] {
+  display: none;
+}
+
 .rb-template-picker--full-template-active .rb-template-picker__options .rb-template-option:not(.is-active) {
   opacity: 0.52;
   filter: grayscale(0.25);
@@ -7365,6 +7385,7 @@ body:has(.resume-tool) .tool-workspace {
 
 .rb-meridian-paragraph,
 .rb-meridian-text,
+.rb-meridian-skill-line,
 .rb-meridian-item-title,
 .rb-meridian-company,
 .rb-meridian-school,
@@ -7374,6 +7395,17 @@ body:has(.resume-tool) .tool-workspace {
 .rb-meridian-tech {
   margin: 0 0 0.055in;
   overflow-wrap: anywhere;
+}
+
+.rb-meridian-skill-line {
+  color: #1a1a2e;
+  font-size: 8.8pt;
+  line-height: 1.32;
+}
+
+.rb-meridian-skill-line strong {
+  color: #1b2a4a;
+  font-weight: 800;
 }
 
 .rb-meridian-item {

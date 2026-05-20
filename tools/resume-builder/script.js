@@ -795,6 +795,10 @@ function isMeridianTemplate(template) {
   return normalizeResumeTemplate(template) === 'meridian';
 }
 
+function isFullResumeTemplate(template) {
+  return isMeridianTemplate(template);
+}
+
 function normalizePaperSize(size) {
   return RESUME_PAPER_OPTIONS.includes(size) ? size : 'letter';
 }
@@ -849,6 +853,9 @@ Format rules:
 - Achievements must be quantified wherever possible. If the user has not provided numbers, insert a [PLACEHOLDER — add your specific metric here] tag instead of fabricating numbers. Never invent percentages, dollar amounts, or statistics the user did not provide.
 - If the user provides projects, include a PROJECTS section using only the provided project names, links, technologies, and details. Never invent project links, repositories, metrics, or outcomes.
 - In the EDUCATION section, list all education entries provided by the user.
+- In the SKILLS section, preserve only the user-provided skill names. Do not invent, rename, remove, or replace skills.
+- When enough skills are provided, group the exact skills under concise category labels such as Languages, Frontend, Backend, Cloud & DevOps, Databases, Data & AI, Design, Tools & Practices, or Business & Analytics.
+- Use grouped skills as plain lines in this style: "Languages: Python, JavaScript, SQL". If only a few skills are provided, grouping is still allowed, but the skills themselves must stay exactly user-provided.
 - If Languages, Awards & Honors, Volunteer Work, Publications, Courses & Training, or custom sections are provided, include only the provided entries for those sections.
 - Do not invent entries for Languages, Awards, Volunteer Work, Publications, Courses, or custom sections.
 - Do not invent dates, publishers, issuers, organizations, course providers, URLs, proficiency levels, or custom-section facts.
@@ -2212,6 +2219,9 @@ function syncTemplatePicker(template) {
   root.querySelectorAll('.rb-template-picker').forEach((picker) => {
     picker.classList.toggle('rb-template-picker--full-template-active', fullTemplateActive);
   });
+  root.querySelectorAll('#rb-template-lock-note').forEach((note) => {
+    note.hidden = !fullTemplateActive;
+  });
 }
 
 function applyTemplate(templateName, options = {}) {
@@ -2350,7 +2360,11 @@ function getRenderableResumeSections(sections, state) {
   const preparedSections = (sections || []).filter((section) => shouldRenderResumeSection(section, state));
   const parsedSummarySections = preparedSections.filter((section) => isSummarySectionTitle(section.title));
   const nonSummarySections = preparedSections.filter((section) => !isSummarySectionTitle(section.title));
-  const orderedSections = orderResumeSections(nonSummarySections, state);
+  const orderedSections = orderResumeSections(nonSummarySections, state).map((section) => {
+    if (getResumeSectionKey(section?.title, state) !== 'skills') return section;
+    const groupedLines = getSkillGroupLines(state?.skills || section.lines.join(', '));
+    return groupedLines.length ? { ...section, title: 'TECHNICAL SKILLS', lines: groupedLines } : section;
+  });
 
   if (summary) {
     return [
@@ -2837,14 +2851,10 @@ function renderFormattedPreview(resumeText) {
         <div class="rb-resume-section-divider" aria-hidden="true"></div>
         <div class="rb-resume-section-body">`;
 
+    const sectionKey = getResumeSectionKey(section.title, resumeExportState);
     for (const line of section.lines) {
       if (isResumeDividerLine(line)) continue;
-      if (line.startsWith('\u2022') || line.startsWith('-')) {
-        const text = normalizeResumeBulletText(line);
-        html += `<p class="rb-resume-bullet"><span class="rb-resume-bullet-marker" aria-hidden="true"></span><span>${escapeHtml(text)}</span></p>`;
-      } else {
-        html += `<p class="rb-resume-line">${escapeHtml(line)}</p>`;
-      }
+      html += renderResumeLineHtml(line, sectionKey);
     }
 
     html += '</div></div>';
@@ -2894,6 +2904,117 @@ function createBulletLine(value) {
   return text ? `\u2022 ${text.replace(/^[\s\u2022-]+/, '')}` : '';
 }
 
+const SKILL_CATEGORY_DEFINITIONS = [
+  {
+    label: 'Languages',
+    terms: ['python', 'typescript', 'javascript', 'java', 'go', 'golang', 'sql', 'bash', 'shell', 'powershell', 'c++', 'c#', 'php', 'ruby', 'swift', 'kotlin', 'rust', 'r', 'matlab', 'scala'],
+  },
+  {
+    label: 'Frontend',
+    terms: ['react', 'next.js', 'nextjs', 'vue', 'angular', 'svelte', 'redux', 'tailwind', 'tailwind css', 'html', 'html5', 'css', 'css3', 'sass', 'webpack', 'vite', 'responsive design'],
+  },
+  {
+    label: 'Backend',
+    terms: ['node.js', 'nodejs', 'express', 'fastapi', 'django', 'flask', 'spring', 'graphql', 'grpc', 'rest api', 'rest apis', 'api', 'apis', 'microservices'],
+  },
+  {
+    label: 'Cloud & DevOps',
+    terms: ['aws', 'ec2', 'eks', 's3', 'lambda', 'rds', 'cloudwatch', 'gcp', 'azure', 'terraform', 'docker', 'kubernetes', 'helm', 'ci/cd', 'github actions', 'jenkins'],
+  },
+  {
+    label: 'Databases',
+    terms: ['postgresql', 'postgres', 'mysql', 'mongodb', 'redis', 'elasticsearch', 'dynamodb', 'sqlite', 'oracle', 'database systems'],
+  },
+  {
+    label: 'Data & AI',
+    terms: ['pandas', 'numpy', 'scikit-learn', 'sklearn', 'tensorflow', 'pytorch', 'machine learning', 'deep learning', 'nlp', 'natural language processing', 'data cleaning', 'data visualization', 'data pipeline', 'data wrangling', 'feature engineering', 'model deployment', 'exploratory data analysis', 'apache spark', 'jupyter notebook', 'tableau', 'power bi', 'matplotlib', 'seaborn', 'xgboost', 'smote'],
+  },
+  {
+    label: 'Design',
+    terms: ['figma', 'ui', 'ux', 'ui/ux', 'wireframe', 'prototyping', 'prototype'],
+  },
+  {
+    label: 'Tools & Practices',
+    terms: ['git', 'jira', 'datadog', 'grafana', 'pagerduty', 'opentelemetry', 'agile', 'scrum', 'tdd', 'testing', 'a/b testing', 'collaboration'],
+  },
+  {
+    label: 'Business & Analytics',
+    terms: ['business intelligence', 'business analytics', 'regression analysis', 'statistical analysis', 'dashboard', 'dashboards', 'excel', 'google sheets', 'storytelling'],
+  },
+];
+
+function normalizeSkillForMatch(skill) {
+  return cleanResumeValue(skill)
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[()]/g, '')
+    .trim();
+}
+
+function getSkillCategory(skill) {
+  const normalized = normalizeSkillForMatch(skill);
+  if (!normalized) return 'Other';
+  const compact = normalized.replace(/[\s._-]+/g, '');
+  const match = SKILL_CATEGORY_DEFINITIONS.find((category) => category.terms.some((term) => {
+    const normalizedTerm = normalizeSkillForMatch(term);
+    const compactTerm = normalizedTerm.replace(/[\s._-]+/g, '');
+    return normalized === normalizedTerm
+      || compact === compactTerm
+      || (normalizedTerm.length >= 4 && normalized.includes(normalizedTerm));
+  }));
+  return match?.label || 'Other';
+}
+
+function getCategorizedSkillGroups(skillsInput) {
+  const seen = new Set();
+  const groups = new Map(SKILL_CATEGORY_DEFINITIONS.map((category) => [category.label, []]));
+  groups.set('Other', []);
+
+  parseCommaList(skillsInput).forEach((skill) => {
+    const text = cleanResumeValue(skill);
+    if (!text) return;
+    const key = text.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    const category = getSkillCategory(text);
+    groups.get(category)?.push(text);
+  });
+
+  return Array.from(groups.entries())
+    .map(([label, items]) => ({ label, items }))
+    .filter((group) => group.items.length);
+}
+
+function getSkillGroupLines(skillsInput) {
+  return getCategorizedSkillGroups(skillsInput)
+    .map((group) => `${group.label}: ${group.items.join(', ')}`);
+}
+
+function splitSkillGroupLine(line) {
+  const text = cleanResumeValue(line);
+  const match = text.match(/^([A-Za-z0-9 &/+-]+):\s+(.+)$/);
+  if (!match) return null;
+  return { label: match[1], skills: match[2] };
+}
+
+function renderResumeLineHtml(line, sectionKey = '') {
+  const textLine = getResumeLineText(line);
+  if (textLine.startsWith('\u2022') || textLine.startsWith('-')) {
+    const text = normalizeResumeBulletText(textLine);
+    return `<p class="rb-resume-bullet"><span class="rb-resume-bullet-marker" aria-hidden="true"></span><span>${escapeHtml(text)}</span></p>`;
+  }
+  if (sectionKey === 'skills') {
+    const skillGroup = splitSkillGroupLine(textLine);
+    if (skillGroup) {
+      return `<p class="rb-resume-line rb-resume-skill-group"><strong>${escapeHtml(skillGroup.label)}:</strong> ${escapeHtml(skillGroup.skills)}</p>`;
+    }
+  }
+  if (isBoldResumeLine(line)) {
+    return `<p class="rb-resume-line rb-resume-bold"><strong>${escapeHtml(textLine)}</strong></p>`;
+  }
+  return `<p class="rb-resume-line">${escapeHtml(textLine)}</p>`;
+}
+
 function getLiveResumeSectionsFromState(state = resumeExportState) {
   if (!state) return [];
   const sections = [];
@@ -2933,7 +3054,7 @@ function getLiveResumeSectionsFromState(state = resumeExportState) {
       });
       return createResumeSection('EDUCATION', lines);
     },
-    skills: () => createResumeSection('SKILLS', [state.skills]),
+    skills: () => createResumeSection('TECHNICAL SKILLS', getSkillGroupLines(state.skills)),
     projects: () => {
       if (!isSectionEnabled(state, 'projects')) return createResumeSection('PROJECTS', []);
       const lines = [];
@@ -3109,15 +3230,29 @@ function renderMeridianContactSection(state) {
 }
 
 function renderMeridianSkillsSection(state) {
+  if (shouldRenderMeridianSkillsInMain(state)) return '';
   const skills = parseCommaList(state.skills).map(cleanResumeValue).filter(Boolean);
   if (!skills.length) return '';
-  const visible = skills.slice(0, 16);
-  const extra = skills.length - visible.length;
-  const body = [
-    ...visible.map((skill) => `<p class="rb-meridian-side-line">${escapeHtml(skill)}</p>`),
-    extra > 0 ? `<p class="rb-meridian-side-muted">+ ${extra} more</p>` : '',
-  ].join('');
+  const body = skills.map((skill) => `<p class="rb-meridian-side-line">${escapeHtml(skill)}</p>`).join('');
   return renderMeridianSideSection('CORE SKILLS', body, 'skills');
+}
+
+function shouldRenderMeridianSkillsInMain(state) {
+  const skills = parseCommaList(state?.skills).map(cleanResumeValue).filter(Boolean);
+  if (!skills.length) return false;
+  const groupedLines = getSkillGroupLines(state.skills);
+  return skills.length > 16 || groupedLines.some((line) => line.length > 48) || skills.some((skill) => skill.length > 24);
+}
+
+function renderMeridianMainSkillsSection(state) {
+  const lines = getSkillGroupLines(state?.skills);
+  if (!lines.length) return '';
+  const body = lines.map((line) => {
+    const group = splitSkillGroupLine(line);
+    if (!group) return `<p class="rb-meridian-skill-line">${escapeHtml(line)}</p>`;
+    return `<p class="rb-meridian-skill-line"><strong>${escapeHtml(group.label)}:</strong> ${escapeHtml(group.skills)}</p>`;
+  }).join('');
+  return renderMeridianMainSection('TECHNICAL SKILLS', body, 'skills');
 }
 
 function renderMeridianLanguagesSection(state) {
@@ -3321,6 +3456,7 @@ function renderMeridianSidebarSections(state) {
 
 function renderMeridianMainSections(state) {
   const renderers = {
+    skills: shouldRenderMeridianSkillsInMain(state) ? renderMeridianMainSkillsSection : null,
     experience: renderMeridianExperienceSection,
     projects: renderMeridianProjectsSection,
     education: renderMeridianEducationSection,
@@ -3328,7 +3464,7 @@ function renderMeridianMainSections(state) {
     publications: renderMeridianPublicationsSection,
   };
   const ordered = normalizeSectionOrder(state.sectionOrder, state.customSections)
-    .filter((key) => MERIDIAN_MAIN_KEYS.has(key) || key.startsWith('custom_'))
+    .filter((key) => MERIDIAN_MAIN_KEYS.has(key) || key === 'skills' || key.startsWith('custom_'))
     .map((key) => (key.startsWith('custom_') ? renderMeridianCustomSection(state, key) : renderers[key]?.(state) || ''))
     .filter(Boolean);
   return [renderMeridianSummarySection(state), ...ordered].filter(Boolean).join('');
@@ -3503,16 +3639,9 @@ function renderLiveResumeFromState(state = resumeExportState) {
         <h2 class="rb-resume-section-title">${escapeHtml(section.title)}</h2>
         <div class="rb-resume-section-divider" aria-hidden="true"></div>
         <div class="rb-resume-section-body">`;
+    const sectionKey = getResumeSectionKey(section.title, state);
     section.lines.forEach((line) => {
-      const textLine = getResumeLineText(line);
-      if (textLine.startsWith('\u2022') || textLine.startsWith('-')) {
-        const text = normalizeResumeBulletText(textLine);
-        html += `<p class="rb-resume-bullet"><span class="rb-resume-bullet-marker" aria-hidden="true"></span><span>${escapeHtml(text)}</span></p>`;
-      } else if (isBoldResumeLine(line)) {
-        html += `<p class="rb-resume-line rb-resume-bold"><strong>${escapeHtml(textLine)}</strong></p>`;
-      } else {
-        html += `<p class="rb-resume-line">${escapeHtml(textLine)}</p>`;
-      }
+      html += renderResumeLineHtml(line, sectionKey);
     });
     html += '</div></div>';
   });
@@ -3926,15 +4055,20 @@ function setResumeExportReady(isReady) {
   const docxBtn = document.getElementById('rb-dl-docx');
   const copyTextBtn = document.getElementById('rb-dl-copy-text');
   const txtBtn = document.getElementById('rb-dl-txt');
+  const docxAvailable = !isFullResumeTemplate(resumeExportState?.template);
   if (primaryBtn) {
     primaryBtn.disabled = false;
     primaryBtn.setAttribute('aria-disabled', 'false');
   }
-  [pdfBtn, docxBtn].forEach((button) => {
-    if (!button) return;
-    button.disabled = false;
-    button.setAttribute('aria-disabled', 'false');
-  });
+  if (pdfBtn) {
+    pdfBtn.disabled = false;
+    pdfBtn.setAttribute('aria-disabled', 'false');
+  }
+  if (docxBtn) {
+    docxBtn.hidden = !docxAvailable;
+    docxBtn.disabled = !docxAvailable;
+    docxBtn.setAttribute('aria-disabled', String(!docxAvailable));
+  }
   [copyTextBtn, txtBtn].forEach((button) => {
     if (!button) return;
     button.disabled = !isReady;
@@ -5392,6 +5526,10 @@ function buildDocxChildren(state, profile) {
 async function downloadResumeDOCX() {
   const state = resumeExportState;
   const btn = document.getElementById('rb-dl-docx') || document.getElementById('rb-btn-download-primary');
+  if (isFullResumeTemplate(state?.template)) {
+    showExportToast('DOCX is available for Classic, Modern, and Compact styles. Templates export as PDF.', 'info');
+    return;
+  }
   if (!state?.generatedResume && !hasMeaningfulLiveResumeData(state)) {
     showExportToast('Add resume details before downloading the DOCX.', 'error');
     return;
@@ -5905,7 +6043,14 @@ function buildResumePrompt(state) {
       });
     },
     skills() {
-      parts.push(`Skills: ${parseCommaList(state.skills).join(', ')}`);
+      const exactSkills = parseCommaList(state.skills);
+      parts.push(`Skills: ${exactSkills.join(', ')}`);
+      parts.push('Skill grouping rule: keep exactly the skill names listed above; do not add, rename, or remove skills.');
+      const groupedSkills = getSkillGroupLines(state.skills);
+      if (groupedSkills.length) {
+        parts.push('Suggested grouped skill layout:');
+        groupedSkills.forEach((line) => parts.push(line));
+      }
     },
     certifications() {
       if (!isSectionEnabled(state, 'certifications')) return;
@@ -6341,6 +6486,12 @@ export async function initResumeBuilderTool(container) {
     if (downloadPrimaryButton) {
       downloadPrimaryButton.disabled = false;
       downloadPrimaryButton.setAttribute('aria-disabled', 'false');
+    }
+    if (docxButton) {
+      const docxAvailable = !isFullResumeTemplate(state.template);
+      docxButton.hidden = !docxAvailable;
+      docxButton.disabled = !docxAvailable;
+      docxButton.setAttribute('aria-disabled', String(!docxAvailable));
     }
     setResumeExportReady(hasResume);
   }
@@ -10417,6 +10568,7 @@ export async function initResumeBuilderTool(container) {
       if (!button || !templatePicker.contains(button)) return;
       applyTemplate(button.dataset.resumeTemplate);
       renderPagedPreview(state);
+      syncExportButtons();
     });
   }
   if (paperSizeToggle) {
