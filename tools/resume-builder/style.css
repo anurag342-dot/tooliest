@@ -7394,6 +7394,11 @@ body:has(.resume-tool) .tool-workspace {
   page-break-inside: avoid;
 }
 
+.rb-meridian-main-section.rb-resume-section-fragment--continued,
+.rb-prism-section.rb-resume-section-fragment--continued {
+  margin-top: 0;
+}
+
 .rb-meridian-main-title {
   margin: 0;
   color: #1b2a4a;

@@ -2582,13 +2582,16 @@ function splitMeridianMainSection(section, appendNode) {
 
   let segment = null;
   let segmentContent = null;
+  let committedSegment = false;
   const startSegment = () => {
+    const includeSectionChrome = !committedSegment;
     segment = section.cloneNode(false);
+    if (!includeSectionChrome) segment.classList.add('rb-resume-section-fragment--continued');
     Array.from(section.children).forEach((child) => {
       if (child.classList?.contains('rb-meridian-main-content')) {
         segmentContent = child.cloneNode(false);
         segment.appendChild(segmentContent);
-      } else {
+      } else if (includeSectionChrome) {
         segment.appendChild(child.cloneNode(true));
       }
     });
@@ -2597,6 +2600,10 @@ function splitMeridianMainSection(section, appendNode) {
       segmentContent.className = 'rb-meridian-main-content';
       segment.appendChild(segmentContent);
     }
+  };
+  const commitSegment = () => {
+    appendNode(segment);
+    committedSegment = true;
   };
 
   startSegment();
@@ -2607,7 +2614,7 @@ function splitMeridianMainSection(section, appendNode) {
 
     clone.remove();
     if (segmentContent.children.length) {
-      appendNode(segment);
+      commitSegment();
       startSegment();
       segmentContent.appendChild(clone);
       return;
@@ -2616,7 +2623,7 @@ function splitMeridianMainSection(section, appendNode) {
     segmentContent.appendChild(clone);
   });
 
-  if (segmentContent?.children.length) appendNode(segment);
+  if (segmentContent?.children.length) commitSegment();
 }
 
 function paginateMeridianResumePreview(state = resumeExportState) {
@@ -2767,13 +2774,16 @@ function splitPrismSection(section, appendNode) {
 
   let segment = null;
   let segmentContent = null;
+  let committedSegment = false;
   const startSegment = () => {
+    const includeSectionChrome = !committedSegment;
     segment = section.cloneNode(false);
+    if (!includeSectionChrome) segment.classList.add('rb-resume-section-fragment--continued');
     Array.from(section.children).forEach((child) => {
       if (child.classList?.contains('rb-prism-section-content')) {
         segmentContent = child.cloneNode(false);
         segment.appendChild(segmentContent);
-      } else {
+      } else if (includeSectionChrome) {
         segment.appendChild(child.cloneNode(true));
       }
     });
@@ -2782,6 +2792,10 @@ function splitPrismSection(section, appendNode) {
       segmentContent.className = 'rb-prism-section-content';
       segment.appendChild(segmentContent);
     }
+  };
+  const commitSegment = () => {
+    appendNode(segment);
+    committedSegment = true;
   };
 
   startSegment();
@@ -2792,7 +2806,7 @@ function splitPrismSection(section, appendNode) {
 
     clone.remove();
     if (segmentContent.children.length) {
-      appendNode(segment);
+      commitSegment();
       startSegment();
       segmentContent.appendChild(clone);
       return;
@@ -2801,7 +2815,7 @@ function splitPrismSection(section, appendNode) {
     segmentContent.appendChild(clone);
   });
 
-  if (segmentContent?.children.length) appendNode(segment);
+  if (segmentContent?.children.length) commitSegment();
 }
 
 function paginatePrismResumePreview(state = resumeExportState) {
