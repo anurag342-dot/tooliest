@@ -177,13 +177,14 @@ function setupGlobalErrorBoundary() {
 
 setupGlobalErrorBoundary();
 
-const RESUME_TEMPLATE_OPTIONS = ['classic', 'modern', 'compact', 'meridian', 'prism'];
+const RESUME_TEMPLATE_OPTIONS = ['classic', 'modern', 'compact', 'meridian', 'prism', 'apex'];
 const RESUME_TEMPLATE_CLASSES = {
   classic: 'rb-tpl-classic',
   modern: 'rb-tpl-modern',
   compact: 'rb-tpl-compact',
   meridian: 'rb-tpl-meridian',
   prism: 'rb-tpl-prism',
+  apex: 'rb-tpl-apex',
 };
 const RESUME_PAPER_SIZES = {
   letter: {
@@ -800,9 +801,13 @@ function isPrismTemplate(template) {
   return normalizeResumeTemplate(template) === 'prism';
 }
 
+function isApexTemplate(template) {
+  return normalizeResumeTemplate(template) === 'apex';
+}
+
 function isFullResumeTemplate(template) {
   const normalized = normalizeResumeTemplate(template);
-  return normalized === 'meridian' || normalized === 'prism';
+  return normalized === 'meridian' || normalized === 'prism' || normalized === 'apex';
 }
 
 function normalizePaperSize(size) {
@@ -2232,6 +2237,7 @@ function syncTemplatePicker(template) {
   const templateNotice = {
     meridian: 'MERIDIAN uses fixed sidebar and main-column zones. Section order still follows the editor.',
     prism: 'PRISM uses fixed left and right columns. Section order still follows the editor within each column.',
+    apex: 'APEX uses a fixed technology layout: summary, experience, and projects stay left; skills, education, and credentials stay right. Section order still follows the editor within each column.',
   }[normalizedTemplate] || '';
   root.querySelectorAll('[data-resume-template]').forEach((button) => {
     const active = button.dataset.resumeTemplate === normalizedTemplate;
@@ -2910,6 +2916,201 @@ function paginatePrismResumePreview(state = resumeExportState) {
   });
 }
 
+function apexZoneFits(zone) {
+  if (!zone) return true;
+  return zone.scrollHeight <= zone.clientHeight + 2;
+}
+
+function createApexPageFromSource(sourceDoc, state, pageIndex) {
+  const sourceBody = sourceDoc.querySelector('.rb-apex-body');
+  const sourceMain = sourceDoc.querySelector('.rb-apex-main-body');
+  const sourceSide = sourceDoc.querySelector('.rb-apex-side-body');
+  const pageDoc = sourceDoc.cloneNode(false);
+  prepareResumePageDoc(pageDoc, state);
+  pageDoc.classList.add('rb-tpl-apex');
+  if (pageIndex > 0) pageDoc.classList.add('rb-apex-page--continuation');
+  pageDoc.style.position = 'relative';
+  pageDoc.style.overflow = 'hidden';
+
+  if (pageIndex === 0) {
+    const header = sourceDoc.querySelector('.rb-apex-header');
+    const underline = sourceDoc.querySelector('.rb-apex-underline');
+    const contact = sourceDoc.querySelector('.rb-apex-contact-row');
+    if (header) pageDoc.appendChild(header.cloneNode(true));
+    if (underline) pageDoc.appendChild(underline.cloneNode(true));
+    if (contact) pageDoc.appendChild(contact.cloneNode(true));
+  } else {
+    const strip = document.createElement('div');
+    strip.className = 'rb-apex-continuation-strip';
+    strip.setAttribute('aria-hidden', 'true');
+    pageDoc.appendChild(strip);
+  }
+
+  const body = sourceBody ? sourceBody.cloneNode(false) : document.createElement('div');
+  body.className = sourceBody?.className || 'rb-apex-body';
+  if (pageIndex > 0) body.classList.add('rb-apex-body--continuation');
+
+  const mainBody = sourceMain ? sourceMain.cloneNode(false) : document.createElement('main');
+  mainBody.className = sourceMain?.className || 'rb-apex-column rb-apex-main-body';
+  body.appendChild(mainBody);
+
+  let sideBody = null;
+  if (sourceSide) {
+    sideBody = sourceSide.cloneNode(false);
+    sideBody.className = sourceSide.className || 'rb-apex-column rb-apex-side-body';
+    body.appendChild(sideBody);
+  }
+
+  pageDoc.appendChild(body);
+  return { pageDoc, mainBody, sideBody };
+}
+
+function splitApexSection(section, appendNode) {
+  const sourceContent = section.querySelector('.rb-apex-section-content');
+  const items = sourceContent ? Array.from(sourceContent.children) : [];
+  if (items.length < 2) {
+    appendNode(section);
+    return;
+  }
+
+  let segment = null;
+  let segmentContent = null;
+  let committedSegment = false;
+  const startSegment = () => {
+    const includeSectionChrome = !committedSegment;
+    segment = section.cloneNode(false);
+    if (!includeSectionChrome) segment.classList.add('rb-resume-section-fragment--continued');
+    Array.from(section.children).forEach((child) => {
+      if (child.classList?.contains('rb-apex-section-content')) {
+        segmentContent = child.cloneNode(false);
+        segment.appendChild(segmentContent);
+      } else if (includeSectionChrome) {
+        segment.appendChild(child.cloneNode(true));
+      }
+    });
+    if (!segmentContent) {
+      segmentContent = document.createElement('div');
+      segmentContent.className = 'rb-apex-section-content';
+      segment.appendChild(segmentContent);
+    }
+  };
+  const commitSegment = () => {
+    appendNode(segment);
+    committedSegment = true;
+  };
+
+  startSegment();
+  items.forEach((item) => {
+    const clone = item.cloneNode(true);
+    segmentContent.appendChild(clone);
+    if (appendNode(segment, { probeOnly: true })) return;
+
+    clone.remove();
+    if (segmentContent.children.length) {
+      commitSegment();
+      startSegment();
+      segmentContent.appendChild(clone);
+      return;
+    }
+
+    segmentContent.appendChild(clone);
+  });
+
+  if (segmentContent?.children.length) commitSegment();
+}
+
+function paginateApexResumePreview(state = resumeExportState) {
+  const container = document.getElementById('rb-preview-pane');
+  const sourceDoc = container?.querySelector(':scope > .rb-resume-doc.rb-tpl-apex');
+  if (!container || !sourceDoc) return;
+
+  const paper = getResumePaperProfile(state);
+  const sourceClone = sourceDoc.cloneNode(true);
+  prepareResumePageDoc(sourceClone, state);
+  sourceClone.style.position = 'relative';
+  sourceClone.style.overflow = 'hidden';
+
+  const measureHost = document.createElement('div');
+  measureHost.className = 'rb-resume-pagination-measure rb-apex-pagination-measure';
+  measureHost.setAttribute('aria-hidden', 'true');
+  Object.assign(measureHost.style, {
+    position: 'fixed',
+    left: '-12000px',
+    top: '0',
+    width: `${paper.width}px`,
+    pointerEvents: 'none',
+    visibility: 'hidden',
+    zIndex: '-1',
+  });
+  document.body.appendChild(measureHost);
+
+  const pages = [];
+  const ensurePage = (index) => {
+    while (pages.length <= index) {
+      const page = createApexPageFromSource(sourceClone, state, pages.length);
+      pages.push(page);
+      measureHost.appendChild(createResumePageShell(page.pageDoc, state));
+    }
+    return pages[index];
+  };
+
+  const appendToZone = (node, zoneName, options = {}) => {
+    const pageIndex = zoneName === 'side' ? appendToZone.sideIndex : appendToZone.mainIndex;
+    const page = ensurePage(pageIndex);
+    const body = zoneName === 'side' ? page.sideBody : page.mainBody;
+    const zone = body;
+    if (!body) return false;
+    const clone = node.cloneNode(true);
+    body.appendChild(clone);
+    const fits = apexZoneFits(zone);
+    if (options.probeOnly) {
+      clone.remove();
+      return fits;
+    }
+    if (fits) return true;
+
+    clone.remove();
+    if (body.children.length === 0) {
+      body.appendChild(clone);
+      return false;
+    }
+
+    if (zoneName === 'side') appendToZone.sideIndex += 1;
+    else appendToZone.mainIndex += 1;
+    return appendToZone(node, zoneName);
+  };
+  appendToZone.mainIndex = 0;
+  appendToZone.sideIndex = 0;
+
+  Array.from(sourceClone.querySelectorAll('.rb-apex-main-body > .rb-apex-section'))
+    .forEach((section) => {
+      const page = ensurePage(appendToZone.mainIndex);
+      const bodyWasEmpty = page.mainBody.children.length === 0;
+      const testClone = section.cloneNode(true);
+      page.mainBody.appendChild(testClone);
+      const fits = apexZoneFits(page.mainBody);
+      testClone.remove();
+      if (fits || bodyWasEmpty) {
+        if (fits || section.querySelectorAll('.rb-apex-section-content > *').length < 2) {
+          appendToZone(section, 'main');
+          return;
+        }
+      }
+      splitApexSection(section, (node, options = {}) => appendToZone(node, 'main', options));
+    });
+
+  Array.from(sourceClone.querySelectorAll('.rb-apex-side-body > .rb-apex-section'))
+    .forEach((section) => appendToZone(section, 'side'));
+
+  measureHost.remove();
+  container.innerHTML = '';
+  pages.forEach((page) => {
+    prepareResumePageDoc(page.pageDoc, state);
+    page.pageDoc.classList.add('rb-tpl-apex');
+    container.appendChild(createResumePageShell(page.pageDoc, state));
+  });
+}
+
 function cloneResumeSectionFrame(section, options = {}) {
   const clone = section.cloneNode(false);
   Array.from(section.children).forEach((child) => {
@@ -2978,6 +3179,10 @@ function paginateResumePreview(state = resumeExportState) {
   if (!container || !sourceDoc) return;
   if (sourceDoc.classList.contains('rb-tpl-prism')) {
     paginatePrismResumePreview(state);
+    return;
+  }
+  if (sourceDoc.classList.contains('rb-tpl-apex')) {
+    paginateApexResumePreview(state);
     return;
   }
   if (sourceDoc.classList.contains('rb-tpl-meridian')) {
@@ -3067,6 +3272,11 @@ function renderFormattedPreview(resumeText) {
 
   if (isPrismTemplate(resumeExportState?.template) && (hasMeaningfulLiveResumeData(resumeExportState) || String(resumeText || '').trim())) {
     renderPrismResumeFromState(resumeExportState);
+    return;
+  }
+
+  if (isApexTemplate(resumeExportState?.template) && (hasMeaningfulLiveResumeData(resumeExportState) || String(resumeText || '').trim())) {
+    renderApexResumeFromState(resumeExportState);
     return;
   }
 
@@ -4095,6 +4305,332 @@ function renderPrismResumeFromState(state = resumeExportState) {
   applyMobilePreviewScale();
 }
 
+const APEX_LEFT_KEYS = new Set(['experience', 'projects', 'publications', 'volunteer']);
+const APEX_RIGHT_KEYS = new Set(['skills', 'education', 'certifications', 'courses', 'awards', 'languages']);
+const APEX_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatApexDate(value) {
+  const text = cleanResumeValue(value);
+  const match = text.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return text;
+  const monthIndex = Number(match[2]) - 1;
+  if (monthIndex < 0 || monthIndex > 11) return text;
+  return `${APEX_MONTHS[monthIndex]} ${match[1]}`;
+}
+
+function getApexDescriptionLines(value) {
+  return cleanResumeValue(value)
+    .split(/\n+/)
+    .map((line) => line.trim().replace(/^[\s\u2022\u25B8\u2013-]+/, '').trim())
+    .filter(Boolean);
+}
+
+function renderApexSection(title, body, key = '', extraClass = '') {
+  const content = String(body || '').trim();
+  if (!content) return '';
+  return `
+    <section class="rb-apex-section ${extraClass}" data-apex-section="${escapeHtml(key || title)}">
+      <h2 class="rb-apex-section-title">${escapeHtml(title)}</h2>
+      <div class="rb-apex-section-rule" aria-hidden="true"></div>
+      <div class="rb-apex-section-content">${content}</div>
+    </section>`;
+}
+
+function renderApexBullets(value) {
+  const lines = Array.isArray(value) ? value : getApexDescriptionLines(value);
+  const bullets = lines.map(cleanResumeValue).filter(Boolean);
+  if (!bullets.length) return '';
+  return `<ul class="rb-apex-bullets">${bullets.map((line) => `<li><span aria-hidden="true">&ndash;</span>${escapeHtml(line)}</li>`).join('')}</ul>`;
+}
+
+function renderApexSummarySection(state) {
+  const summary = cleanResumeValue(state.summary);
+  return summary ? renderApexSection('PROFESSIONAL SUMMARY', `<p class="rb-apex-paragraph">${escapeHtml(summary)}</p>`, 'summary') : '';
+}
+
+function renderApexExperienceSection(state) {
+  const items = (state.experiences || []).filter((exp) => cleanResumeValue(exp?.jobTitle || exp?.title));
+  if (!items.length) return '';
+  const body = items.map((exp, index) => {
+    const role = cleanResumeValue(exp.jobTitle || exp.title);
+    const company = cleanResumeValue(exp.company);
+    const duration = cleanResumeValue(exp.duration || exp.dates);
+    const location = cleanResumeValue(exp.location);
+    const bullets = [exp.achievement1, exp.achievement2, exp.achievement3].map(cleanResumeValue).filter(Boolean);
+    const metaLine = company || location
+      ? `<div class="rb-apex-row rb-apex-row--company">${company ? `<strong>${escapeHtml(company)}</strong>` : '<span></span>'}${location ? `<span>${escapeHtml(location)}</span>` : ''}</div>`
+      : '';
+    return `
+      <div class="rb-apex-timeline-item rb-apex-flow-item ${index === items.length - 1 ? 'rb-apex-timeline-item--last' : ''}">
+        <span class="rb-apex-timeline-dot" aria-hidden="true"></span>
+        <span class="rb-apex-timeline-line" aria-hidden="true"></span>
+        <div class="rb-apex-timeline-content">
+          <div class="rb-apex-row"><strong>${escapeHtml(role)}</strong>${duration ? `<span>${escapeHtml(duration)}</span>` : ''}</div>
+          ${metaLine}
+          ${renderApexBullets(bullets)}
+        </div>
+      </div>`;
+  }).join('');
+  return renderApexSection('WORK EXPERIENCE', body, 'experience', 'rb-apex-section--timeline');
+}
+
+function renderApexProjectsSection(state) {
+  if (!isSectionEnabled(state, 'projects')) return '';
+  const items = (state.projects || []).filter((project) => cleanResumeValue(project?.name));
+  if (!items.length) return '';
+  const manyProjects = items.length > 2;
+  const body = items.map((project, index) => {
+    const name = cleanResumeValue(project.name);
+    const link = cleanResumeValue(project.link);
+    const technologies = cleanResumeValue(project.technologies);
+    const description = cleanResumeValue(project.description || project.details);
+    return `
+      <div class="rb-apex-item rb-apex-flow-item ${manyProjects && index > 0 ? 'rb-apex-item--divided' : ''}">
+        <div class="rb-apex-project-head">
+          <p class="rb-apex-item-title">${escapeHtml(name)}</p>
+          ${link ? `<span class="rb-apex-link">(${escapeHtml(link)})</span>` : ''}
+        </div>
+        ${technologies ? `<p class="rb-apex-tech"><strong>Tech:</strong> ${escapeHtml(technologies)}</p>` : ''}
+        ${renderApexBullets(description)}
+      </div>`;
+  }).join('');
+  return renderApexSection('PROJECTS', body, 'projects');
+}
+
+function renderApexPublicationsSection(state) {
+  if (!isSectionEnabled(state, 'publications')) return '';
+  const items = (state.publications || []).filter((publication) => cleanResumeValue(publication?.title));
+  if (!items.length) return '';
+  const body = items.map((publication) => {
+    const title = cleanResumeValue(publication.title);
+    const meta = [publication.publisher, formatApexDate(publication.date)].map(cleanResumeValue).filter(Boolean).join(' - ');
+    const url = cleanResumeValue(publication.url);
+    return `
+      <div class="rb-apex-item rb-apex-flow-item">
+        <p class="rb-apex-item-title">${escapeHtml(title)}</p>
+        ${meta ? `<p class="rb-apex-muted">${escapeHtml(meta)}</p>` : ''}
+        ${url ? `<p class="rb-apex-link">${escapeHtml(url)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderApexSection('PUBLICATIONS', body, 'publications');
+}
+
+function renderApexVolunteerSection(state) {
+  if (!isSectionEnabled(state, 'volunteer')) return '';
+  const items = (state.volunteer || []).filter((item) => cleanResumeValue(item?.role));
+  if (!items.length) return '';
+  const body = items.map((item) => {
+    const role = cleanResumeValue(item.role);
+    const organization = cleanResumeValue(item.organization);
+    const duration = cleanResumeValue(item.duration);
+    return `
+      <div class="rb-apex-item rb-apex-flow-item">
+        <div class="rb-apex-row"><strong>${escapeHtml(role)}</strong></div>
+        ${organization || duration ? `<div class="rb-apex-row rb-apex-row--company"><strong>${escapeHtml(organization)}</strong>${duration ? `<span>${escapeHtml(duration)}</span>` : ''}</div>` : ''}
+        ${renderApexBullets(item.description)}
+      </div>`;
+  }).join('');
+  return renderApexSection('VOLUNTEER WORK', body, 'volunteer');
+}
+
+function renderApexCustomSection(state, sectionId) {
+  const customSection = (state.customSections || []).find((section) => section.id === sectionId);
+  if (!customSection) return '';
+  const title = cleanResumeValue(customSection.title) || 'CUSTOM SECTION';
+  const entries = (customSection.entries || []).filter((entry) => cleanResumeValue(entry?.body));
+  if (!entries.length) return '';
+  const divided = entries.length > 2;
+  const body = entries.map((entry, index) => `
+    <div class="rb-apex-item rb-apex-flow-item ${divided && index > 0 ? 'rb-apex-item--divided' : ''}">
+      ${cleanResumeValue(entry.heading) ? `<p class="rb-apex-item-title">${escapeHtml(cleanResumeValue(entry.heading))}</p>` : ''}
+      <p class="rb-apex-paragraph">${escapeHtml(cleanResumeValue(entry.body))}</p>
+    </div>`).join('');
+  return renderApexSection(title.toUpperCase(), body, sectionId);
+}
+
+function renderApexSkillChips(skills) {
+  return `<div class="rb-apex-chip-row">${skills.map((skill) => `<span class="rb-apex-skill-chip">${escapeHtml(skill)}</span>`).join('')}</div>`;
+}
+
+function renderApexSkillsBody(state, placement = 'side') {
+  const groups = getCategorizedSkillGroups(state?.skills);
+  if (!groups.length) return '';
+  if (groups.length === 1) return renderApexSkillChips(groups[0].items);
+  return groups.map((group) => `
+    <div class="rb-apex-skill-group ${placement === 'main' ? 'rb-apex-skill-group--main' : ''}">
+      <p class="rb-apex-skill-label">${escapeHtml(group.label)}</p>
+      ${renderApexSkillChips(group.items)}
+    </div>`).join('');
+}
+
+function renderApexSkillsSection(state, placement = 'side') {
+  const body = renderApexSkillsBody(state, placement);
+  if (!body) return '';
+  return renderApexSection(placement === 'main' ? 'TECHNICAL SKILLS' : 'SKILLS', body, 'skills', placement === 'main' ? 'rb-apex-section--skills-main' : '');
+}
+
+function renderApexEducationSection(state) {
+  const items = (state.educations || []).filter((edu) => cleanResumeValue(edu?.degree));
+  if (!items.length) return '';
+  const body = items.map((edu) => {
+    const degree = cleanResumeValue(edu.degree);
+    const institution = cleanResumeValue(edu.institution);
+    const year = cleanResumeValue(edu.year);
+    const details = [edu.gpa ? `GPA ${cleanResumeValue(edu.gpa)}` : '', edu.courses ? cleanResumeValue(edu.courses) : '']
+      .filter(Boolean)
+      .join(' | ');
+    return `
+      <div class="rb-apex-side-item rb-apex-flow-item">
+        <div class="rb-apex-row rb-apex-row--side"><p class="rb-apex-side-title">${escapeHtml(degree)}</p>${year ? `<span>${escapeHtml(year)}</span>` : ''}</div>
+        ${institution ? `<p class="rb-apex-side-school">${escapeHtml(institution)}</p>` : ''}
+        ${details ? `<p class="rb-apex-side-muted rb-apex-side-italic">${escapeHtml(details)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderApexSection('EDUCATION', body, 'education');
+}
+
+function renderApexCertificationsSection(state) {
+  if (!isSectionEnabled(state, 'certifications')) return '';
+  const items = (state.certifications || []).map((item) => {
+    if (typeof item === 'string') return { name: cleanResumeValue(item), meta: '' };
+    return {
+      name: cleanResumeValue(item?.name || item?.title),
+      meta: [item?.issuer, formatApexDate(item?.date)].map(cleanResumeValue).filter(Boolean).join(', '),
+    };
+  }).filter((item) => item.name);
+  if (!items.length) return '';
+  const body = items.map((item) => `
+    <div class="rb-apex-cert-item rb-apex-flow-item">
+      <p class="rb-apex-cert-chip">${escapeHtml(item.name)}</p>
+      ${item.meta ? `<p class="rb-apex-side-muted">${escapeHtml(item.meta)}</p>` : ''}
+    </div>`).join('');
+  return renderApexSection('CERTIFICATIONS', body, 'certifications');
+}
+
+function renderApexCoursesSection(state) {
+  if (!isSectionEnabled(state, 'courses')) return '';
+  const items = (state.courses || []).filter((course) => cleanResumeValue(course?.name));
+  if (!items.length) return '';
+  const body = items.map((course) => {
+    const name = cleanResumeValue(course.name);
+    const meta = [course.institution, formatApexDate(course.date)].map(cleanResumeValue).filter(Boolean).join(', ');
+    return `
+      <div class="rb-apex-side-item rb-apex-flow-item">
+        <p class="rb-apex-side-title">${escapeHtml(name)}</p>
+        ${meta ? `<p class="rb-apex-side-muted">${escapeHtml(meta)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderApexSection('COURSES & TRAINING', body, 'courses');
+}
+
+function renderApexAwardsSection(state) {
+  if (!isSectionEnabled(state, 'awards')) return '';
+  const items = (state.awards || []).filter((award) => cleanResumeValue(award?.title));
+  if (!items.length) return '';
+  const body = items.map((award) => {
+    const title = cleanResumeValue(award.title);
+    const issuer = cleanResumeValue(award.issuer);
+    const date = formatApexDate(award.date);
+    const description = cleanResumeValue(award.description);
+    return `
+      <div class="rb-apex-side-item rb-apex-flow-item">
+        <p class="rb-apex-side-title">${escapeHtml(title)}</p>
+        ${issuer ? `<p class="rb-apex-side-blue">${escapeHtml(issuer)}</p>` : ''}
+        ${date ? `<p class="rb-apex-side-muted">${escapeHtml(date)}</p>` : ''}
+        ${description ? `<p class="rb-apex-side-muted rb-apex-side-italic">${escapeHtml(description)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderApexSection('AWARDS & HONORS', body, 'awards');
+}
+
+function renderApexLanguagesSection(state) {
+  if (!isSectionEnabled(state, 'languages')) return '';
+  const items = (state.languages || []).filter((item) => cleanResumeValue(item?.language));
+  if (!items.length) return '';
+  const body = items.map((item) => {
+    const language = cleanResumeValue(item.language);
+    const proficiency = cleanResumeValue(item.proficiency);
+    return `<p class="rb-apex-language"><strong>${escapeHtml(language)}</strong>${proficiency ? ` <span>- ${escapeHtml(proficiency)}</span>` : ''}</p>`;
+  }).join('');
+  return renderApexSection('LANGUAGES', body, 'languages');
+}
+
+function renderApexLeftSections(state) {
+  const renderers = {
+    experience: renderApexExperienceSection,
+    projects: renderApexProjectsSection,
+    publications: renderApexPublicationsSection,
+    volunteer: renderApexVolunteerSection,
+  };
+  const skillSection = shouldRenderTemplateSkillsInMain(state) ? renderApexSkillsSection(state, 'main') : '';
+  const ordered = normalizeSectionOrder(state.sectionOrder, state.customSections)
+    .filter((key) => APEX_LEFT_KEYS.has(key) || key.startsWith('custom_'))
+    .map((key) => (key.startsWith('custom_') ? renderApexCustomSection(state, key) : renderers[key]?.(state) || ''))
+    .filter(Boolean);
+  return [renderApexSummarySection(state), skillSection, ...ordered].filter(Boolean).join('');
+}
+
+function renderApexRightSections(state) {
+  const renderers = {
+    skills: shouldRenderTemplateSkillsInMain(state) ? null : (currentState) => renderApexSkillsSection(currentState, 'side'),
+    education: renderApexEducationSection,
+    certifications: renderApexCertificationsSection,
+    courses: renderApexCoursesSection,
+    awards: renderApexAwardsSection,
+    languages: renderApexLanguagesSection,
+  };
+  return normalizeSectionOrder(state.sectionOrder, state.customSections)
+    .filter((key) => APEX_RIGHT_KEYS.has(key))
+    .map((key) => renderers[key]?.(state) || '')
+    .filter(Boolean)
+    .join('');
+}
+
+function renderApexContactRow(state) {
+  const parts = [
+    state.personal?.email,
+    state.personal?.phone,
+    state.personal?.location,
+    state.personal?.linkedin,
+    state.personal?.portfolio,
+  ].map(cleanResumeValue).filter(Boolean);
+  if (!parts.length) return '';
+  return parts.map((part, index) => `${index ? '<span class="rb-apex-contact-sep" aria-hidden="true">&middot;</span>' : ''}<span>${escapeHtml(part)}</span>`).join('');
+}
+
+function renderApexResumeFromState(state = resumeExportState) {
+  const container = document.getElementById('rb-preview-pane');
+  if (!container) return;
+  resumePreviewPrefersLive = true;
+
+  const name = cleanResumeValue(state.personal?.name) || 'Your Name';
+  const role = cleanResumeValue(state.targetRole) || 'Target Role';
+  const leftSections = renderApexLeftSections(state);
+  const rightSections = renderApexRightSections(state);
+  const contact = renderApexContactRow(state);
+  const bodyClass = !leftSections || !rightSections ? 'rb-apex-body rb-apex-body--single' : 'rb-apex-body';
+  const bodyHtml = leftSections && rightSections
+    ? `<main class="rb-apex-column rb-apex-main-body">${leftSections}</main><aside class="rb-apex-column rb-apex-side-body">${rightSections}</aside>`
+    : `<main class="rb-apex-column rb-apex-main-body rb-apex-main-body--single">${leftSections || rightSections}</main>`;
+
+  container.innerHTML = `
+    <div class="rb-resume-doc ${getResumePaperClass(state)} rb-tpl-apex">
+      <header class="rb-apex-header">
+        <h1 class="rb-apex-name">${escapeHtml(name)}</h1>
+        <p class="rb-apex-role-badge">${escapeHtml(role)}</p>
+      </header>
+      <div class="rb-apex-underline" aria-hidden="true"></div>
+      ${contact ? `<p class="rb-apex-contact-row">${contact}</p>` : ''}
+      <div class="${bodyClass}">${bodyHtml}</div>
+    </div>`;
+
+  applyTemplate('apex', { persist: false, animate: false });
+  paginateResumePreview(state);
+  updateWordCountDisplay(state);
+  updateResumePageCount(state);
+  applyMobilePreviewScale();
+}
+
 function normalizeOptionalList(value) {
   if (Array.isArray(value)) {
     return value.map((item) => {
@@ -4205,6 +4741,11 @@ function renderLiveResumeFromState(state = resumeExportState) {
 
   if (isPrismTemplate(state?.template)) {
     renderPrismResumeFromState(state);
+    return;
+  }
+
+  if (isApexTemplate(state?.template)) {
+    renderApexResumeFromState(state);
     return;
   }
 
@@ -7100,7 +7641,7 @@ export async function initResumeBuilderTool(container) {
   }
 
   function updateResumePreviewMeta() {
-    const currentText = isMeridianTemplate(state.template)
+    const currentText = isMeridianTemplate(state.template) || isApexTemplate(state.template)
       ? getResumeCountSourceText(state)
       : previewRenderMode === 'generated' && state.generatedResume
       ? String(state.generatedResume || '')
