@@ -3178,10 +3178,7 @@ function cloneAtlasFlowItemSegment(item, includeChrome = true) {
 function splitAtlasSection(section, appendNode) {
   const sourceContent = section.querySelector('.rb-atlas-section-content');
   const items = sourceContent ? Array.from(sourceContent.children) : [];
-  if (items.length < 2) {
-    appendNode(section);
-    return;
-  }
+  if (!items.length) return;
 
   let segment = null;
   let segmentContent = null;
@@ -3208,7 +3205,12 @@ function splitAtlasSection(section, appendNode) {
     appendNode(segment);
     committedSegment = true;
   };
-  const appendOversizedFlowItem = (item) => {
+  const appendOversizedFlowItem = (item, forceNewSegment = false) => {
+    if (forceNewSegment && segmentContent?.children.length) {
+      commitSegment();
+      startSegment();
+    }
+
     const bullets = Array.from(item.querySelectorAll('.rb-atlas-bullets > li'));
     if (!bullets.length) {
       segmentContent.appendChild(item.cloneNode(true));
@@ -3261,7 +3263,7 @@ function splitAtlasSection(section, appendNode) {
       return;
     }
 
-    appendOversizedFlowItem(item);
+    appendOversizedFlowItem(item, committedSegment);
   });
 
   if (segmentContent?.children.length) commitSegment();

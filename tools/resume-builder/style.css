@@ -8431,6 +8431,8 @@ body:has(.resume-tool) .tool-workspace {
 }
 
 .rb-atlas-panel {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
   margin: 0.29in 0.1in;
@@ -8451,6 +8453,7 @@ body:has(.resume-tool) .tool-workspace {
 
 .rb-atlas-header {
   display: flex;
+  flex: 0 0 auto;
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
@@ -8503,13 +8506,16 @@ body:has(.resume-tool) .tool-workspace {
 }
 
 .rb-atlas-header-rule {
+  flex: 0 0 auto;
   height: 0;
   margin: 0 0 0.15in;
   border-top: 0.5px solid #e2e8d5;
 }
 
 .rb-atlas-body {
+  flex: 1 1 auto;
   min-height: 0;
+  overflow: hidden;
 }
 
 .rb-atlas-body--continuation {
@@ -8517,7 +8523,9 @@ body:has(.resume-tool) .tool-workspace {
 }
 
 .rb-atlas-main-body {
+  height: 100%;
   min-height: 0;
+  overflow: hidden;
 }
 
 .rb-atlas-section {
