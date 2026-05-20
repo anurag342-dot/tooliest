@@ -177,7 +177,7 @@ function setupGlobalErrorBoundary() {
 
 setupGlobalErrorBoundary();
 
-const RESUME_TEMPLATE_OPTIONS = ['classic', 'modern', 'compact', 'meridian', 'prism', 'apex', 'atlas'];
+const RESUME_TEMPLATE_OPTIONS = ['classic', 'modern', 'compact', 'meridian', 'prism', 'apex', 'atlas', 'luminary'];
 const RESUME_TEMPLATE_CLASSES = {
   classic: 'rb-tpl-classic',
   modern: 'rb-tpl-modern',
@@ -186,6 +186,7 @@ const RESUME_TEMPLATE_CLASSES = {
   prism: 'rb-tpl-prism',
   apex: 'rb-tpl-apex',
   atlas: 'rb-tpl-atlas',
+  luminary: 'rb-tpl-luminary',
 };
 const RESUME_PAPER_SIZES = {
   letter: {
@@ -810,9 +811,13 @@ function isAtlasTemplate(template) {
   return normalizeResumeTemplate(template) === 'atlas';
 }
 
+function isLuminaryTemplate(template) {
+  return normalizeResumeTemplate(template) === 'luminary';
+}
+
 function isFullResumeTemplate(template) {
   const normalized = normalizeResumeTemplate(template);
-  return normalized === 'meridian' || normalized === 'prism' || normalized === 'apex' || normalized === 'atlas';
+  return normalized === 'meridian' || normalized === 'prism' || normalized === 'apex' || normalized === 'atlas' || normalized === 'luminary';
 }
 
 function normalizePaperSize(size) {
@@ -2244,6 +2249,7 @@ function syncTemplatePicker(template) {
     prism: 'PRISM uses fixed left and right columns. Section order still follows the editor within each column.',
     apex: 'APEX uses a fixed technology layout: summary, experience, and projects stay left; skills, education, and credentials stay right. Section order still follows the editor within each column.',
     atlas: 'ATLAS keeps main body sections in editor order, while Education and Skills stay in the fixed two-column bottom area. Sections cannot move between these template zones.',
+    luminary: 'LUMINARY keeps main body sections in editor order, while Education and Skills stay in the fixed two-column bottom area. Certifications, Courses, Awards, and Languages render before that bottom section.',
   }[normalizedTemplate] || '';
   root.querySelectorAll('[data-resume-template]').forEach((button) => {
     const active = button.dataset.resumeTemplate === normalizedTemplate;
@@ -3353,6 +3359,236 @@ function paginateAtlasResumePreview(state = resumeExportState) {
   });
 }
 
+function luminaryZoneFits(zone) {
+  if (!zone) return true;
+  return zone.scrollHeight <= zone.clientHeight + 2;
+}
+
+function createLuminaryPageFromSource(sourceDoc, state, pageIndex) {
+  const sourceTopStripe = sourceDoc.querySelector('.rb-lum-top-stripe');
+  const sourceHeader = sourceDoc.querySelector('.rb-lum-header');
+  const sourceSecondStripe = sourceDoc.querySelector('.rb-lum-header-second-stripe');
+  const sourceBody = sourceDoc.querySelector('.rb-lum-body');
+  const sourceMain = sourceDoc.querySelector('.rb-lum-main-body');
+  const sourceFooter = sourceDoc.querySelector('.rb-lum-footer');
+  const pageDoc = sourceDoc.cloneNode(false);
+  prepareResumePageDoc(pageDoc, state);
+  pageDoc.classList.add('rb-tpl-luminary');
+  if (pageIndex > 0) pageDoc.classList.add('rb-lum-page--continuation');
+  pageDoc.style.position = 'relative';
+  pageDoc.style.overflow = 'hidden';
+
+  if (sourceTopStripe) pageDoc.appendChild(sourceTopStripe.cloneNode(true));
+  if (pageIndex === 0) {
+    if (sourceHeader) pageDoc.appendChild(sourceHeader.cloneNode(true));
+    if (sourceSecondStripe) pageDoc.appendChild(sourceSecondStripe.cloneNode(true));
+  }
+
+  const body = sourceBody ? sourceBody.cloneNode(false) : document.createElement('main');
+  body.className = sourceBody?.className || 'rb-lum-body';
+  if (pageIndex > 0) body.classList.add('rb-lum-body--continuation');
+
+  const mainBody = sourceMain ? sourceMain.cloneNode(false) : document.createElement('div');
+  mainBody.className = sourceMain?.className || 'rb-lum-main-body';
+  body.appendChild(mainBody);
+  pageDoc.appendChild(body);
+
+  if (sourceFooter) pageDoc.appendChild(sourceFooter.cloneNode(true));
+
+  return { pageDoc, mainBody };
+}
+
+function cloneLuminaryFlowItemSegment(item, includeChrome = true) {
+  const clone = item.cloneNode(false);
+  if (!includeChrome) clone.classList.add('rb-lum-flow-item--continued');
+  Array.from(item.children).forEach((child) => {
+    if (child.classList?.contains('rb-lum-bullets')) {
+      clone.appendChild(child.cloneNode(false));
+    } else if (includeChrome) {
+      clone.appendChild(child.cloneNode(true));
+    }
+  });
+  return clone;
+}
+
+function splitLuminarySection(section, appendNode) {
+  const sourceContent = section.querySelector('.rb-lum-section-content');
+  const items = sourceContent ? Array.from(sourceContent.children) : [];
+  if (!items.length) return;
+
+  let segment = null;
+  let segmentContent = null;
+  let committedSegment = false;
+  const startSegment = () => {
+    const includeSectionChrome = !committedSegment;
+    segment = section.cloneNode(false);
+    if (!includeSectionChrome) segment.classList.add('rb-resume-section-fragment--continued');
+    Array.from(section.children).forEach((child) => {
+      if (child.classList?.contains('rb-lum-section-content')) {
+        segmentContent = child.cloneNode(false);
+        segment.appendChild(segmentContent);
+      } else if (includeSectionChrome) {
+        segment.appendChild(child.cloneNode(true));
+      }
+    });
+    if (!segmentContent) {
+      segmentContent = document.createElement('div');
+      segmentContent.className = 'rb-lum-section-content';
+      segment.appendChild(segmentContent);
+    }
+  };
+  const commitSegment = () => {
+    appendNode(segment);
+    committedSegment = true;
+  };
+  const appendOversizedFlowItem = (item, forceNewSegment = false) => {
+    if (forceNewSegment && segmentContent?.children.length) {
+      commitSegment();
+      startSegment();
+    }
+
+    const bullets = Array.from(item.querySelectorAll('.rb-lum-bullets > li'));
+    if (!bullets.length) {
+      segmentContent.appendChild(item.cloneNode(true));
+      return;
+    }
+
+    let itemSegment = cloneLuminaryFlowItemSegment(item, true);
+    let itemBullets = itemSegment.querySelector('.rb-lum-bullets');
+    if (!itemBullets) {
+      segmentContent.appendChild(item.cloneNode(true));
+      return;
+    }
+    segmentContent.appendChild(itemSegment);
+
+    bullets.forEach((bullet) => {
+      const bulletClone = bullet.cloneNode(true);
+      itemBullets.appendChild(bulletClone);
+      if (appendNode(segment, { probeOnly: true })) return;
+
+      bulletClone.remove();
+      if (itemBullets.children.length) {
+        commitSegment();
+        startSegment();
+        itemSegment = cloneLuminaryFlowItemSegment(item, false);
+        itemBullets = itemSegment.querySelector('.rb-lum-bullets');
+        segmentContent.appendChild(itemSegment);
+        itemBullets.appendChild(bulletClone);
+        return;
+      }
+
+      itemBullets.appendChild(bulletClone);
+    });
+  };
+
+  startSegment();
+  items.forEach((item) => {
+    const clone = item.cloneNode(true);
+    segmentContent.appendChild(clone);
+    if (appendNode(segment, { probeOnly: true })) return;
+
+    clone.remove();
+    if (segmentContent.children.length) {
+      commitSegment();
+      startSegment();
+      segmentContent.appendChild(clone);
+      if (!appendNode(segment, { probeOnly: true })) {
+        clone.remove();
+        appendOversizedFlowItem(item);
+      }
+      return;
+    }
+
+    appendOversizedFlowItem(item, committedSegment);
+  });
+
+  if (segmentContent?.children.length) commitSegment();
+}
+
+function paginateLuminaryResumePreview(state = resumeExportState) {
+  const container = document.getElementById('rb-preview-pane');
+  const sourceDoc = container?.querySelector(':scope > .rb-resume-doc.rb-tpl-luminary');
+  if (!container || !sourceDoc) return;
+
+  const paper = getResumePaperProfile(state);
+  const sourceClone = sourceDoc.cloneNode(true);
+  prepareResumePageDoc(sourceClone, state);
+  sourceClone.style.position = 'relative';
+  sourceClone.style.overflow = 'hidden';
+
+  const measureHost = document.createElement('div');
+  measureHost.className = 'rb-resume-pagination-measure rb-lum-pagination-measure';
+  measureHost.setAttribute('aria-hidden', 'true');
+  Object.assign(measureHost.style, {
+    position: 'fixed',
+    left: '-12000px',
+    top: '0',
+    width: `${paper.width}px`,
+    pointerEvents: 'none',
+    visibility: 'hidden',
+    zIndex: '-1',
+  });
+  document.body.appendChild(measureHost);
+
+  const pages = [];
+  const ensurePage = (index) => {
+    while (pages.length <= index) {
+      const page = createLuminaryPageFromSource(sourceClone, state, pages.length);
+      pages.push(page);
+      measureHost.appendChild(createResumePageShell(page.pageDoc, state));
+    }
+    return pages[index];
+  };
+
+  const appendToMain = (node, options = {}) => {
+    const page = ensurePage(appendToMain.pageIndex);
+    const body = page.mainBody;
+    const clone = node.cloneNode(true);
+    body.appendChild(clone);
+    const fits = luminaryZoneFits(body);
+    if (options.probeOnly) {
+      clone.remove();
+      return fits;
+    }
+    if (fits) return true;
+
+    clone.remove();
+    if (body.children.length === 0) {
+      body.appendChild(clone);
+      return false;
+    }
+
+    appendToMain.pageIndex += 1;
+    return appendToMain(node);
+  };
+  appendToMain.pageIndex = 0;
+
+  Array.from(sourceClone.querySelectorAll('.rb-lum-main-body > .rb-lum-section, .rb-lum-main-body > .rb-lum-bottom-grid'))
+    .forEach((section) => {
+      const page = ensurePage(appendToMain.pageIndex);
+      const bodyWasEmpty = page.mainBody.children.length === 0;
+      const testClone = section.cloneNode(true);
+      page.mainBody.appendChild(testClone);
+      const fits = luminaryZoneFits(page.mainBody);
+      testClone.remove();
+      if (fits || bodyWasEmpty || !section.classList.contains('rb-lum-section')) {
+        if (fits || !section.classList.contains('rb-lum-section') || section.querySelectorAll('.rb-lum-section-content > *').length < 2) {
+          appendToMain(section);
+          return;
+        }
+      }
+      splitLuminarySection(section, (node, options = {}) => appendToMain(node, options));
+    });
+
+  measureHost.remove();
+  container.innerHTML = '';
+  pages.forEach((page) => {
+    prepareResumePageDoc(page.pageDoc, state);
+    page.pageDoc.classList.add('rb-tpl-luminary');
+    container.appendChild(createResumePageShell(page.pageDoc, state));
+  });
+}
+
 function cloneResumeSectionFrame(section, options = {}) {
   const clone = section.cloneNode(false);
   Array.from(section.children).forEach((child) => {
@@ -3429,6 +3665,10 @@ function paginateResumePreview(state = resumeExportState) {
   }
   if (sourceDoc.classList.contains('rb-tpl-atlas')) {
     paginateAtlasResumePreview(state);
+    return;
+  }
+  if (sourceDoc.classList.contains('rb-tpl-luminary')) {
+    paginateLuminaryResumePreview(state);
     return;
   }
   if (sourceDoc.classList.contains('rb-tpl-meridian')) {
@@ -3528,6 +3768,11 @@ function renderFormattedPreview(resumeText) {
 
   if (isAtlasTemplate(resumeExportState?.template) && (hasMeaningfulLiveResumeData(resumeExportState) || String(resumeText || '').trim())) {
     renderAtlasResumeFromState(resumeExportState);
+    return;
+  }
+
+  if (isLuminaryTemplate(resumeExportState?.template) && (hasMeaningfulLiveResumeData(resumeExportState) || String(resumeText || '').trim())) {
+    renderLuminaryResumeFromState(resumeExportState);
     return;
   }
 
@@ -5244,6 +5489,376 @@ function renderAtlasResumeFromState(state = resumeExportState) {
   applyMobilePreviewScale();
 }
 
+const LUMINARY_MAIN_KEYS = new Set(['experience', 'projects', 'publications', 'volunteer', 'certifications', 'courses', 'awards', 'languages']);
+const LUMINARY_MONTHS = ATLAS_MONTHS;
+
+function formatLuminaryDate(value) {
+  const text = cleanResumeValue(value);
+  const match = text.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return text;
+  const monthIndex = Number(match[2]) - 1;
+  if (monthIndex < 0 || monthIndex > 11) return text;
+  return `${LUMINARY_MONTHS[monthIndex]} ${match[1]}`;
+}
+
+function getLuminaryDescriptionLines(value) {
+  return cleanResumeValue(value)
+    .split(/\n+/)
+    .map((line) => line.trim().replace(/^[\s\u2022\u25B8\u2013-]+/, '').trim())
+    .filter(Boolean);
+}
+
+function renderLuminaryDiamond(size = 'bullet') {
+  return `<span class="rb-lum-diamond rb-lum-diamond--${escapeHtml(size)}" aria-hidden="true"></span>`;
+}
+
+function renderLuminaryPipes(parts) {
+  return parts.map((part, index) => {
+    const prefix = index ? '<span class="rb-lum-pipe" aria-hidden="true">|</span>' : '';
+    return `${prefix}<span>${escapeHtml(part)}</span>`;
+  }).join('');
+}
+
+function renderLuminarySection(title, body, key = '', extraClass = '') {
+  const content = String(body || '').trim();
+  if (!content) return '';
+  return `
+    <section class="rb-lum-section ${extraClass}" data-lum-section="${escapeHtml(key || title)}">
+      <div class="rb-lum-section-head">
+        <div class="rb-lum-section-rule" aria-hidden="true"></div>
+        ${renderLuminaryDiamond('section')}
+        <h2 class="rb-lum-section-title">${escapeHtml(title)}</h2>
+        ${renderLuminaryDiamond('section')}
+        <div class="rb-lum-section-rule" aria-hidden="true"></div>
+      </div>
+      <div class="rb-lum-section-content">${content}</div>
+    </section>`;
+}
+
+function renderLuminaryBullets(value) {
+  const lines = Array.isArray(value) ? value : getLuminaryDescriptionLines(value);
+  const bullets = lines.map(cleanResumeValue).filter(Boolean);
+  if (!bullets.length) return '';
+  return `<ul class="rb-lum-bullets">${bullets.map((line) => `<li>${renderLuminaryDiamond('bullet')}<span>${escapeHtml(line)}</span></li>`).join('')}</ul>`;
+}
+
+function renderLuminarySummarySection(state) {
+  const summary = cleanResumeValue(state.summary);
+  return summary ? renderLuminarySection('PROFESSIONAL SUMMARY', `<p class="rb-lum-paragraph">${escapeHtml(summary)}</p>`, 'summary') : '';
+}
+
+function renderLuminaryExperienceSection(state) {
+  const items = (state.experiences || []).filter((exp) => cleanResumeValue(exp?.jobTitle || exp?.title));
+  if (!items.length) return '';
+  const body = items.map((exp, index) => {
+    const role = cleanResumeValue(exp.jobTitle || exp.title);
+    const company = cleanResumeValue(exp.company);
+    const duration = cleanResumeValue(exp.duration || exp.dates);
+    const location = cleanResumeValue(exp.location);
+    const bullets = [exp.achievement1, exp.achievement2, exp.achievement3].map(cleanResumeValue).filter(Boolean);
+    return `
+      <div class="rb-lum-entry rb-lum-flow-item">
+        <div class="rb-lum-entry-head">
+          <div class="rb-lum-entry-row rb-lum-entry-row--role"><strong>${escapeHtml(role)}</strong>${duration ? `<span>${escapeHtml(duration)}</span>` : ''}</div>
+          <div class="rb-lum-entry-rule" aria-hidden="true"></div>
+          ${company || location ? `<div class="rb-lum-entry-row rb-lum-entry-row--company"><strong>${escapeHtml(company)}</strong>${location ? `<span>${escapeHtml(location)}</span>` : ''}</div>` : ''}
+        </div>
+        ${renderLuminaryBullets(bullets)}
+        ${index < items.length - 1 ? '<div class="rb-lum-entry-separator" aria-hidden="true"></div>' : ''}
+      </div>`;
+  }).join('');
+  return renderLuminarySection('PROFESSIONAL EXPERIENCE', body, 'experience');
+}
+
+function renderLuminaryProjectsSection(state) {
+  if (!isSectionEnabled(state, 'projects')) return '';
+  const items = (state.projects || []).filter((project) => cleanResumeValue(project?.name));
+  if (!items.length) return '';
+  const manyProjects = items.length > 2;
+  const body = items.map((project, index) => {
+    const name = cleanResumeValue(project.name);
+    const link = cleanResumeValue(project.link);
+    const technologies = cleanResumeValue(project.technologies);
+    const description = cleanResumeValue(project.description || project.details);
+    return `
+      <div class="rb-lum-item rb-lum-flow-item">
+        ${manyProjects && index > 0 ? '<div class="rb-lum-item-divider" aria-hidden="true"></div>' : ''}
+        <div class="rb-lum-project-head">
+          <p class="rb-lum-item-title rb-lum-item-title--burgundy">${escapeHtml(name)}</p>
+          ${link ? `<span class="rb-lum-link">(${escapeHtml(link)})</span>` : ''}
+        </div>
+        ${technologies ? `<p class="rb-lum-tech"><strong>Tech:</strong> ${escapeHtml(technologies)}</p>` : ''}
+        ${renderLuminaryBullets(description)}
+      </div>`;
+  }).join('');
+  return renderLuminarySection('PROJECTS', body, 'projects');
+}
+
+function renderLuminaryPublicationsSection(state) {
+  if (!isSectionEnabled(state, 'publications')) return '';
+  const items = (state.publications || []).filter((publication) => cleanResumeValue(publication?.title));
+  if (!items.length) return '';
+  const body = items.map((publication) => {
+    const title = cleanResumeValue(publication.title);
+    const meta = [publication.publisher, formatLuminaryDate(publication.date)].map(cleanResumeValue).filter(Boolean).join(' - ');
+    const url = cleanResumeValue(publication.url);
+    return `
+      <div class="rb-lum-item rb-lum-flow-item">
+        <p class="rb-lum-item-title">${escapeHtml(title)}</p>
+        ${meta ? `<p class="rb-lum-muted">${escapeHtml(meta)}</p>` : ''}
+        ${url ? `<p class="rb-lum-link">${escapeHtml(url)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderLuminarySection('PUBLICATIONS', body, 'publications');
+}
+
+function renderLuminaryVolunteerSection(state) {
+  if (!isSectionEnabled(state, 'volunteer')) return '';
+  const items = (state.volunteer || []).filter((item) => cleanResumeValue(item?.role));
+  if (!items.length) return '';
+  const body = items.map((item) => {
+    const role = cleanResumeValue(item.role);
+    const organization = cleanResumeValue(item.organization);
+    const duration = cleanResumeValue(item.duration);
+    return `
+      <div class="rb-lum-entry rb-lum-flow-item">
+        <div class="rb-lum-entry-head">
+          <div class="rb-lum-entry-row rb-lum-entry-row--role"><strong>${escapeHtml(role)}</strong></div>
+          ${organization || duration ? `<div class="rb-lum-entry-row rb-lum-entry-row--company"><strong>${escapeHtml(organization)}</strong>${duration ? `<span>${escapeHtml(duration)}</span>` : ''}</div>` : ''}
+        </div>
+        ${renderLuminaryBullets(item.description)}
+      </div>`;
+  }).join('');
+  return renderLuminarySection('VOLUNTEER WORK', body, 'volunteer');
+}
+
+function renderLuminaryCertificationsSection(state) {
+  if (!isSectionEnabled(state, 'certifications')) return '';
+  const items = (state.certifications || []).map((item) => {
+    if (typeof item === 'string') return { name: cleanResumeValue(item), meta: '' };
+    return {
+      name: cleanResumeValue(item?.name || item?.title),
+      meta: [item?.issuer, formatLuminaryDate(item?.date)].map(cleanResumeValue).filter(Boolean).join(' - '),
+    };
+  }).filter((item) => item.name);
+  if (!items.length) return '';
+  const body = items.map((item) => `
+    <div class="rb-lum-cert-item rb-lum-flow-item">
+      ${renderLuminaryDiamond('bullet')}
+      <p><strong>${escapeHtml(item.name)}</strong>${item.meta ? ` <span>- ${escapeHtml(item.meta)}</span>` : ''}</p>
+    </div>`).join('');
+  return renderLuminarySection('CERTIFICATIONS', body, 'certifications');
+}
+
+function renderLuminaryCoursesSection(state) {
+  if (!isSectionEnabled(state, 'courses')) return '';
+  const items = (state.courses || []).filter((course) => cleanResumeValue(course?.name));
+  if (!items.length) return '';
+  const body = items.map((course) => {
+    const name = cleanResumeValue(course.name);
+    const meta = [course.institution, formatLuminaryDate(course.date)].map(cleanResumeValue).filter(Boolean).join(', ');
+    return `
+      <div class="rb-lum-item rb-lum-flow-item">
+        <p class="rb-lum-course-line"><strong>${escapeHtml(name)}</strong>${meta ? ` - <span>${escapeHtml(meta)}</span>` : ''}</p>
+      </div>`;
+  }).join('');
+  return renderLuminarySection('COURSES & TRAINING', body, 'courses');
+}
+
+function renderLuminaryAwardsSection(state) {
+  if (!isSectionEnabled(state, 'awards')) return '';
+  const items = (state.awards || []).filter((award) => cleanResumeValue(award?.title));
+  if (!items.length) return '';
+  const body = items.map((award) => {
+    const title = cleanResumeValue(award.title);
+    const issuer = cleanResumeValue(award.issuer);
+    const date = formatLuminaryDate(award.date);
+    const description = cleanResumeValue(award.description);
+    return `
+      <div class="rb-lum-item rb-lum-flow-item">
+        <p class="rb-lum-item-title">${escapeHtml(title)}</p>
+        ${issuer || date ? `<p class="rb-lum-award-meta">${issuer ? `<span>${escapeHtml(issuer)}</span>` : ''}${date ? `<em>${escapeHtml(date)}</em>` : ''}</p>` : ''}
+        ${description ? `<p class="rb-lum-muted rb-lum-muted--italic">${escapeHtml(description)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderLuminarySection('AWARDS & HONORS', body, 'awards');
+}
+
+function renderLuminaryLanguagesSection(state) {
+  if (!isSectionEnabled(state, 'languages')) return '';
+  const items = (state.languages || []).filter((item) => cleanResumeValue(item?.language));
+  if (!items.length) return '';
+  const body = `<p class="rb-lum-language-list">${items.map((item, index) => {
+    const language = cleanResumeValue(item.language);
+    const proficiency = cleanResumeValue(item.proficiency);
+    return `${index ? '<span class="rb-lum-language-sep" aria-hidden="true">&middot;</span>' : ''}<strong>${escapeHtml(language)}</strong>${proficiency ? ` <span>(${escapeHtml(proficiency)})</span>` : ''}`;
+  }).join('')}</p>`;
+  return renderLuminarySection('LANGUAGES', body, 'languages');
+}
+
+function renderLuminaryCustomSection(state, sectionId) {
+  const customSection = (state.customSections || []).find((section) => section.id === sectionId);
+  if (!customSection) return '';
+  const title = cleanResumeValue(customSection.title) || 'CUSTOM SECTION';
+  const entries = (customSection.entries || []).filter((entry) => cleanResumeValue(entry?.body));
+  if (!entries.length) return '';
+  const divided = entries.length > 2;
+  const body = entries.map((entry, index) => `
+    <div class="rb-lum-item rb-lum-flow-item">
+      ${divided && index > 0 ? '<div class="rb-lum-item-divider" aria-hidden="true"></div>' : ''}
+      ${cleanResumeValue(entry.heading) ? `<p class="rb-lum-item-title">${escapeHtml(cleanResumeValue(entry.heading))}</p>` : ''}
+      <p class="rb-lum-paragraph">${escapeHtml(cleanResumeValue(entry.body))}</p>
+    </div>`).join('');
+  return renderLuminarySection(title.toUpperCase(), body, sectionId);
+}
+
+function getLuminarySkillMode(state) {
+  const skills = parseCommaList(state?.skills).map(cleanResumeValue).filter(Boolean);
+  if (!skills.length) return 'none';
+  if (!shouldRenderTemplateSkillsInMain(state)) return 'normal';
+  const groupedLines = getSkillGroupLines(state?.skills || '');
+  const severeOverflow = skills.length > 32 || groupedLines.some((line) => line.length > 86) || skills.some((skill) => skill.length > 42);
+  return severeOverflow ? 'main' : 'tight';
+}
+
+function renderLuminarySkillGrid(skills) {
+  return `<div class="rb-lum-skill-grid">${skills.map((skill) => `
+    <p class="rb-lum-skill-item">${renderLuminaryDiamond('bullet')}<span>${escapeHtml(skill)}</span></p>`).join('')}</div>`;
+}
+
+function renderLuminarySkillsBody(state) {
+  const groups = getCategorizedSkillGroups(state?.skills);
+  if (!groups.length) return '';
+  if (groups.length === 1) return renderLuminarySkillGrid(groups[0].items);
+  return groups.map((group, index) => `
+    <div class="rb-lum-skill-group">
+      ${index > 0 ? '<div class="rb-lum-group-rule" aria-hidden="true"></div>' : ''}
+      <p class="rb-lum-skill-label">${escapeHtml(group.label)}</p>
+      ${renderLuminarySkillGrid(group.items)}
+    </div>`).join('');
+}
+
+function renderLuminarySkillsSection(state, mode = 'normal') {
+  const body = renderLuminarySkillsBody(state);
+  if (!body) return '';
+  const extraClass = [
+    'rb-lum-section--skills',
+    mode === 'tight' ? 'rb-lum-section--skills-tight' : '',
+    mode === 'main' ? 'rb-lum-section--skills-main' : '',
+  ].filter(Boolean).join(' ');
+  return renderLuminarySection('SKILLS & COMPETENCIES', body, 'skills', extraClass);
+}
+
+function renderLuminaryEducationSection(state) {
+  const items = (state.educations || []).filter((edu) => cleanResumeValue(edu?.degree));
+  if (!items.length) return '';
+  const body = items.map((edu) => {
+    const degree = cleanResumeValue(edu.degree);
+    const institution = cleanResumeValue(edu.institution);
+    const year = cleanResumeValue(edu.year);
+    const detail = [edu.gpa ? `GPA ${cleanResumeValue(edu.gpa)}` : '', edu.courses ? cleanResumeValue(edu.courses) : '']
+      .filter(Boolean)
+      .join(' | ');
+    return `
+      <div class="rb-lum-education-item rb-lum-flow-item">
+        <p class="rb-lum-education-degree">${escapeHtml(degree)}</p>
+        ${institution ? `<p class="rb-lum-education-school">${escapeHtml(institution)}</p>` : ''}
+        ${year ? `<p class="rb-lum-muted">${escapeHtml(year)}</p>` : ''}
+        ${detail ? `<p class="rb-lum-muted rb-lum-muted--italic">${escapeHtml(detail)}</p>` : ''}
+      </div>`;
+  }).join('');
+  return renderLuminarySection('EDUCATION', body, 'education', 'rb-lum-section--education');
+}
+
+function renderLuminaryBottomGrid(state, skillMode) {
+  const education = renderLuminaryEducationSection(state);
+  const skills = skillMode !== 'main' ? renderLuminarySkillsSection(state, skillMode) : '';
+  if (!education && !skills) return '';
+  if (!education || !skills) {
+    return `<div class="rb-lum-bottom-grid rb-lum-bottom-grid--single">${education || skills}</div>`;
+  }
+  return `
+    <div class="rb-lum-bottom-grid">
+      <div class="rb-lum-bottom-column">${education}</div>
+      <div class="rb-lum-bottom-divider" aria-hidden="true"></div>
+      <div class="rb-lum-bottom-column">${skills}</div>
+    </div>`;
+}
+
+function renderLuminaryMainSections(state) {
+  const skillMode = getLuminarySkillMode(state);
+  const renderers = {
+    experience: renderLuminaryExperienceSection,
+    projects: renderLuminaryProjectsSection,
+    publications: renderLuminaryPublicationsSection,
+    volunteer: renderLuminaryVolunteerSection,
+    certifications: renderLuminaryCertificationsSection,
+    courses: renderLuminaryCoursesSection,
+    awards: renderLuminaryAwardsSection,
+    languages: renderLuminaryLanguagesSection,
+  };
+  const ordered = normalizeSectionOrder(state.sectionOrder, state.customSections)
+    .filter((key) => LUMINARY_MAIN_KEYS.has(key) || key.startsWith('custom_'))
+    .map((key) => (key.startsWith('custom_') ? renderLuminaryCustomSection(state, key) : renderers[key]?.(state) || ''))
+    .filter(Boolean);
+  const skillsMain = skillMode === 'main' ? renderLuminarySkillsSection(state, 'main') : '';
+  const bottomGrid = renderLuminaryBottomGrid(state, skillMode);
+  return [renderLuminarySummarySection(state), skillsMain, ...ordered, bottomGrid].filter(Boolean).join('');
+}
+
+function renderLuminaryHeader(state) {
+  const personal = state.personal || {};
+  const name = cleanResumeValue(personal.name) || 'Your Name';
+  const role = cleanResumeValue(state.targetRole);
+  const contactParts = [personal.email, personal.phone, personal.location, personal.linkedin, personal.portfolio]
+    .map(cleanResumeValue)
+    .filter(Boolean);
+  return `
+    <div class="rb-lum-top-stripe" aria-hidden="true"></div>
+    <header class="rb-lum-header">
+      <div class="rb-lum-header-content">
+        <h1 class="rb-lum-name">${escapeHtml(name)}</h1>
+        ${role ? `<p class="rb-lum-role">${escapeHtml(role)}</p>` : ''}
+        ${contactParts.length ? `<p class="rb-lum-contact-row">${renderLuminaryPipes(contactParts)}</p>` : ''}
+      </div>
+      <div class="rb-lum-header-bottom-stripe" aria-hidden="true"></div>
+    </header>
+    <div class="rb-lum-header-second-stripe" aria-hidden="true"></div>`;
+}
+
+function renderLuminaryFooter(state) {
+  const personal = state.personal || {};
+  const footerParts = [personal.portfolio, personal.email, personal.phone].map(cleanResumeValue).filter(Boolean);
+  return `
+    <footer class="rb-lum-footer">
+      <div class="rb-lum-footer-rule" aria-hidden="true"></div>
+      <p class="rb-lum-footer-text">${footerParts.length ? renderLuminaryPipes(footerParts) : '&nbsp;'}</p>
+    </footer>`;
+}
+
+function renderLuminaryResumeFromState(state = resumeExportState) {
+  const container = document.getElementById('rb-preview-pane');
+  if (!container) return;
+  resumePreviewPrefersLive = true;
+
+  const bodySections = renderLuminaryMainSections(state);
+
+  container.innerHTML = `
+    <div class="rb-resume-doc ${getResumePaperClass(state)} rb-tpl-luminary">
+      ${renderLuminaryHeader(state)}
+      <main class="rb-lum-body">
+        <div class="rb-lum-main-body">${bodySections}</div>
+      </main>
+      ${renderLuminaryFooter(state)}
+    </div>`;
+
+  applyTemplate('luminary', { persist: false, animate: false });
+  paginateResumePreview(state);
+  updateWordCountDisplay(state);
+  updateResumePageCount(state);
+  applyMobilePreviewScale();
+}
+
 function normalizeOptionalList(value) {
   if (Array.isArray(value)) {
     return value.map((item) => {
@@ -5364,6 +5979,11 @@ function renderLiveResumeFromState(state = resumeExportState) {
 
   if (isAtlasTemplate(state?.template)) {
     renderAtlasResumeFromState(state);
+    return;
+  }
+
+  if (isLuminaryTemplate(state?.template)) {
+    renderLuminaryResumeFromState(state);
     return;
   }
 

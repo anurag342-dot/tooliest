@@ -7326,6 +7326,79 @@ body:has(.resume-tool) .tool-workspace {
     linear-gradient(#e2e8d5 0 0) 50% 0 / 1px 100% no-repeat;
 }
 
+.rb-tpl-thumb--luminary {
+  position: relative;
+  overflow: hidden;
+  background: #faf7f2;
+}
+
+.rb-tpl-thumb--luminary .rb-tpl-thumb__stripe {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.12rem;
+  background: #a67c2e;
+}
+
+.rb-tpl-thumb--luminary .rb-tpl-thumb__header {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0.12rem;
+  height: 35%;
+  background: #5c1f2e;
+}
+
+.rb-tpl-thumb--luminary .rb-tpl-thumb__header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0.08rem;
+  background: #a67c2e;
+  box-shadow: 0 0.18rem 0 #a67c2e;
+}
+
+.rb-tpl-thumb--luminary .rb-tpl-thumb__name {
+  position: relative;
+  z-index: 3;
+  width: 50%;
+  margin: 17% auto 0;
+  background: #ffffff;
+}
+
+.rb-tpl-thumb--luminary .rb-tpl-thumb__accent {
+  position: relative;
+  z-index: 3;
+  width: 32%;
+  height: 0.08rem;
+  margin: 0.16rem auto 0;
+  background: #e8c9a0;
+}
+
+.rb-tpl-thumb--luminary .rb-tpl-thumb__line {
+  position: relative;
+  z-index: 1;
+  width: 68%;
+  margin: 0.84rem auto 0;
+  background: #5c1f2e;
+}
+
+.rb-tpl-thumb--luminary .rb-tpl-thumb__diamond {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 22%;
+  width: 0.18rem;
+  height: 0.18rem;
+  background: #a67c2e;
+  transform: translateX(-50%) rotate(45deg);
+  transform-origin: center center;
+}
+
 #rb-preview-pane .rb-resume-doc.rb-tpl-meridian,
 .rb-resume-pagination-measure .rb-resume-doc.rb-tpl-meridian,
 .rb-pdf-render-host .rb-resume-doc.rb-tpl-meridian {
@@ -8862,6 +8935,553 @@ body:has(.resume-tool) .tool-workspace {
 }
 
 .rb-atlas-section--skills-main .rb-atlas-skill-grid {
+  column-gap: 0.2in;
+}
+
+/* --- LUMINARY LEADERSHIP TEMPLATE --- */
+#rb-preview-pane .rb-resume-doc.rb-tpl-luminary,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-luminary,
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-luminary {
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+  overflow: hidden;
+  background: #faf7f2 !important;
+  background-image: none !important;
+  color: #1a0d0d;
+  font-family: Helvetica, Arial, sans-serif;
+  line-height: 1.25;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.rb-resume-doc.rb-tpl-luminary * {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.rb-lum-top-stripe {
+  flex: 0 0 3px;
+  width: 100%;
+  height: 3px;
+  min-height: 3px;
+  background: #a67c2e;
+}
+
+.rb-lum-header {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.12in;
+  padding: 0.16in 0.48in 0.18in;
+  background: #5c1f2e;
+  color: #ffffff;
+  text-align: center;
+}
+
+.rb-lum-header-content {
+  width: 100%;
+  min-width: 0;
+}
+
+.rb-lum-name {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(24pt, 4.2vw, 30pt);
+  font-weight: 800;
+  line-height: 1.04;
+  overflow-wrap: anywhere;
+}
+
+.rb-lum-role {
+  margin: 0.055in 0 0;
+  color: #e8c9a0;
+  font-size: 10pt;
+  font-weight: 650;
+  line-height: 1.22;
+  text-transform: none;
+}
+
+.rb-lum-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 0.075in 0 0;
+  color: #d4c0a8;
+  font-size: 8pt;
+  line-height: 1.32;
+  overflow-wrap: anywhere;
+}
+
+.rb-lum-pipe {
+  display: inline-block;
+  padding: 0 0.07in;
+  color: #a67c2e;
+  font-weight: 800;
+}
+
+.rb-lum-header-bottom-stripe {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  min-height: 2px;
+  background: #a67c2e;
+}
+
+.rb-lum-header-second-stripe {
+  flex: 0 0 2px;
+  width: 100%;
+  height: 2px;
+  min-height: 2px;
+  margin-top: 4px;
+  background: #a67c2e;
+}
+
+.rb-lum-page--continuation .rb-lum-top-stripe {
+  margin-bottom: 0.28in;
+}
+
+.rb-lum-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0.24in 0.48in 0.08in;
+  overflow: hidden;
+}
+
+.rb-lum-body--continuation {
+  padding-top: 0;
+}
+
+.rb-lum-main-body {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rb-lum-footer {
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 0 0 0.075in;
+  text-align: center;
+}
+
+.rb-lum-footer-rule {
+  width: 100%;
+  height: 2px;
+  min-height: 2px;
+  background: #a67c2e;
+}
+
+.rb-lum-footer-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 0.075in 0.48in 0;
+  color: #7a6a5a;
+  font-size: 6.5pt;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.rb-lum-section {
+  margin: 0 0 0.17in;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.rb-lum-section.rb-resume-section-fragment--continued {
+  margin-top: 0;
+}
+
+.rb-lum-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.07in;
+  margin: 0 0 0.13in;
+}
+
+.rb-lum-section-rule {
+  flex: 1 1 auto;
+  min-width: 20px;
+  height: 1px;
+  min-height: 1px;
+  background: #a67c2e;
+}
+
+.rb-lum-section-title {
+  flex: 0 0 auto;
+  margin: 0;
+  color: #5c1f2e;
+  font-size: 9pt;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  line-height: 1.15;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rb-lum-diamond {
+  display: inline-block;
+  flex: 0 0 auto;
+  background: #a67c2e;
+  transform: rotate(45deg);
+  transform-origin: center center;
+  align-self: center;
+}
+
+.rb-lum-diamond--section {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+}
+
+.rb-lum-diamond--bullet {
+  width: 5px;
+  height: 5px;
+  min-width: 5px;
+  min-height: 5px;
+}
+
+.rb-lum-paragraph,
+.rb-lum-section-content {
+  color: #1a0d0d;
+  font-size: 9pt;
+  line-height: 1.43;
+}
+
+.rb-lum-paragraph,
+.rb-lum-item-title,
+.rb-lum-muted,
+.rb-lum-tech,
+.rb-lum-course-line,
+.rb-lum-language-list,
+.rb-lum-skill-label,
+.rb-lum-education-degree,
+.rb-lum-education-school {
+  margin: 0 0 0.045in;
+  overflow-wrap: anywhere;
+}
+
+.rb-lum-entry,
+.rb-lum-item,
+.rb-lum-cert-item {
+  margin-bottom: 0.1in;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.rb-lum-entry-head {
+  margin-bottom: 0.045in;
+}
+
+.rb-lum-flow-item--continued .rb-lum-entry-head {
+  display: none;
+}
+
+.rb-lum-entry-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.18in;
+  line-height: 1.25;
+}
+
+.rb-lum-entry-row strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rb-lum-entry-row span {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.rb-lum-entry-row--role {
+  color: #5c1f2e;
+  font-size: 10pt;
+  font-weight: 800;
+}
+
+.rb-lum-entry-row--role span {
+  color: #7a6a5a;
+  font-size: 8.5pt;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.rb-lum-entry-rule,
+.rb-lum-entry-separator,
+.rb-lum-group-rule,
+.rb-lum-item-divider {
+  width: 100%;
+  height: 1px;
+  min-height: 1px;
+  background: #e0d5c5;
+}
+
+.rb-lum-entry-rule {
+  margin: 0.035in 0 0.045in;
+}
+
+.rb-lum-entry-separator {
+  margin-top: 0.075in;
+}
+
+.rb-lum-item-divider {
+  margin: 0 0 0.08in;
+}
+
+.rb-lum-entry-row--company {
+  color: #a67c2e;
+  font-size: 8.5pt;
+  font-weight: 800;
+}
+
+.rb-lum-entry-row--company span {
+  color: #7a6a5a;
+  font-size: 8pt;
+  font-weight: 500;
+}
+
+.rb-lum-bullets {
+  margin: 0.045in 0 0;
+  padding: 0;
+  list-style: none;
+  color: #1a0d0d;
+  font-size: 8.5pt;
+  line-height: 1.34;
+}
+
+.rb-lum-bullets li {
+  display: flex;
+  align-items: center;
+  gap: 0.09in;
+  margin: 0 0 0.025in;
+  overflow-wrap: anywhere;
+}
+
+.rb-lum-bullets li > span:last-child {
+  min-width: 0;
+}
+
+.rb-lum-project-head,
+.rb-lum-award-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.14in;
+}
+
+.rb-lum-item-title {
+  color: #1a0d0d;
+  font-size: 9pt;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.rb-lum-item-title--burgundy,
+.rb-lum-project-head .rb-lum-item-title {
+  color: #5c1f2e;
+  font-size: 9.5pt;
+}
+
+.rb-lum-link {
+  color: #a67c2e;
+  font-size: 8pt;
+  font-weight: 650;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.rb-lum-tech {
+  color: #7a6a5a;
+  font-size: 8pt;
+  font-style: italic;
+  line-height: 1.3;
+}
+
+.rb-lum-tech strong {
+  color: #1a0d0d;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.rb-lum-muted {
+  color: #7a6a5a;
+  font-size: 8pt;
+  line-height: 1.3;
+}
+
+.rb-lum-muted--italic {
+  font-style: italic;
+}
+
+.rb-lum-cert-item {
+  display: flex;
+  align-items: center;
+  gap: 0.09in;
+}
+
+.rb-lum-cert-item p {
+  margin: 0;
+  color: #1a0d0d;
+  font-size: 8.5pt;
+  line-height: 1.3;
+}
+
+.rb-lum-cert-item span,
+.rb-lum-course-line span {
+  color: #7a6a5a;
+  font-weight: 500;
+}
+
+.rb-lum-course-line {
+  color: #1a0d0d;
+  font-size: 8pt;
+  line-height: 1.3;
+}
+
+.rb-lum-award-meta span {
+  color: #a67c2e;
+  font-size: 7.5pt;
+  font-weight: 700;
+}
+
+.rb-lum-award-meta em {
+  color: #7a6a5a;
+  font-size: 7.5pt;
+  font-style: normal;
+}
+
+.rb-lum-language-list {
+  color: #1a0d0d;
+  font-size: 8.5pt;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.rb-lum-language-list span {
+  color: #7a6a5a;
+}
+
+.rb-lum-language-sep {
+  display: inline-block;
+  padding: 0 0.08in;
+  color: #a67c2e !important;
+  font-weight: 800;
+}
+
+.rb-lum-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  gap: 0.12in;
+  align-items: start;
+  margin-top: 0.03in;
+}
+
+.rb-lum-bottom-grid--single {
+  display: block;
+}
+
+.rb-lum-bottom-divider {
+  align-self: stretch;
+  width: 1px;
+  min-height: 100%;
+  background: #e0d5c5;
+}
+
+.rb-lum-bottom-column {
+  min-width: 0;
+}
+
+.rb-lum-bottom-column .rb-lum-section,
+.rb-lum-bottom-grid--single .rb-lum-section {
+  margin-bottom: 0;
+}
+
+.rb-lum-education-item {
+  margin-bottom: 0.14in;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.rb-lum-education-degree {
+  color: #1a0d0d;
+  font-size: 9pt;
+  font-weight: 800;
+  line-height: 1.28;
+}
+
+.rb-lum-education-school {
+  color: #5c1f2e;
+  font-size: 8.5pt;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.rb-lum-skill-group {
+  margin-bottom: 0.1in;
+}
+
+.rb-lum-group-rule {
+  margin: 0 0 0.07in;
+}
+
+.rb-lum-skill-label {
+  color: #5c1f2e;
+  font-size: 8pt;
+  font-weight: 800;
+  line-height: 1.24;
+}
+
+.rb-lum-skill-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 0.12in;
+  row-gap: 0.035in;
+}
+
+.rb-lum-skill-item {
+  display: flex;
+  align-items: center;
+  gap: 0.07in;
+  margin: 0;
+  color: #1a0d0d;
+  font-size: 8.5pt;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.rb-lum-skill-item span:last-child {
+  min-width: 0;
+}
+
+.rb-lum-section--skills-tight .rb-lum-skill-item {
+  font-size: 7.5pt;
+  line-height: 1.22;
+}
+
+.rb-lum-section--skills-tight .rb-lum-skill-grid {
+  row-gap: 0.02in;
+}
+
+.rb-lum-section--skills-tight .rb-lum-skill-group {
+  margin-bottom: 0.055in;
+}
+
+.rb-lum-section--skills-main .rb-lum-skill-grid {
   column-gap: 0.2in;
 }
 
