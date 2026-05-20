@@ -8462,16 +8462,17 @@ body:has(.resume-tool) .tool-workspace {
 }
 
 .rb-atlas-name-block {
-  flex: 1 1 3.2in;
+  flex: 1 1 4.05in;
   min-width: 0;
 }
 
 .rb-atlas-name {
   margin: 0;
+  padding-bottom: 0.035in;
   color: #2a4a1e;
   font-size: clamp(24pt, 4.2vw, 32pt);
   font-weight: 800;
-  line-height: 1.03;
+  line-height: 1.08;
   overflow-wrap: anywhere;
 }
 
@@ -8479,19 +8480,25 @@ body:has(.resume-tool) .tool-workspace {
   width: var(--rb-atlas-name-rule, 2.4in);
   max-width: 100%;
   height: 2px;
-  margin-top: 0.045in;
+  margin-top: 0;
   background: #7fa368;
 }
 
 .rb-atlas-contact {
-  flex: 0 1 55%;
-  max-width: 55%;
-  min-width: 2.45in;
+  flex: 0 1 42%;
+  max-width: 42%;
+  min-width: 2.3in;
   color: #6b7355;
   font-size: 8pt;
   line-height: 1.32;
   text-align: right;
   overflow-wrap: anywhere;
+}
+
+.rb-pdf-render-host .rb-resume-doc.rb-tpl-atlas .rb-atlas-name,
+.rb-resume-pagination-measure .rb-resume-doc.rb-tpl-atlas .rb-atlas-name {
+  padding-bottom: 0.045in;
+  line-height: 1.1;
 }
 
 .rb-atlas-contact p,
