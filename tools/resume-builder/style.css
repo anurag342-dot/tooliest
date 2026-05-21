@@ -7135,9 +7135,14 @@ body:has(.resume-tool) .tool-workspace {
   text-transform: uppercase;
 }
 
+html.rb-design-modal-lock,
 body.rb-design-modal-lock {
-  position: fixed;
   overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body.rb-design-modal-open .rb-preview-topbar {
+  z-index: 10040;
 }
 
 .rb-preview-style-card .rb-preview-card-header {
@@ -7170,7 +7175,9 @@ body.rb-design-modal-lock {
   gap: 0.45rem;
   border: 1px solid var(--rb-border-default);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.96);
+  background:
+    linear-gradient(135deg, rgba(129, 140, 248, 0.16), rgba(6, 182, 212, 0.08)),
+    var(--rb-bg-tertiary);
   color: var(--rb-text-primary);
   cursor: pointer;
   padding: 0.48rem 0.68rem;
@@ -7182,7 +7189,10 @@ body.rb-design-modal-lock {
 
 .rb-design-trigger:hover {
   border-color: var(--rb-accent-primary);
-  box-shadow: 0 8px 24px rgba(79, 110, 247, 0.12);
+  background:
+    linear-gradient(135deg, rgba(129, 140, 248, 0.22), rgba(6, 182, 212, 0.12)),
+    var(--rb-bg-tertiary);
+  box-shadow: 0 8px 24px rgba(79, 110, 247, 0.18);
 }
 
 .rb-design-trigger:active {
@@ -7215,7 +7225,8 @@ body.rb-design-modal-lock {
   gap: 0.3rem;
   border: 1px solid var(--rb-border-default);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--rb-bg-tertiary);
+  color: var(--rb-text-secondary);
   padding: 0.35rem;
 }
 
@@ -7223,7 +7234,13 @@ body.rb-design-modal-lock {
   min-height: 32px;
   border-radius: 7px;
   padding: 0.25rem 0.58rem;
+  color: var(--rb-text-secondary);
   font-weight: 800;
+}
+
+.rb-design-control-bar .rb-paper-size-btn.rb-paper-size-btn--active {
+  background: var(--rb-accent-primary);
+  color: #ffffff;
 }
 
 .rb-design-modal[hidden],

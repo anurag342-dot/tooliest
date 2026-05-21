@@ -83,6 +83,7 @@ let resumeDesignModalReturnFocus = null;
 let resumeDesignModalScrollY = 0;
 let resumeDesignToastTimer = 0;
 let resumeDesignCloseTimer = 0;
+let resumeDesignLockedScrollNodes = [];
 let resumePreviewPrefersLive = true;
 let quotaCountdownInterval = 0;
 let resumeQuotaUiController = null;
@@ -2367,16 +2368,37 @@ function getDesignModalFocusable(modal) {
 
 function lockDesignModalScroll() {
   resumeDesignModalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
-  document.body.classList.add('rb-design-modal-lock');
-  document.body.style.top = `-${resumeDesignModalScrollY}px`;
-  document.body.style.width = '100%';
+  resumeDesignLockedScrollNodes = [
+    document.documentElement,
+    document.body,
+    document.getElementById('rb-preview-panel'),
+    document.getElementById('rb-mobile-preview-view'),
+  ].filter(Boolean).map((node) => ({
+    node,
+    overflow: node.style.overflow,
+    overflowY: node.style.overflowY,
+    scrollTop: node.scrollTop || 0,
+  }));
+  document.documentElement.classList.add('rb-design-modal-lock');
+  document.body.classList.add('rb-design-modal-lock', 'rb-design-modal-open');
+  resumeDesignLockedScrollNodes.forEach(({ node }) => {
+    node.style.overflow = 'hidden';
+    node.style.overflowY = 'hidden';
+  });
 }
 
 function unlockDesignModalScroll() {
   const scrollY = resumeDesignModalScrollY;
+  document.documentElement.classList.remove('rb-design-modal-lock');
   document.body.classList.remove('rb-design-modal-lock');
-  document.body.style.top = '';
-  document.body.style.width = '';
+  resumeDesignLockedScrollNodes.forEach(({ node, overflow, overflowY, scrollTop }) => {
+    node.style.overflow = overflow;
+    node.style.overflowY = overflowY;
+    if (node !== document.documentElement && node !== document.body && typeof node.scrollTo === 'function') {
+      node.scrollTo({ top: scrollTop, left: 0, behavior: 'auto' });
+    }
+  });
+  resumeDesignLockedScrollNodes = [];
   window.scrollTo(0, scrollY);
 }
 
@@ -2421,6 +2443,7 @@ function closeDesignPicker(root = resumeTemplateRoot || document, options = {}) 
   window.clearTimeout(resumeDesignCloseTimer);
   resumeDesignCloseTimer = window.setTimeout(() => {
     modal.hidden = true;
+    document.body.classList.remove('rb-design-modal-open');
   }, 180);
   if (options.returnFocus !== false) {
     window.setTimeout(() => {
