@@ -79,6 +79,10 @@ let autosaveRefreshTimer = 0;
 let resumeTemplateState = null;
 let resumeTemplateRoot = null;
 let resumeTemplateSave = null;
+let resumeDesignModalReturnFocus = null;
+let resumeDesignModalScrollY = 0;
+let resumeDesignToastTimer = 0;
+let resumeDesignCloseTimer = 0;
 let resumePreviewPrefersLive = true;
 let quotaCountdownInterval = 0;
 let resumeQuotaUiController = null;
@@ -187,6 +191,23 @@ const RESUME_TEMPLATE_CLASSES = {
   apex: 'rb-tpl-apex',
   atlas: 'rb-tpl-atlas',
   luminary: 'rb-tpl-luminary',
+};
+const RESUME_DESIGN_META = {
+  classic: { name: 'Classic', category: '', group: 'style' },
+  modern: { name: 'Modern', category: '', group: 'style' },
+  compact: { name: 'Compact', category: '', group: 'style' },
+  meridian: { name: 'MERIDIAN', category: 'Executive', group: 'template' },
+  prism: { name: 'PRISM', category: 'Creative', group: 'template' },
+  apex: { name: 'APEX', category: 'Technology', group: 'template' },
+  atlas: { name: 'ATLAS', category: 'Universal', group: 'template' },
+  luminary: { name: 'LUMINARY', category: 'Leadership', group: 'template' },
+};
+const RESUME_TEMPLATE_NOTICES = {
+  meridian: 'MERIDIAN uses fixed sidebar and main-column zones. Section order still follows the editor.',
+  prism: 'PRISM uses fixed left and right columns. Section order still follows the editor within each column.',
+  apex: 'APEX uses a fixed technology layout: summary, experience, and projects stay left; skills, education, and credentials stay right. Section order still follows the editor within each column.',
+  atlas: 'ATLAS keeps main body sections in editor order, while Education and Skills stay in the fixed two-column bottom area. Sections cannot move between these template zones.',
+  luminary: 'LUMINARY keeps main body sections in editor order, while Education and Skills stay in the fixed two-column bottom area. Certifications, Courses, Awards, and Languages render before that bottom section.',
 };
 const RESUME_PAPER_SIZES = {
   letter: {
@@ -818,6 +839,19 @@ function isLuminaryTemplate(template) {
 function isFullResumeTemplate(template) {
   const normalized = normalizeResumeTemplate(template);
   return normalized === 'meridian' || normalized === 'prism' || normalized === 'apex' || normalized === 'atlas' || normalized === 'luminary';
+}
+
+function getResumeDesignMeta(template) {
+  return RESUME_DESIGN_META[normalizeResumeTemplate(template)] || RESUME_DESIGN_META.classic;
+}
+
+function getResumeDesignLabel(template) {
+  const meta = getResumeDesignMeta(template);
+  return [meta.name, meta.category].filter(Boolean).join(' ');
+}
+
+function getResumeTemplateNotice(template) {
+  return RESUME_TEMPLATE_NOTICES[normalizeResumeTemplate(template)] || '';
 }
 
 function normalizePaperSize(size) {
@@ -2244,13 +2278,16 @@ function syncTemplatePicker(template) {
   const root = resumeTemplateRoot || document;
   const normalizedTemplate = normalizeResumeTemplate(template);
   const fullTemplateActive = isFullResumeTemplate(normalizedTemplate);
-  const templateNotice = {
-    meridian: 'MERIDIAN uses fixed sidebar and main-column zones. Section order still follows the editor.',
-    prism: 'PRISM uses fixed left and right columns. Section order still follows the editor within each column.',
-    apex: 'APEX uses a fixed technology layout: summary, experience, and projects stay left; skills, education, and credentials stay right. Section order still follows the editor within each column.',
-    atlas: 'ATLAS keeps main body sections in editor order, while Education and Skills stay in the fixed two-column bottom area. Sections cannot move between these template zones.',
-    luminary: 'LUMINARY keeps main body sections in editor order, while Education and Skills stay in the fixed two-column bottom area. Certifications, Courses, Awards, and Languages render before that bottom section.',
-  }[normalizedTemplate] || '';
+  const templateNotice = getResumeTemplateNotice(normalizedTemplate);
+  const designMeta = getResumeDesignMeta(normalizedTemplate);
+  const designTrigger = root.querySelector('#rb-design-picker-trigger');
+  const designTriggerLabel = root.querySelector('#rb-design-trigger-label');
+  if (designTriggerLabel) {
+    designTriggerLabel.innerHTML = `<span>${escapeHtml(designMeta.name)}</span>${designMeta.category ? `<span class="rb-design-trigger__label-extra"> ${escapeHtml(designMeta.category)}</span>` : ''}`;
+  }
+  if (designTrigger) {
+    designTrigger.setAttribute('aria-label', `Choose design. Current design: ${getResumeDesignLabel(normalizedTemplate)}`);
+  }
   root.querySelectorAll('[data-resume-template]').forEach((button) => {
     const active = button.dataset.resumeTemplate === normalizedTemplate;
     const wasActive = button.classList.contains('is-active');
@@ -2320,6 +2357,116 @@ function syncPaperSizeToggle(state = resumeExportState) {
     button.classList.toggle('rb-paper-size-btn--active', active);
     button.setAttribute('aria-pressed', String(active));
   });
+}
+
+function getDesignModalFocusable(modal) {
+  if (!modal) return [];
+  return Array.from(modal.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+    .filter((element) => !element.hidden && element.offsetParent !== null);
+}
+
+function lockDesignModalScroll() {
+  resumeDesignModalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.body.classList.add('rb-design-modal-lock');
+  document.body.style.top = `-${resumeDesignModalScrollY}px`;
+  document.body.style.width = '100%';
+}
+
+function unlockDesignModalScroll() {
+  const scrollY = resumeDesignModalScrollY;
+  document.body.classList.remove('rb-design-modal-lock');
+  document.body.style.top = '';
+  document.body.style.width = '';
+  window.scrollTo(0, scrollY);
+}
+
+function setDesignPickerFilter(root, filter = 'all') {
+  const normalizedFilter = ['all', 'style', 'template'].includes(filter) ? filter : 'all';
+  root.querySelectorAll('[data-design-filter]').forEach((tab) => {
+    const active = tab.dataset.designFilter === normalizedFilter;
+    tab.classList.toggle('is-active', active);
+    tab.setAttribute('aria-selected', String(active));
+  });
+  root.querySelectorAll('.rb-design-card[data-design-group]').forEach((card) => {
+    card.hidden = normalizedFilter !== 'all' && card.dataset.designGroup !== normalizedFilter;
+  });
+}
+
+function openDesignPicker(root = resumeTemplateRoot || document) {
+  const modal = root.querySelector('#rb-design-picker-modal');
+  const trigger = root.querySelector('#rb-design-picker-trigger');
+  if (!modal || !trigger || !modal.hidden) return;
+  window.clearTimeout(resumeDesignCloseTimer);
+  resumeDesignModalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : trigger;
+  modal.hidden = false;
+  trigger.setAttribute('aria-expanded', 'true');
+  lockDesignModalScroll();
+  setDesignPickerFilter(root, root.querySelector('.rb-design-filter-tab.is-active')?.dataset.designFilter || 'all');
+  window.requestAnimationFrame(() => {
+    modal.classList.add('is-open');
+    const focusTarget = root.querySelector('#rb-design-modal-close')
+      || root.querySelector('.rb-design-filter-tab')
+      || modal.querySelector('button');
+    focusTarget?.focus({ preventScroll: true });
+  });
+}
+
+function closeDesignPicker(root = resumeTemplateRoot || document, options = {}) {
+  const modal = root.querySelector('#rb-design-picker-modal');
+  const trigger = root.querySelector('#rb-design-picker-trigger');
+  if (!modal || modal.hidden) return;
+  modal.classList.remove('is-open');
+  trigger?.setAttribute('aria-expanded', 'false');
+  unlockDesignModalScroll();
+  window.clearTimeout(resumeDesignCloseTimer);
+  resumeDesignCloseTimer = window.setTimeout(() => {
+    modal.hidden = true;
+  }, 180);
+  if (options.returnFocus !== false) {
+    window.setTimeout(() => {
+      (resumeDesignModalReturnFocus || trigger)?.focus?.({ preventScroll: true });
+    }, 0);
+  }
+}
+
+function handleDesignModalKeydown(event, root = resumeTemplateRoot || document) {
+  const modal = root.querySelector('#rb-design-picker-modal');
+  if (!modal || modal.hidden) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeDesignPicker(root);
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const focusable = getDesignModalFocusable(modal);
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+    return;
+  }
+  if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function showDesignTemplateToast(root, message) {
+  const toast = root.querySelector('#rb-template-toast');
+  if (!toast || !message) return;
+  window.clearTimeout(resumeDesignToastTimer);
+  toast.textContent = message;
+  toast.hidden = false;
+  toast.classList.add('is-visible');
+  resumeDesignToastTimer = window.setTimeout(() => {
+    toast.classList.remove('is-visible');
+    window.setTimeout(() => {
+      toast.hidden = true;
+      toast.textContent = '';
+    }, 180);
+  }, 4000);
 }
 
 function updateResumePageCount(state = resumeExportState) {
@@ -6268,12 +6415,12 @@ function setupBuilderCanvasLayout(root) {
   const previewTopbar = createNode('div', 'rb-preview-topbar');
   const previewControls = createNode('div', 'rb-preview-controls');
   const styleCard = createNode('section', 'rb-preview-control-card rb-preview-style-card');
-  styleCard.setAttribute('aria-label', 'Resume style and paper size');
-  const styleHeader = createNode('div', 'rb-preview-card-header');
-  styleHeader.innerHTML = '<div><p class="rb-preview-card-kicker">Resume Style</p><p class="rb-preview-card-subtitle">Choose a style for your resume</p></div>';
+  styleCard.setAttribute('aria-label', 'Resume design and paper size');
   const styleBody = createNode('div', 'rb-preview-style-body');
-  [templatePicker, paperSizeToggle].forEach((node) => moveNode(node, styleBody));
-  styleCard.append(styleHeader, styleBody);
+  const paperSizeInsideTemplatePicker = Boolean(templatePicker && paperSizeToggle && templatePicker.contains(paperSizeToggle));
+  moveNode(templatePicker, styleBody);
+  if (!paperSizeInsideTemplatePicker) moveNode(paperSizeToggle, styleBody);
+  styleCard.appendChild(styleBody);
 
   const statsCard = createNode('section', 'rb-preview-control-card rb-preview-stats-card');
   statsCard.setAttribute('aria-label', 'Resume preview details and actions');
@@ -12936,9 +13083,28 @@ export async function initResumeBuilderTool(container) {
     templatePicker.addEventListener('click', (event) => {
       const button = event.target.closest('[data-resume-template]');
       if (!button || !templatePicker.contains(button)) return;
-      applyTemplate(button.dataset.resumeTemplate);
+      const selectedTemplate = button.dataset.resumeTemplate;
+      const fromDesignModal = Boolean(button.closest('#rb-design-picker-modal'));
+      applyTemplate(selectedTemplate);
       renderPagedPreview(state);
       syncExportButtons();
+      if (fromDesignModal) {
+        closeDesignPicker(root);
+        const notice = getResumeTemplateNotice(selectedTemplate);
+        if (notice) showDesignTemplateToast(root, notice);
+      }
+    });
+
+    const designTrigger = qs(root, '#rb-design-picker-trigger');
+    const designClose = qs(root, '#rb-design-modal-close');
+    const designBackdrop = qs(root, '.rb-design-modal__backdrop');
+    const designModal = qs(root, '#rb-design-picker-modal');
+    designTrigger?.addEventListener('click', () => openDesignPicker(root));
+    designClose?.addEventListener('click', () => closeDesignPicker(root));
+    designBackdrop?.addEventListener('click', () => closeDesignPicker(root));
+    designModal?.addEventListener('keydown', (event) => handleDesignModalKeydown(event, root));
+    templatePicker.querySelectorAll('[data-design-filter]').forEach((tab) => {
+      tab.addEventListener('click', () => setDesignPickerFilter(root, tab.dataset.designFilter));
     });
   }
   if (paperSizeToggle) {
