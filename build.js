@@ -2142,6 +2142,9 @@ function renderToolContentSections(tool, categories) {
       <ul>${tool.referenceLinks.map((item) => `<li><a href="${escapeAttr(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.label)}</a></li>`).join('')}</ul>
     </section>`
     : '';
+  const authoredSectionsHtml = typeof tool.contentSectionsHtml === 'string' && tool.contentSectionsHtml.trim()
+    ? tool.contentSectionsHtml.trim()
+    : '';
   const customSectionsHtml = Array.isArray(tool.customSections) && tool.customSections.length
     ? tool.customSections.map((section) => {
       const paragraphs = Array.isArray(section.body) ? section.body : [section.body];
@@ -2180,6 +2183,15 @@ function renderToolContentSections(tool, categories) {
     </section>`
     : '';
 
+  if (authoredSectionsHtml) {
+    return `<article class="tool-article">
+    <div class="tool-content-sections">
+    ${authoredSectionsHtml}
+    ${relatedCategoriesHtml}
+    ${referencesHtml}
+    </div>
+  </article>`;
+  }
 
   return `<article class="tool-article">
     <div class="tool-content-sections">

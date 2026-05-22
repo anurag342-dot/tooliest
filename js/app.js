@@ -37,7 +37,7 @@ const TOOLIEST_WHATS_NEW = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260520-2d329c36';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260522-9ebefbbe';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -2127,6 +2127,9 @@ const App = {
         <ul>${tool.referenceLinks.map((item) => `<li><a href="${item.url}" target="_blank" rel="noopener noreferrer">${this.escapeHTML(item.label)}</a></li>`).join('')}</ul>
       </section>`
       : '';
+    const authoredSectionsHtml = typeof tool.contentSectionsHtml === 'string' && tool.contentSectionsHtml.trim()
+      ? tool.contentSectionsHtml.trim()
+      : '';
     const customSectionsHtml = Array.isArray(tool.customSections) && tool.customSections.length
       ? tool.customSections.map((section) => {
         const paragraphs = Array.isArray(section.body) ? section.body : [section.body];
@@ -2136,6 +2139,16 @@ const App = {
         </section>`;
       }).join('')
       : '';
+
+    if (authoredSectionsHtml) {
+      return `<article class="tool-article">
+      <div class="tool-content-sections">
+      ${authoredSectionsHtml}
+      ${relatedCategoriesHtml}
+      ${referencesHtml}
+      </div>
+    </article>`;
+    }
 
     return `<article class="tool-article">
       <div class="tool-content-sections">
