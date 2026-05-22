@@ -114,6 +114,37 @@
   box-shadow: none;
 }
 
+[data-theme="light"] {
+  --rb-bg-primary: #f8f9fc;
+  --rb-bg-secondary: #ffffff;
+  --rb-bg-tertiary: #f1f5f9;
+  --rb-bg-card: #ffffff;
+  --rb-bg-hover: rgba(15, 23, 42, 0.06);
+  --rb-bg-active: rgba(79, 70, 229, 0.12);
+  --rb-border-default: rgba(15, 23, 42, 0.12);
+  --rb-border-focus: #4f46e5;
+  --rb-border-strong: rgba(15, 23, 42, 0.22);
+  --rb-text-primary: #111827;
+  --rb-text-secondary: #475569;
+  --rb-text-tertiary: #64748b;
+  --rb-text-inverse: #ffffff;
+  --rb-accent-primary: #4f46e5;
+  --rb-accent-secondary: #0891b2;
+  --rb-accent-hover: #4338ca;
+  --rb-accent-subtle: rgba(79, 70, 229, 0.12);
+  --rb-success: #15803d;
+  --rb-success-subtle: rgba(22, 163, 74, 0.12);
+  --rb-warning: #b45309;
+  --rb-warning-subtle: rgba(217, 119, 6, 0.12);
+  --rb-error: #dc2626;
+  --rb-error-subtle: rgba(220, 38, 38, 0.1);
+  --rb-info: #0284c7;
+  --rb-input-bg: #ffffff;
+  --rb-doc-bg: #ffffff;
+  --rb-doc-text: #111111;
+  --rb-doc-border: #111111;
+}
+
 .resume-tool {
   display: flex;
   flex-direction: column;
@@ -7073,6 +7104,266 @@ body:has(.resume-tool) .tool-workspace {
   .rb-preview-topbar .resume-preview-meta {
     grid-template-columns: 1fr;
   }
+}
+
+[data-theme="light"] .resume-tool {
+  --bg-glass: rgba(15, 23, 42, 0.03);
+  --color-surface: var(--rb-bg-secondary);
+  --color-border: var(--rb-border-default);
+  --color-text-primary: var(--rb-text-primary);
+  --color-text-secondary: var(--rb-text-secondary);
+  color-scheme: light;
+}
+
+[data-theme="light"] .resume-tool :is(
+  .resume-tabs,
+  .resume-card,
+  .resume-subcard,
+  .rb-import-card,
+  .rb-score-panel,
+  .rb-live-score-compact,
+  .rb-mobile-nav,
+  .rb-resumes-header,
+  .rb-resumes-panel,
+  .rb-resume-card,
+  .rb-editor-panel,
+  .rb-editor-topbar,
+  .rb-editor-bottombar,
+  .rb-accordion-card,
+  .rb-polish-section,
+  .rb-preview-control-card,
+  .rb-design-control-bar .rb-paper-size-toggle,
+  .rb-design-modal__panel,
+  .rb-design-card,
+  .rb-add-section-modal__panel,
+  .rb-add-section-card,
+  .cl-settings-section,
+  .cl-preview-pane,
+  .cl-letter-skeleton
+) {
+  border-color: var(--rb-border-default);
+  background-color: var(--rb-bg-secondary);
+  background-image: none;
+  color: var(--rb-text-primary);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .resume-tool :is(
+  .resume-card.inset,
+  .resume-subcard,
+  .rb-import-card,
+  .rb-score-panel,
+  .rb-accordion-card,
+  .rb-design-card,
+  .cl-settings-section,
+  .cl-letter-skeleton
+) {
+  background-image: none;
+}
+
+[data-theme="light"] .resume-tool :is(
+  .resume-field textarea,
+  .resume-field input,
+  .resume-field select,
+  .rb-score-jd-form textarea,
+  .rb-compact-row input,
+  .rb-compact-row select,
+  .rb-custom-section-title-input,
+  .cl-settings-panel input,
+  .cl-settings-panel textarea,
+  .rb-share-fallback input
+) {
+  border-color: var(--rb-border-default);
+  background: var(--rb-input-bg);
+  color: var(--rb-text-primary);
+  caret-color: var(--rb-text-primary);
+}
+
+[data-theme="light"] .resume-tool :is(
+  .resume-field input[type="month"],
+  .rb-compact-field input[type="month"]
+) {
+  color-scheme: light;
+}
+
+[data-theme="light"] .resume-tool :is(
+  .resume-field input[type="month"],
+  .rb-compact-field input[type="month"]
+)::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
+[data-theme="light"] .resume-tool input::placeholder,
+[data-theme="light"] .resume-tool textarea::placeholder {
+  color: #7c8495;
+}
+
+[data-theme="light"] .resume-tool :is(
+  .rb-accordion-header:hover,
+  .rb-design-card:hover,
+  .rb-add-section-card:hover:not(:disabled),
+  .rb-preview-share-btn:hover,
+  .rb-download-option:hover,
+  .rb-more-option:hover,
+  .rb-resume-card:hover
+) {
+  background: var(--rb-bg-hover);
+  color: var(--rb-text-primary);
+}
+
+[data-theme="light"] .resume-tool :is(
+  .rb-accordion-move-btn,
+  .rb-accordion-remove-btn,
+  .rb-preview-more-btn,
+  .rb-design-modal__close,
+  .rb-add-section-modal__close,
+  .rb-resumes-panel__close,
+  .rb-resume-action-btn,
+  .rb-preview-share-btn,
+  .cl-option-pill
+) {
+  border-color: var(--rb-border-default);
+  background: var(--rb-bg-secondary);
+  color: var(--rb-text-primary);
+}
+
+[data-theme="light"] .resume-tool :is(
+  .rb-download-dropdown,
+  .rb-more-dropdown
+) {
+  border-color: var(--rb-border-default);
+  background: var(--rb-bg-secondary);
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.14);
+}
+
+[data-theme="light"] .resume-tool .rb-preview-topbar,
+[data-theme="light"] .resume-tool #rb-preview-wrap,
+[data-theme="light"] .resume-tool #rb-preview-panel.rb-preview-panel {
+  color: var(--rb-text-primary);
+}
+
+[data-theme="light"] .resume-tool #rb-preview-wrap {
+  background-color: var(--rb-bg-primary);
+  background-image: radial-gradient(circle, rgba(15, 23, 42, 0.14) 1px, transparent 1px);
+}
+
+[data-theme="light"] .resume-tool :is(.resume-inline-banner, .resume-toast) {
+  border-color: rgba(220, 38, 38, 0.24);
+  background: #fff7f7;
+  color: #991b1b;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .resume-tool :is(.resume-inline-banner.info, .resume-toast.info) {
+  border-color: rgba(2, 132, 199, 0.24);
+  background: #effaff;
+  color: #075985;
+}
+
+[data-theme="light"] .resume-tool :is(.resume-inline-banner.success, .resume-toast.success) {
+  border-color: rgba(22, 163, 74, 0.24);
+  background: #f0fdf4;
+  color: #166534;
+}
+
+[data-theme="light"] .resume-tool :is(.resume-toast.error, .rb-import-error) {
+  border-color: rgba(220, 38, 38, 0.24);
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+[data-theme="light"] .resume-tool :is(.rb-import-success, .cl-resume-data-notice) {
+  border-color: rgba(22, 163, 74, 0.2);
+  background: #f0fdf4;
+  color: #166534;
+}
+
+[data-theme="light"] .resume-tool .cl-resume-data-notice.is-empty {
+  border-color: rgba(217, 119, 6, 0.22);
+  background: #fffbeb;
+  color: #92400e;
+}
+
+[data-theme="light"] .resume-tool .rb-template-toast {
+  border-color: rgba(201, 168, 76, 0.36);
+  background: #fffaf0;
+  color: #3f3210;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
+}
+
+[data-theme="light"] .resume-tool .rb-design-modal__backdrop {
+  background: rgba(15, 23, 42, 0.48);
+}
+
+[data-theme="light"] .resume-tool .rb-design-filter-tab {
+  border-color: var(--rb-border-default);
+  background: #ffffff;
+  color: var(--rb-text-secondary);
+}
+
+[data-theme="light"] .resume-tool .rb-design-filter-tab:is(.is-active, [aria-selected="true"]) {
+  border-color: var(--rb-accent-primary);
+  background: var(--rb-accent-primary);
+  color: #ffffff;
+}
+
+[data-theme="light"] .resume-tool .rb-design-card.is-active {
+  border-color: var(--rb-accent-primary);
+  background: color-mix(in srgb, var(--rb-accent-primary) 10%, #ffffff 90%);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.18), 0 16px 38px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="light"] .resume-tool :is(
+  .cl-option-pill.is-active,
+  .rb-resume-action-btn--primary
+) {
+  border-color: rgba(79, 70, 229, 0.55);
+  background: var(--rb-accent-primary);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.18);
+}
+
+[data-theme="light"] .resume-tool :is(
+  .cl-generate-btn,
+  .rb-import-link-btn,
+  .rb-import-cancel
+) {
+  border-color: rgba(79, 70, 229, 0.34);
+  color: var(--rb-accent-primary);
+}
+
+[data-theme="light"] .resume-tool .cl-generate-btn {
+  background: var(--rb-accent-primary);
+  color: #ffffff;
+}
+
+[data-theme="light"] .resume-tool .rb-score-ai-badge {
+  border-color: rgba(79, 70, 229, 0.22);
+  background: var(--rb-accent-subtle);
+  color: var(--rb-accent-primary);
+}
+
+[data-theme="light"] .resume-tool .rb-design-modal__close:hover,
+[data-theme="light"] .resume-tool .rb-design-modal__close:focus-visible {
+  background: var(--rb-accent-primary);
+  color: #ffffff;
+}
+
+[data-theme="light"] .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-mobile-preview-view,
+[data-theme="light"] .resume-panel[data-panel="builder"].rb-mobile-view-preview #rb-preview-panel {
+  background: var(--rb-bg-primary);
+}
+
+[data-theme="light"] .resume-tool #rb-mobile-preview-close,
+[data-theme="light"] .resume-tool #rb-mobile-preview-download {
+  border-color: var(--rb-border-default);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--rb-text-primary);
+}
+
+[data-theme="light"] .resume-tool #rb-mobile-preview-close .rb-preview-close-btn {
+  background: var(--rb-bg-tertiary);
+  color: var(--rb-text-primary);
 }
 
 /* --- MERIDIAN EXECUTIVE TEMPLATE --- */
