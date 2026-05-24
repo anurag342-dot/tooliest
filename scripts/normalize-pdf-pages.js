@@ -429,6 +429,7 @@ function applyPdfOverrides(tools) {
     if (!override) {
       return;
     }
+    const hasAuthoredContent = typeof tool.contentSectionsHtml === 'string' && tool.contentSectionsHtml.trim();
     if (override.icon) tool.icon = override.icon;
     if (override.summaryHeading) tool.summaryHeading = override.summaryHeading;
     if (override.howToHeading) tool.howToHeading = override.howToHeading;
@@ -441,7 +442,7 @@ function applyPdfOverrides(tools) {
     }
     tool.meta = tool.meta || {};
     if (override.metaTitle) tool.meta.title = override.metaTitle;
-    if (override.metaDesc) tool.meta.desc = override.metaDesc;
+    if (override.metaDesc && !hasAuthoredContent) tool.meta.desc = override.metaDesc;
     tool.reviewedBy = tool.reviewedBy || 'Reviewed by Anurag, founder of Tooliest';
     tool.authorName = tool.authorName || 'Anurag';
     tool.authorBio = tool.authorBio || 'Anurag is the founder of Tooliest and reviews the site\'s browser-based tools, PDF workflows, and editorial guidance for practical accuracy, privacy notes, and real-world usefulness.';
@@ -585,6 +586,9 @@ function renderToolContentSections(tool, categories) {
   const references = Array.isArray(tool.referenceLinks) ? tool.referenceLinks : [];
   const relatedCategories = getRelatedCategories(tool, categories);
   const customSections = Array.isArray(tool.customSections) ? tool.customSections : [];
+  const authoredSectionsHtml = typeof tool.contentSectionsHtml === 'string' && tool.contentSectionsHtml.trim()
+    ? tool.contentSectionsHtml.trim()
+    : '';
 
   const snippetHtml = tool.aeoSnippet
     ? `<section class="tool-content-section">
@@ -672,6 +676,17 @@ function renderToolContentSections(tool, categories) {
         </div>
       </div>
     </section>`;
+
+  if (authoredSectionsHtml) {
+    return `<article class="tool-article">
+    <div class="tool-content-sections">
+      ${authoredSectionsHtml}
+      ${relatedCategoriesHtml}
+      ${referencesHtml}
+      ${authorBioHtml}
+    </div>
+  </article>`;
+  }
 
   return `<article class="tool-article">
     <div class="tool-content-sections">
@@ -852,6 +867,7 @@ function extractTrailingScripts(html) {
     .map((match) => match[0])
     .filter((scriptTag) => !/src="\/bundle\.min\.js[^"]*"/i.test(scriptTag))
     .filter((scriptTag) => !/src="\/js\/consent\.js[^"]*"/i.test(scriptTag))
+    .filter((scriptTag) => !/__TOOLIEST_CONSENT_FALLBACK_READY/i.test(scriptTag))
     .join('\n')
     .trim();
 }
