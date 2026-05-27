@@ -37,7 +37,7 @@ const TOOLIEST_WHATS_NEW = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260527-e6748d35';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260527-b3748932';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -1984,46 +1984,170 @@ const App = {
     });
   },
 
+  getToolTrustCopy(tool) {
+    const name = this.escapeHTML(tool.name);
+    const copy = {
+      text: {
+        badges: ['Private text analysis', 'Instant browser editing', 'No account required'],
+        cards: [
+          ['Privacy model', 'Text stays on your device', `${name} analyzes and transforms text locally in your browser, so drafts, notes, and documents are not uploaded.`],
+          ['Workflow fit', 'Built for quick editing passes', 'Use it for fast counts, cleanup, comparison, or formatting before moving the result back into your editor.'],
+          ['Review step', 'Read before publishing', 'Check wording, formatting, and context before using the output in academic, client, or public work.'],
+        ],
+      },
+      seo: {
+        badges: ['SEO inputs stay local', 'Launch-ready checks', 'Free technical SEO helper'],
+        cards: [
+          ['Privacy model', 'SEO inputs stay local', `${name} works from the values you enter here, keeping site data, drafts, and optimization notes on your device.`],
+          ['Workflow fit', 'Built for launch checks', 'Use it to prepare crawl rules, metadata, structured data, or keyword checks before publishing site changes.'],
+          ['Review step', 'Validate before deployment', 'Confirm the output against your CMS, Search Console, or live page requirements before pushing changes.'],
+        ],
+      },
+      css: {
+        badges: ['CSS stays client-side', 'Fast visual tuning', 'Preview before shipping'],
+        cards: [
+          ['Privacy model', 'CSS work stays client-side', `${name} processes style values in your browser, so snippets and design experiments are not sent to a server.`],
+          ['Workflow fit', 'Built for fast visual tuning', 'Use it to generate, clean up, or test CSS while you iterate on layout, motion, spacing, or visual polish.'],
+          ['Review step', 'Test in your real layout', 'Preview the result in the actual page or component before shipping, especially when responsive behavior matters.'],
+        ],
+      },
+      color: {
+        badges: ['Color work stays local', 'Design check workflow', 'Contrast-aware decisions'],
+        cards: [
+          ['Privacy model', 'Color choices stay local', `${name} handles palette and contrast work in your browser without uploading your design inputs.`],
+          ['Workflow fit', 'Built for quick design checks', 'Use it to compare colors, inspect accessibility, or move values between design and CSS workflows.'],
+          ['Review step', 'Check contrast in context', 'Confirm color choices against the real background, type size, and UI state where they will be used.'],
+        ],
+      },
+      image: {
+        badges: ['Images stay local', 'Browser export workflow', 'No upload required'],
+        cards: [
+          ['Privacy model', 'Images stay in your browser', `${name} processes image files locally, so photos, screenshots, and graphics are not uploaded to Tooliest servers.`],
+          ['Workflow fit', 'Built for export-ready assets', 'Use it to prepare smaller, cleaner, or correctly sized images for websites, documents, and social posts.'],
+          ['Review step', 'Inspect the final file', 'Check dimensions, quality, transparency, and sensitive visual details before sharing or publishing the export.'],
+        ],
+      },
+      'privacy-tools': {
+        badges: ['Sensitive data stays local', 'Security-first utility', 'No account required'],
+        cards: [
+          ['Privacy model', 'Sensitive data stays local', `${name} handles security and privacy checks in your browser, so passwords, fake data, and files stay on your device.`],
+          ['Workflow fit', 'Built for safer quick checks', 'Use it to generate, inspect, or clean sensitive values without creating an account or uploading private material.'],
+          ['Review step', 'Use strong final judgment', 'Verify generated credentials, privacy cleanup, and test data rules before production or client use.'],
+        ],
+      },
+      converter: {
+        badges: ['Conversions run locally', 'Fast unit swaps', 'No server round trip'],
+        cards: [
+          ['Privacy model', 'Conversions run locally', `${name} converts values in your browser, so the numbers or data you enter are not sent to a server.`],
+          ['Workflow fit', 'Built for fast unit swaps', 'Use it for quick conversions across measurements, formats, time zones, temperatures, or everyday calculations.'],
+          ['Review step', 'Check units and rounding', 'Confirm the source unit, target unit, precision, and rounding rules before using the result in important work.'],
+        ],
+      },
+      encoding: {
+        badges: ['Encoded data stays local', 'Safe text transforms', 'Check secrets carefully'],
+        cards: [
+          ['Privacy model', 'Encoding stays client-side', `${name} transforms strings in your browser, keeping tokens, URLs, hashes, and encoded text on your device.`],
+          ['Workflow fit', 'Built for safe text transforms', 'Use it to encode, decode, inspect, or generate values without opening a heavier development environment.'],
+          ['Review step', 'Handle decoded data carefully', 'Do not paste secrets into untrusted places after decoding, and verify generated values before using them in production.'],
+        ],
+      },
+      pdf: {
+        badges: ['PDFs stay on your device', 'Browser document workflow', 'No file upload'],
+        cards: [
+          ['Privacy model', 'PDF files stay on your device', `${name} is designed for local document handling, so sensitive PDFs are not uploaded to Tooliest servers.`],
+          ['Workflow fit', 'Built for document cleanup', 'Use it to prepare pages, exports, or document versions before sending files to clients, coworkers, or storage systems.'],
+          ['Review step', 'Verify pages before sharing', 'Check page order, redactions, signatures, watermarks, and file quality before relying on the downloaded PDF.'],
+        ],
+      },
+      json: {
+        badges: ['JSON stays client-side', 'API debugging helper', 'No payload upload'],
+        cards: [
+          ['Privacy model', 'JSON stays client-side', `${name} processes pasted JSON in your browser, which is safer for API payloads, tokens, and internal debugging data.`],
+          ['Workflow fit', 'Built for debugging loops', 'Use it to format, validate, convert, or inspect structured data while you work through API and configuration issues.'],
+          ['Review step', 'Validate before production use', 'Confirm syntax, schema expectations, and edge cases before committing config changes or shipping API responses.'],
+        ],
+      },
+      html: {
+        badges: ['Markup stays local', 'Fast HTML cleanup', 'Preview rendered output'],
+        cards: [
+          ['Privacy model', 'Markup stays in your browser', `${name} handles HTML transforms locally, so snippets and templates stay on your device.`],
+          ['Workflow fit', 'Built for quick markup cleanup', 'Use it to format, minify, encode, or generate HTML before pasting it into a page, email, CMS, or component.'],
+          ['Review step', 'Preview rendered output', 'Check the generated markup in the final environment so escaped entities, tables, and layout behavior are correct.'],
+        ],
+      },
+      javascript: {
+        badges: ['Code stays local', 'Fast JS utility', 'Test before committing'],
+        cards: [
+          ['Privacy model', 'Code processing stays local', `${name} works client-side, so source snippets and debugging examples are not uploaded to Tooliest servers.`],
+          ['Workflow fit', 'Built for developer utilities', 'Use it for quick formatting, testing, obfuscation, or pattern checks while keeping your workflow in one tab.'],
+          ['Review step', 'Test before committing', 'Run important code through your own tests and tooling before deploying, committing, or sharing it with a team.'],
+        ],
+      },
+      developer: {
+        badges: ['Code stays client-side', 'Developer workflow helper', 'No snippet upload'],
+        cards: [
+          ['Privacy model', 'Code stays client-side', `${name} processes developer input in your browser, so snippets, configs, and debugging data stay on your device.`],
+          ['Workflow fit', 'Built for debugging speed', 'Use it to inspect, format, test, or generate development artifacts without leaving your current browser workflow.'],
+          ['Review step', 'Verify before shipping', 'Run important output through your own tests, linters, validators, or review process before committing or deploying.'],
+        ],
+      },
+      ai: {
+        badges: ['Managed AI proxy', 'Review before use', 'Free daily AI quota'],
+        cards: [
+          ['AI privacy', 'AI requests use a managed proxy', `${name} sends only the text needed for that AI request through the Tooliest proxy; normal page actions still run in your browser.`],
+          ['Workflow fit', 'Built for faster first drafts', 'Use it to create, rewrite, summarize, or brainstorm a starting point without treating the result as final truth automatically.'],
+          ['Review step', 'Human review is required', 'Check facts, tone, privacy, and context before sending, publishing, submitting, or relying on AI-assisted output.'],
+        ],
+      },
+      finance: {
+        badges: ['Calculations stay local', 'Planning scenario helper', 'Estimate before decisions'],
+        cards: [
+          ['Privacy model', 'Calculations run locally', `${name} performs calculations in your browser, so financial inputs and planning scenarios are not transmitted.`],
+          ['Workflow fit', 'Built for planning scenarios', 'Use it to compare assumptions, payments, rates, or projections before deciding what needs deeper review.'],
+          ['Review step', 'Treat results as estimates', 'Financial outputs are planning aids, not regulated advice. Verify assumptions, fees, taxes, and real account terms.'],
+        ],
+      },
+      math: {
+        badges: ['Numbers stay local', 'Fast calculation helper', 'Check the formula'],
+        cards: [
+          ['Privacy model', 'Numbers stay on your device', `${name} handles inputs locally in the browser, so everyday calculations remain private.`],
+          ['Workflow fit', 'Built for quick answers', 'Use it for fast arithmetic, health, percentage, date, and measurement checks without installing anything.'],
+          ['Review step', 'Confirm the formula and context', 'Check units, inputs, and interpretation before using the result for health, school, client, or operational decisions.'],
+        ],
+      },
+      social: {
+        badges: ['Drafts stay local', 'Platform limit helper', 'Preview before posting'],
+        cards: [
+          ['Privacy model', 'Drafts stay in your browser', `${name} keeps captions, hashtags, counters, and social planning text on your device while you work.`],
+          ['Workflow fit', 'Built for platform limits', 'Use it to prepare posts, thumbnails, tags, or character-limited copy before publishing on social platforms.'],
+          ['Review step', 'Preview before posting', 'Check tone, truncation, links, and platform-specific display rules before publishing to a live audience.'],
+        ],
+      },
+    };
+
+    return copy[tool.category] || {
+      badges: ['Runs in your browser', 'Instant focused workflow', 'Free to use'],
+      cards: [
+        ['Privacy model', 'Work stays in your browser', `${name} is designed for fast browser-based processing with no account required.`],
+        ['Workflow fit', 'Built for quick tasks', 'Use it when you need a focused result without installing a larger app or switching workflows.'],
+        ['Review step', 'Double-check important output', 'Review the final result before using it in financial, legal, academic, medical, or client-facing work.'],
+      ],
+    };
+  },
+
   getToolTrustPanelHTML(tool, related) {
-    const usesManagedAI = tool.category === 'ai';
-    const trustBadges = usesManagedAI
-      ? [
-        'AI requests use the Tooliest proxy',
-        'Provider keys stay off the page',
-        'Free daily AI quota',
-      ]
-      : [
-        '100% Private - Runs in your browser',
-        'Instant results on this device',
-        'Free to use',
-      ];
-    const privacyCard = usesManagedAI
-      ? {
-        label: 'AI privacy',
-        title: 'Sent securely for AI processing',
-        text: 'Your prompt is sent through the Tooliest AI proxy to generate results. Avoid sensitive personal, client, or secret data.',
-      }
-      : {
-        label: 'Privacy',
-        title: 'No data leaves your device',
-        text: 'Perfect for sensitive content, drafts, client files, and quick checks.',
-      };
+    const trustCopy = this.getToolTrustCopy(tool);
     const pairingLinks = related.slice(0, 3);
 
     return `<div class="tool-trust-strip" aria-label="${tool.name} trust signals">
-      ${trustBadges.map((badge) => `<span class="trust-badge">${badge}</span>`).join('')}
+      ${trustCopy.badges.map((badge) => `<span class="trust-badge">${badge}</span>`).join('')}
     </div>
     <div class="tool-proof-grid">
-      <div class="tool-proof-card">
-        <span>${privacyCard.label}</span>
-        <strong>${privacyCard.title}</strong>
-        <p>${privacyCard.text}</p>
-      </div>
-      <a class="tool-proof-card tool-proof-link" href="${TOOLIEST_REPOSITORY_URL}" target="_blank" rel="noreferrer">
-        <span>Source</span>
-        <strong>View the Tooliest codebase</strong>
-        <p>Open the public repository behind this browser-first tool collection.</p>
-      </a>
+      ${trustCopy.cards.map(([label, title, text]) => `<div class="tool-proof-card">
+        <span>${label}</span>
+        <strong>${title}</strong>
+        <p>${text}</p>
+      </div>`).join('')}
     </div>
     ${pairingLinks.length ? `<div class="tool-pairing-links">
       <span>Works well with:</span>
