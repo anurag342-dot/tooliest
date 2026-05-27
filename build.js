@@ -2485,6 +2485,128 @@ function renderCategoryPage(category, tools, categories) {
   });
 }
 
+function getToolProofCards(tool, categoryName) {
+  const toolName = escapeHtml(tool.name);
+  const categoryLabel = escapeHtml((categoryName || 'tool').toLowerCase());
+  const copyByCategory = {
+    text: [
+      ['Privacy model', 'Text stays on your device', `${toolName} runs text analysis in your browser, so drafts, notes, and documents are not uploaded to Tooliest servers.`],
+      ['Workflow fit', 'Built for quick editing passes', `Use this ${categoryLabel} when you need a fast cleanup, count, comparison, or transform before moving the result back into your editor.`],
+      ['Review step', 'Read before publishing', 'Check the final wording, formatting, and context before using the output in client, academic, or public work.'],
+    ],
+    seo: [
+      ['Privacy model', 'SEO inputs stay local', `${toolName} works from the values you enter in the page, keeping site data, drafts, and optimization notes on your device.`],
+      ['Workflow fit', 'Built for launch checks', 'Use it to prepare metadata, crawl instructions, structured data, or keyword checks before publishing site changes.'],
+      ['Review step', 'Validate before deployment', 'Confirm the generated SEO output against your CMS, search console data, or live page requirements before pushing changes.'],
+    ],
+    css: [
+      ['Privacy model', 'CSS work stays client-side', `${toolName} processes style values in your browser, so snippets and design experiments are not sent to a server.`],
+      ['Workflow fit', 'Built for fast visual tuning', 'Use it to generate, clean up, or test CSS while you iterate on layout, motion, spacing, or visual polish.'],
+      ['Review step', 'Test in your real layout', 'Preview the result in the actual page or component before shipping, especially when responsive behavior matters.'],
+    ],
+    color: [
+      ['Privacy model', 'Color choices stay local', `${toolName} handles palette and contrast work in your browser without uploading your design inputs.`],
+      ['Workflow fit', 'Built for quick design checks', 'Use it to compare colors, inspect accessibility, or move values between design and CSS workflows.'],
+      ['Review step', 'Check contrast in context', 'Confirm color choices against the real background, type size, and UI state where they will be used.'],
+    ],
+    image: [
+      ['Privacy model', 'Images stay in your browser', `${toolName} processes image files locally, so photos, screenshots, and graphics are not uploaded to Tooliest servers.`],
+      ['Workflow fit', 'Built for export-ready assets', 'Use it to prepare smaller, cleaner, or correctly sized images for websites, documents, and social posts.'],
+      ['Review step', 'Inspect the final file', 'Check dimensions, quality, transparency, and any sensitive visual details before sharing or publishing the export.'],
+    ],
+    pdf: [
+      ['Privacy model', 'PDF files stay on your device', `${toolName} is designed for local document handling, so sensitive PDFs are not uploaded to Tooliest servers.`],
+      ['Workflow fit', 'Built for document cleanup', 'Use it to prepare pages, exports, or document versions before sending files to clients, coworkers, or storage systems.'],
+      ['Review step', 'Verify pages before sharing', 'Check page order, redactions, signatures, watermarks, and file quality before relying on the downloaded PDF.'],
+    ],
+    json: [
+      ['Privacy model', 'JSON stays client-side', `${toolName} processes pasted JSON in your browser, which is safer for API payloads, tokens, and internal debugging data.`],
+      ['Workflow fit', 'Built for debugging loops', 'Use it to format, validate, convert, or inspect structured data while you work through API and configuration issues.'],
+      ['Review step', 'Validate before production use', 'Confirm syntax, schema expectations, and edge cases before committing config changes or shipping API responses.'],
+    ],
+    html: [
+      ['Privacy model', 'Markup stays in your browser', `${toolName} handles HTML transforms locally, so snippets and templates stay on your device.`],
+      ['Workflow fit', 'Built for quick markup cleanup', 'Use it to format, minify, encode, or generate HTML before pasting it into a page, email, CMS, or component.'],
+      ['Review step', 'Preview rendered output', 'Check the generated markup in the final environment so escaped entities, tables, and layout behavior are correct.'],
+    ],
+    javascript: [
+      ['Privacy model', 'Code processing stays local', `${toolName} works client-side, so source snippets and debugging examples are not uploaded to Tooliest servers.`],
+      ['Workflow fit', 'Built for developer utilities', 'Use it for quick formatting, testing, obfuscation, or pattern checks while keeping your workflow in one tab.'],
+      ['Review step', 'Test before committing', 'Run important code through your own tests and tooling before deploying, committing, or sharing it with a team.'],
+    ],
+    converter: [
+      ['Privacy model', 'Conversions run locally', `${toolName} converts values in your browser, so the numbers or data you enter are not sent to a server.`],
+      ['Workflow fit', 'Built for fast unit swaps', 'Use it when you need quick conversions for measurements, formats, time zones, temperatures, or everyday calculations.'],
+      ['Review step', 'Check units and rounding', 'Confirm the source unit, target unit, precision, and rounding rules before using the result in important work.'],
+    ],
+    encoding: [
+      ['Privacy model', 'Encoding stays client-side', `${toolName} transforms strings in your browser, keeping tokens, URLs, hashes, and encoded text on your device.`],
+      ['Workflow fit', 'Built for safe text transforms', 'Use it to encode, decode, inspect, or generate values without opening a heavier development environment.'],
+      ['Review step', 'Handle decoded data carefully', 'Do not paste secrets into untrusted places after decoding, and verify generated values before using them in production.'],
+    ],
+    finance: [
+      ['Privacy model', 'Calculations run locally', `${toolName} performs calculations in your browser, so financial inputs and planning scenarios are not transmitted.`],
+      ['Workflow fit', 'Built for planning scenarios', 'Use it to compare assumptions, payments, rates, or projections before deciding what needs deeper review.'],
+      ['Review step', 'Treat results as estimates', 'Financial outputs are planning aids, not regulated advice. Verify assumptions, fees, taxes, and real account terms.'],
+    ],
+    math: [
+      ['Privacy model', 'Numbers stay on your device', `${toolName} handles inputs locally in the browser, so everyday calculations remain private.`],
+      ['Workflow fit', 'Built for quick answers', 'Use it for fast arithmetic, health, percentage, date, and measurement checks without installing anything.'],
+      ['Review step', 'Confirm the formula and context', 'Check units, inputs, and interpretation before using the result for health, school, client, or operational decisions.'],
+    ],
+    social: [
+      ['Privacy model', 'Drafts stay in your browser', `${toolName} keeps captions, hashtags, counters, and social planning text on your device while you work.`],
+      ['Workflow fit', 'Built for platform limits', 'Use it to prepare posts, thumbnails, tags, or character-limited copy before publishing on social platforms.'],
+      ['Review step', 'Preview before posting', 'Check tone, truncation, links, and platform-specific display rules before publishing to a live audience.'],
+    ],
+    'privacy-tools': [
+      ['Privacy model', 'Sensitive data stays local', `${toolName} handles security and privacy checks in your browser, so passwords, UUIDs, fake data, and files stay on your device.`],
+      ['Workflow fit', 'Built for safer quick checks', 'Use it to generate, inspect, or clean sensitive values without creating an account or uploading private material.'],
+      ['Review step', 'Use strong final judgment', 'Verify generated credentials, privacy cleanup, and test data rules before using them in production or client systems.'],
+    ],
+    ai: [
+      ['Privacy model', 'AI requests use a managed proxy', `${toolName} sends only the text needed for that AI request through the Tooliest proxy; normal page actions still run in your browser.`],
+      ['Workflow fit', 'Built for faster first drafts', 'Use it to create, rewrite, summarize, or brainstorm a starting point without turning the result into final truth automatically.'],
+      ['Review step', 'Human review is required', 'Check facts, tone, privacy, and context before sending, publishing, submitting, or relying on AI-assisted output.'],
+    ],
+    developer: [
+      ['Privacy model', 'Code stays client-side', `${toolName} processes developer input in your browser, so snippets, configs, and debugging data stay on your device.`],
+      ['Workflow fit', 'Built for debugging speed', 'Use it to inspect, format, test, or generate development artifacts without leaving your current browser workflow.'],
+      ['Review step', 'Verify before shipping', 'Run important output through your own tests, linters, validators, or review process before committing or deploying.'],
+    ],
+  };
+
+  return copyByCategory[tool.category] || [
+    ['Privacy model', 'Work stays in your browser', `${toolName} is designed for fast browser-based processing with no account required.`],
+    ['Workflow fit', 'Built for quick tasks', `Use this ${categoryLabel} when you need a focused result without installing a larger app.`],
+    ['Review step', 'Double-check important output', 'Review the final result before using it in financial, legal, academic, medical, or client-facing work.'],
+  ];
+}
+
+function renderToolProofGrid(tool, categoryName) {
+  return `<div class="tool-proof-grid">
+        ${getToolProofCards(tool, categoryName).map(([label, title, text]) => `<div class="tool-proof-card">
+          <span>${label}</span>
+          <strong>${title}</strong>
+          <p>${text}</p>
+        </div>`).join('')}
+      </div>`;
+}
+
+function renderToolAuthorBio(tools, { sectionClass = 'tool-content-section', includeHeading = true, ariaLabel = '' } = {}) {
+  const headingHtml = includeHeading ? '\n        <h2>About the Author</h2>' : '';
+  const styleAttr = sectionClass === 'tool-content-section' ? ' style="margin-top:24px"' : '';
+  const ariaAttr = ariaLabel ? ` aria-label="${escapeAttr(ariaLabel)}"` : '';
+  return `<section class="${sectionClass}"${styleAttr}${ariaAttr}>${headingHtml}
+        <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+          <div style="width:48px;height:48px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0">A</div>
+          <div style="flex:1;min-width:240px">
+            <p style="margin:0;color:var(--text-secondary)"><strong style="color:var(--text-primary)">Built by the Tooliest team</strong> - ${tools.length}+ free browser-based tools, no signup required. <a href="${STATIC_PAGE_PATHS.about}">Learn more about Tooliest</a>.</p>
+          </div>
+        </div>
+      </section>`;
+}
+
 function renderToolPage(tool, tools, categories) {
   const categoryName = categories.find(category => category.id === tool.category)?.name || tool.category;
   const canonicalPath = getToolPath(tool.id);
@@ -2582,46 +2704,8 @@ function renderToolPage(tool, tools, categories) {
     structuredData.push(...tool.extraStructuredData);
   }
 
-  const responsibleUseCopy = tool.category === 'ai'
-    ? `AI-assisted results from ${tool.name} should be reviewed for facts, tone, and context before you publish, send, or rely on them.`
-    : tool.category === 'finance'
-      ? `${tool.name} is useful for planning and quick comparisons, but the output is still an estimate and should not replace regulated disclosures or professional advice.`
-      : ['pdf', 'image'].includes(tool.category)
-        ? 'Check exported files, page order, image quality, and any sensitive details before you share the result outside your device.'
-        : 'Review the final output before you publish, deploy, or share it so the result fits the job you are trying to finish.';
-  const processingModelLabel = tool.category === 'ai'
-    ? 'Browser interface with managed AI processing'
-    : 'Browser-first workflow with lightweight processing';
-  const processingModelCopy = tool.category === 'ai'
-    ? 'The workspace stays lightweight in your browser, while Tooliest routes AI requests through its managed proxy so provider keys never touch the public page.'
-    : 'Tooliest is built for fast browser-based workflows, which makes it easier to go from input to result without an account wall or heavyweight desktop setup.';
-  const toolProofHtml = `<div class="tool-proof-grid">
-        <div class="tool-proof-card">
-          <span>Reviewed by</span>
-          <strong>Anurag, founder of Tooliest</strong>
-          <p>Each Tooliest tool page is reviewed for clarity, practical examples, and browser-side privacy notes before it is refreshed or republished.</p>
-        </div>
-        <div class="tool-proof-card">
-          <span>Processing model</span>
-          <strong>${processingModelLabel}</strong>
-          <p>${processingModelCopy}</p>
-        </div>
-        <div class="tool-proof-card">
-          <span>Use responsibly</span>
-          <strong>Double-check important results</strong>
-          <p>${responsibleUseCopy} Read the <a href="${STATIC_PAGE_PATHS.disclaimer}" class="tool-proof-link">Tooliest disclaimer</a> if the output affects financial, legal, academic, medical, or client-facing work.</p>
-        </div>
-      </div>`;
-  const toolAuthorBioHtml = `<section class="tool-content-section" style="margin-top:24px">
-        <h2>About the Author</h2>
-        <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
-          <div style="width:48px;height:48px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0">A</div>
-          <div style="flex:1;min-width:240px">
-            <p style="margin:0 0 6px;color:var(--text-primary);font-weight:700">Written by Anurag</p>
-            <p style="margin:0;color:var(--text-secondary)">Anurag is the founder of Tooliest and reviews the site's browser tools, AI-assisted workflows, and editorial guidance for practical accuracy, privacy notes, and real-world usefulness. <a href="${STATIC_PAGE_PATHS.about}">Learn more about Tooliest</a>.</p>
-          </div>
-        </div>
-      </section>`;
+  const toolProofHtml = renderToolProofGrid(tool, categoryName);
+  const toolAuthorBioHtml = renderToolAuthorBio(tools);
 
   const mainContent = `<main class="main-content" id="main-content">
     <div class="tool-page">
@@ -3392,6 +3476,34 @@ function writeToolPages(tools, categories) {
   });
 }
 
+function refreshStandaloneToolTemplateSections(tools, categories) {
+  const proofGridPattern = /<div class="tool-proof-grid">\s*<div class="tool-proof-card">[\s\S]*?<\/div>\s*<div class="tool-proof-card">[\s\S]*?<\/div>\s*<div class="tool-proof-card">[\s\S]*?<\/div>\s*<\/div>/;
+  const authorWithHeadingPattern = /<section class="tool-content-section" style="margin-top:24px">\s*<h2>About the Author<\/h2>[\s\S]*?<\/section>/;
+  const compactAuthorPattern = /<section class="tool-content-section tool-author-bio" aria-label="Author bio">[\s\S]*?<\/section>/;
+
+  tools
+    .filter((tool) => tool.standalonePage || tool.staticShellPage)
+    .forEach((tool) => {
+      const outputPath = path.join(__dirname, tool.id, 'index.html');
+      if (!fs.existsSync(outputPath)) return;
+
+      const categoryName = categories.find((category) => category.id === tool.category)?.name || tool.category;
+      let html = fs.readFileSync(outputPath, 'utf8');
+      const originalHtml = html;
+      html = html.replace(proofGridPattern, renderToolProofGrid(tool, categoryName));
+      html = html.replace(authorWithHeadingPattern, renderToolAuthorBio(tools));
+      html = html.replace(compactAuthorPattern, renderToolAuthorBio(tools, {
+        sectionClass: 'tool-content-section tool-author-bio',
+        includeHeading: false,
+        ariaLabel: 'Author bio',
+      }));
+
+      if (html !== originalHtml) {
+        fs.writeFileSync(outputPath, html);
+      }
+    });
+}
+
 function removeDirectoryIfExists(relativeDir) {
   const targetDir = path.join(__dirname, relativeDir);
   if (!fs.existsSync(targetDir)) return;
@@ -4118,6 +4230,7 @@ async function build() {
   writeGuidesContentPages(tools);
   writeHomePage(tools, categories);
   writeToolPages(tools, categories);
+  refreshStandaloneToolTemplateSections(tools, categories);
   writeCategoryPages(tools, categories);
   writeSoftwareContentPages();
   writeHtmlSitemap(tools, categories);
