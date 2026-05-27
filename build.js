@@ -2637,7 +2637,7 @@ function renderToolPage(tool, tools, categories) {
           <a class="btn btn-secondary btn-sm" href="#tool-workspace" aria-label="Jump to the live ${escapeAttr(tool.name)} workspace">Jump to Live Tool</a>
         </div>
         <p>${escapeHtml(tool.description)}</p>
-        <p class="tool-last-updated"><time datetime="${escapeAttr(tool.lastReviewed || toolLastModified)}">Last updated: ${escapeHtml(tool.lastReviewedLabel || tool.lastReviewed || toolLastModified)}</time> &middot; ${escapeHtml(tool.reviewedBy || 'Maintained by the Tooliest team')}</p>
+        <p class="tool-last-updated">${escapeHtml(tool.reviewedBy || 'Reviewed by Anurag, founder of Tooliest')}</p>
       </div>
       ${renderStaticAdSpace('tool-top')}
       <div class="tool-workspace" id="tool-workspace">

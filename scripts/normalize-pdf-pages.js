@@ -894,8 +894,6 @@ function renderPage(tool, categories, tools, originalHtml) {
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
   const ogImage = tool.ogImage || `/og/tools/${tool.id}.svg`;
   const ogImageUrl = ogImage.startsWith('http') ? ogImage : getAbsoluteUrl(ogImage);
-  const reviewedDate = tool.lastReviewed || BUILD_DATE;
-  const reviewedLabel = tool.lastReviewedLabel || tool.lastReviewed || BUILD_DATE;
   const reviewedBy = tool.reviewedBy || 'Reviewed by Anurag, founder of Tooliest';
   const metaAuthor = tool.authorName || 'Anurag';
 
@@ -967,7 +965,7 @@ function renderPage(tool, categories, tools, originalHtml) {
           <a class="btn btn-secondary btn-sm" href="#tool-workspace" aria-label="Jump to the live ${escapeAttr(tool.name)} workspace">Jump to Live Tool</a>
         </div>
         <p>${escapeHtml(tool.description)}</p>
-        <p class="tool-last-updated"><time datetime="${escapeAttr(reviewedDate)}">Last reviewed: ${escapeHtml(reviewedLabel)}</time> | ${escapeHtml(reviewedBy)}</p>
+        <p class="tool-last-updated">${escapeHtml(reviewedBy)}</p>
       </div>
       ${workspaceHtml}
       ${renderToolContentSections(tool, categories)}
