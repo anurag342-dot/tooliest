@@ -37,7 +37,7 @@ const TOOLIEST_WHATS_NEW = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260527-273574dc';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260527-e6748d35';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -1985,14 +1985,7 @@ const App = {
   },
 
   getToolTrustPanelHTML(tool, related) {
-    const usageCount = this.getToolUsageCount(tool.id);
     const usesManagedAI = tool.category === 'ai';
-    const usageLabel = usageCount
-      ? `${usageCount} local run${usageCount === 1 ? '' : 's'}`
-      : 'Ready for your first run';
-    const aiUsageLabel = usageCount
-      ? `${usageCount} browser run${usageCount === 1 ? '' : 's'}`
-      : '15 AI uses per day';
     const trustBadges = usesManagedAI
       ? [
         'AI requests use the Tooliest proxy',
@@ -2015,20 +2008,6 @@ const App = {
         title: 'No data leaves your device',
         text: 'Perfect for sensitive content, drafts, client files, and quick checks.',
       };
-    const usageCard = usesManagedAI
-      ? {
-        label: 'AI usage',
-        title: aiUsageLabel,
-        text: 'AI credits are tracked per AI tool in this browser and reset daily in your local time.',
-      }
-      : {
-        label: 'Local usage',
-        title: usageLabel,
-        text: 'Tracked only in this browser to power your recent and popular tools.',
-      };
-    const statusNote = usesManagedAI
-      ? 'Use the live workspace below to generate with AI. Copy, export, templates, and local actions still work if AI credits run out.'
-      : 'Use the live workspace below to process everything locally on this device.';
     const pairingLinks = related.slice(0, 3);
 
     return `<div class="tool-trust-strip" aria-label="${tool.name} trust signals">
@@ -2039,16 +2018,6 @@ const App = {
         <span>${privacyCard.label}</span>
         <strong>${privacyCard.title}</strong>
         <p>${privacyCard.text}</p>
-      </div>
-      <div class="tool-proof-card">
-        <span>${usageCard.label}</span>
-        <strong>${usageCard.title}</strong>
-        <p>${usageCard.text}</p>
-      </div>
-      <div class="tool-proof-card tool-live-status-card" id="tool-live-status-card">
-        <span>Status</span>
-        <strong id="tool-live-status-value">Ready when you are</strong>
-        <p id="tool-live-status-note">${statusNote}</p>
       </div>
       <a class="tool-proof-card tool-proof-link" href="${TOOLIEST_REPOSITORY_URL}" target="_blank" rel="noreferrer">
         <span>Source</span>
