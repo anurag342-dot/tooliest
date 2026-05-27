@@ -2481,6 +2481,7 @@ function renderCategoryPage(category, tools, categories) {
     keywords: categoryKeywords,
     ogImagePath: `/og/categories/${category.id}.svg`,
     ogImageAlt: `${category.name} category preview on Tooliest`,
+    robots: 'noindex, follow',
   });
 }
 
@@ -3023,6 +3024,7 @@ function renderSoftwareHubPage() {
     keywords: 'seo software guides, semrush review, ahrefs review, screaming frog guide, seo tool comparisons, content clusters',
     ogImagePath: '/og/site/software.svg',
     ogImageAlt: 'Tooliest SEO software guides preview card',
+    robots: 'noindex, follow',
   });
 }
 
@@ -3155,6 +3157,7 @@ function renderSoftwarePillarPage(cluster) {
     keywords: cluster.keywords.join(', '),
     ogImagePath: '/og/site/software.svg',
     ogImageAlt: `${cluster.name} guide preview card`,
+    robots: 'noindex, follow',
   });
 }
 
@@ -3243,6 +3246,7 @@ function renderSoftwareComparisonPage(cluster, comparison) {
     keywords: `${comparison.targetQuery}, ${cluster.name.toLowerCase()}, ${comparison.competitor.toLowerCase()}, seo tool comparison`,
     ogImagePath: '/og/site/software.svg',
     ogImageAlt: `${comparison.title} preview card`,
+    robots: 'noindex, follow',
   });
 }
 
@@ -3326,6 +3330,7 @@ function renderSoftwareUseCasePage(cluster, useCase) {
     keywords: `${useCase.targetQuery}, ${cluster.name.toLowerCase()}, seo software, use case guide`,
     ogImagePath: '/og/site/software.svg',
     ogImageAlt: `${useCase.title} preview card`,
+    robots: 'noindex, follow',
   });
 }
 
@@ -3546,25 +3551,29 @@ function renderHeadersFile(tools, categories) {
       ];
     });
   const categoryHeaders = getRenderableCategories(categories)
-    .flatMap((category) => [getCategoryPath(category.id), htmlPageCacheRule, '']);
+    .flatMap((category) => [getCategoryPath(category.id), htmlPageCacheRule, '  X-Robots-Tag: noindex, follow', '']);
   const toolHeaders = tools
     .flatMap((tool) => [getToolPath(tool.id), htmlPageCacheRule, '']);
   const softwareHeaders = [
     SOFTWARE_HUB_PATH,
     htmlPageCacheRule,
+    '  X-Robots-Tag: noindex, follow',
     '',
     ...SOFTWARE_CLUSTERS.flatMap((cluster) => [
       getSoftwareToolPath(cluster.slug),
       htmlPageCacheRule,
+      '  X-Robots-Tag: noindex, follow',
       '',
       ...getRenderableSoftwareComparisons(cluster).flatMap((comparison) => [
         getSoftwareArticlePath(cluster.slug, comparison.slug),
         htmlPageCacheRule,
+        '  X-Robots-Tag: noindex, follow',
         '',
       ]),
       ...cluster.useCases.flatMap((useCase) => [
         getSoftwareArticlePath(cluster.slug, useCase.slug),
         htmlPageCacheRule,
+        '  X-Robots-Tag: noindex, follow',
         '',
       ]),
     ]),
@@ -3777,13 +3786,6 @@ function writeSitemap(tools, categories) {
     { loc: getAbsoluteUrl(STATIC_PAGE_PATHS.terms), priority: '0.3', changefreq: 'yearly', lastmod: getStaticPageLastModifiedDate('terms.html') },
   ];
 
-  const categoryPages = getRenderableCategories(categories).map((category) => ({
-    loc: getAbsoluteUrl(getCategoryPath(category.id)),
-    priority: '0.65',
-    changefreq: 'monthly',
-    lastmod: getCategoryLastModifiedDate(category.id, tools),
-  }));
-
   const toolPages = tools.map((tool) => ({
     loc: getAbsoluteUrl(getToolPath(tool.id)),
     priority: tool.id === 'resume-builder' ? '1.0' : '0.8',
@@ -3791,42 +3793,13 @@ function writeSitemap(tools, categories) {
     lastmod: getToolLastModifiedDate(tool),
   }));
 
-  const softwarePages = [
-    {
-      loc: getAbsoluteUrl(SOFTWARE_HUB_PATH),
-      priority: '0.75',
-      changefreq: 'weekly',
-      lastmod: getSoftwareContentLastModifiedDate(),
-    },
-    ...SOFTWARE_CLUSTERS.flatMap((cluster) => ([
-      {
-        loc: getAbsoluteUrl(getSoftwareToolPath(cluster.slug)),
-        priority: '0.7',
-        changefreq: 'monthly',
-        lastmod: getSoftwareContentLastModifiedDate(),
-      },
-      ...getRenderableSoftwareComparisons(cluster).map((comparison) => ({
-        loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, comparison.slug)),
-        priority: '0.62',
-        changefreq: 'monthly',
-        lastmod: getSoftwareContentLastModifiedDate(),
-      })),
-      ...cluster.useCases.map((useCase) => ({
-        loc: getAbsoluteUrl(getSoftwareArticlePath(cluster.slug, useCase.slug)),
-        priority: '0.6',
-        changefreq: 'monthly',
-        lastmod: getSoftwareContentLastModifiedDate(),
-      })),
-    ])),
-  ];
-
   const sitemapFiles = [
     writeSitemapUrlFile('sitemap-main.xml', staticPages),
     writeSitemapUrlFile('sitemap-tools.xml', toolPages),
-    writeSitemapUrlFile('sitemap-categories.xml', categoryPages),
     { loc: getAbsoluteUrl('/sitemap-guides.xml'), lastmod: getGuideContentLastModifiedDate() },
-    writeSitemapUrlFile('sitemap-software.xml', softwarePages),
   ];
+  writeSitemapUrlFile('sitemap-categories.xml', []);
+  writeSitemapUrlFile('sitemap-software.xml', []);
 
   const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapFiles.map((entry) => `  <sitemap>\n    <loc>${escapeXml(entry.loc)}</loc>\n    <lastmod>${escapeXml(entry.lastmod)}</lastmod>\n  </sitemap>`).join('\n')}\n</sitemapindex>\n`;
   fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), sitemapIndex);
@@ -3835,7 +3808,7 @@ function writeSitemap(tools, categories) {
     { loc: getAbsoluteUrl('/guides/') },
     ...GUIDE_LIBRARY.map((guide) => ({ loc: getAbsoluteUrl(getGuideAbsolutePath(guide)) })),
   ];
-  return [...staticPages, ...guidePages, ...categoryPages, ...toolPages, ...softwarePages].map((entry) => entry.loc);
+  return [...staticPages, ...guidePages, ...toolPages].map((entry) => entry.loc);
 }
 
 function writeHtmlSitemap(tools, categories) {
