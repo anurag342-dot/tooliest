@@ -26,7 +26,7 @@ const GUIDE_LIBRARY = [
     slug: 'optimize-images-for-web',
     group: 'workflow',
     title: 'How to Optimize Images for Web Without Losing Quality',
-    description: 'Learn how to resize, compress, and convert images for faster page loads without visible quality loss.',
+    description: 'Learn how to optimize images for the web with practical techniques: format selection (WebP, AVIF), compression sweet spots, responsive srcset, and lazy loading. Includes code examples.',
     socialDescription: 'A practical guide to image compression, resizing, format choice, and privacy-first delivery for faster websites.',
     teaser: 'Learn how to compress, resize, and convert images for faster page loads without visible quality loss. Covers format selection, compression tradeoffs, metadata stripping, and responsive images.',
     published: '2026-04-29',
@@ -34,34 +34,144 @@ const GUIDE_LIBRARY = [
     readMinutes: 8,
     tags: ['Image Optimization', 'Web Performance', 'Core Web Vitals'],
     contentHtml: `
-      <p>Heavy pages often start with pictures. One large banner might use more data than all your code, typefaces, and opening words put together. Speed counts, since it shapes when people notice something useful, how deep they explore, and if they stick around to engage, decide, or pass it on.</p>
-      <p>Most times, shrinking images just right means thinking about where they land. Picture clarity matters less when the screen stays small. What counts comes down to purpose - fitting form without extra weight. Tiny details vanish on phone views anyway. File types play roles too; some stretch far while others sit flat and light. Heavy formats drag steps unless swapped smart. Clean lines often beat bulky pixels when the eye barely notices difference.</p>
+      <h2>Why Image Size Matters More Than You Think</h2>
+      <p>A 2MB hero image on a 3G connection - which still accounts for a significant portion of mobile traffic in developing markets - takes roughly 27 seconds to fully load. Even on a decent 4G connection averaging 20 Mbps, that same image takes about 800 milliseconds just for the transfer, before the browser has decoded it, painted it, or handled anything else on the page. That is one image. Most pages ship six to fifteen of them.</p>
+      <p>Largest Contentful Paint is the Core Web Vitals metric that measures when the biggest visible element - almost always an image - renders in the viewport. Google considers anything above 2.5 seconds a poor LCP score, and your hero image is the single most common LCP element on the web. Compress that image and you often fix your LCP in one move without touching a line of application code.</p>
+      <p>Google's own research found that 53% of mobile users abandon a page if it takes longer than three seconds to load. That is not a soft preference - it is more than half your mobile audience gone before they read a word. The direct revenue implication is measurable: Walmart found that each one-second improvement in load time increased conversions by 2%. For a site doing $1M per month, that math is not abstract.</p>
+      <p>On SEO: Google uses Core Web Vitals as a ranking signal through its Page Experience update. Poor LCP scores suppress rankings in competitive SERPs. Fixing image weight is one of the few technical SEO changes that has a direct, measurable path from action to ranking - compress images, improve LCP, improve the Page Experience score, and earn a better chance at ranking lift. The chain is short and relatively predictable.</p>
 
-      <h2>Choose how it looks before adjusting squeeze settings</h2>
-      <p>Most of the time, gains happen even before adjusting image settings. While JPEG works well for photos, newer formats like WebP or AVIF tend to shrink file sizes without sacrificing how things look. For sharp interface graphics where clarity counts, PNG holds up strong. Transparent layers? That’s where it stays relevant. When dealing with symbols, brand marks, or basic shapes built from points and lines, SVG slips into place naturally.</p>
-      <p>A solid tip: pick WebP or AVIF for most images. Screenshots? Try PNG or sharp WebP instead. Logos shine as vectors - keep them that way when you can. Slip up at the start with a poor choice, then fine-tuning won’t fix what’s already lost.</p>
+      <h2>Image Formats Explained: JPEG vs PNG vs WebP vs AVIF</h2>
+      <p>JPEG uses lossy compression built around how human vision works - it discards high-frequency detail that the eye is less sensitive to, particularly in areas of continuous tone like sky, skin, and gradients. This makes it the right choice for photographs and any image with smooth color transitions. A full-bleed photo compressed as JPEG at quality 85 might be 120KB. The same photo as PNG is 1.4MB. There is no scenario where the PNG is the right choice for that use case.</p>
+      <p>PNG uses lossless compression, which means every pixel is preserved exactly. Use it when pixel accuracy matters: UI screenshots, icons with sharp edges, images with transparency, and any graphic where text or line art appears. Compressing a screenshot of code or a UI component as JPEG introduces compression artifacts around the sharp edges of text that make it look smeared. PNG keeps it clean.</p>
+      <p>WebP gives you roughly 25 to 35% smaller file sizes than JPEG at equivalent visual quality, and it also supports transparency - meaning it can replace both JPEG and PNG in most cases. Browser support is now universal across Chrome, Firefox, Safari, and Edge. The only caveat is very old Safari versions, before Safari 14, which you can handle with a <code>&lt;picture&gt;</code> element fallback.</p>
+      <p>AVIF is the next generation: 40 to 55% smaller than JPEG at the same quality, with better handling of gradients and high-detail areas. Browser support reached approximately 93% in 2024, with Firefox, Chrome, and Edge all supporting it. Safari added full support in version 16. The encoding is slower than WebP - AVIF images take more time to compress - which matters for server-side build pipelines but not for static assets you compress once.</p>
+      <p>A concrete comparison for one 1600&times;900 photograph at the same perceived quality:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Format</th>
+            <th>Example size</th>
+            <th>Best use</th>
+            <th>Important note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>JPEG at quality 85</td>
+            <td>187KB</td>
+            <td>Photographs and smooth gradients</td>
+            <td>Lossy, no transparency support</td>
+          </tr>
+          <tr>
+            <td>PNG</td>
+            <td>1.41MB</td>
+            <td>Screenshots, UI graphics, transparency</td>
+            <td>Lossless, often much larger for photos</td>
+          </tr>
+          <tr>
+            <td>WebP at equivalent quality</td>
+            <td>134KB</td>
+            <td>General web images and transparent assets</td>
+            <td>Strong default for modern browsers</td>
+          </tr>
+          <tr>
+            <td>AVIF at equivalent quality</td>
+            <td>89KB</td>
+            <td>High-compression delivery and hero images</td>
+            <td>Smallest output, slower encoding</td>
+          </tr>
+        </tbody>
+      </table>
 
-      <h2>Make it fit the space you’ve got</h2>
-      <p>Picture this: tossing a giant photo into a tiny frame. It often happens when sites load images way bigger than needed - like dropping a 4000-pixel picture where just 1200 fit on screen. Mobile viewers see even less space. Yet browsers pull down every single pixel anyway. Most of the sharpness vanishes, unseen. You’re stuck covering data costs for nothing users actually notice.</p>
-      <p>Start by thinking about how large the image will appear on screen. Usually, main pictures need about 1600 pixels across. Small preview boxes often show up near 600 or 800. Tiny profile faces? Maybe just a couple hundred. Size matters before squeezing down. Start with a portion that fits. Then handle the tinier version afterward. For this, try Tooliest's <a href="/image-resizer/">Image Resizer</a> - it lines up visuals with design needs early on, so shrinking files later feels less like guessing.</p>
+      <h2>The Compression Sweet Spot</h2>
+      <p>Lossy compression permanently removes data. Lossless compression removes nothing - it just encodes existing data more efficiently. For a photograph, lossy is almost always the right choice because the removed data is genuinely invisible. For a logo or a screenshot, lossless is safer because any quality degradation is immediately visible on sharp edges.</p>
+      <p>The human visual system stops detecting JPEG quality reduction somewhere between quality 80 and 85 in most encoding tools. Below 80, artifacts become visible - the characteristic JPEG blockiness appears around high-contrast edges. Above 85, you are storing data the eye cannot perceive. Quality 85 is not a rule but a starting point: for a portrait photograph where skin detail matters, 85 is correct. For a background texture, 70 is often sufficient.</p>
+      <p>Finding your specific sweet spot requires comparison, not guessing. Open Google's Squoosh tool at <a href="https://squoosh.app/" target="_blank" rel="noopener">squoosh.app</a>, load your image, set it side-by-side at different quality levels, and zoom to 100%. The moment you cannot see a difference between two versions is your floor. Squoosh shows you file size in real time as you adjust the slider, so you can see exactly how much you gain by accepting each quality reduction.</p>
+      <p>Tools worth knowing: Squoosh is free, browser-based, and supports AVIF and WebP output. TinyPNG handles batch compression via API and integrates with WordPress. Tooliest's <a href="/image-compressor/">image compressor</a> processes files entirely in your browser - nothing is uploaded to any server - which matters when you are working with client assets, unreleased product screenshots, or any image that should not leave your machine.</p>
 
-      <h2>Compare visual quality, not just file-size numbers</h2>
-      <p>Some pictures handle shrinking better than others, so one perfect number does not fit all. Smooth graphics often stay sharp even when squeezed hard, unlike photos showing faces, soft shifts in color, or fine details. Skip chasing a fixed value. Go lower until you spot flaws, then step back just enough to miss them.</p>
-      <p>Most pictures online do not need full quality to look good. A middle setting in WebP format often shrinks them a lot without visible loss. So instead of guessing the best option, Tooliest's <a href="/image-compressor/">Image Compressor</a> helps you compare results fast. Start somewhere, check what changed, keep going until it feels balanced - small enough, but still clear.</p>
+      <h2>Responsive Images: srcset and sizes</h2>
+      <p>Serving a 4000-pixel-wide image to a phone with a 390-pixel screen wastes between 90 and 95% of the pixels transferred. The browser downloads the full file, decodes all 4000 pixels, then scales it down in CSS. The wasted bytes are real bandwidth consumed, real battery drained, real seconds added to load time.</p>
+      <p>The <code>srcset</code> attribute tells the browser which image files are available and how wide each one is. The <code>sizes</code> attribute tells the browser how wide the image will actually be displayed at different viewport widths. The browser uses both together to pick the most efficient source.</p>
+      <p>Here is a complete, copy-paste-ready implementation:</p>
+      <pre><code class="language-html">&lt;picture&gt;
+  &lt;!-- AVIF for browsers that support it --&gt;
+  &lt;source
+    type="image/avif"
+    srcset="
+      /images/hero-400.avif   400w,
+      /images/hero-800.avif   800w,
+      /images/hero-1200.avif 1200w,
+      /images/hero-1600.avif 1600w
+    "
+    sizes="(max-width: 600px) 100vw,
+           (max-width: 1200px) 80vw,
+           1200px"
+  /&gt;
+  &lt;!-- WebP fallback --&gt;
+  &lt;source
+    type="image/webp"
+    srcset="
+      /images/hero-400.webp   400w,
+      /images/hero-800.webp   800w,
+      /images/hero-1200.webp 1200w,
+      /images/hero-1600.webp 1600w
+    "
+    sizes="(max-width: 600px) 100vw,
+           (max-width: 1200px) 80vw,
+           1200px"
+  /&gt;
+  &lt;!-- JPEG final fallback --&gt;
+  &lt;img
+    src="/images/hero-1200.jpg"
+    alt="Descriptive alt text here"
+    width="1200"
+    height="630"
+    fetchpriority="high"
+  /&gt;
+&lt;/picture&gt;</code></pre>
+      <p>The sizes value <code>(max-width: 600px) 100vw</code> means: when the viewport is 600px or narrower, this image will be 100% of the viewport width. The browser uses this to select the appropriate <code>srcset</code> entry before downloading anything. Always include explicit <code>width</code> and <code>height</code> attributes on the <code>&lt;img&gt;</code> tag - they prevent layout shift by letting the browser reserve space before the image loads, which directly improves your Cumulative Layout Shift score.</p>
 
-      <h2>Keep only the details that matter</h2>
-      <p><strong>Hold on to only what matters. Skip saving extra details that serve no purpose. Toss the bits you won’t use later. Keep it lean by dropping unused info. Leave behind anything beyond the necessary.</strong></p>
-      <p>Photos taken on phones or cameras usually include hidden details like where they were shot, what device was used, how the shot was set up, also when it happened. This extra information makes files heavier while raising privacy risks if shared online. Many sites do not benefit at all by sending that data along with each image viewed.</p>
-      <p>Most times, when pictures go online - whether on a blog, portfolio, or help section - it makes sense to remove hidden details. That’s what Tooliest's <a href="/image-exif-stripper/">EXIF Metadata Stripper</a> does. It cuts file size, keeps private info from slipping out, while prepping visuals neatly for sharing.</p>
+      <h2>Lazy Loading: Don't Load What Users Can't See</h2>
+      <pre><code class="language-html">&lt;img src="/images/article-photo.jpg" alt="Alt text" loading="lazy" /&gt;</code></pre>
+      <p>That single attribute defers loading until the image is near the viewport. Chrome, Firefox, Safari, and Edge all support it natively. For a page with fifteen images where a user reads only the first three paragraphs, this prevents twelve image downloads entirely. The browser's built-in lazy loading starts fetching the image roughly 1,200 pixels before it enters the viewport, so there is no visible delay when the user scrolls to it.</p>
+      <p>For more precise control - custom thresholds, callbacks when images enter view, or lazy loading non-image elements - the Intersection Observer API gives you programmatic access:</p>
+      <pre><code class="language-javascript">const observer = new IntersectionObserver((entries) =&gt; {
+  entries.forEach(entry =&gt; {
+    if (entry.isIntersecting) {
+      const img = entry.target;
+      img.src = img.dataset.src;
+      observer.unobserve(img);
+    }
+  });
+}, { rootMargin: '200px' });
 
-      <h2>How fast things arrive counts as much as fine-tuning them</h2>
-      <p>A slow delivery might happen even with a lean file. When each gadget gets an identical big picture, tiny displays pull down excess data. This is why flexible image setups like <code>srcset</code> make sense - varied exports, smart box dimensions help too.</p>
-      <p>Pick three sizes - small, medium, big - for each picture. The browser picks which fits best. No massive system needed at first. Just planning your exports helps cut unused data fast. Mobile connections notice every wasted megabyte. Less bulk means smoother loading there.</p>
+document.querySelectorAll('img[data-src]').forEach(img =&gt; observer.observe(img));</code></pre>
+      <p>Do not lazy load your hero image or any image that appears above the fold without scrolling. Lazy loading these delays your LCP, which is the opposite of what you want. Add <code>fetchpriority="high"</code> to your LCP image instead - this tells the browser to fetch it before other resources in the queue.</p>
 
-      <h2>A basic process for most websites</h2>
-      <p><strong>A basic process fits nearly every website. Yet it changes slightly depending on the task. Still, steps stay clear. Because confusion slows progress. So simplicity wins each time. Even when details differ.</strong></p>
-      <p>Start with the format every single time. Go big - match the biggest screen people actually use. Remove hidden data without exception. Shrink the file just enough so quality holds up where it shows. Layer in extra sizes only if the page design gains something clear. A flat routine of five moves beats constant arguments about tiny tweaks. Boring steps done right work far louder than perfect plans never finished.</p>
-      <p>Most times, working straight inside your browser gets done with steps like resizing first. Then comes conversion - after that, compression follows. Metadata stripping wraps it up. This flow handles typical needs for editing or promo work. Files stay put, never shipped off to outside tools. A practical browser flow is <a href="/image-resizer/">Resize</a>, <a href="/image-converter/">Convert</a>, <a href="/image-compressor/">Compress</a>, and <a href="/image-exif-stripper/">Strip metadata</a>.</p>
+      <h2>Quick Wins Checklist</h2>
+      <ul>
+        <li>Convert your hero image to WebP or AVIF to save 30 to 50% file size with no visible quality difference and get an immediate LCP improvement.</li>
+        <li>Add <code>loading="lazy"</code> to all below-fold images to reduce initial page weight by whatever those images weigh, with zero code complexity.</li>
+        <li>Add explicit <code>width</code> and <code>height</code> to every <code>&lt;img&gt;</code> tag to eliminate layout shift and improve CLS without touching the image files.</li>
+        <li>Run all images through a compressor at quality 82-85 to get typical savings of 40 to 60% on unoptimized source files from designers or stock sites.</li>
+        <li>Implement <code>srcset</code> for your largest images first so mobile users stop downloading desktop-sized files; focus on images above 800px wide.</li>
+        <li>Add <code>fetchpriority="high"</code> to your LCP image so the browser prioritizes it over non-critical resources, measurably reducing LCP in Lighthouse.</li>
+        <li>Move images to a CDN to eliminate geographic latency; a user in Singapore loading images from a US server adds 200-400ms per request.</li>
+        <li>Audit your PNG files. Any PNG without transparency that is a photograph should be re-exported as JPEG or WebP immediately.</li>
+        <li>Set far-future cache headers on image assets: <code>Cache-Control: max-age=31536000, immutable</code> means repeat visitors load zero image bytes from the network.</li>
+        <li>Strip EXIF metadata. Camera metadata embedded in JPEGs adds 10 to 50KB per image with zero visible benefit to the user.</li>
+      </ul>
+
+      <h2>Common Mistakes</h2>
+      <h3>Uploading uncompressed screenshots</h3>
+      <p>Uploading uncompressed screenshots is the most common and most wasteful error. A screenshot of a dashboard taken on a Retina display is often a 4MB PNG. As a WebP at the correct display dimensions, that same screenshot is 80 to 120KB. The difference is entirely wasted bandwidth - there is no quality benefit to the original file at web display sizes.</p>
+      <h3>Using CSS resizing instead of real image resizing</h3>
+      <p>Using CSS to resize images is not the same as serving correctly dimensioned images. Setting <code>width: 400px</code> in CSS on a 2000px image downloads all 2000px worth of data, then scales it in the browser. The correct fix is generating a 400px version of the image and serving that. CSS resizing costs bandwidth; proper image resizing eliminates it.</p>
+      <h3>Skipping alt text</h3>
+      <p>Missing alt text is both an accessibility failure and an SEO miss. Screen readers cannot interpret images without it, which excludes visually impaired users from your content. Search engines use alt text to understand image content for image search indexing. The fix is one attribute per image. There is no technical reason to skip it.</p>
+      <h3>Not using a CDN for images</h3>
+      <p>Not using a CDN for images means every request goes to your origin server regardless of where the user is located. A CDN distributes your images to edge nodes geographically close to each user. Cloudflare's free tier, AWS CloudFront, and Bunny.net all offer image delivery with automatic format negotiation - serving WebP to Chrome and JPEG to older clients automatically - which is the infrastructure-level version of the <code>&lt;picture&gt;</code> element.</p>
+      <p>You can compress your images for free using Tooliest's <a href="/image-compressor/">browser-based image compressor</a> - your files never leave your device.</p>
     `,
     faqs: [
       {

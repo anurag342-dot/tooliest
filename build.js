@@ -1065,7 +1065,7 @@ function getGuideAbsolutePath(guide) {
 const GUIDE_SEO_OVERRIDES = {
   'optimize-images-for-web': {
     seoTitle: 'Optimize Images for Web - Quality and Speed | Tooliest',
-    seoDescription: 'Learn how to resize, compress, convert, and deliver images faster without hurting visible quality.',
+    seoDescription: 'Learn how to optimize images for the web with practical techniques: format selection (WebP, AVIF), compression sweet spots, responsive srcset, and lazy loading. Includes code examples.',
   },
   'css-minification-performance': {
     seoTitle: 'CSS Minification Guide | Tooliest',
