@@ -2002,6 +2002,8 @@ function renderPageShell({
   robots = 'index, follow',
   metaAuthor = 'Tooliest',
   ogType = 'website',
+  extraHead = '',
+  extraBody = '',
 }) {
   const canonicalUrl = getAbsoluteUrl(canonicalPath);
   const ogImageUrl = /^https?:\/\//.test(ogImagePath) ? ogImagePath : getAbsoluteUrl(ogImagePath);
@@ -2063,6 +2065,7 @@ function renderPageShell({
   <!-- AdSense script removed for compliance: re-enable after approval -->
   <!-- ${ADSENSE_SCRIPT_TAG} -->
   ${normalizedStructuredData.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('\n  ')}
+  ${extraHead}
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -2074,6 +2077,7 @@ function renderPageShell({
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
   ${renderConsentFallbackScript()}
+  ${extraBody}
   <script src="${getVersionedAssetPath(`/${BUNDLE_OUTPUT_FILE}`)}" defer data-cfasync="false"></script>
 </body>
 </html>`;
@@ -2793,6 +2797,187 @@ function renderGuideToolLinks(guide) {
     </section>`;
 }
 
+const GUIDE_ARTICLE_ENHANCEMENT_CSS = `<style>
+  .guide-article-copy .guide-table-wrap {
+    width: 100%;
+    margin: 22px 0 28px;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: rgba(255,255,255,.025);
+    -webkit-overflow-scrolling: touch;
+  }
+  .guide-article-copy table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+    font-size: .95rem;
+  }
+  .guide-article-copy th,
+  .guide-article-copy td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+  }
+  .guide-article-copy th {
+    color: var(--text-primary);
+    background: rgba(139,92,246,.16);
+    font-weight: 750;
+  }
+  .guide-article-copy td {
+    color: var(--text-secondary);
+    background: rgba(255,255,255,.015);
+  }
+  .guide-article-copy tr:nth-child(even) td {
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-code-window {
+    margin: 22px 0 28px;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.22);
+    border-radius: 14px;
+    background: #080b12;
+    box-shadow: 0 18px 45px rgba(0,0,0,.28);
+  }
+  .guide-code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(148,163,184,.18);
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025));
+  }
+  .guide-code-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .guide-code-dots {
+    display: inline-flex;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+  .guide-code-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: block;
+  }
+  .guide-code-dots span:nth-child(1) { background: #ff5f56; }
+  .guide-code-dots span:nth-child(2) { background: #ffbd2e; }
+  .guide-code-dots span:nth-child(3) { background: #27c93f; }
+  .guide-code-language {
+    color: #94a3b8;
+    font: 700 .72rem var(--font-mono);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .guide-code-copy {
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid rgba(148,163,184,.24);
+    border-radius: 10px;
+    background: rgba(15,23,42,.82);
+    color: #e2e8f0;
+    font: 700 .78rem var(--font-primary);
+    cursor: pointer;
+  }
+  .guide-code-copy:hover,
+  .guide-code-copy:focus-visible {
+    border-color: rgba(139,92,246,.72);
+    background: rgba(139,92,246,.22);
+    outline: none;
+  }
+  .guide-code-window pre {
+    margin: 0;
+    padding: 18px;
+    overflow-x: auto;
+    background: transparent;
+    color: #e5e7eb;
+    font: .9rem/1.7 var(--font-mono);
+    white-space: pre;
+    tab-size: 2;
+  }
+  .guide-code-window code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+  }
+  [data-theme=light] .guide-article-copy .guide-table-wrap {
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 12px 30px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy th {
+    background: rgba(139,92,246,.12);
+  }
+  [data-theme=light] .guide-article-copy td {
+    background: rgba(255,255,255,.72);
+  }
+  [data-theme=light] .guide-article-copy tr:nth-child(even) td {
+    background: rgba(15,23,42,.025);
+  }
+  [data-theme=light] .guide-code-window {
+    background: #f8fafc;
+    border-color: rgba(15,23,42,.12);
+    box-shadow: 0 16px 34px rgba(15,23,42,.08);
+  }
+  [data-theme=light] .guide-code-header {
+    border-bottom-color: rgba(15,23,42,.1);
+    background: linear-gradient(180deg, rgba(15,23,42,.06), rgba(15,23,42,.018));
+  }
+  [data-theme=light] .guide-code-language {
+    color: #475569;
+  }
+  [data-theme=light] .guide-code-copy {
+    background: rgba(255,255,255,.9);
+    color: #1e293b;
+    border-color: rgba(15,23,42,.16);
+  }
+  [data-theme=light] .guide-code-window pre {
+    color: #0f172a;
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-table-wrap {
+      margin-left: -4px;
+      margin-right: -4px;
+      border-radius: 12px;
+    }
+    .guide-article-copy th,
+    .guide-article-copy td {
+      padding: 12px 14px;
+    }
+    .guide-code-window {
+      border-radius: 12px;
+    }
+    .guide-code-header {
+      padding: 9px 10px;
+    }
+    .guide-code-window pre {
+      padding: 14px;
+      font-size: .82rem;
+      line-height: 1.65;
+    }
+    .guide-code-copy {
+      min-height: 32px;
+      padding: 6px 10px;
+    }
+  }
+</style>`;
+
+const GUIDE_ARTICLE_ENHANCEMENT_SCRIPT = `<script data-cfasync="false">(function(){function copyText(text){if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(text);}return new Promise(function(resolve,reject){var textarea=document.createElement('textarea');textarea.value=text;textarea.setAttribute('readonly','');textarea.style.position='fixed';textarea.style.top='-9999px';document.body.appendChild(textarea);textarea.select();try{document.execCommand('copy')?resolve():reject(new Error('copy failed'));}catch(error){reject(error);}finally{textarea.remove();}});}function enhanceGuideArticle(){var root=document.querySelector('.guide-article-copy');if(!root)return;root.querySelectorAll('table').forEach(function(table){if(table.parentElement&&table.parentElement.classList.contains('guide-table-wrap'))return;var wrap=document.createElement('div');wrap.className='guide-table-wrap';table.parentNode.insertBefore(wrap,table);wrap.appendChild(table);});root.querySelectorAll('pre').forEach(function(pre,index){if(pre.closest('.guide-code-window'))return;var code=pre.querySelector('code');var language='code';if(code){var match=String(code.className||'').match(/language-([a-z0-9-]+)/i);if(match)language=match[1];}var windowEl=document.createElement('div');windowEl.className='guide-code-window';var header=document.createElement('div');header.className='guide-code-header';var meta=document.createElement('div');meta.className='guide-code-meta';var dots=document.createElement('span');dots.className='guide-code-dots';dots.setAttribute('aria-hidden','true');dots.innerHTML='<span></span><span></span><span></span>';var label=document.createElement('span');label.className='guide-code-language';label.textContent=language;var button=document.createElement('button');button.type='button';button.className='guide-code-copy';button.textContent='Copy';button.setAttribute('aria-label','Copy code snippet '+(index+1));button.addEventListener('click',function(){var text=(code||pre).innerText;copyText(text).then(function(){button.textContent='Copied';window.setTimeout(function(){button.textContent='Copy';},1400);}).catch(function(){button.textContent='Select';window.setTimeout(function(){button.textContent='Copy';},1400);});});meta.appendChild(dots);meta.appendChild(label);header.appendChild(meta);header.appendChild(button);pre.parentNode.insertBefore(windowEl,pre);windowEl.appendChild(header);windowEl.appendChild(pre);});}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',enhanceGuideArticle,{once:true});}else{enhanceGuideArticle();}})();</script>`;
+
 function renderGuidesHubPage(tools) {
   const guideLastModified = getGuideContentLastModifiedDate();
   const softwarePageCount = getSoftwareEditorialPageCount();
@@ -2988,6 +3173,8 @@ function renderGuideArticlePage(guide) {
     ogImageAlt: `${guide.title} guide preview card`,
     metaAuthor: 'Anurag',
     ogType: 'article',
+    extraHead: guide.slug === 'optimize-images-for-web' ? GUIDE_ARTICLE_ENHANCEMENT_CSS : '',
+    extraBody: guide.slug === 'optimize-images-for-web' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '',
   });
 }
 
