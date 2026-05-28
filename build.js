@@ -2015,6 +2015,8 @@ function renderPageShell({
   const googlebotRobots = robots.includes('noindex')
     ? 'noindex, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'
     : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1';
+  const extraHeadMarkup = extraHead ? `\n  ${extraHead}` : '';
+  const extraBodyMarkup = extraBody ? `\n  ${extraBody}` : '';
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -2064,8 +2066,7 @@ function renderPageShell({
   <script src="${getVersionedAssetPath('/js/consent.js')}" defer data-cfasync="false"></script>
   <!-- AdSense script removed for compliance: re-enable after approval -->
   <!-- ${ADSENSE_SCRIPT_TAG} -->
-  ${normalizedStructuredData.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('\n  ')}
-  ${extraHead}
+  ${normalizedStructuredData.map(schema => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`).join('\n  ')}${extraHeadMarkup}
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -2076,8 +2077,7 @@ function renderPageShell({
   ${renderCookieBanner()}
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-  ${renderConsentFallbackScript()}
-  ${extraBody}
+  ${renderConsentFallbackScript()}${extraBodyMarkup}
   <script src="${getVersionedAssetPath(`/${BUNDLE_OUTPUT_FILE}`)}" defer data-cfasync="false"></script>
 </body>
 </html>`;
@@ -2978,6 +2978,197 @@ const GUIDE_ARTICLE_ENHANCEMENT_CSS = `<style>
 
 const GUIDE_ARTICLE_ENHANCEMENT_SCRIPT = `<script data-cfasync="false">(function(){function copyText(text){if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(text);}return new Promise(function(resolve,reject){var textarea=document.createElement('textarea');textarea.value=text;textarea.setAttribute('readonly','');textarea.style.position='fixed';textarea.style.top='-9999px';document.body.appendChild(textarea);textarea.select();try{document.execCommand('copy')?resolve():reject(new Error('copy failed'));}catch(error){reject(error);}finally{textarea.remove();}});}function enhanceGuideArticle(){var root=document.querySelector('.guide-article-copy');if(!root)return;root.querySelectorAll('table').forEach(function(table){if(table.parentElement&&table.parentElement.classList.contains('guide-table-wrap'))return;var wrap=document.createElement('div');wrap.className='guide-table-wrap';table.parentNode.insertBefore(wrap,table);wrap.appendChild(table);});root.querySelectorAll('pre').forEach(function(pre,index){if(pre.closest('.guide-code-window'))return;var code=pre.querySelector('code');var language='code';if(code){var match=String(code.className||'').match(/language-([a-z0-9-]+)/i);if(match)language=match[1];}var windowEl=document.createElement('div');windowEl.className='guide-code-window';var header=document.createElement('div');header.className='guide-code-header';var meta=document.createElement('div');meta.className='guide-code-meta';var dots=document.createElement('span');dots.className='guide-code-dots';dots.setAttribute('aria-hidden','true');dots.innerHTML='<span></span><span></span><span></span>';var label=document.createElement('span');label.className='guide-code-language';label.textContent=language;var button=document.createElement('button');button.type='button';button.className='guide-code-copy';button.textContent='Copy';button.setAttribute('aria-label','Copy code snippet '+(index+1));button.addEventListener('click',function(){var text=(code||pre).innerText;copyText(text).then(function(){button.textContent='Copied';window.setTimeout(function(){button.textContent='Copy';},1400);}).catch(function(){button.textContent='Select';window.setTimeout(function(){button.textContent='Copy';},1400);});});meta.appendChild(dots);meta.appendChild(label);header.appendChild(meta);header.appendChild(button);pre.parentNode.insertBefore(windowEl,pre);windowEl.appendChild(header);windowEl.appendChild(pre);});}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',enhanceGuideArticle,{once:true});}else{enhanceGuideArticle();}})();</script>`;
 
+const COMPOUND_INTEREST_GUIDE_VISUAL_CSS = `<style>
+  .guide-article-copy .guide-formula-box {
+    margin: 22px 0 20px;
+    padding: 26px 18px;
+    border: 1px solid rgba(139,92,246,.38);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.16), rgba(6,182,212,.08)), rgba(15,23,42,.74);
+    text-align: center;
+    box-shadow: 0 18px 40px rgba(0,0,0,.22);
+  }
+  .guide-article-copy .guide-formula-box code {
+    display: inline-block;
+    color: var(--text-primary);
+    background: transparent;
+    padding: 0;
+    font: 800 clamp(1.25rem, 4vw, 2rem)/1.35 var(--font-mono);
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .guide-article-copy .guide-comparison-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin: 24px 0 26px;
+  }
+  .guide-article-copy .guide-comparison-card {
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    background: rgba(255,255,255,.035);
+    min-width: 0;
+  }
+  .guide-article-copy .guide-comparison-card-winner {
+    border-color: rgba(16,185,129,.56);
+    background: linear-gradient(135deg, rgba(16,185,129,.14), rgba(139,92,246,.08));
+    box-shadow: 0 18px 38px rgba(16,185,129,.08);
+  }
+  .guide-article-copy .guide-comparison-card h3 {
+    margin-top: 0;
+  }
+  .guide-article-copy .guide-comparison-card ul {
+    display: grid;
+    gap: 10px;
+    padding-left: 0;
+    list-style: none;
+  }
+  .guide-article-copy .guide-comparison-card li {
+    display: grid;
+    gap: 4px;
+  }
+  .guide-article-copy .guide-comparison-card span {
+    color: var(--text-primary);
+    font: 800 clamp(1.35rem, 4vw, 2rem)/1.1 var(--font-primary);
+  }
+  .guide-article-copy .guide-table-wrap {
+    width: 100%;
+    margin: 22px 0 28px;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: rgba(255,255,255,.025);
+    -webkit-overflow-scrolling: touch;
+  }
+  .guide-article-copy table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+    font-size: .95rem;
+  }
+  .guide-article-copy th,
+  .guide-article-copy td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+  }
+  .guide-article-copy th {
+    color: var(--text-primary);
+    background: rgba(139,92,246,.16);
+    font-weight: 750;
+  }
+  .guide-article-copy td {
+    color: var(--text-secondary);
+    background: rgba(255,255,255,.015);
+  }
+  .guide-article-copy tr:nth-child(even) td {
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-article-copy .guide-calc-steps {
+    margin: 22px 0 24px;
+    padding: 20px;
+    border: 1px solid rgba(139,92,246,.34);
+    border-radius: 16px;
+    background: rgba(15,23,42,.58);
+  }
+  .guide-article-copy .guide-calc-steps ol {
+    margin: 0;
+    padding-left: 1.45rem;
+  }
+  .guide-article-copy .guide-calc-steps li {
+    margin: 10px 0;
+    color: var(--text-secondary);
+  }
+  .guide-article-copy .guide-calc-steps code {
+    color: var(--text-primary);
+    background: rgba(139,92,246,.14);
+    border: 1px solid rgba(139,92,246,.2);
+    border-radius: 8px;
+    padding: 2px 7px;
+    font-family: var(--font-mono);
+  }
+  .guide-article-copy .guide-takeaway {
+    margin: 22px 0 26px;
+    padding: 18px 20px;
+    border-left: 4px solid var(--accent-primary);
+    border-radius: 0 14px 14px 0;
+    background: linear-gradient(90deg, rgba(139,92,246,.16), rgba(139,92,246,.035));
+  }
+  .guide-article-copy .guide-takeaway p:last-child {
+    margin-bottom: 0;
+  }
+  [data-theme=light] .guide-article-copy .guide-formula-box {
+    background: linear-gradient(135deg, rgba(139,92,246,.12), rgba(6,182,212,.08)), rgba(255,255,255,.92);
+    box-shadow: 0 16px 32px rgba(15,23,42,.08);
+  }
+  [data-theme=light] .guide-article-copy .guide-comparison-card {
+    background: rgba(255,255,255,.82);
+  }
+  [data-theme=light] .guide-article-copy .guide-comparison-card-winner {
+    background: linear-gradient(135deg, rgba(16,185,129,.13), rgba(139,92,246,.06));
+    box-shadow: 0 16px 34px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-table-wrap {
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 12px 30px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy th {
+    background: rgba(139,92,246,.12);
+  }
+  [data-theme=light] .guide-article-copy td {
+    background: rgba(255,255,255,.72);
+  }
+  [data-theme=light] .guide-article-copy tr:nth-child(even) td {
+    background: rgba(15,23,42,.025);
+  }
+  [data-theme=light] .guide-article-copy .guide-calc-steps {
+    background: rgba(255,255,255,.82);
+  }
+  [data-theme=light] .guide-article-copy .guide-calc-steps code {
+    background: rgba(139,92,246,.1);
+  }
+  [data-theme=light] .guide-article-copy .guide-takeaway {
+    background: linear-gradient(90deg, rgba(139,92,246,.12), rgba(139,92,246,.025));
+  }
+  @media (max-width: 760px) {
+    .guide-article-copy .guide-comparison-row {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-formula-box,
+    .guide-article-copy .guide-comparison-card,
+    .guide-article-copy .guide-calc-steps {
+      padding: 16px;
+      border-radius: 12px;
+    }
+    .guide-article-copy .guide-formula-box code {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .guide-article-copy .guide-table-wrap {
+      margin-left: -4px;
+      margin-right: -4px;
+      border-radius: 12px;
+    }
+    .guide-article-copy th,
+    .guide-article-copy td {
+      padding: 12px 14px;
+    }
+    .guide-article-copy .guide-takeaway {
+      padding: 16px;
+      border-radius: 0 12px 12px 0;
+    }
+  }
+</style>`;
+
 function renderGuidesHubPage(tools) {
   const guideLastModified = getGuideContentLastModifiedDate();
   const softwarePageCount = getSoftwareEditorialPageCount();
@@ -3095,6 +3286,12 @@ function renderGuideArticlePage(guide) {
   const guideHeading = getGuideHeading(guide);
   const guideSeoTitle = getGuideSeoTitle(guide);
   const guideMetaDescription = getGuideMetaDescription(guide);
+  const guideExtraHead = guide.slug === 'optimize-images-for-web'
+    ? GUIDE_ARTICLE_ENHANCEMENT_CSS
+    : guide.slug === 'compound-interest-explained'
+      ? COMPOUND_INTEREST_GUIDE_VISUAL_CSS
+      : '';
+  const guideExtraBody = guide.slug === 'optimize-images-for-web' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
   const structuredData = [
     {
       '@context': 'https://schema.org',
@@ -3173,8 +3370,8 @@ function renderGuideArticlePage(guide) {
     ogImageAlt: `${guide.title} guide preview card`,
     metaAuthor: 'Anurag',
     ogType: 'article',
-    extraHead: guide.slug === 'optimize-images-for-web' ? GUIDE_ARTICLE_ENHANCEMENT_CSS : '',
-    extraBody: guide.slug === 'optimize-images-for-web' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '',
+    extraHead: guideExtraHead,
+    extraBody: guideExtraBody,
   });
 }
 
