@@ -30,8 +30,8 @@ const GUIDE_LIBRARY = [
     socialDescription: 'A practical guide to image compression, resizing, format choice, and privacy-first delivery for faster websites.',
     teaser: 'Learn how to compress, resize, and convert images for faster page loads without visible quality loss. Covers format selection, compression tradeoffs, metadata stripping, and responsive images.',
     published: '2026-04-29',
-    updated: '2026-05-02',
-    readMinutes: 8,
+    updated: '2026-05-28',
+    readMinutes: 9,
     tags: ['Image Optimization', 'Web Performance', 'Core Web Vitals'],
     contentHtml: `
       <h2>Why Image Size Matters More Than You Think</h2>
