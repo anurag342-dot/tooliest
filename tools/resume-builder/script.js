@@ -6675,10 +6675,11 @@ function bindResumeAccordion(root) {
       const card = trigger.closest('.rb-accordion-card');
       if (!card || card.dataset.accordionCollapseLocked === 'true') return;
       const nextOpen = !card.classList.contains('is-open');
-      updateAccordionWithStableScroll(card, () => {
-        if (nextOpen) closePeerAccordionSections(root, card);
-        setAccordionCardOpen(card, nextOpen);
-      });
+      if (nextOpen) {
+        openAccordionCardWithStableAnchor(root, card);
+      } else {
+        setAccordionCardOpen(card, false);
+      }
     });
   });
 }
@@ -6698,18 +6699,59 @@ function adjustAccordionScrollPosition(scrollContainer, delta) {
   scrollContainer.scrollTop += delta;
 }
 
-function updateAccordionWithStableScroll(card, update) {
+function getOpenPeerAccordionCards(root, currentCard = null) {
+  return Array.from(root.querySelectorAll('#rb-accordion .rb-accordion-card.is-open'))
+    .filter((card) => card !== currentCard && card.dataset.accordionCollapseLocked !== 'true');
+}
+
+function isAccordionCardBefore(card, targetCard) {
+  if (!card || !targetCard || card === targetCard) return false;
+  const followingFlag = globalThis.Node?.DOCUMENT_POSITION_FOLLOWING || 4;
+  return Boolean(card.compareDocumentPosition(targetCard) & followingFlag);
+}
+
+function runWithInstantAccordionCollapse(cards, update) {
+  const bodies = cards
+    .map((card) => card.querySelector('.rb-accordion-body'))
+    .filter(Boolean);
+  const previousTransitions = bodies.map((body) => body.style.transition);
+  bodies.forEach((body) => {
+    body.style.transition = 'none';
+  });
+  update();
+  bodies.forEach((body) => {
+    // Flush layout while transitions are disabled so collapsing sections above
+    // the clicked header cannot animate the scroll position away.
+    void body.offsetHeight;
+  });
+  window.requestAnimationFrame(() => {
+    bodies.forEach((body, index) => {
+      body.style.transition = previousTransitions[index];
+    });
+  });
+}
+
+function updateAccordionWithStableAnchor(card, update, instantCollapseCards = []) {
   const scrollContainer = getAccordionScrollContainer(card);
   const targetTop = card?.getBoundingClientRect?.().top || 0;
-  update();
-  const restorePosition = () => {
-    if (!card?.isConnected) return;
+  const applyUpdate = () => update();
+  if (instantCollapseCards.length) {
+    runWithInstantAccordionCollapse(instantCollapseCards, applyUpdate);
+  } else {
+    applyUpdate();
+  }
+  if (card?.isConnected) {
     adjustAccordionScrollPosition(scrollContainer, card.getBoundingClientRect().top - targetTop);
-  };
-  restorePosition();
-  window.requestAnimationFrame(restorePosition);
-  window.setTimeout(restorePosition, 180);
-  window.setTimeout(restorePosition, 360);
+  }
+}
+
+function openAccordionCardWithStableAnchor(root, card) {
+  const peerCards = getOpenPeerAccordionCards(root, card);
+  const peerCardsAbove = peerCards.filter((peerCard) => isAccordionCardBefore(peerCard, card));
+  updateAccordionWithStableAnchor(card, () => {
+    closePeerAccordionSections(root, card);
+    setAccordionCardOpen(card, true);
+  }, peerCardsAbove);
 }
 
 function setAccordionCardOpen(card, isOpen) {
@@ -6729,8 +6771,11 @@ function closePeerAccordionSections(root, currentCard = null) {
 function setAccordionSectionOpen(root, sectionKey, isOpen) {
   const card = root.querySelector(`[data-accordion-section="${sectionKey}"]`);
   if (!card || card.dataset.accordionCollapseLocked === 'true') return;
-  if (isOpen) closePeerAccordionSections(root, card);
-  setAccordionCardOpen(card, isOpen);
+  if (isOpen) {
+    openAccordionCardWithStableAnchor(root, card);
+    return;
+  }
+  setAccordionCardOpen(card, false);
 }
 
 function syncAccordionOpenState(root, state) {
