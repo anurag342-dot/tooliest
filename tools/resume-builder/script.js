@@ -6675,10 +6675,41 @@ function bindResumeAccordion(root) {
       const card = trigger.closest('.rb-accordion-card');
       if (!card || card.dataset.accordionCollapseLocked === 'true') return;
       const nextOpen = !card.classList.contains('is-open');
-      if (nextOpen) closePeerAccordionSections(root, card);
-      setAccordionCardOpen(card, nextOpen);
+      updateAccordionWithStableScroll(card, () => {
+        if (nextOpen) closePeerAccordionSections(root, card);
+        setAccordionCardOpen(card, nextOpen);
+      });
     });
   });
+}
+
+function getAccordionScrollContainer(card) {
+  const editorPanel = card?.closest?.('.rb-editor-panel');
+  if (editorPanel && editorPanel.scrollHeight > editorPanel.clientHeight) return editorPanel;
+  return document.scrollingElement || document.documentElement;
+}
+
+function adjustAccordionScrollPosition(scrollContainer, delta) {
+  if (!scrollContainer || Math.abs(delta) < 1) return;
+  if (scrollContainer === document.scrollingElement || scrollContainer === document.documentElement || scrollContainer === document.body) {
+    window.scrollBy({ top: delta, left: 0, behavior: 'auto' });
+    return;
+  }
+  scrollContainer.scrollTop += delta;
+}
+
+function updateAccordionWithStableScroll(card, update) {
+  const scrollContainer = getAccordionScrollContainer(card);
+  const targetTop = card?.getBoundingClientRect?.().top || 0;
+  update();
+  const restorePosition = () => {
+    if (!card?.isConnected) return;
+    adjustAccordionScrollPosition(scrollContainer, card.getBoundingClientRect().top - targetTop);
+  };
+  restorePosition();
+  window.requestAnimationFrame(restorePosition);
+  window.setTimeout(restorePosition, 180);
+  window.setTimeout(restorePosition, 360);
 }
 
 function setAccordionCardOpen(card, isOpen) {
