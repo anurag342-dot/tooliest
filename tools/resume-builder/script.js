@@ -6874,12 +6874,111 @@ function showExportToast(message, type = 'info') {
   }
 }
 
+function getResumeDownloadControls() {
+  return [
+    document.getElementById('rb-btn-download-primary'),
+    document.getElementById('rb-dl-pdf'),
+    document.getElementById('rb-dl-docx'),
+    document.getElementById('rb-mobile-dl-btn'),
+  ].filter(Boolean);
+}
+
+function setResumeExportBusy(isBusy) {
+  resumeExportInProgress = isBusy;
+  getResumeDownloadControls().forEach((button) => {
+    button.classList.toggle('rb-export-btn--loading', isBusy);
+    button.setAttribute('aria-busy', String(isBusy));
+    if (isBusy) button.disabled = true;
+  });
+  if (!isBusy) {
+    const hasResume = Boolean(resumeExportState?.generatedResume) || hasMeaningfulLiveResumeData(resumeExportState);
+    setResumeExportReady(hasResume);
+    const mobileButton = document.getElementById('rb-mobile-dl-btn');
+    if (mobileButton) mobileButton.disabled = !hasResume;
+    getResumeDownloadControls().forEach((button) => {
+      button.classList.remove('rb-export-btn--loading');
+      button.setAttribute('aria-busy', 'false');
+    });
+  }
+}
+
+function ensureResumeExportProgressOverlay() {
+  if (resumeExportProgressOverlay?.isConnected) return resumeExportProgressOverlay;
+
+  const overlay = createNode('div', 'rb-export-progress-overlay');
+  overlay.id = 'rb-export-progress-overlay';
+  overlay.hidden = true;
+  overlay.setAttribute('aria-hidden', 'true');
+
+  const dialog = createNode('div', 'rb-export-progress-dialog');
+  dialog.setAttribute('role', 'dialog');
+  dialog.setAttribute('aria-modal', 'true');
+  dialog.setAttribute('aria-labelledby', 'rb-export-progress-title');
+  dialog.setAttribute('aria-describedby', 'rb-export-progress-message');
+
+  const head = createNode('div', 'rb-export-progress-head');
+  const spinner = createNode('span', 'rb-export-progress-spinner');
+  spinner.setAttribute('aria-hidden', 'true');
+  const title = createNode('h3', '', 'Preparing your resume');
+  title.id = 'rb-export-progress-title';
+  const close = createNode('button', 'rb-export-progress-close', '\u00D7');
+  close.type = 'button';
+  close.setAttribute('aria-label', 'Hide export progress');
+  close.addEventListener('click', () => {
+    resumeExportProgressDismissed = true;
+    overlay.hidden = true;
+    overlay.setAttribute('aria-hidden', 'true');
+    if (resumeExportInProgress) showExportToast('Export is still running in the background.', 'info');
+  });
+  head.append(spinner, title, close);
+
+  const body = createNode('div', 'rb-export-progress-body');
+  const badge = createNode('span', 'rb-export-progress-badge', 'PDF');
+  badge.id = 'rb-export-progress-format';
+  const message = createNode('p', '', 'Rendering your resume and preparing the download.');
+  message.id = 'rb-export-progress-message';
+  const bar = createNode('div', 'rb-export-progress-bar');
+  bar.setAttribute('aria-hidden', 'true');
+  bar.appendChild(createNode('span'));
+  const hint = createNode('p', 'rb-export-progress-hint', 'This usually takes a few seconds for multi-page resumes.');
+  body.append(badge, message, bar, hint);
+  dialog.append(head, body);
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+  resumeExportProgressOverlay = overlay;
+  return overlay;
+}
+
+function updateResumeExportProgress({ format = 'PDF', title = 'Preparing your resume', message = 'Rendering your resume and preparing the download.', state = 'loading', force = false } = {}) {
+  const overlay = ensureResumeExportProgressOverlay();
+  overlay.dataset.state = state;
+  const titleNode = overlay.querySelector('#rb-export-progress-title');
+  const formatNode = overlay.querySelector('#rb-export-progress-format');
+  const messageNode = overlay.querySelector('#rb-export-progress-message');
+  if (titleNode) titleNode.textContent = title;
+  if (formatNode) formatNode.textContent = format;
+  if (messageNode) messageNode.textContent = message;
+  if (resumeExportProgressDismissed && !force) return;
+  overlay.hidden = false;
+  overlay.setAttribute('aria-hidden', 'false');
+}
+
+function hideResumeExportProgress(delayMs = 0) {
+  const overlay = resumeExportProgressOverlay;
+  if (!overlay) return;
+  window.setTimeout(() => {
+    overlay.hidden = true;
+    overlay.setAttribute('aria-hidden', 'true');
+  }, delayMs);
+}
+
 function setResumeExportReady(isReady) {
   const primaryBtn = document.getElementById('rb-btn-download-primary');
   const pdfBtn = document.getElementById('rb-dl-pdf');
   const docxBtn = document.getElementById('rb-dl-docx');
   const copyTextBtn = document.getElementById('rb-dl-copy-text');
   const txtBtn = document.getElementById('rb-dl-txt');
+  const mobileBtn = document.getElementById('rb-mobile-dl-btn');
   const docxAvailable = !isFullResumeTemplate(resumeExportState?.template);
   if (primaryBtn) {
     primaryBtn.disabled = false;
@@ -6899,10 +6998,17 @@ function setResumeExportReady(isReady) {
     button.disabled = !isReady;
     button.setAttribute('aria-disabled', String(!isReady));
   });
+  if (mobileBtn) {
+    mobileBtn.disabled = !isReady;
+    mobileBtn.setAttribute('aria-disabled', String(!isReady));
+  }
 }
 
 let resumePrintFrame = null;
 let resumePdfModulePromise = null;
+let resumeExportInProgress = false;
+let resumeExportProgressOverlay = null;
+let resumeExportProgressDismissed = false;
 
 function getResumeFileBaseName() {
   return (resumeExportState?.personal?.name || 'resume')
@@ -7585,43 +7691,65 @@ function openResumePrintDialog(intent = 'print') {
 }
 
 async function downloadResumePDF() {
-  if (!confirmResumePlaceholdersBeforeExport()) return;
-  const btn = document.getElementById('rb-dl-pdf') || document.getElementById('rb-btn-download-primary');
-  if (btn) {
-    btn.classList.add('rb-export-btn--loading');
-    btn.setAttribute('aria-label', 'Generating resume PDF');
-    btn.disabled = true;
+  if (resumeExportInProgress) {
+    showExportToast('A resume export is already running. Your download will start soon.', 'info');
+    return;
   }
+  if (!resumeExportState?.generatedResume && !hasMeaningfulLiveResumeData(resumeExportState)) {
+    showExportToast('Add resume details before saving as PDF.', 'error');
+    return;
+  }
+  if (!confirmResumePlaceholdersBeforeExport()) return;
 
+  setResumeExportBusy(true);
+  resumeExportProgressDismissed = false;
+  updateResumeExportProgress({
+    format: 'PDF',
+    title: 'Preparing your resume PDF',
+    message: 'Rendering your resume pages and packaging the PDF download.',
+    force: true,
+  });
   try {
-    if (!resumeExportState?.generatedResume && !hasMeaningfulLiveResumeData(resumeExportState)) {
-      showExportToast('Add resume details before saving as PDF.', 'error');
-      return;
-    }
     const exportSurface = createResumePdfRenderSurface();
     if (!exportSurface?.pages?.length) {
+      updateResumeExportProgress({
+        format: 'PDF',
+        title: 'PDF export could not start',
+        message: 'No rendered resume pages were found. Review your resume details and try again.',
+        state: 'error',
+      });
       showExportToast('Generate a resume before exporting.', 'error');
+      await delay(700);
       return;
     }
     try {
       const paper = normalizePaperSize(resumeExportState?.paperSize);
       const templateName = normalizeResumeTemplate(resumeExportState?.template);
       await downloadResumePreviewPdf(exportSurface.pages, `${getResumeFileBaseName()}_resume_${templateName}_${paper}.pdf`);
+      updateResumeExportProgress({
+        format: 'PDF',
+        title: 'PDF ready',
+        message: 'Your resume PDF download should start automatically.',
+        state: 'complete',
+      });
       showExportToast('Resume PDF downloaded.', 'success');
+      await delay(500);
     } finally {
       exportSurface.cleanup();
     }
   } catch (error) {
     console.error('[PDF Export]', error);
+    updateResumeExportProgress({
+      format: 'PDF',
+      title: 'PDF export failed',
+      message: 'Something interrupted the PDF download. Please try again.',
+      state: 'error',
+    });
     showExportToast('PDF export failed. Please try again.', 'error');
+    await delay(800);
   } finally {
-    window.setTimeout(() => {
-      if (btn) {
-        btn.classList.remove('rb-export-btn--loading');
-        btn.setAttribute('aria-label', 'Save resume as PDF');
-        btn.disabled = false;
-      }
-    }, 800);
+    hideResumeExportProgress();
+    setResumeExportBusy(false);
   }
 }
 
@@ -8375,7 +8503,10 @@ function buildDocxChildren(state, profile) {
 
 async function downloadResumeDOCX() {
   const state = resumeExportState;
-  const btn = document.getElementById('rb-dl-docx') || document.getElementById('rb-btn-download-primary');
+  if (resumeExportInProgress) {
+    showExportToast('A resume export is already running. Your download will start soon.', 'info');
+    return;
+  }
   if (isFullResumeTemplate(state?.template)) {
     showExportToast('DOCX is available for Classic, Modern, and Compact styles. Templates export as PDF.', 'info');
     return;
@@ -8386,10 +8517,14 @@ async function downloadResumeDOCX() {
   }
   if (!confirmResumePlaceholdersBeforeExport()) return;
 
-  if (btn) {
-    btn.classList.add('rb-export-btn--loading');
-    btn.setAttribute('aria-label', 'Generating DOCX...');
-  }
+  setResumeExportBusy(true);
+  resumeExportProgressDismissed = false;
+  updateResumeExportProgress({
+    format: 'DOCX',
+    title: 'Preparing your DOCX',
+    message: 'Building the Word document and applying your resume formatting.',
+    force: true,
+  });
 
   try {
     await loadDocx();
@@ -8409,15 +8544,27 @@ async function downloadResumeDOCX() {
     });
     const blob = await Packer.toBlob(doc);
     downloadBlob(getDocxFileName(), blob);
+    updateResumeExportProgress({
+      format: 'DOCX',
+      title: 'DOCX ready',
+      message: 'Your resume DOCX download should start automatically.',
+      state: 'complete',
+    });
     showExportToast('DOCX downloaded successfully.', 'success');
+    await delay(500);
   } catch (error) {
     console.error('[DOCX Export]', error);
+    updateResumeExportProgress({
+      format: 'DOCX',
+      title: 'DOCX export failed',
+      message: 'Something interrupted the DOCX download. Please try Save as PDF or check your connection.',
+      state: 'error',
+    });
     showExportToast('DOCX export failed. Try Save as PDF instead, or check your internet connection.', 'error');
+    await delay(800);
   } finally {
-    if (btn) {
-      btn.classList.remove('rb-export-btn--loading');
-      btn.setAttribute('aria-label', 'Download resume as DOCX');
-    }
+    hideResumeExportProgress();
+    setResumeExportBusy(false);
   }
 }
 
@@ -9332,6 +9479,10 @@ export async function initResumeBuilderTool(container) {
     if (downloadResumeButton) {
       downloadResumeButton.disabled = !hasResume;
       downloadResumeButton.setAttribute('aria-disabled', String(!hasResume));
+    }
+    if (mobileDownloadButton) {
+      mobileDownloadButton.disabled = !hasResume;
+      mobileDownloadButton.setAttribute('aria-disabled', String(!hasResume));
     }
     if (downloadPrimaryButton) {
       downloadPrimaryButton.disabled = false;
