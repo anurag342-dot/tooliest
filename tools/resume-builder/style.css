@@ -806,12 +806,19 @@
 }
 
 .resume-toast-stack {
-  position: sticky;
-  top: 10px;
-  z-index: 3;
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  width: min(460px, calc(100vw - 2rem));
+  z-index: 1200;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  pointer-events: none;
+}
+
+.resume-toast-stack:empty {
+  display: none;
 }
 
 .resume-toast {
@@ -827,6 +834,7 @@
   transform: translateY(-8px);
   opacity: 0;
   animation: resume-toast-in 0.24s ease forwards;
+  pointer-events: auto;
 }
 
 .resume-toast.error {
@@ -3403,12 +3411,24 @@
     min-height: min(72vh, 680px);
   }
 
+  .resume-toast-stack {
+    left: max(0.75rem, env(safe-area-inset-left));
+    right: max(0.75rem, env(safe-area-inset-right));
+    bottom: calc(var(--rb-mobile-nav-height, 76px) + 3.75rem + env(safe-area-inset-bottom));
+    width: auto;
+  }
+
+  .resume-toast {
+    align-items: flex-start;
+  }
+
   .rb-autosave-indicator {
-    top: max(0.75rem, env(safe-area-inset-top));
+    top: auto;
     right: auto;
-    bottom: auto;
+    bottom: calc(var(--rb-mobile-nav-height, 76px) + max(0.75rem, env(safe-area-inset-bottom)));
     left: 50%;
-    transform: translate(-50%, -8px);
+    max-width: calc(100vw - 1.5rem);
+    transform: translate(-50%, 8px);
   }
 
   .rb-autosave-indicator.rb-autosave--visible {

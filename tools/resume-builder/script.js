@@ -1384,6 +1384,9 @@ function showToast(stack, message, type = 'error') {
   if (!stack || !message) return;
   stack.setAttribute('role', 'status');
   stack.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+  stack.querySelectorAll('.resume-toast').forEach((existingToast, index, toasts) => {
+    if (toasts.length - index >= 3) existingToast.remove();
+  });
   const toast = createNode('div', `resume-toast ${type}`);
   const text = createNode('span', '', message);
   const close = createNode('button', 'btn btn-secondary', 'Dismiss');
@@ -6578,7 +6581,7 @@ function setupBuilderCanvasLayout(root) {
 
   const accordionCards = [
     importCard ? buildAccordionCard('import', 'Import Resume', [importCard], { icon: '&#11014;', open: false, dragLocked: true }) : null,
-    buildAccordionCard('personal', 'Personal Information', [personalGrid, targetRoleField], { icon: '&#128100;', locked: true, open: true }),
+    buildAccordionCard('personal', 'Personal Information', [personalGrid, targetRoleField], { icon: '&#128100;', dragLocked: true, open: true }),
     buildAccordionCard('summary', 'Professional Summary', [summaryField], { icon: '&#9998;', open: true, dragLocked: true }),
     buildAccordionCard('experience', 'Work Experience', [
       qs(root, '#rb-experience-list'),
@@ -6672,26 +6675,37 @@ function bindResumeAccordion(root) {
       const card = trigger.closest('.rb-accordion-card');
       if (!card || card.dataset.accordionCollapseLocked === 'true') return;
       const nextOpen = !card.classList.contains('is-open');
-      card.classList.toggle('is-open', nextOpen);
-      trigger.setAttribute('aria-expanded', String(nextOpen));
-      card.querySelector('.rb-accordion-body')?.setAttribute('aria-hidden', String(!nextOpen));
+      if (nextOpen) closePeerAccordionSections(root, card);
+      setAccordionCardOpen(card, nextOpen);
     });
+  });
+}
+
+function setAccordionCardOpen(card, isOpen) {
+  if (!card) return;
+  card.classList.toggle('is-open', isOpen);
+  card.querySelector('[data-accordion-trigger]')?.setAttribute('aria-expanded', String(isOpen));
+  card.querySelector('.rb-accordion-body')?.setAttribute('aria-hidden', String(!isOpen));
+}
+
+function closePeerAccordionSections(root, currentCard = null) {
+  root.querySelectorAll('#rb-accordion .rb-accordion-card.is-open').forEach((card) => {
+    if (card === currentCard || card.dataset.accordionCollapseLocked === 'true') return;
+    setAccordionCardOpen(card, false);
   });
 }
 
 function setAccordionSectionOpen(root, sectionKey, isOpen) {
   const card = root.querySelector(`[data-accordion-section="${sectionKey}"]`);
   if (!card || card.dataset.accordionCollapseLocked === 'true') return;
-  card.classList.toggle('is-open', isOpen);
-  card.querySelector('[data-accordion-trigger]')?.setAttribute('aria-expanded', String(isOpen));
-  card.querySelector('.rb-accordion-body')?.setAttribute('aria-hidden', String(!isOpen));
+  if (isOpen) closePeerAccordionSections(root, card);
+  setAccordionCardOpen(card, isOpen);
 }
 
 function syncAccordionOpenState(root, state) {
-  ['summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'languages', 'awards', 'volunteer', 'publications', 'courses', ...getCustomSectionIds(state?.customSections)].forEach((key) => {
-    const completeness = getSectionCompleteness(state, key);
-    if (completeness !== 'empty') setAccordionSectionOpen(root, key, true);
-  });
+  const keys = ['personal', 'summary', 'experience', 'education', 'skills', 'projects', 'certifications', 'languages', 'awards', 'volunteer', 'publications', 'courses', ...getCustomSectionIds(state?.customSections)];
+  const firstSectionWithData = keys.find((key) => getSectionCompleteness(state, key) !== 'empty') || 'personal';
+  setAccordionSectionOpen(root, firstSectionWithData, true);
 }
 
 function getSectionCompleteness(state, key) {
@@ -11723,10 +11737,8 @@ export async function initResumeBuilderTool(container) {
     window.requestAnimationFrame(() => {
       const card = root.querySelector(`[data-accordion-section="${sectionKey}"]`);
       if (!card) return;
-      card.classList.add('is-open');
-      card.querySelector('[data-accordion-trigger]')?.setAttribute('aria-expanded', 'true');
-      card.querySelector('.rb-accordion-body')?.setAttribute('aria-hidden', 'false');
-      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setAccordionSectionOpen(root, sectionKey, true);
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   }
 
