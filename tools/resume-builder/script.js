@@ -9278,6 +9278,11 @@ export async function initResumeBuilderTool(container) {
   const scoreFullDescription = qs(root, '#rb-score-full-description');
   const scoreAiBadge = qs(root, '#rb-score-ai-badge');
   const scoreBreakdown = qs(root, '#rb-score-breakdown');
+  const readinessPanel = qs(root, '#rb-readiness-panel');
+  const readinessTitle = qs(root, '#rb-readiness-title');
+  const readinessBadge = qs(root, '#rb-readiness-badge');
+  const readinessSummary = qs(root, '#rb-readiness-summary');
+  const readinessList = qs(root, '#rb-readiness-list');
   const scoreTips = qs(root, '#rb-score-tips');
   const scoreKeywords = qs(root, '#rb-score-keywords');
   const scoreKeywordsFound = qs(root, '#rb-score-keywords-found');
@@ -10381,9 +10386,166 @@ export async function initResumeBuilderTool(container) {
     });
   }
 
+  function getReadinessResumeText() {
+    return String(getResumeCountSourceText(state) || buildLiveResumePlainText(state) || '').trim();
+  }
+
+  function buildReadinessAction(step, focus, label = 'Fix') {
+    return { step, focus, label };
+  }
+
+  function getResumeReadinessItems() {
+    const personal = state.personal || {};
+    const name = String(personal.name || '').trim();
+    const email = String(personal.email || '').trim();
+    const phone = String(personal.phone || '').trim();
+    const linkedin = String(personal.linkedin || '').trim();
+    const summary = String(state.summary || '').trim();
+    const targetRole = String(state.targetRole || '').trim();
+    const skills = parseCommaList(state.skills);
+    const validExperiences = getValidExperiencesForScore();
+    const achievementBullets = getAchievementBulletsForScore();
+    const readinessText = getReadinessResumeText();
+    const wordCount = countResumeWords(readinessText);
+    const placeholders = detectPlaceholders(readinessText);
+
+    const contactReady = Boolean(name && email && (phone || linkedin));
+    const contactPartial = Boolean(name && email);
+    const summaryWords = countResumeWords(summary);
+    const roleSummaryReady = Boolean(targetRole && summaryWords >= 35);
+    const roleSummaryPartial = Boolean(targetRole || summaryWords >= 18);
+    const experienceReady = validExperiences.length >= 1 && achievementBullets.length >= 2;
+    const experiencePartial = validExperiences.length >= 1 || achievementBullets.length >= 1;
+    const skillsReady = skills.length >= 8;
+    const skillsPartial = skills.length >= 4;
+    const lengthReady = wordCount >= 350 && wordCount <= 900;
+    const lengthPartial = wordCount >= 220 && wordCount <= 1100;
+
+    return [
+      {
+        key: 'contact',
+        label: 'Contact header',
+        status: contactReady ? 'ready' : contactPartial ? 'attention' : 'missing',
+        detail: contactReady
+          ? 'Name, email, and recruiter contact signals are in place.'
+          : contactPartial
+            ? 'Add a phone number or LinkedIn URL for faster recruiter follow-up.'
+            : 'Add at least your full name and email before exporting.',
+        action: buildReadinessAction(1, !name ? '#rb-name' : !email ? '#rb-email' : '#rb-phone'),
+      },
+      {
+        key: 'role-summary',
+        label: 'Role and summary',
+        status: roleSummaryReady ? 'ready' : roleSummaryPartial ? 'attention' : 'missing',
+        detail: roleSummaryReady
+          ? 'Your target role and summary give the resume a clear direction.'
+          : roleSummaryPartial
+            ? 'Strengthen the target role or write a fuller 2-3 sentence summary.'
+            : 'Add a target role and a short professional summary.',
+        action: buildReadinessAction(targetRole ? 1 : 4, targetRole ? '#rb-summary' : '#rb-target-role'),
+      },
+      {
+        key: 'experience',
+        label: 'Experience proof',
+        status: experienceReady ? 'ready' : experiencePartial ? 'attention' : 'missing',
+        detail: experienceReady
+          ? 'At least one role has achievement bullets recruiters can scan.'
+          : experiencePartial
+            ? 'Add one more concrete achievement bullet to strengthen the role.'
+            : 'Add a role title and at least one achievement bullet.',
+        action: buildReadinessAction(2, '#rb-experience-list input, #rb-add-experience'),
+      },
+      {
+        key: 'skills',
+        label: 'Skills coverage',
+        status: skillsReady ? 'ready' : skillsPartial ? 'attention' : 'missing',
+        detail: skillsReady
+          ? `${skills.length} skills are available for ATS keyword matching.`
+          : skillsPartial
+            ? 'Add a few more role-specific tools, methods, or technologies.'
+            : 'Add at least 4-8 role-specific skills or keywords.',
+        action: buildReadinessAction(4, '#rb-skills'),
+      },
+      {
+        key: 'placeholders',
+        label: 'Placeholder check',
+        status: placeholders.length ? 'missing' : 'ready',
+        detail: placeholders.length
+          ? `Remove ${placeholders.length} placeholder${placeholders.length === 1 ? '' : 's'} before sending this resume.`
+          : 'No bracket placeholders were found in the current resume text.',
+        action: buildReadinessAction(5, '#rb-preview-pane', 'Review'),
+      },
+      {
+        key: 'length',
+        label: 'Export length',
+        status: lengthReady ? 'ready' : lengthPartial ? 'attention' : 'missing',
+        detail: lengthReady
+          ? `${wordCount} words - a strong range for most resumes.`
+          : wordCount
+            ? `${wordCount} words - add detail or trim wording before final export.`
+            : 'Add resume content so the final export has enough substance.',
+        action: buildReadinessAction(wordCount < 220 ? 2 : 5, wordCount < 220 ? '#rb-experience-list input, #rb-add-experience' : '#rb-preview-pane', wordCount < 220 ? 'Add detail' : 'Review'),
+      },
+    ];
+  }
+
+  function renderResumeReadiness(displayScore) {
+    if (!readinessPanel || !readinessList) return;
+    const items = getResumeReadinessItems();
+    const readyCount = items.filter((item) => item.status === 'ready').length;
+    const missingCount = items.filter((item) => item.status === 'missing').length;
+    const attentionCount = items.filter((item) => item.status === 'attention').length;
+    const totalCount = items.length;
+    const panelState = missingCount ? 'missing' : attentionCount ? 'attention' : 'ready';
+
+    readinessPanel.dataset.state = panelState;
+    if (readinessTitle) {
+      readinessTitle.textContent = panelState === 'ready'
+        ? 'Ready to export'
+        : panelState === 'attention'
+          ? 'Almost ready'
+          : 'Export preflight';
+    }
+    if (readinessBadge) readinessBadge.textContent = `${readyCount}/${totalCount} ready`;
+    if (readinessSummary) {
+      if (displayScore?.total === null) {
+        readinessSummary.textContent = 'Start with your contact details, target role, experience, and skills. The checklist updates as you type.';
+      } else if (panelState === 'ready') {
+        readinessSummary.textContent = 'Everything essential is in place. You can still polish wording, but the resume is safe to export.';
+      } else if (missingCount) {
+        readinessSummary.textContent = `${missingCount} important ${missingCount === 1 ? 'item needs' : 'items need'} attention before you send this resume.`;
+      } else {
+        readinessSummary.textContent = `${attentionCount} polish ${attentionCount === 1 ? 'item is' : 'items are'} worth improving before final export.`;
+      }
+    }
+
+    clearNode(readinessList);
+    items.forEach((item) => {
+      const row = createNode('div', `rb-readiness-item rb-readiness-item--${item.status}`);
+      const icon = createNode('span', 'rb-readiness-item__icon', item.status === 'ready' ? '\u2713' : item.status === 'attention' ? '!' : '+');
+      icon.setAttribute('aria-hidden', 'true');
+      const body = createNode('div', 'rb-readiness-item__body');
+      body.append(
+        createNode('strong', '', item.label),
+        createNode('span', '', item.detail),
+      );
+      row.append(icon, body);
+      if (item.status !== 'ready') {
+        const action = createNode('button', 'rb-readiness-item__action', item.action?.label || 'Fix');
+        action.type = 'button';
+        action.dataset.readinessStep = String(item.action?.step || 1);
+        action.dataset.readinessFocus = item.action?.focus || '';
+        action.setAttribute('aria-label', `${item.action?.label || 'Fix'} ${item.label}`);
+        row.appendChild(action);
+      }
+      readinessList.appendChild(row);
+    });
+  }
+
   function refreshLiveScore() {
     const localScore = calculateLocalAtsScore();
     const displayScore = getDisplayScoreResult(localScore);
+    renderResumeReadiness(displayScore);
     const scoreNotStarted = displayScore.total === null;
     if (scoreCompact) scoreCompact.classList.toggle('rb-score-hidden', scoreNotStarted);
     if (scorePanelFull) scorePanelFull.classList.toggle('rb-score-empty', scoreNotStarted);
@@ -13031,6 +13193,22 @@ export async function initResumeBuilderTool(container) {
     }
   }
 
+  function focusReadinessTarget(step, selector) {
+    const targetStep = Math.min(5, Math.max(1, Number.parseInt(step || '', 10) || 1));
+    if (isMobileLayout()) {
+      setMobileBuilderView(String(selector || '').includes('#rb-preview-pane') ? 'preview' : 'edit');
+    }
+    setStep(targetStep);
+    window.setTimeout(() => {
+      const target = selector ? qs(root, selector) : null;
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (typeof target.focus === 'function') {
+        window.setTimeout(() => target.focus({ preventScroll: true }), 180);
+      }
+    }, 260);
+  }
+
   function validateCurrentStep() {
     if (state.currentStep === 1 && (!state.personal.name.trim() || !state.personal.email.trim())) {
       setBanner(builderBanner, 'Add at least your full name and email before moving on.');
@@ -13705,6 +13883,13 @@ export async function initResumeBuilderTool(container) {
     if (!validateCurrentStep()) return;
     setStep(state.currentStep + 1);
   });
+  if (readinessList) {
+    readinessList.addEventListener('click', (event) => {
+      const action = event.target.closest('[data-readiness-step]');
+      if (!action || !readinessList.contains(action)) return;
+      focusReadinessTarget(action.dataset.readinessStep, action.dataset.readinessFocus);
+    });
+  }
 
   atsButton.addEventListener('click', runAtsAnalysis);
   generateButton.addEventListener('click', runResumeBuilder);
