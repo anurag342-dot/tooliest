@@ -7,7 +7,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>CSS Box Model Explained | Tooliest</title>
-  <meta name="description" content="A practical guide to the CSS box model for developers who want cleaner spacing, fewer layout surprises, and more reliable component structure.">
+  <meta name="description" content="Master the CSS Box Model: understand content, padding, border, and margin layers. Learn why box-sizing: border-box prevents layout bugs, how to debug with DevTools, and practical patterns for cards, centering, and buttons.">
   <meta name="author" content="Anurag">
   <meta name="robots" content="index, follow">
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -19,7 +19,7 @@
   <link rel="manifest" href="/manifest.json">
   <meta property="og:type" content="article">
   <meta property="og:title" content="CSS Box Model Explained | Tooliest">
-  <meta property="og:description" content="A practical guide to the CSS box model for developers who want cleaner spacing, fewer layout surprises, and more reliable component structure.">
+  <meta property="og:description" content="Master the CSS Box Model: understand content, padding, border, and margin layers. Learn why box-sizing: border-box prevents layout bugs, how to debug with DevTools, and practical patterns for cards, centering, and buttons.">
   <meta property="og:url" content="https://tooliest.com/guides/css-box-model-explained/">
   <meta property="og:site_name" content="Tooliest">
   <meta property="og:image" content="https://tooliest.com/og/site/guides.svg">
@@ -27,7 +27,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@tooliest">
   <meta name="twitter:title" content="CSS Box Model Explained | Tooliest">
-  <meta name="twitter:description" content="A practical guide to the CSS box model for developers who want cleaner spacing, fewer layout surprises, and more reliable component structure.">
+  <meta name="twitter:description" content="Master the CSS Box Model: understand content, padding, border, and margin layers. Learn why box-sizing: border-box prevents layout bugs, how to debug with DevTools, and practical patterns for cards, centering, and buttons.">
   <meta name="twitter:image" content="https://tooliest.com/og/site/guides.svg">
   <meta name="twitter:image:alt" content="CSS Box Model Explained: Margins, Padding, Shadows, and Flexbox guide preview card">
   <link rel="canonical" href="https://tooliest.com/guides/css-box-model-explained/">
@@ -40,15 +40,363 @@
   <style>:root{--bg-primary:#0a0a0f;--bg-secondary:#12121a;--bg-tertiary:#1a1a2e;--bg-card:rgba(26,26,46,.6);--bg-glass:rgba(255,255,255,.03);--bg-glass-hover:rgba(255,255,255,.06);--text-primary:#e8e8f0;--text-secondary:#a0a0b8;--text-tertiary:#6b6b80;--accent-primary:#8b5cf6;--accent-secondary:#06b6d4;--accent-success:#10b981;--gradient-primary:linear-gradient(135deg,#8b5cf6,#06b6d4);--border-color:rgba(255,255,255,.06);--border-accent:rgba(139,92,246,.3);--font-primary:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:1400px;--nav-height:72px;--radius-md:12px;--radius-lg:16px;--radius-full:9999px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);--touch-target-min:44px;--z-nav:1000}[data-theme=light]{--bg-primary:#f8f9fc;--bg-secondary:#fff;--bg-tertiary:#e8eaf0;--bg-card:rgba(255,255,255,.85);--bg-glass:rgba(0,0,0,.02);--bg-glass-hover:rgba(0,0,0,.04);--text-primary:#1a1a2e;--text-secondary:#4a4a6a;--text-tertiary:#6b6b84;--border-color:rgba(0,0,0,.08)}html{font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;overscroll-behavior-y:contain}body{margin:0;font-family:var(--font-primary);background:var(--bg-primary);color:var(--text-primary);line-height:1.6;min-height:100vh}a{color:var(--accent-primary);text-decoration:none}img{display:block;max-width:100%}img[width][height]{height:auto}.skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}.skip-link:focus{left:16px;top:16px;width:auto;height:auto;padding:10px 14px;border-radius:999px;background:var(--bg-secondary);color:var(--text-primary);z-index:2000}.navbar{position:fixed;top:0;left:0;right:0;min-height:var(--nav-height);height:var(--nav-height);display:flex;align-items:center;padding:0 max(24px,calc(24px + var(--safe-left))) 0 max(24px,calc(24px + var(--safe-right)));background:rgba(10,10,15,.88);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border-color);z-index:var(--z-nav)}[data-theme=light] .navbar{background:rgba(255,255,255,.9)}.nav-inner{max-width:var(--max-width);width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px}.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.5rem;font-weight:800;color:var(--text-primary);flex-shrink:0}.nav-logo .logo-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;background:var(--gradient-primary)}.nav-logo .logo-text span,.hero h1 .gradient-text{-webkit-background-clip:text;-webkit-text-fill-color:transparent;background:var(--gradient-primary);background-clip:text}.nav-search{flex:1;max-width:480px;position:relative}.nav-search input{width:100%;height:42px;padding:0 16px 0 44px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-glass);color:var(--text-primary);font:inherit;outline:none}.nav-search .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-tertiary)}.nav-search .search-shortcut{position:absolute;right:14px;top:50%;transform:translateY(-50%);padding:2px 8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-tertiary);font:.7rem var(--font-mono);color:var(--text-tertiary)}.nav-links{display:flex;align-items:center;gap:8px;flex-shrink:0}.nav-links a,.theme-toggle-btn,.mobile-menu-btn,.mobile-search-btn{min-height:44px}.nav-links a{padding:8px 16px;border-radius:999px;color:var(--text-secondary);font-size:.9rem;font-weight:500}.theme-toggle-btn,.mobile-menu-btn,.mobile-search-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--border-color);border-radius:12px;background:none;color:var(--text-primary);cursor:pointer}.mobile-menu-btn,.mobile-search-btn{display:none}.main-content{padding-top:var(--nav-height);padding-bottom:var(--safe-bottom);min-height:100vh}.hero,.tool-page{max-width:900px;margin:0 auto;padding:80px 24px 40px}.hero{text-align:center}.hero h1{margin:0 0 20px;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;line-height:1.1}.hero p,.tool-page-header p{max-width:600px;margin:0 auto 30px;color:var(--text-secondary);font-size:clamp(1rem,2.4vw,1.2rem)}.hero-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-top:40px}.hero-stat{text-align:center}.hero-stat .stat-value{font-size:2rem;font-weight:800;color:var(--accent-primary)}.hero-stat .stat-label,.tool-breadcrumb{font-size:.85rem;color:var(--text-tertiary)}.hero-trust-strip{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:28px}.trust-badge,.category-tab,.tool-tag{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-glass);color:var(--text-secondary);font-size:.82rem;max-width:100%;white-space:normal;overflow-wrap:anywhere}.categories-section,.tools-section{padding:20px 24px}.category-tabs{max-width:var(--max-width);margin:0 auto 24px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.category-tab{white-space:nowrap}.tool-page-header{margin-bottom:32px}.tool-page-header h1{margin:0;font-size:2rem;font-weight:800}.tool-breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:16px}.tools-grid,.guide-card-grid,.tool-proof-grid,.tool-content-sections{display:grid;gap:20px}.tools-grid{max-width:var(--max-width);margin:0 auto;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}.tool-card,.guide-card,.tool-content-section,.tool-workspace,.tool-proof-card,.home-utility-panel{border:1px solid var(--border-color);border-radius:16px;background:var(--bg-card);min-width:0}.tool-card,.guide-card,.tool-content-section,.tool-proof-card,.home-utility-panel{padding:20px}.tool-card-link{display:block;color:inherit}.tool-card-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px}.tool-card-icon{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:var(--gradient-primary);font-size:1.6rem;flex-shrink:0}.tool-card-info h3{margin:0 0 4px;font-size:1.1rem}.tool-card p{margin:0 0 14px;color:var(--text-secondary)}.tool-card-tags{display:flex;flex-wrap:wrap;gap:8px}.guide-card-grid{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));margin-top:18px}.guide-card h3{margin:6px 0 10px;font-size:1.08rem}.tool-workspace{padding:0}.tool-workspace-body{padding:20px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border:none;border-radius:12px;background:var(--gradient-primary);color:#fff;font-weight:700;font:inherit;cursor:pointer}.btn-secondary{border:1px solid var(--border-color);background:var(--bg-glass);color:var(--text-primary)}.footer-verification-link img{width:320px;height:auto;max-width:100%;aspect-ratio:320/54}.ad-space,.adsbygoogle{display:block;width:100%;min-height:90px}@media (max-width:1176px){:root{--nav-height:60px}.navbar{padding:0 max(12px,calc(12px + var(--safe-left))) 0 max(12px,calc(12px + var(--safe-right)));height:60px;min-height:60px}.nav-inner{gap:8px;min-height:60px}.nav-search,.nav-links{display:none}.mobile-menu-btn,.mobile-search-btn{display:inline-flex}.nav-logo{gap:8px;font-size:1.1rem}.nav-logo .logo-icon{width:32px;height:32px;font-size:1.1rem}.hero,.tool-page{padding:48px 16px 32px}.hero-stats{gap:20px}.hero-trust-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.trust-badge{justify-content:center;text-align:center}}@media (max-width:640px){:root{--nav-height:56px}.navbar{padding:0 max(10px,calc(10px + var(--safe-left))) 0 max(10px,calc(10px + var(--safe-right)));height:56px;min-height:56px}.nav-inner{gap:6px}.hero,.tool-page,.categories-section,.tools-section{padding-left:12px;padding-right:12px}.hero h1{font-size:clamp(2rem,9vw,2.6rem)}.hero p{font-size:.98rem}.hero-stats{gap:16px}.hero-stat .stat-value{font-size:1.5rem}.tools-grid{grid-template-columns:1fr}.tool-card,.guide-card,.tool-content-section,.tool-proof-card,.home-utility-panel{padding:16px}}</style>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin"></noscript>
-  <link rel="preload" href="/css/styles3.min.css?v=20260520-2d329c36" as="style" fetchpriority="high" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/css/styles3.min.css?v=20260520-2d329c36"></noscript>
-  <script data-cfasync="false">window.__TOOLIEST_ASSET_VERSION='20260520-2d329c36';</script>
-  <script src="/js/consent.js?v=20260520-2d329c36" defer data-cfasync="false"></script>
+  <link rel="preload" href="/css/styles3.min.css?v=20260529-3464e79d" as="style" fetchpriority="high" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/styles3.min.css?v=20260529-3464e79d"></noscript>
+  <script data-cfasync="false">window.__TOOLIEST_ASSET_VERSION='20260529-3464e79d';</script>
+  <script src="/js/consent.js?v=20260529-3464e79d" defer data-cfasync="false"></script>
   <!-- AdSense script removed for compliance: re-enable after approval -->
   <!-- <script data-cfasync="false">(function(w,d,url){var booted=false;function loadAds(){if(booted)return;booted=true;var s=d.createElement('script');s.src=url;s.async=true;s.crossOrigin='anonymous';s.fetchPriority='low';s.setAttribute('data-cfasync','false');d.head.appendChild(s);}function schedule(){if('requestIdleCallback' in w){w.requestIdleCallback(loadAds,{timeout:5500});return;}w.setTimeout(loadAds,3600);}w.addEventListener('load',function(){w.setTimeout(schedule,1400);},{once:true});})(window,document,'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3155132462698504');</script> -->
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"CSS Box Model Explained: Margins, Padding, Shadows, and Flexbox","description":"A practical guide to the CSS box model for developers who want cleaner spacing, fewer layout surprises, and more reliable component structure.","author":{"@type":"Person","name":"Anurag"},"publisher":{"@type":"Organization","name":"Tooliest","logo":{"@type":"ImageObject","url":"https://tooliest.com/icon-512.png"}},"datePublished":"2026-05-01","dateModified":"2026-05-03","mainEntityOfPage":"https://tooliest.com/guides/css-box-model-explained/"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"CSS Box Model Explained: Margins, Padding, Shadows, and Flexbox","description":"Master the CSS Box Model: understand content, padding, border, and margin layers. Learn why box-sizing: border-box prevents layout bugs, how to debug with DevTools, and practical patterns for cards, centering, and buttons.","author":{"@type":"Person","name":"Anurag"},"publisher":{"@type":"Organization","name":"Tooliest","logo":{"@type":"ImageObject","url":"https://tooliest.com/icon-512.png"}},"datePublished":"2026-05-01","dateModified":"2026-05-29","mainEntityOfPage":"https://tooliest.com/guides/css-box-model-explained/"}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tooliest.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://tooliest.com/guides/"},{"@type":"ListItem","position":3,"name":"CSS Box Model Explained: Margins, Padding, Shadows, and Flexbox","item":"https://tooliest.com/guides/css-box-model-explained/"}]}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the difference between padding and margin?","acceptedAnswer":{"@type":"Answer","text":"Padding creates space inside an element around its content. Margin creates space outside the element between it and surrounding boxes."}},{"@type":"Question","name":"Why do many projects use box-sizing: border-box?","acceptedAnswer":{"@type":"Answer","text":"Because it makes width calculations more intuitive by including padding and border inside the declared width of the element."}},{"@type":"Question","name":"Should spacing usually live on parents or children?","acceptedAnswer":{"@type":"Answer","text":"For repeated layouts, parent-controlled gap or layout spacing is often easier to maintain than letting every child set its own margins."}},{"@type":"Question","name":"Do shadows affect layout?","acceptedAnswer":{"@type":"Answer","text":"Not in the same way margin or padding do, but they do affect perceived weight, hierarchy, and how a component feels against its background."}}]}</script>
+  <style>
+  .guide-article-copy .guide-table-wrap {
+    width: 100%;
+    margin: 22px 0 28px;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: rgba(255,255,255,.025);
+    -webkit-overflow-scrolling: touch;
+  }
+  .guide-article-copy table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+    font-size: .95rem;
+  }
+  .guide-article-copy th,
+  .guide-article-copy td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+  }
+  .guide-article-copy th {
+    color: var(--text-primary);
+    background: rgba(139,92,246,.16);
+    font-weight: 750;
+  }
+  .guide-article-copy td {
+    color: var(--text-secondary);
+    background: rgba(255,255,255,.015);
+  }
+  .guide-article-copy tr:nth-child(even) td {
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-code-window {
+    margin: 22px 0 28px;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.22);
+    border-radius: 14px;
+    background: #080b12;
+    box-shadow: 0 18px 45px rgba(0,0,0,.28);
+  }
+  .guide-code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(148,163,184,.18);
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025));
+  }
+  .guide-code-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .guide-code-dots {
+    display: inline-flex;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+  .guide-code-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: block;
+  }
+  .guide-code-dots span:nth-child(1) { background: #ff5f56; }
+  .guide-code-dots span:nth-child(2) { background: #ffbd2e; }
+  .guide-code-dots span:nth-child(3) { background: #27c93f; }
+  .guide-code-language {
+    color: #94a3b8;
+    font: 700 .72rem var(--font-mono);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .guide-code-copy {
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid rgba(148,163,184,.24);
+    border-radius: 10px;
+    background: rgba(15,23,42,.82);
+    color: #e2e8f0;
+    font: 700 .78rem var(--font-primary);
+    cursor: pointer;
+  }
+  .guide-code-copy:hover,
+  .guide-code-copy:focus-visible {
+    border-color: rgba(139,92,246,.72);
+    background: rgba(139,92,246,.22);
+    outline: none;
+  }
+  .guide-code-window pre {
+    margin: 0;
+    padding: 18px;
+    overflow-x: auto;
+    background: transparent;
+    color: #e5e7eb;
+    font: .9rem/1.7 var(--font-mono);
+    white-space: pre;
+    tab-size: 2;
+  }
+  .guide-code-window code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+  }
+  [data-theme=light] .guide-article-copy .guide-table-wrap {
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 12px 30px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy th {
+    background: rgba(139,92,246,.12);
+  }
+  [data-theme=light] .guide-article-copy td {
+    background: rgba(255,255,255,.72);
+  }
+  [data-theme=light] .guide-article-copy tr:nth-child(even) td {
+    background: rgba(15,23,42,.025);
+  }
+  [data-theme=light] .guide-code-window {
+    background: #f8fafc;
+    border-color: rgba(15,23,42,.12);
+    box-shadow: 0 16px 34px rgba(15,23,42,.08);
+  }
+  [data-theme=light] .guide-code-header {
+    border-bottom-color: rgba(15,23,42,.1);
+    background: linear-gradient(180deg, rgba(15,23,42,.06), rgba(15,23,42,.018));
+  }
+  [data-theme=light] .guide-code-language {
+    color: #475569;
+  }
+  [data-theme=light] .guide-code-copy {
+    background: rgba(255,255,255,.9);
+    color: #1e293b;
+    border-color: rgba(15,23,42,.16);
+  }
+  [data-theme=light] .guide-code-window pre {
+    color: #0f172a;
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-table-wrap {
+      margin-left: -4px;
+      margin-right: -4px;
+      border-radius: 12px;
+    }
+    .guide-article-copy th,
+    .guide-article-copy td {
+      padding: 12px 14px;
+    }
+    .guide-code-window {
+      border-radius: 12px;
+    }
+    .guide-code-header {
+      padding: 9px 10px;
+    }
+    .guide-code-window pre {
+      padding: 14px;
+      font-size: .82rem;
+      line-height: 1.65;
+    }
+    .guide-code-copy {
+      min-height: 32px;
+      padding: 6px 10px;
+    }
+  }
+</style><style>
+  .guide-article-copy .guide-box-model-demo {
+    width: min(100%, 430px);
+    margin: 28px auto 34px;
+  }
+  .guide-article-copy .guide-box-model-demo .box-margin,
+  .guide-article-copy .guide-box-model-demo .box-border,
+  .guide-article-copy .guide-box-model-demo .box-padding,
+  .guide-article-copy .guide-box-model-demo .box-content {
+    position: relative;
+    transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+  }
+  .guide-article-copy .guide-box-model-demo .box-margin {
+    padding: clamp(22px, 5vw, 36px);
+    border: 2px dashed rgba(249,115,22,.92);
+    border-radius: 22px;
+    background: rgba(249,115,22,.14);
+  }
+  .guide-article-copy .guide-box-model-demo .box-border {
+    padding: clamp(20px, 4.5vw, 30px);
+    border: 4px solid #374151;
+    border-radius: 18px;
+    background: rgba(55,65,81,.22);
+  }
+  .guide-article-copy .guide-box-model-demo .box-padding {
+    padding: clamp(20px, 4.5vw, 30px);
+    border: 2px solid rgba(34,197,94,.9);
+    border-radius: 14px;
+    background: rgba(34,197,94,.15);
+  }
+  .guide-article-copy .guide-box-model-demo .box-content {
+    min-height: clamp(112px, 28vw, 160px);
+    display: grid;
+    place-items: center;
+    border: 2px solid rgba(59,130,246,.95);
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(59,130,246,.32), rgba(59,130,246,.18));
+    text-align: center;
+  }
+  .guide-article-copy .guide-box-model-demo .box-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 10px;
+    padding: 5px 9px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 999px;
+    background: rgba(10,10,15,.52);
+    color: var(--text-primary);
+    font: 800 .78rem/1.25 var(--font-mono);
+    letter-spacing: 0;
+  }
+  .guide-article-copy .guide-box-model-demo .box-content .box-label {
+    margin: 0;
+    border-radius: 10px;
+    background: rgba(15,23,42,.62);
+  }
+  .guide-article-copy .guide-box-model-demo .box-margin:hover {
+    box-shadow: 0 0 0 4px rgba(249,115,22,.16), 0 18px 34px rgba(249,115,22,.1);
+  }
+  .guide-article-copy .guide-box-model-demo .box-border:hover {
+    box-shadow: 0 0 0 4px rgba(55,65,81,.22), 0 18px 34px rgba(0,0,0,.16);
+  }
+  .guide-article-copy .guide-box-model-demo .box-padding:hover {
+    box-shadow: 0 0 0 4px rgba(34,197,94,.18), 0 18px 34px rgba(34,197,94,.1);
+  }
+  .guide-article-copy .guide-box-model-demo .box-content:hover {
+    box-shadow: 0 0 0 4px rgba(59,130,246,.2), 0 18px 34px rgba(59,130,246,.12);
+  }
+  .guide-code-window .css-selector { color: #93c5fd; }
+  .guide-code-window .css-prop { color: #c4b5fd; }
+  .guide-code-window .css-value { color: #86efac; }
+  .guide-code-window .css-comment {
+    color: #94a3b8;
+    font-style: italic;
+  }
+  .guide-article-copy .guide-takeaway {
+    margin: 22px 0 26px;
+    padding: 18px 20px;
+    border-left: 4px solid var(--accent-primary);
+    border-radius: 0 14px 14px 0;
+    background: linear-gradient(90deg, rgba(139,92,246,.16), rgba(139,92,246,.035));
+  }
+  .guide-article-copy .guide-takeaway p:last-child {
+    margin-bottom: 0;
+  }
+  .guide-article-copy .guide-display-demo {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin: 24px 0 28px;
+  }
+  .guide-article-copy .guide-display-demo .display-demo-panel {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy .guide-display-demo h3 {
+    margin-top: 0;
+  }
+  .guide-article-copy .display-demo-block {
+    width: 100%;
+    margin: 10px 0 14px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: rgba(59,130,246,.24);
+    border: 1px solid rgba(59,130,246,.58);
+    color: var(--text-primary);
+    font-weight: 800;
+  }
+  .guide-article-copy .display-demo-inline {
+    display: inline;
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: rgba(34,197,94,.2);
+    border: 1px solid rgba(34,197,94,.56);
+    color: var(--text-primary);
+    font-weight: 800;
+  }
+  [data-theme=light] .guide-article-copy .guide-box-model-demo .box-margin {
+    background: rgba(249,115,22,.1);
+  }
+  [data-theme=light] .guide-article-copy .guide-box-model-demo .box-border {
+    background: rgba(55,65,81,.12);
+  }
+  [data-theme=light] .guide-article-copy .guide-box-model-demo .box-padding {
+    background: rgba(34,197,94,.12);
+  }
+  [data-theme=light] .guide-article-copy .guide-box-model-demo .box-content {
+    background: linear-gradient(135deg, rgba(59,130,246,.22), rgba(59,130,246,.1));
+  }
+  [data-theme=light] .guide-article-copy .guide-box-model-demo .box-label {
+    border-color: rgba(15,23,42,.12);
+    background: rgba(255,255,255,.72);
+  }
+  [data-theme=light] .guide-code-window .css-selector { color: #1d4ed8; }
+  [data-theme=light] .guide-code-window .css-prop { color: #7c3aed; }
+  [data-theme=light] .guide-code-window .css-value { color: #047857; }
+  [data-theme=light] .guide-code-window .css-comment { color: #64748b; }
+  [data-theme=light] .guide-article-copy .guide-takeaway {
+    background: linear-gradient(90deg, rgba(139,92,246,.12), rgba(139,92,246,.025));
+  }
+  [data-theme=light] .guide-article-copy .guide-display-demo .display-demo-panel {
+    background: rgba(255,255,255,.82);
+    box-shadow: 0 16px 34px rgba(15,23,42,.06);
+  }
+  @media (max-width: 760px) {
+    .guide-article-copy .guide-display-demo {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-box-model-demo {
+      margin: 24px auto 30px;
+    }
+    .guide-article-copy .guide-box-model-demo .box-label {
+      font-size: .7rem;
+      padding: 4px 7px;
+    }
+    .guide-article-copy .guide-takeaway,
+    .guide-article-copy .guide-display-demo .display-demo-panel {
+      padding: 16px;
+      border-radius: 0 12px 12px 0;
+    }
+    .guide-article-copy .guide-display-demo .display-demo-panel {
+      border-radius: 12px;
+    }
+  }
+</style>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -94,36 +442,236 @@
           <span>CSS Box Model Explained: Margins, Padding, Shadows, and Flexbox</span>
         </div>
         <h1 style="margin:0">CSS Box Model Explained: Margins, Padding, Shadows, and Flexbox</h1>
-        <p>A practical guide to the CSS box model for developers who want cleaner spacing, fewer layout surprises, and more reliable component structure.</p>
-        <p class="tool-last-updated">By Anurag &middot; Published May 1, 2026 &middot; Updated May 3, 2026 &middot; ~8 min read</p>
+        <p>Master the CSS Box Model: understand content, padding, border, and margin layers. Learn why box-sizing: border-box prevents layout bugs, how to debug with DevTools, and practical patterns for cards, centering, and buttons.</p>
+        <p class="tool-last-updated">By Anurag &middot; Published May 1, 2026 &middot; Updated May 29, 2026 &middot; ~12 min read</p>
       </div>
       <div class="tool-content-sections">
         <section class="tool-content-section guide-article-copy">
           
-      <p>Most who start with CSS meet the box model early, yet grasp it late. Simply put, each piece on a page forms a rectangular shape. Trouble appears once spacing, edges, inner space, size math, and placement methods mix together. The core thought stays straightforward - but real-world use? Not so much.</p>
-      <p>Most who start out just follow steps. Yet seeing how boxes stack changes things. Layout issues pop up less often when padding, borders, and margins make sense together. Designs feel tighter once spacing follows a pattern. Fixing misaligned elements takes fewer guesses if the structure is clear. That clarity shows fastest in daily work.</p>
+      <h2>Every Element Is a Box &mdash; No Exceptions</h2>
+      <p>Every HTML element is a rectangular box. The &lt;p&gt; tag wrapping a sentence. The &lt;img&gt; rendering a photo. The &lt;a&gt; linking to another page. The &lt;span&gt; wrapping three words inside a paragraph. All boxes. There are no exceptions to this rule, which is what makes it so useful &mdash; once you understand the box model, the same mental framework applies to everything you touch in CSS.</p>
+      <p>Open Chrome DevTools right now on any page. Elements panel, hover over any element. You will see a colored overlay appear: blue for the content area, green for padding, a dark strip for the border, and orange for the margin. That visualization is not a DevTools approximation &mdash; it is the actual computed geometry of that element on the page. Every layout problem you will ever debug is somewhere inside those four layers.</p>
+      <p>Understanding the box model eliminates the majority of CSS layout confusion because layout confusion almost always comes from not knowing which layer is producing unexpected space or unexpected size. The element is too wide? One of the four layers is larger than you think. There is mysterious space between two elements? One of the four layers is pushing them apart. The background color is not filling the area you expected? You are thinking of margin when you should be thinking of padding. The box is the framework that makes all of these questions answerable.</p>
+      <div class="guide-box-model-demo">
+        <div class="box-margin">
+          <span class="box-label">margin: 20px</span>
+          <div class="box-border">
+            <span class="box-label">border: 2px</span>
+            <div class="box-padding">
+              <span class="box-label">padding: 16px</span>
+              <div class="box-content">
+                <span class="box-label">content<br>300 &times; 200</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <h2>Content, padding, border, and margin</h2>
-      <p><strong>Inside space shapes what’s held, surrounds it softly. Padding adds room within edges, keeps contents clear. A line wraps around that, marks where structure begins. Outside all of it, breathing area opens up - space to stand apart.</strong></p>
-      <p>Inside the content box, words or pictures take up space. With padding around them, things feel less cramped. A border wraps the whole thing like a picture frame. Outside that, margin keeps it apart from nearby items. When these roles stick in your mind, fixing page layouts feels more doable.</p>
-      <p>Inside space shapes what’s within, that’s padding. How pieces sit apart from neighbors? That’s margin. Pretending they’re the same leads to shaky designs. Confusing their roles breaks structure easily.</p>
+      <h2>The Four Layers: Content &rarr; Padding &rarr; Border &rarr; Margin</h2>
+      <h3>Content</h3>
+      <p>The content area is what you set when you write width and height. It contains the actual substance of the element &mdash; text, images, child elements &mdash; and nothing else.</p>
+      <pre><code class="language-css"><span class="css-selector">.box</span> {
+  <span class="css-prop">width</span>: <span class="css-value">300px</span>;
+  <span class="css-prop">height</span>: <span class="css-value">200px</span>;
+}</code></pre>
+      <p>That gives you a 300&times;200 pixel content area. Without explicit dimensions, the content area sizes itself to fit whatever is inside it, which is why a &lt;div&gt; with no width declaration stretches to fill its parent and a &lt;div&gt; with no height declaration shrinks to wrap its content.</p>
+      <h3>Padding</h3>
+      <p>Padding is the space between your content and the border &mdash; it lives inside the element. This distinction matters for two concrete reasons: the element's background color extends through the padding area, and the padding area is part of the clickable region. When you add padding: 16px to a button, you are making the clickable target larger, which is exactly what you want.</p>
+      <pre><code class="language-css"><span class="css-selector">.card</span> {
+  <span class="css-prop">padding</span>: <span class="css-value">24px</span>;                    <span class="css-comment">/* all four sides */</span>
+  <span class="css-prop">padding</span>: <span class="css-value">16px 24px</span>;               <span class="css-comment">/* top+bottom 16px, left+right 24px */</span>
+  <span class="css-prop">padding</span>: <span class="css-value">12px 24px 16px 24px</span>;     <span class="css-comment">/* top right bottom left &mdash; clockwise */</span>
+}</code></pre>
+      <p>The shorthand goes clockwise from the top. If you can only remember one spatial convention in CSS, make it this one.</p>
+      <h3>Border</h3>
+      <p>The border sits outside the padding and renders as a visible edge around the element. It requires three values to be visible: width, style, and color.</p>
+      <pre><code class="language-css"><span class="css-selector">.card</span> {
+  <span class="css-prop">border</span>: <span class="css-value">1px solid #e2e8f0</span>;        <span class="css-comment">/* width style color */</span>
+  <span class="css-prop">border-radius</span>: <span class="css-value">12px</span>;              <span class="css-comment">/* rounds all corners */</span>
+  <span class="css-prop">border-radius</span>: <span class="css-value">50%</span>;               <span class="css-comment">/* makes a circle (on a square element) */</span>
+  <span class="css-prop">border-top</span>: <span class="css-value">3px solid #3b82f6</span>;    <span class="css-comment">/* only top border */</span>
+}</code></pre>
+      <p>border-radius does not change the box model geometry &mdash; it clips the visual corners without changing how the element affects layout. A 200&times;200 element with border-radius: 50% still occupies a 200&times;200 square in the flow of the document; it just renders as a circle.</p>
+      <h3>Margin</h3>
+      <p>Margin is the space outside the border. It pushes other elements away and is the only box model layer that has zero effect on the element's own appearance &mdash; the background color does not extend into it, and it is not part of the clickable area. It is purely spatial.</p>
+      <pre><code class="language-css"><span class="css-selector">.card</span> {
+  <span class="css-prop">margin</span>: <span class="css-value">0 auto</span>;          <span class="css-comment">/* centers a block element horizontally */</span>
+  <span class="css-prop">margin-bottom</span>: <span class="css-value">24px</span>;     <span class="css-comment">/* pushes the next element down */</span>
+  <span class="css-prop">margin-left</span>: <span class="css-value">-16px</span>;      <span class="css-comment">/* negative margin &mdash; pulls element left, overlaps neighbors */</span>
+}</code></pre>
+      <p>margin: 0 auto is the canonical way to center a block element horizontally. It works by distributing all available horizontal space equally to the left and right margins. For this to work, the element needs an explicit width &mdash; without it, the element stretches to fill the parent and there is no available space left to distribute.</p>
+      <p>Margin collapsing is the behavior that trips up most developers and is worth understanding precisely. When two block elements are stacked vertically and both have vertical margins, those margins do not add together &mdash; the larger one wins and the smaller one disappears. An element with margin-bottom: 20px above an element with margin-top: 30px produces a 30px gap, not 50px. Horizontal margins never collapse. Only vertical margins between sibling block elements collapse. Once you know the rule, unexpected vertical gaps stop being mysterious.</p>
 
-      <h2>Why box-sizing matters so much</h2>
-      <p>Surprising folks at first, the usual <code>content-box</code> setup treats width without counting padding or borders. So when extra space gets added through padding, things stretch out beyond what was planned. Now a lot of groups go straight for <code>box-sizing: border-box</code> right away. This way, whatever width you set actually includes those extras, making sizing feel more natural.</p>
-      <p>Most of the time, <code>border-box</code> helps when building parts people actually use. It doesn’t fix everything about CSS, though.</p>
+      <h2>The Total Size Problem (And How box-sizing Fixes It)</h2>
+      <p>This is where most developers get burned exactly once and then never forget it.</p>
+      <p>By default, every element uses box-sizing: content-box. In this mode, the width you set applies only to the content area. Padding and border are then added on top of that width, making the element larger than what you specified.</p>
+      <pre><code class="language-css"><span class="css-selector">.box</span> {
+  <span class="css-prop">width</span>: <span class="css-value">300px</span>;
+  <span class="css-prop">padding</span>: <span class="css-value">20px</span>;           <span class="css-comment">/* adds 20px left AND 20px right */</span>
+  <span class="css-prop">border</span>: <span class="css-value">2px solid #333</span>;  <span class="css-comment">/* adds 2px left AND 2px right */</span>
+}</code></pre>
+      <p>Total rendered width: 300 + 20 + 20 + 2 + 2 = 344px</p>
+      <p>You wrote width: 300px and got a 344px element. If you put two of these side by side in a 600px container expecting them to fit, they overflow by 88px and your layout breaks. This is not a bug &mdash; it is the default specified behavior. But it is almost never what you want.</p>
+      <p>box-sizing: border-box changes the model so that the width you set is the total rendered width. Padding and border are absorbed inward, shrinking the content area rather than expanding the element.</p>
+      <pre><code class="language-css"><span class="css-selector">.box</span> {
+  <span class="css-prop">box-sizing</span>: <span class="css-value">border-box</span>;
+  <span class="css-prop">width</span>: <span class="css-value">300px</span>;
+  <span class="css-prop">padding</span>: <span class="css-value">20px</span>;
+  <span class="css-prop">border</span>: <span class="css-value">2px solid #333</span>;
+}
+<span class="css-comment">/* Content area = 300 - 20 - 20 - 2 - 2 = 256px */</span>
+<span class="css-comment">/* Total rendered width = exactly 300px */</span></code></pre>
+      <div class="guide-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>content-box (default)</th>
+              <th>border-box</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>width set to</td>
+              <td>300px</td>
+              <td>300px</td>
+            </tr>
+            <tr>
+              <td>Padding</td>
+              <td>20px each side</td>
+              <td>20px each side</td>
+            </tr>
+            <tr>
+              <td>Border</td>
+              <td>2px each side</td>
+              <td>2px each side</td>
+            </tr>
+            <tr>
+              <td>Actual rendered width</td>
+              <td>344px</td>
+              <td>300px</td>
+            </tr>
+            <tr>
+              <td>Content area width</td>
+              <td>300px</td>
+              <td>256px</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The fix is one CSS rule applied universally at the top of every stylesheet:</p>
+      <pre><code class="language-css"><span class="css-selector">*</span>, <span class="css-selector">*::before</span>, <span class="css-selector">*::after</span> {
+  <span class="css-prop">box-sizing</span>: <span class="css-value">border-box</span>;
+}</code></pre>
+      <p>The * selector applies it to every element. The ::before and ::after pseudo-elements are included because they participate in layout the same way real elements do and would otherwise revert to content-box. Every major CSS framework &mdash; Tailwind, Bootstrap, Bulma, Normalize.css &mdash; ships this rule. If you are starting a stylesheet from scratch and you do not write this line first, you will eventually debug a layout problem that traces back to not having written it.</p>
 
-      <h2>Spacing systems fail when they have no hierarchy</h2>
-      <p>Most tidy interfaces avoid arbitrary gaps between elements. Instead, they rely on a consistent step ladder of distances, paired with clear choices on their roles. Inside a box, breathing space tends to be padding. When items sit apart from one another, that split often falls to margin or gap. Parents managing space lead to neater grids and flexible boxes, rather than each piece deciding freely.</p>
-      <p>Here’s when apps such as <a href="/flexbox-playground/">Flexbox Playground</a> or the <a href="/box-shadow-generator/">Box Shadow Generator</a> shift beyond just flashy demos. As you begin grasping how elements connect, they turn abstract boxes into something you can actually see.</p>
+      <h2>Debugging Layout With DevTools</h2>
+      <p>Chrome DevTools has a box model diagram in the Computed tab that shows exact pixel values for every layer of any element. Here is the exact workflow:</p>
+      <ol>
+        <li>Right-click the element on the page &rarr; Inspect</li>
+        <li>In the Elements panel, click the Computed tab (next to Styles)</li>
+        <li>Scroll to the top &mdash; the box model diagram appears first</li>
+        <li>Hover over each colored region: the corresponding area highlights on the page</li>
+        <li>Click any value in the diagram and type a new number to test changes live without touching your code</li>
+      </ol>
+      <p>That last step is underused. You can prototype spacing changes directly in the diagram before writing a single line of CSS.</p>
+      <p>Four debugging scenarios you will encounter repeatedly:</p>
+      <ul>
+        <li><strong>Unexpected space between elements.</strong> Check for margin collapsing. Inspect both elements and look at their vertical margins in the Computed tab. If the gap matches the larger margin rather than the sum of both margins, that is collapse behavior. Fix it by adding overflow: hidden or display: flow-root to the parent, or by using padding on the parent instead of margin on the children.</li>
+        <li><strong>Element is wider than the value you set.</strong> Check box-sizing in the Computed tab. If it shows content-box, padding and border are adding to your width. Apply border-box and the problem resolves immediately.</li>
+        <li><strong>margin: auto is not centering the element.</strong> Two requirements must both be true: the element needs an explicit width declaration, and it needs to be display: block. Inline elements ignore width entirely. A &lt;span&gt; with margin: auto does nothing because &lt;span&gt; is inline by default.</li>
+        <li><strong>Space inside the element you did not add.</strong> Browsers apply default styles to many elements &mdash; &lt;p&gt; has margin-top and margin-bottom by default, &lt;ul&gt; has padding-left, &lt;body&gt; has margin: 8px in most browsers. In the Computed tab, styles with a browser icon next to them are browser defaults, not your code. Reset them explicitly where they cause problems.</li>
+      </ul>
 
-      <h2>Borders and shadows matter too</h2>
-      <p><strong>Out near the edges, shadows show up alongside borders. These details tag along whenever boxes come into play. Not always noticed first, yet they belong right there in the talk. Lines define space - shadows deepen it. Both shape how we see what’s contained.</strong></p>
-      <p>Shadows aren’t just visual extras - they shape how we sense depth. Sometimes a faint edge paired with gentle shading helps a block stand out when the backdrop is busy. Yet cluttering space with layered glows tends to confuse layers instead of clarifying them.</p>
-      <p>Heavy edges or soft glows shift how solid something feels on screen. Even blank space around an item changes its presence. Design details work together, never alone. What you see follows rules that live in both code and sight.</p>
+      <h2>Block vs Inline: How Box Model Behaves Differently</h2>
+      <p>The box model does not behave identically across all elements &mdash; display mode determines which properties apply.</p>
+      <div class="guide-display-demo">
+        <div class="display-demo-panel">
+          <h3>Block</h3>
+          <div class="display-demo-block">display: block</div>
+          <p>Takes the full available width and starts on a new line.</p>
+        </div>
+        <div class="display-demo-panel">
+          <h3>Inline</h3>
+          <p>Text before <span class="display-demo-inline">display: inline</span> text after.</p>
+          <p>Fits tightly around content and stays in the text flow.</p>
+        </div>
+      </div>
+      <p>Block elements &mdash; div, p, h1 through h6, section, article, ul, li &mdash; take the full available width by default, start on a new line, and respond to every box model property exactly as described above. width, height, margin, and padding all work in every direction.</p>
+      <p>Inline elements &mdash; span, a, strong, em, code &mdash; size to fit their content, sit on the same line as surrounding text, and partially ignore the box model. Specifically:</p>
+      <pre><code class="language-css"><span class="css-selector">span</span> {
+  <span class="css-prop">width</span>: <span class="css-value">200px</span>;        <span class="css-comment">/* completely ignored */</span>
+  <span class="css-prop">height</span>: <span class="css-value">50px</span>;        <span class="css-comment">/* completely ignored */</span>
+  <span class="css-prop">margin-top</span>: <span class="css-value">20px</span>;    <span class="css-comment">/* ignored &mdash; no vertical space added */</span>
+  <span class="css-prop">margin-bottom</span>: <span class="css-value">20px</span>; <span class="css-comment">/* ignored */</span>
+  <span class="css-prop">padding-top</span>: <span class="css-value">20px</span>;   <span class="css-comment">/* renders visually but does NOT push other lines away */</span>
+  <span class="css-prop">padding-left</span>: <span class="css-value">20px</span>;  <span class="css-comment">/* works correctly */</span>
+  <span class="css-prop">margin-left</span>: <span class="css-value">20px</span>;   <span class="css-comment">/* works correctly */</span>
+}</code></pre>
+      <p>Vertical padding on inline elements is one of the more confusing behaviors: it renders &mdash; you can see the background color extend above and below the text &mdash; but it does not participate in layout. The lines above and below are not pushed away. This is why adding padding-top to an &lt;a&gt; tag inside a sentence does not create vertical space in the text flow.</p>
+      <p>display: inline-block resolves this. It keeps the element inline &mdash; it sits in text flow alongside other content &mdash; but gives it the full block box model behavior. Width, height, and all four directions of margin and padding work as expected.</p>
+      <pre><code class="language-css"><span class="css-selector">.nav-link</span> {
+  <span class="css-prop">display</span>: <span class="css-value">inline-block</span>;
+  <span class="css-prop">padding</span>: <span class="css-value">8px 16px</span>;
+  <span class="css-prop">margin-right</span>: <span class="css-value">8px</span>;    <span class="css-comment">/* horizontal margin works */</span>
+  <span class="css-prop">border-radius</span>: <span class="css-value">4px</span>;
+}</code></pre>
+      <p>This pattern is how navigation links, inline tags, and icon-plus-text combinations are built. The element flows with text but respects dimensional constraints.</p>
 
-      <h2>The simplest debugging habit</h2>
-      <p>Start by checking the box if the layout seems off. Width comes into play, then padding shows up alongside it. Margins enter next, while borders define edges quietly. Parent layout rules matter just as much, often more. Most CSS issues aren’t hidden far down. They’re built from guesses about boxes piling up slowly.</p>
-      <p>Start grasping the box model, then flexbox slips into place. After that comes grid, almost without effort. Cards line up neatly. Navigation bars stop fighting you. Spacing adjusts without constant tweaking. Master this idea early - it pays off more than most in front-end work.</p>
+      <h2>Practical Patterns You'll Use Daily</h2>
+      <p>Centering a container horizontally:</p>
+      <pre><code class="language-css"><span class="css-selector">.container</span> {
+  <span class="css-prop">width</span>: <span class="css-value">800px</span>;
+  <span class="css-prop">max-width</span>: <span class="css-value">100%</span>;     <span class="css-comment">/* prevents overflow on small screens */</span>
+  <span class="css-prop">margin</span>: <span class="css-value">0 auto</span>;
+}</code></pre>
+      <p>Card component with reliable spacing:</p>
+      <pre><code class="language-css"><span class="css-selector">.card</span> {
+  <span class="css-prop">box-sizing</span>: <span class="css-value">border-box</span>;
+  <span class="css-prop">width</span>: <span class="css-value">100%</span>;
+  <span class="css-prop">max-width</span>: <span class="css-value">420px</span>;
+  <span class="css-prop">padding</span>: <span class="css-value">24px</span>;
+  <span class="css-prop">border</span>: <span class="css-value">1px solid #e2e8f0</span>;
+  <span class="css-prop">border-radius</span>: <span class="css-value">12px</span>;
+  <span class="css-prop">margin-bottom</span>: <span class="css-value">20px</span>;
+}</code></pre>
+      <p>Button with consistent hit area:</p>
+      <pre><code class="language-css"><span class="css-selector">.btn</span> {
+  <span class="css-prop">display</span>: <span class="css-value">inline-block</span>;       <span class="css-comment">/* required for padding to work correctly */</span>
+  <span class="css-prop">padding</span>: <span class="css-value">12px 24px</span>;          <span class="css-comment">/* more horizontal than vertical &mdash; standard proportion */</span>
+  <span class="css-prop">border</span>: <span class="css-value">2px solid transparent</span>;
+  <span class="css-prop">border-radius</span>: <span class="css-value">8px</span>;
+  <span class="css-prop">cursor</span>: <span class="css-value">pointer</span>;
+}</code></pre>
+      <p>Reset heading and paragraph default margins to a consistent baseline:</p>
+      <pre><code class="language-css"><span class="css-selector">h1</span>, <span class="css-selector">h2</span>, <span class="css-selector">h3</span>, <span class="css-selector">h4</span>, <span class="css-selector">h5</span>, <span class="css-selector">h6</span>, <span class="css-selector">p</span> {
+  <span class="css-prop">margin-top</span>: <span class="css-value">0</span>;          <span class="css-comment">/* removes browser default top margins */</span>
+  <span class="css-prop">margin-bottom</span>: <span class="css-value">1rem</span>;    <span class="css-comment">/* uniform bottom spacing only */</span>
+}</code></pre>
+      <p>Removing margin-top from headings and paragraphs solves margin collapsing issues at the top of containers &mdash; the collapsed margin no longer bleeds outside the parent. Using only bottom margins for vertical rhythm is a pattern used by Bootstrap, Tailwind's prose plugin, and most production design systems.</p>
+
+      <h2>The One Rule That Prevents 90% of Box Model Bugs</h2>
+      <div class="guide-takeaway">
+        <p>Every stylesheet you write should start with this block before any other CSS:</p>
+      </div>
+      <pre><code class="language-css"><span class="css-selector">*</span>, <span class="css-selector">*::before</span>, <span class="css-selector">*::after</span> {
+  <span class="css-prop">box-sizing</span>: <span class="css-value">border-box</span>;
+}
+
+<span class="css-selector">html</span> {
+  <span class="css-prop">font-size</span>: <span class="css-value">16px</span>;
+}
+
+<span class="css-selector">body</span> {
+  <span class="css-prop">margin</span>: <span class="css-value">0</span>;
+  <span class="css-prop">padding</span>: <span class="css-value">0</span>;
+}</code></pre>
+      <p>The box-sizing rule prevents padding and border from expanding element dimensions beyond what you explicitly set. The font-size on html establishes a reliable base for rem units throughout the stylesheet &mdash; 1rem is always 16px, 1.5rem is always 24px, and scaling text globally means changing one number. The margin: 0; padding: 0 on body removes the browser's default 8px margin that otherwise adds unexplained whitespace around every page you build.</p>
+      <p>These three rules together eliminate the three most frequent sources of layout confusion that have nothing to do with your code &mdash; inherited browser defaults, unintuitive sizing math, and rem units with an unknown base. Tailwind's preflight, Bootstrap's reboot, and Normalize.css all include equivalent rules. If you are not using a framework, write these yourself at the top of your root stylesheet.</p>
+      <div class="guide-takeaway">
+        <p>After that, every layout decision you make is intentional &mdash; the browser is not adding anything you did not ask for, and every dimension you set is the dimension you get.</p>
+      </div>
+      <p>Experiment with CSS box model properties live &mdash; padding, border, margin, and box-sizing changes &mdash; using Tooliest's browser-based developer tools to test layout behavior without touching your actual codebase.</p>
     
         </section>
         <section class="tool-content-section">
@@ -231,6 +779,7 @@
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
   <script data-cfasync="false">(function(){if(window.__TOOLIEST_CONSENT_FALLBACK_READY)return;window.__TOOLIEST_CONSENT_FALLBACK_READY=true;var key='tooliest_cookie_consent';var version='2';function read(){try{var raw=localStorage.getItem(key);return raw?JSON.parse(raw):null;}catch(e){return null;}}function save(accepted){try{localStorage.setItem(key,JSON.stringify({accepted:accepted,version:version,timestamp:new Date().toISOString()}));}catch(e){}}function clear(){try{localStorage.removeItem(key);}catch(e){}}function setHeight(px){document.documentElement.style.setProperty('--cookie-banner-height',Math.max(0,Math.round(px||0))+'px');}function banner(){return document.getElementById('cookie-banner');}function show(){var el=banner();if(!el)return;document.body.classList.add('cookie-banner-open');el.classList.remove('banner-hidden','banner-visible');el.setAttribute('aria-hidden','false');window.requestAnimationFrame(function(){el.classList.add('banner-visible');setHeight(el.getBoundingClientRect().height);});}function hide(){var el=banner();document.body.classList.remove('cookie-banner-open');if(el){el.classList.remove('banner-visible');el.classList.add('banner-hidden');el.setAttribute('aria-hidden','true');}setHeight(0);}function accept(){save(true);hide();}function reject(){save(false);hide();}function reset(event){if(event&&event.preventDefault)event.preventDefault();clear();show();}function bind(){var acceptBtn=document.getElementById('cookie-accept-btn');var rejectBtn=document.getElementById('cookie-reject-btn');if(acceptBtn)acceptBtn.addEventListener('click',accept);if(rejectBtn)rejectBtn.addEventListener('click',reject);document.addEventListener('click',function(event){var trigger=event.target&&event.target.closest&&event.target.closest('[data-consent-reset]');if(!trigger)return;var api=window.TooliestConsent;if(api&&api!==fallback&&typeof api.reset==='function'){event.preventDefault();api.reset(event);return;}reset(event);});var saved=read();if(!saved||saved.version!==version)show();}var fallback={reset:reset,open:show,refreshLayout:function(){var el=banner();setHeight(el&&!el.classList.contains('banner-hidden')?el.getBoundingClientRect().height:0);},getStatus:read};window.TooliestConsent=window.TooliestConsent||fallback;if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',bind,{once:true});}else{bind();}})();</script>
-  <script src="/bundle.min.js?v=20260520-2d329c36" defer data-cfasync="false"></script>
+  <script data-cfasync="false">(function(){function copyText(text){if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(text);}return new Promise(function(resolve,reject){var textarea=document.createElement('textarea');textarea.value=text;textarea.setAttribute('readonly','');textarea.style.position='fixed';textarea.style.top='-9999px';document.body.appendChild(textarea);textarea.select();try{document.execCommand('copy')?resolve():reject(new Error('copy failed'));}catch(error){reject(error);}finally{textarea.remove();}});}function enhanceGuideArticle(){var root=document.querySelector('.guide-article-copy');if(!root)return;root.querySelectorAll('table').forEach(function(table){if(table.parentElement&&table.parentElement.classList.contains('guide-table-wrap'))return;var wrap=document.createElement('div');wrap.className='guide-table-wrap';table.parentNode.insertBefore(wrap,table);wrap.appendChild(table);});root.querySelectorAll('pre').forEach(function(pre,index){if(pre.closest('.guide-code-window'))return;var code=pre.querySelector('code');var language='code';if(code){var match=String(code.className||'').match(/language-([a-z0-9-]+)/i);if(match)language=match[1];}var windowEl=document.createElement('div');windowEl.className='guide-code-window';var header=document.createElement('div');header.className='guide-code-header';var meta=document.createElement('div');meta.className='guide-code-meta';var dots=document.createElement('span');dots.className='guide-code-dots';dots.setAttribute('aria-hidden','true');dots.innerHTML='<span></span><span></span><span></span>';var label=document.createElement('span');label.className='guide-code-language';label.textContent=language;var button=document.createElement('button');button.type='button';button.className='guide-code-copy';button.textContent='Copy';button.setAttribute('aria-label','Copy code snippet '+(index+1));button.addEventListener('click',function(){var text=(code||pre).innerText;copyText(text).then(function(){button.textContent='Copied';window.setTimeout(function(){button.textContent='Copy';},1400);}).catch(function(){button.textContent='Select';window.setTimeout(function(){button.textContent='Copy';},1400);});});meta.appendChild(dots);meta.appendChild(label);header.appendChild(meta);header.appendChild(button);pre.parentNode.insertBefore(windowEl,pre);windowEl.appendChild(header);windowEl.appendChild(pre);});}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',enhanceGuideArticle,{once:true});}else{enhanceGuideArticle();}})();</script>
+  <script src="/bundle.min.js?v=20260529-3464e79d" defer data-cfasync="false"></script>
 </body>
 </html>
