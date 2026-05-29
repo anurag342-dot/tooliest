@@ -342,6 +342,52 @@ const SECTION_ENTRY_LIMITS = {
   courses: 10,
 };
 const LANGUAGE_PROFICIENCIES = ['Native', 'Fluent', 'Conversational', 'Basic'];
+const SPOKEN_LANGUAGE_NAMES = [
+  ['american sign language', 'American Sign Language'],
+  ['mandarin chinese', 'Mandarin Chinese'],
+  ['brazilian portuguese', 'Brazilian Portuguese'],
+  ['portuguese', 'Portuguese'],
+  ['cantonese', 'Cantonese'],
+  ['chinese', 'Chinese'],
+  ['english', 'English'],
+  ['nepali', 'Nepali'],
+  ['hindi', 'Hindi'],
+  ['spanish', 'Spanish'],
+  ['french', 'French'],
+  ['german', 'German'],
+  ['italian', 'Italian'],
+  ['arabic', 'Arabic'],
+  ['russian', 'Russian'],
+  ['japanese', 'Japanese'],
+  ['korean', 'Korean'],
+  ['dutch', 'Dutch'],
+  ['polish', 'Polish'],
+  ['ukrainian', 'Ukrainian'],
+  ['swedish', 'Swedish'],
+  ['norwegian', 'Norwegian'],
+  ['danish', 'Danish'],
+  ['finnish', 'Finnish'],
+  ['turkish', 'Turkish'],
+  ['greek', 'Greek'],
+  ['hebrew', 'Hebrew'],
+  ['urdu', 'Urdu'],
+  ['bengali', 'Bengali'],
+  ['tamil', 'Tamil'],
+  ['telugu', 'Telugu'],
+  ['marathi', 'Marathi'],
+  ['gujarati', 'Gujarati'],
+  ['punjabi', 'Punjabi'],
+  ['sanskrit', 'Sanskrit'],
+  ['malay', 'Malay'],
+  ['indonesian', 'Indonesian'],
+  ['vietnamese', 'Vietnamese'],
+  ['thai', 'Thai'],
+  ['filipino', 'Filipino'],
+  ['tagalog', 'Tagalog'],
+  ['swahili', 'Swahili'],
+  ['persian', 'Persian'],
+  ['farsi', 'Farsi'],
+];
 const RESUME_BOLD_LINE_PREFIX = '\uE000BOLD:';
 
 // --- INDUSTRY KEYWORD INTELLIGENCE ---
@@ -984,10 +1030,18 @@ Extract only data that is actually present in the resume text. Never invent, ass
 If a string field is not found, return an empty string. If an array field is not found, return an empty array.
 For targetRole: if a target job title is clearly stated, extract it. Otherwise infer the most recent job title from work experience. If neither is clear, use an empty string.
 For summary: if a professional summary, profile, or objective exists, extract it exactly. If not, return an empty string.
-For skills: return one comma-separated string of individual skills.
+For skills: return one comma-separated string of technical, professional, tool, platform, domain, and workplace skills only.
+Do NOT put spoken/human languages in skills. English, Nepali, Hindi, Spanish, French, German, and similar languages belong in languages.
 For experiences: extract up to 5 entries. If fewer than 3 achievements exist for a role, use empty strings for missing achievement fields. Never invent achievements.
 For educations: extract up to 3 entries. GPA and courses may be empty.
 For projects: extract up to 5 entries. Links and technologies may be empty.
+For certifications: return up to 10 strings.
+For languages: extract spoken/human languages only. Use one of these proficiency values: Native, Fluent, Conversational, Basic. If the resume says professional, working, or intermediate, choose the closest supported value.
+For awards: extract up to 10 honors, awards, hackathon placements, recognitions, and scholarships.
+For volunteer: extract up to 5 volunteer or community service entries.
+For publications: extract up to 10 articles, papers, blog posts, public writeups, or published links.
+For courses: extract up to 10 courses, training programs, workshops, and self-directed learning programs.
+For customSections: if the resume has a section that does not fit the builder's supported sections, preserve it here with the original section title. Examples: "Open Source & Side Projects", "Interests", "Professional Affiliations", "Patents", "Speaking", "References". Do not create customSections for data that already belongs in experiences, educations, skills, certifications, projects, languages, awards, volunteer, publications, or courses.
 
 Use exactly this JSON schema and exact field names:
 {
@@ -1022,6 +1076,54 @@ Use exactly this JSON schema and exact field names:
   ],
   "skills": "",
   "certifications": [],
+  "languages": [
+    {
+      "language": "",
+      "proficiency": ""
+    }
+  ],
+  "awards": [
+    {
+      "title": "",
+      "issuer": "",
+      "date": "",
+      "description": ""
+    }
+  ],
+  "volunteer": [
+    {
+      "role": "",
+      "organization": "",
+      "duration": "",
+      "description": ""
+    }
+  ],
+  "publications": [
+    {
+      "title": "",
+      "publisher": "",
+      "date": "",
+      "url": ""
+    }
+  ],
+  "courses": [
+    {
+      "name": "",
+      "institution": "",
+      "date": ""
+    }
+  ],
+  "customSections": [
+    {
+      "title": "",
+      "entries": [
+        {
+          "heading": "",
+          "body": ""
+        }
+      ]
+    }
+  ],
   "projects": [
     {
       "name": "",
@@ -1375,15 +1477,83 @@ function normalizeSavedProject(project = {}) {
   };
 }
 
+function normalizeLanguageNameKey(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeLanguageProficiency(value = '') {
+  const raw = String(value || '').trim();
+  if (LANGUAGE_PROFICIENCIES.includes(raw)) return raw;
+  const lower = raw.toLowerCase();
+  if (/\b(native|mother tongue|first language)\b/.test(lower)) return 'Native';
+  if (/\b(full professional|fluent|bilingual)\b/.test(lower)) return 'Fluent';
+  if (/\b(conversational|intermediate|working|limited)\b/.test(lower)) return 'Conversational';
+  if (/\b(professional|advanced)\b/.test(lower)) return 'Fluent';
+  if (/\b(basic|beginner|elementary)\b/.test(lower)) return 'Basic';
+  return 'Conversational';
+}
+
+function inferSpokenLanguageFromText(value = '') {
+  const text = String(value || '')
+    .replace(/^\s*(?:[-*]|\u2022)\s*/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const normalized = normalizeLanguageNameKey(text);
+  if (!normalized) return null;
+
+  for (const [key, label] of SPOKEN_LANGUAGE_NAMES) {
+    if (normalized === key || normalized.startsWith(`${key} `)) {
+      return {
+        language: label,
+        proficiency: normalizeLanguageProficiency(normalized.slice(key.length).trim() || text),
+      };
+    }
+    if (normalized.endsWith(` ${key}`)) {
+      return {
+        language: label,
+        proficiency: normalizeLanguageProficiency(normalized.slice(0, -key.length).trim() || text),
+      };
+    }
+  }
+  return null;
+}
+
 function normalizeSavedLanguage(language = {}) {
-  const rawProficiency = String(language.proficiency ?? language.level ?? 'Conversational');
+  if (typeof language === 'string') {
+    const inferred = inferSpokenLanguageFromText(language);
+    return inferred || {
+      language: String(language || ''),
+      proficiency: 'Conversational',
+    };
+  }
+
+  const rawLanguage = String(language.language ?? language.name ?? language.title ?? '').trim();
+  const rawProficiency = String(language.proficiency ?? language.level ?? language.fluency ?? language.details ?? language.description ?? '').trim();
+  const inferred = inferSpokenLanguageFromText(rawLanguage && rawProficiency ? `${rawLanguage} ${rawProficiency}` : rawLanguage || rawProficiency);
+  const inferredLanguageKey = normalizeLanguageNameKey(inferred?.language);
+  const rawLanguageKey = normalizeLanguageNameKey(rawLanguage);
+  const languageName = inferred?.language && rawLanguageKey && rawLanguageKey !== inferredLanguageKey
+    ? inferred.language
+    : rawLanguage || inferred?.language || '';
   return {
-    language: String(language.language ?? language.name ?? ''),
-    proficiency: LANGUAGE_PROFICIENCIES.includes(rawProficiency) ? rawProficiency : 'Conversational',
+    language: languageName,
+    proficiency: normalizeLanguageProficiency(rawProficiency || inferred?.proficiency || 'Conversational'),
   };
 }
 
 function normalizeSavedAward(award = {}) {
+  if (typeof award === 'string') {
+    return {
+      title: String(award || ''),
+      issuer: '',
+      date: '',
+      description: '',
+    };
+  }
   return {
     title: String(award.title ?? award.name ?? ''),
     issuer: String(award.issuer ?? award.organization ?? ''),
@@ -1393,6 +1563,14 @@ function normalizeSavedAward(award = {}) {
 }
 
 function normalizeSavedVolunteer(volunteer = {}) {
+  if (typeof volunteer === 'string') {
+    return {
+      role: String(volunteer || ''),
+      organization: '',
+      duration: '',
+      description: '',
+    };
+  }
   return {
     role: String(volunteer.role ?? volunteer.title ?? ''),
     organization: String(volunteer.organization ?? volunteer.company ?? ''),
@@ -1402,6 +1580,16 @@ function normalizeSavedVolunteer(volunteer = {}) {
 }
 
 function normalizeSavedPublication(publication = {}) {
+  if (typeof publication === 'string') {
+    const text = String(publication || '').trim();
+    const urlMatch = text.match(/https?:\/\/\S+|\b[a-z0-9.-]+\.[a-z]{2,}(?:\/\S*)?/i);
+    return {
+      title: urlMatch ? text.replace(urlMatch[0], '').replace(/[\s|,-]+$/, '').trim() : text,
+      publisher: '',
+      date: '',
+      url: urlMatch ? urlMatch[0] : '',
+    };
+  }
   return {
     title: String(publication.title ?? publication.name ?? ''),
     publisher: String(publication.publisher ?? publication.journal ?? ''),
@@ -1411,6 +1599,13 @@ function normalizeSavedPublication(publication = {}) {
 }
 
 function normalizeSavedCourse(course = {}) {
+  if (typeof course === 'string') {
+    return {
+      name: String(course || ''),
+      institution: '',
+      date: '',
+    };
+  }
   return {
     name: String(course.name ?? course.title ?? ''),
     institution: String(course.institution ?? course.provider ?? ''),
@@ -7678,6 +7873,31 @@ async function extractTextFromDocx(file) {
   }
 }
 
+function extractPdfTextLines(items = []) {
+  const lines = [];
+  items.forEach((item) => {
+    const text = String(item?.str || '').trim();
+    if (!text) return;
+    const transform = Array.isArray(item.transform) ? item.transform : [];
+    const x = Number(transform[4]) || 0;
+    const y = Number(transform[5]) || 0;
+    let line = lines.find((entry) => Math.abs(entry.y - y) <= 2);
+    if (!line) {
+      line = { y, items: [] };
+      lines.push(line);
+    }
+    line.items.push({ x, text });
+  });
+
+  return lines
+    .sort((a, b) => b.y - a.y)
+    .map((line) => line.items
+      .sort((a, b) => a.x - b.x)
+      .map((item) => item.text)
+      .join(' '))
+    .join('\n');
+}
+
 async function extractTextFromPdf(file) {
   try {
     await loadPdfJs();
@@ -7687,7 +7907,7 @@ async function extractTextFromPdf(file) {
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
       const page = await pdf.getPage(pageNumber);
       const content = await page.getTextContent();
-      pages.push(content.items.map((item) => String(item.str || '')).join(' '));
+      pages.push(extractPdfTextLines(content.items));
     }
     return pages.join('\n');
   } catch (error) {
@@ -11869,6 +12089,131 @@ export async function initResumeBuilderTool(container) {
     summary.fieldsPopulated.push(label);
   }
 
+  function appendImportCount(summary, count, singular, plural = `${singular}s`) {
+    if (!count) return;
+    summary.fieldsPopulated.push(`${count} ${count === 1 ? singular : plural}`);
+  }
+
+  function enableImportedSection(sectionKey) {
+    state.sectionsEnabled = normalizeSectionsEnabled(state.sectionsEnabled);
+    state.sectionsEnabled[sectionKey] = true;
+  }
+
+  function isLikelySpokenLanguageSkill(value = '') {
+    const normalized = normalizeLanguageNameKey(value);
+    if (!normalized) return false;
+    return SPOKEN_LANGUAGE_NAMES.some(([key]) => {
+      if (normalized === key) return true;
+      if (normalized.startsWith(`${key} `)) {
+        return normalizeLanguageProficiency(normalized.slice(key.length).trim()) !== 'Conversational'
+          || /\b(conversational|intermediate|working|limited)\b/.test(normalized.slice(key.length));
+      }
+      if (normalized.endsWith(` ${key}`)) {
+        return normalizeLanguageProficiency(normalized.slice(0, -key.length).trim()) !== 'Conversational'
+          || /\b(conversational|intermediate|working|limited)\b/.test(normalized.slice(0, -key.length));
+      }
+      return false;
+    });
+  }
+
+  function dedupeImportedLanguages(languages = []) {
+    const seen = new Set();
+    return languages
+      .map(normalizeSavedLanguage)
+      .filter((item) => {
+        const language = String(item?.language || '').trim();
+        if (!language) return false;
+        const key = normalizeLanguageNameKey(language);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, SECTION_ENTRY_LIMITS.languages);
+  }
+
+  function separateLanguagesFromSkills(value, parsedLanguages = []) {
+    const knownLanguageKeys = new Set(
+      dedupeImportedLanguages(parsedLanguages).map((item) => normalizeLanguageNameKey(item.language)),
+    );
+    const inferredLanguages = [];
+    const skillItems = [];
+
+    splitDelimitedList(value).forEach((item) => {
+      const cleaned = String(item || '')
+        .replace(/^\s*(?:[-*]|\u2022)\s*/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!cleaned) return;
+      const inferred = inferSpokenLanguageFromText(cleaned);
+      const normalized = normalizeLanguageNameKey(cleaned);
+      const inferredKey = inferred ? normalizeLanguageNameKey(inferred.language) : '';
+      if ((inferred && isLikelySpokenLanguageSkill(cleaned)) || (inferredKey && knownLanguageKeys.has(inferredKey) && normalized === inferredKey)) {
+        inferredLanguages.push(inferred);
+        if (inferredKey) knownLanguageKeys.add(inferredKey);
+        return;
+      }
+      skillItems.push(cleaned);
+    });
+
+    return {
+      skillsText: normalizeSkillsText(skillItems.join(', ')),
+      languages: dedupeImportedLanguages(inferredLanguages),
+    };
+  }
+
+  function normalizeImportedCustomSections(value = []) {
+    if (!Array.isArray(value)) return [];
+    return value.map((section, index) => {
+      if (typeof section === 'string') {
+        const body = String(section || '').trim();
+        if (!body) return null;
+        return normalizeSavedCustomSection({
+          id: `custom_imported_${index}`,
+          title: 'Additional Information',
+          entries: [{ heading: '', body }],
+        });
+      }
+
+      const title = String(section?.title ?? section?.name ?? '').trim();
+      const directBody = String(section?.body ?? section?.description ?? section?.details ?? section?.content ?? '').trim();
+      const entries = Array.isArray(section?.entries)
+        ? section.entries.map((entry) => {
+          if (typeof entry === 'string') return { heading: '', body: entry };
+          return {
+            heading: String(entry?.heading ?? entry?.title ?? entry?.name ?? ''),
+            body: String(entry?.body ?? entry?.description ?? entry?.details ?? entry?.content ?? ''),
+          };
+        })
+        : [];
+      if (directBody) entries.push({ heading: '', body: directBody });
+      const cleanedEntries = entries
+        .map((entry) => ({
+          heading: String(entry.heading || '').trim(),
+          body: String(entry.body || '').trim(),
+        }))
+        .filter(hasAnyResumeValue)
+        .slice(0, CUSTOM_SECTION_ENTRY_LIMIT);
+      if (!cleanedEntries.length) return null;
+      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 32) || `section_${index + 1}`;
+      return normalizeSavedCustomSection({
+        id: `custom_imported_${slug}_${index}`,
+        title: title || 'Additional Information',
+        entries: cleanedEntries,
+      });
+    }).filter(Boolean).slice(0, CUSTOM_SECTION_LIMIT);
+  }
+
+  function applyImportedOptionalCollection(summary, key, items, normalizer, singular, plural, limit = SECTION_ENTRY_LIMITS[key]) {
+    const cleaned = Array.isArray(items)
+      ? items.map(normalizer).filter(hasAnyResumeValue).slice(0, limit)
+      : [];
+    if (!cleaned.length) return [];
+    state[key] = cleaned;
+    enableImportedSection(key);
+    appendImportCount(summary, cleaned.length, singular, plural);
+    return cleaned;
+  }
+
   function buildImportSummary() {
     const fieldsPopulated = [];
     const fieldsEmpty = [];
@@ -11876,6 +12221,12 @@ export async function initResumeBuilderTool(container) {
     const filledEducations = state.educations.filter(hasAnyResumeValue);
     const filledProjects = state.projects.filter(hasAnyResumeValue);
     const filledCertifications = state.certifications.filter((item) => String(item || '').trim());
+    const filledLanguages = state.languages.filter((item) => String(item?.language || '').trim());
+    const filledAwards = state.awards.filter(hasAnyResumeValue);
+    const filledVolunteer = state.volunteer.filter(hasAnyResumeValue);
+    const filledPublications = state.publications.filter(hasAnyResumeValue);
+    const filledCourses = state.courses.filter(hasAnyResumeValue);
+    const filledCustomSections = state.customSections.filter((section) => (section.entries || []).some(hasAnyResumeValue));
     const skillsCount = parseCommaList(state.skills).length;
 
     if (state.personal.name) fieldsPopulated.push('name');
@@ -11888,6 +12239,12 @@ export async function initResumeBuilderTool(container) {
     else fieldsEmpty.push('skills');
     if (filledProjects.length) fieldsPopulated.push(`${filledProjects.length} project${filledProjects.length === 1 ? '' : 's'}`);
     if (filledCertifications.length) fieldsPopulated.push(`${filledCertifications.length} certification${filledCertifications.length === 1 ? '' : 's'}`);
+    if (filledLanguages.length) fieldsPopulated.push(`${filledLanguages.length} language${filledLanguages.length === 1 ? '' : 's'}`);
+    if (filledAwards.length) fieldsPopulated.push(`${filledAwards.length} award${filledAwards.length === 1 ? '' : 's'}`);
+    if (filledVolunteer.length) fieldsPopulated.push(`${filledVolunteer.length} volunteer entr${filledVolunteer.length === 1 ? 'y' : 'ies'}`);
+    if (filledPublications.length) fieldsPopulated.push(`${filledPublications.length} publication${filledPublications.length === 1 ? '' : 's'}`);
+    if (filledCourses.length) fieldsPopulated.push(`${filledCourses.length} course${filledCourses.length === 1 ? '' : 's'}`);
+    if (filledCustomSections.length) fieldsPopulated.push(`${filledCustomSections.length} custom section${filledCustomSections.length === 1 ? '' : 's'}`);
 
     return { fieldsPopulated, fieldsEmpty };
   }
@@ -11905,7 +12262,13 @@ export async function initResumeBuilderTool(container) {
     assignImportedString(state.personal.portfolio, personal.portfolio, (value) => { state.personal.portfolio = value; }, 'portfolio', summary, overwrite);
     assignImportedString(state.targetRole, parsed?.targetRole, (value) => { state.targetRole = value; }, 'target role', summary, overwrite);
     assignImportedString(state.summary, parsed?.summary, (value) => { state.summary = value; }, 'summary', summary, overwrite);
-    assignImportedString(state.skills, parsed?.skills, (value) => { state.skills = normalizeSkillsText(value); }, 'skills', summary, overwrite);
+
+    const parsedLanguages = Array.isArray(parsed?.languages)
+      ? dedupeImportedLanguages(parsed.languages)
+      : [];
+    const separatedSkills = separateLanguagesFromSkills(parsed?.skills, parsedLanguages);
+    const importedLanguages = dedupeImportedLanguages([...parsedLanguages, ...separatedSkills.languages]);
+    assignImportedString(state.skills, separatedSkills.skillsText, (value) => { state.skills = normalizeSkillsText(value); }, 'skills', summary, overwrite);
 
     const experiences = Array.isArray(parsed?.experiences)
       ? parsed.experiences.map(normalizeSavedExperience).filter(hasAnyResumeValue).slice(0, 5)
@@ -11942,10 +12305,33 @@ export async function initResumeBuilderTool(container) {
       : [];
     if (certifications.length) {
       state.certifications = certifications;
+      enableImportedSection('certifications');
       summary.fieldsPopulated.push(`${certifications.length} certification${certifications.length === 1 ? '' : 's'}`);
     } else if (overwrite) {
       state.certifications = [createEmptyCertification()];
     }
+
+    if (importedLanguages.length) {
+      state.languages = importedLanguages;
+      enableImportedSection('languages');
+      appendImportCount(summary, importedLanguages.length, 'language');
+    }
+
+    applyImportedOptionalCollection(summary, 'awards', parsed?.awards, normalizeSavedAward, 'award', 'awards');
+    applyImportedOptionalCollection(summary, 'volunteer', parsed?.volunteer, normalizeSavedVolunteer, 'volunteer entry', 'volunteer entries');
+    applyImportedOptionalCollection(summary, 'publications', parsed?.publications, normalizeSavedPublication, 'publication', 'publications');
+    applyImportedOptionalCollection(summary, 'courses', parsed?.courses, normalizeSavedCourse, 'course', 'courses');
+
+    const customSections = normalizeImportedCustomSections(parsed?.customSections);
+    if (customSections.length) {
+      state.customSections = customSections;
+      const customTitles = customSections
+        .map((section) => String(section.title || '').trim())
+        .filter(Boolean)
+        .slice(0, 2);
+      summary.fieldsPopulated.push(`${customSections.length} custom section${customSections.length === 1 ? '' : 's'}${customTitles.length ? ` (${customTitles.join(', ')}${customSections.length > customTitles.length ? ', ...' : ''})` : ''}`);
+    }
+    state.sectionOrder = normalizeSectionOrder(state.sectionOrder, state.customSections);
 
     state.generatedResume = '';
     state.atsAnalysisResult = null;
@@ -11984,7 +12370,7 @@ export async function initResumeBuilderTool(container) {
         tool: TOOL_KEY,
         systemPrompt: RESUME_IMPORT_PROMPT,
         userContent,
-        maxTokens: 1800,
+        maxTokens: 3600,
         temperature: 0.1,
         extraHeaders: getAiProxyHeaders(),
       });
@@ -11995,7 +12381,7 @@ export async function initResumeBuilderTool(container) {
           tool: TOOL_KEY,
           systemPrompt: `${RESUME_IMPORT_PROMPT}\n\nCritical retry instruction: return only raw JSON, absolutely nothing else.`,
           userContent,
-          maxTokens: 1800,
+          maxTokens: 3600,
           temperature: 0,
           chargeQuota: false,
           skipModels: firstAttempt.model ? [firstAttempt.model] : [],
