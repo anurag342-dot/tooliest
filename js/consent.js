@@ -12,8 +12,12 @@
 
   const CONSENT_KEY = 'tooliest_cookie_consent';
   const CONSENT_VERSION = '2';
+  const TOUR_COMPLETE_KEY = 'tooliest_tour_completed';
+  const TOUR_COMPLETE_EVENT = 'tooliest:welcome-tour-complete';
   let releaseBannerFocus = null;
   let bannerResizeObserver = null;
+  let deferredBannerTimer = null;
+  let waitingForWelcomeTour = false;
 
   // --- Google Consent Mode v2: set defaults as early as possible ---
   window.dataLayer = window.dataLayer || [];
@@ -38,6 +42,36 @@
     } catch (e) {
       return null;
     }
+  }
+
+  function hasCompletedWelcomeTour() {
+    try {
+      return localStorage.getItem(TOUR_COMPLETE_KEY) === '1';
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function shouldDelayBannerForWelcomeTour() {
+    if (document.body && document.body.classList.contains('embed-mode')) return false;
+    const path = `${window.location.pathname || '/'}`.replace(/\/index\.html$/, '/');
+    return path === '/' && !hasCompletedWelcomeTour();
+  }
+
+  function showBannerAfterShortDelay(delay = 900) {
+    window.clearTimeout(deferredBannerTimer);
+    deferredBannerTimer = window.setTimeout(showBanner, delay);
+  }
+
+  function showBannerAfterWelcomeTour() {
+    if (waitingForWelcomeTour) return;
+    waitingForWelcomeTour = true;
+    const handleTourComplete = () => {
+      waitingForWelcomeTour = false;
+      window.removeEventListener(TOUR_COMPLETE_EVENT, handleTourComplete);
+      showBannerAfterShortDelay(900);
+    };
+    window.addEventListener(TOUR_COMPLETE_EVENT, handleTourComplete);
   }
 
   function saveConsent(accepted) {
@@ -210,6 +244,11 @@
   }
 
   function showBanner() {
+    if (shouldDelayBannerForWelcomeTour()) {
+      showBannerAfterWelcomeTour();
+      return;
+    }
+
     // Wait for DOM to be ready
     const initBanner = () => {
       const banner = document.getElementById('cookie-banner');

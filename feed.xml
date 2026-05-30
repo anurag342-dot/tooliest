@@ -5,12 +5,12 @@
     <link>https://tooliest.com/guides/</link>
     <description>Practical Tooliest guides covering browser workflows, SEO publishing, developer basics, and business tasks.</description>
     <language>en-us</language>
-    <lastBuildDate>Fri, 15 May 2026 06:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 30 May 2026 06:00:00 GMT</lastBuildDate>
     <atom:link href="https://tooliest.com/guides/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
       <title>How to Optimize Images for Web Without Losing Quality</title>
       <link>https://tooliest.com/guides/optimize-images-for-web/</link>
-      <description>Learn how to resize, compress, and convert images for faster page loads without visible quality loss.</description>
+      <description>Learn how to optimize images for the web with practical techniques: format selection (WebP, AVIF), compression sweet spots, responsive srcset, and lazy loading. Includes code examples.</description>
       <author>tooliestinternet@gmail.com (Anurag)</author>
       <pubDate>Wed, 29 Apr 2026 06:00:00 GMT</pubDate>
       <guid isPermaLink="true">https://tooliest.com/guides/optimize-images-for-web/</guid>
@@ -42,7 +42,7 @@
     <item>
       <title>Password Security Best Practices: How to Create Strong Passwords</title>
       <link>https://tooliest.com/guides/password-security-best-practices/</link>
-      <description>A practical password guide covering length, randomness, passphrases, reuse risks, and how to build safer everyday login habits.</description>
+      <description>Learn how password cracking actually works, why length beats complexity, what entropy means in real numbers, and the 5-minute security upgrade that protects your accounts. Includes crack-time comparison table and practical action steps.</description>
       <author>tooliestinternet@gmail.com (Anurag)</author>
       <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
       <guid isPermaLink="true">https://tooliest.com/guides/password-security-best-practices/</guid>
@@ -82,7 +82,7 @@
     <item>
       <title>Compound Interest Explained: The Math Behind Your Money Growing</title>
       <link>https://tooliest.com/guides/compound-interest-explained/</link>
-      <description>A plain-English guide to compounding, contribution schedules, time horizons, and why consistent saving matters more than people expect.</description>
+      <description>Understand compound interest with real numbers: see how $10,000 becomes $76,123, why starting at 25 beats 35, the Rule of 72, and how debt compounds against you. Includes calculator.</description>
       <author>tooliestinternet@gmail.com (Anurag)</author>
       <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
       <guid isPermaLink="true">https://tooliest.com/guides/compound-interest-explained/</guid>
@@ -98,7 +98,7 @@
     <item>
       <title>CSS Box Model Explained: Margins, Padding, Shadows, and Flexbox</title>
       <link>https://tooliest.com/guides/css-box-model-explained/</link>
-      <description>A practical guide to the CSS box model for developers who want cleaner spacing, fewer layout surprises, and more reliable component structure.</description>
+      <description>Master the CSS Box Model: understand content, padding, border, and margin layers. Learn why box-sizing: border-box prevents layout bugs, how to debug with DevTools, and practical patterns for cards, centering, and buttons.</description>
       <author>tooliestinternet@gmail.com (Anurag)</author>
       <pubDate>Fri, 01 May 2026 06:00:00 GMT</pubDate>
       <guid isPermaLink="true">https://tooliest.com/guides/css-box-model-explained/</guid>

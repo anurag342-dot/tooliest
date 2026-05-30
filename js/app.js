@@ -37,7 +37,7 @@ const TOOLIEST_WHATS_NEW = [
   { version: '2.1', date: '2026-04-02', items: ['AI-powered tools launched', 'Image EXIF privacy stripper', 'Browser-based audio converter released'] },
   { version: '2.0', date: '2026-03-28', items: ['Complete redesign with glassmorphism UI', 'Added 30+ new tools', 'Mobile-first responsive layout'] },
 ];
-const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260527-b3748932';
+const TOOLIEST_ASSET_VERSION = window.__TOOLIEST_ASSET_VERSION || '20260530-295a5c55';
 const TOOLIEST_ENABLE_PERFORMANCE_PANEL = false;
 const TOOLIEST_REPOSITORY_URL = 'https://github.com/anurag342-dot/tooliest';
 const TOOLIEST_CONTACT_EMAIL = 'tooliestinternet@gmail.com';
@@ -133,8 +133,11 @@ const App = {
         e.preventDefault();
         this.deferredPrompt = e;
         this.syncInstallEntryPoints();
-        // Show floating banner specifically if not dismissed
-        setTimeout(() => this.showInstallPrompt(), 3000);
+        // Show floating banner specifically if not dismissed, but never over the first-run tour.
+        setTimeout(() => {
+          if (document.getElementById('welcome-tour-overlay')) return;
+          this.showInstallPrompt();
+        }, 3000);
       });
       window.addEventListener('appinstalled', () => {
         this.deferredPrompt = null;
@@ -200,6 +203,7 @@ const App = {
     if (this.isEmbedMode() || this.isStandaloneInstall()) return;
     const force = Boolean(options.force);
     const manualOnly = Boolean(options.manualOnly || !this.deferredPrompt);
+    if (!force && document.getElementById('welcome-tour-overlay')) return;
     const existingBanner = document.getElementById('pwa-install-banner');
     if (existingBanner) {
       if (!force) return;
@@ -213,14 +217,14 @@ const App = {
     banner.id = 'pwa-install-banner';
     banner.innerHTML = `
       <div style="display:flex;align-items:center;gap:12px;">
-        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:var(--gradient-primary);font-weight:700;color:#fff;">APP</div>
+        <img src="/icon-192.png" alt="" width="40" height="40" style="width:40px;height:40px;border-radius:12px;box-shadow:var(--shadow-glow);flex-shrink:0">
         <div>
           <div style="font-weight:600;color:var(--text-primary)">Install Tooliest</div>
           <div style="font-size:0.85rem;color:var(--text-secondary)">${manualOnly ? 'Use your browser menu to install or add Tooliest to your home screen.' : 'Open Tooliest as an app with offline support and faster relaunches.'}</div>
         </div>
       </div>
       <div style="display:flex;gap:12px;align-items:center;">
-        <button id="pwa-install-btn" class="btn btn-primary" style="padding:6px 12px;font-size:0.9rem">${manualOnly ? 'Install Help' : 'Install App'}</button>
+        <button id="pwa-install-btn" class="btn btn-primary" style="padding:6px 12px;font-size:0.9rem">Install App</button>
         <button id="pwa-close-btn" aria-label="Close install banner" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:1rem;padding:4px">&times;</button>
       </div>`;
     document.body.appendChild(banner);
@@ -2405,10 +2409,10 @@ const App = {
         </div>
         <p>${tool.description}</p>
         <p class="tool-last-updated">${tool.reviewedBy || 'Reviewed by Anurag, founder of Tooliest'}</p>
-        ${trustPanelHtml}
       </div>
       ${this.getAdHTML('tool-top')}
       <div class="tool-workspace" id="tool-workspace"></div>
+      ${trustPanelHtml}
       ${comparePanelHtml}
       ${this.getToolContentSectionsHTML(tool)}
       ${this.getAdHTML('tool-bottom')}
@@ -3116,6 +3120,7 @@ const App = {
       releaseFocus?.();
       safeLocalSet('tooliest_tour_completed', '1');
       overlay.remove();
+      window.dispatchEvent(new CustomEvent('tooliest:welcome-tour-complete'));
     };
     overlay.__tooliestDismiss = dismiss;
     releaseFocus = this.activateOverlayFocusTrap(overlay, panel, dismiss);
@@ -3511,6 +3516,14 @@ const App = {
 // === Clipboard Helper ===
 // [TOOLIEST AUDIT Phase 9] Hardened: async/await, failure toast, fallback for older browsers.
 async function copyToClipboard(text, btn) {
+  const normalizedText = (() => {
+    if (!(btn instanceof Element)) return text == null ? '' : String(text);
+    const outputArea = btn.closest('.output-area');
+    if (!outputArea) return text == null ? '' : String(text);
+    const clone = outputArea.cloneNode(true);
+    clone.querySelectorAll('.copy-btn, button, [aria-hidden="true"]').forEach((node) => node.remove());
+    return (clone.textContent || '').trimEnd();
+  })();
   const originalText = btn ? btn.textContent : null;
   const originalLabel = btn ? btn.getAttribute('aria-label') : null;
   const markCopied = () => {
@@ -3527,7 +3540,7 @@ async function copyToClipboard(text, btn) {
   // Modern Clipboard API
   if (navigator.clipboard && window.isSecureContext) {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(normalizedText);
       App.toast('Copied to clipboard!');
       markCopied();
       return;
@@ -3536,7 +3549,7 @@ async function copyToClipboard(text, btn) {
   // Legacy fallback (non-HTTPS or older browsers)
   try {
     const ta = document.createElement('textarea');
-    ta.value = text;
+    ta.value = normalizedText;
     ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
     document.body.appendChild(ta);
     ta.select();

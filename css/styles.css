@@ -2004,6 +2004,14 @@ select {
   position: relative;
 }
 
+.output-area:has(.copy-btn) {
+  padding-top: 58px;
+}
+
+.output-area.empty:has(.copy-btn.hidden) {
+  padding-top: 16px;
+}
+
 .output-area.empty {
   display: flex;
   align-items: center;
@@ -2017,6 +2025,7 @@ select {
   position: absolute;
   top: 10px;
   right: 10px;
+  max-width: calc(100% - 20px);
   padding: 10px 16px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
@@ -2029,6 +2038,8 @@ select {
               border-color var(--transition-fast),
               background-color var(--transition-fast);
   font-family: var(--font-primary);
+  white-space: nowrap;
+  z-index: 2;
 }
 
 .copy-btn:hover {
@@ -2798,12 +2809,21 @@ input[type="range"]::-webkit-slider-thumb:hover {
   border-radius: var(--radius-lg);
   padding: 16px;
   display: flex;
+  gap: 16px;
   justify-content: space-between;
   align-items: center;
   z-index: var(--z-pwa-banner);
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   transform: translateY(150%);
   transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#pwa-install-banner > div:first-child {
+  min-width: 0;
+}
+
+#pwa-install-banner .btn {
+  white-space: nowrap;
 }
 
 #pwa-install-banner.show {
@@ -2940,45 +2960,45 @@ body.embed-mode.standalone-tool-embed {
 
 @media (min-width: 769px) and (max-width: 1175px) {
   .nav-links {
+    display: flex;
+    flex: 1 1 auto;
     flex-shrink: 1;
     min-width: 0;
     gap: 4px;
+    justify-content: flex-end;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
   }
 
-  .nav-links #nav-install-btn {
+  .nav-links::-webkit-scrollbar {
     display: none;
   }
 
   .nav-links a {
-    padding: 8px 10px;
-    font-size: 0.85rem;
+    padding: 8px clamp(6px, 0.9vw, 10px);
+    font-size: clamp(0.76rem, 1.15vw, 0.85rem);
   }
 
   .nav-links .theme-toggle-btn,
   .nav-links #whats-new-btn {
     display: inline-flex !important;
     flex-shrink: 0;
+    width: 40px;
+    height: 40px;
   }
 }
 
 @media (min-width: 769px) and (max-width: 1050px) {
-  .nav-links a[href="/guides/"],
-  .nav-links a[href="/about/"] {
-    display: none;
-  }
-
   .nav-links a {
-    padding: 8px 8px;
-    font-size: 0.82rem;
+    padding: 8px clamp(5px, 0.75vw, 8px);
+    font-size: clamp(0.72rem, 1.05vw, 0.82rem);
   }
 }
 
 @media (min-width: 769px) and (max-width: 900px) {
-  .nav-links a[href="/guides/"],
-  .nav-links a[href="/about/"],
-  .nav-links a[href="/category/pdf/"],
-  .nav-links a[href="/category/developer/"] {
-    display: none;
+  .nav-inner {
+    gap: 8px;
   }
 }
 
