@@ -3341,6 +3341,300 @@ const CSS_BOX_MODEL_GUIDE_VISUAL_CSS = `<style>
   }
 </style>`;
 
+const PASSWORD_SECURITY_GUIDE_VISUAL_CSS = `<style>
+  .guide-article-copy .guide-formula-box {
+    margin: 22px 0 22px;
+    padding: 24px 18px;
+    border: 1px solid rgba(139,92,246,.38);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.17), rgba(6,182,212,.08)), rgba(15,23,42,.74);
+    text-align: center;
+    box-shadow: 0 18px 40px rgba(0,0,0,.22);
+  }
+  .guide-article-copy .guide-formula-box pre {
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    background: transparent;
+  }
+  .guide-article-copy .guide-formula-box code {
+    display: inline-block;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-primary);
+    font: 800 clamp(1rem, 3.4vw, 1.65rem)/1.45 var(--font-mono);
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .guide-article-copy .guide-table-wrap {
+    width: 100%;
+    margin: 22px 0 28px;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: rgba(255,255,255,.025);
+    -webkit-overflow-scrolling: touch;
+  }
+  .guide-article-copy .guide-crack-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+    font-size: .93rem;
+  }
+  .guide-article-copy .guide-crack-table th,
+  .guide-article-copy .guide-crack-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+  }
+  .guide-article-copy .guide-crack-table th {
+    color: var(--text-primary);
+    background: rgba(139,92,246,.16);
+    font-weight: 800;
+  }
+  .guide-article-copy .guide-crack-table td {
+    color: var(--text-secondary);
+  }
+  .guide-article-copy .guide-crack-table tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-article-copy .guide-crack-table code {
+    font-size: .86em;
+    word-break: break-word;
+  }
+  .guide-article-copy .guide-crack-table .crack-row--instant td {
+    background: rgba(239,68,68,.13);
+  }
+  .guide-article-copy .guide-crack-table .crack-row--slow td {
+    background: rgba(234,179,8,.12);
+  }
+  .guide-article-copy .guide-crack-table .crack-row--safe td {
+    background: rgba(34,197,94,.12);
+  }
+  .guide-article-copy .guide-crack-table .crack-row--instant td:first-child {
+    border-left: 4px solid #ef4444;
+  }
+  .guide-article-copy .guide-crack-table .crack-row--slow td:first-child {
+    border-left: 4px solid #eab308;
+  }
+  .guide-article-copy .guide-crack-table .crack-row--safe td:first-child {
+    border-left: 4px solid #22c55e;
+  }
+  .guide-article-copy .guide-strength-meter {
+    margin: 24px 0 28px;
+    padding: 18px;
+    border: 1px solid rgba(139,92,246,.24);
+    border-radius: 16px;
+    background: rgba(255,255,255,.03);
+  }
+  .guide-article-copy .strength-segments {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .guide-article-copy .strength-segment {
+    height: 16px;
+    border-radius: 999px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  .guide-article-copy .strength-very-weak { background: #ef4444; }
+  .guide-article-copy .strength-weak { background: #f97316; }
+  .guide-article-copy .strength-fair { background: #eab308; }
+  .guide-article-copy .strength-strong { background: #22c55e; }
+  .guide-article-copy .strength-very-strong { background: #15803d; }
+  .guide-article-copy .strength-labels {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+    color: var(--text-tertiary);
+    font-size: .74rem;
+    font-weight: 800;
+    text-align: center;
+  }
+  .guide-article-copy .guide-security-rank {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin: 24px 0 28px;
+  }
+  .guide-article-copy .security-rank-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy .security-rank-card span {
+    display: inline-flex;
+    margin-bottom: 10px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .guide-article-copy .security-rank-card h3 {
+    margin-top: 0;
+  }
+  .guide-article-copy .security-rank-card p:last-child {
+    margin-bottom: 0;
+  }
+  .guide-article-copy .security-rank-card--best {
+    border-color: rgba(34,197,94,.52);
+    background: linear-gradient(135deg, rgba(34,197,94,.14), rgba(255,255,255,.025));
+  }
+  .guide-article-copy .security-rank-card--best span {
+    background: rgba(34,197,94,.16);
+    color: #86efac;
+  }
+  .guide-article-copy .security-rank-card--strong {
+    border-color: rgba(59,130,246,.52);
+    background: linear-gradient(135deg, rgba(59,130,246,.14), rgba(255,255,255,.025));
+  }
+  .guide-article-copy .security-rank-card--strong span {
+    background: rgba(59,130,246,.16);
+    color: #93c5fd;
+  }
+  .guide-article-copy .security-rank-card--acceptable {
+    border-color: rgba(249,115,22,.52);
+    background: linear-gradient(135deg, rgba(249,115,22,.14), rgba(255,255,255,.025));
+  }
+  .guide-article-copy .security-rank-card--acceptable span {
+    background: rgba(249,115,22,.16);
+    color: #fdba74;
+  }
+  .guide-article-copy .guide-action-steps {
+    display: grid;
+    gap: 16px;
+    margin: 24px 0 28px;
+    padding: 0;
+    list-style: none;
+    counter-reset: security-step;
+  }
+  .guide-article-copy .guide-action-steps li {
+    position: relative;
+    min-height: 78px;
+    padding: 18px 18px 18px 72px;
+    border: 1px solid rgba(139,92,246,.28);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.12), rgba(6,182,212,.045)), rgba(255,255,255,.025);
+    counter-increment: security-step;
+  }
+  .guide-article-copy .guide-action-steps li::before {
+    content: counter(security-step);
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: var(--accent-primary);
+    color: #fff;
+    font-weight: 900;
+  }
+  .guide-article-copy .guide-action-steps h3 {
+    margin: 0 0 8px;
+  }
+  .guide-article-copy .guide-action-steps p:last-child {
+    margin-bottom: 0;
+  }
+  .guide-article-copy .guide-warning,
+  .guide-article-copy .guide-recommendation {
+    margin: 22px 0 26px;
+    padding: 18px 20px;
+    border-radius: 0 14px 14px 0;
+  }
+  .guide-article-copy .guide-warning {
+    border-left: 4px solid #ef4444;
+    background: linear-gradient(90deg, rgba(239,68,68,.16), rgba(239,68,68,.035));
+  }
+  .guide-article-copy .guide-recommendation {
+    border-left: 4px solid #22c55e;
+    background: linear-gradient(90deg, rgba(34,197,94,.16), rgba(34,197,94,.035));
+  }
+  .guide-article-copy .guide-warning p:last-child,
+  .guide-article-copy .guide-recommendation p:last-child {
+    margin-bottom: 0;
+  }
+  [data-theme=light] .guide-article-copy .guide-formula-box {
+    background: linear-gradient(135deg, rgba(139,92,246,.12), rgba(6,182,212,.08)), rgba(255,255,255,.92);
+    box-shadow: 0 16px 32px rgba(15,23,42,.08);
+  }
+  [data-theme=light] .guide-article-copy .guide-table-wrap {
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 12px 30px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-crack-table th {
+    background: rgba(139,92,246,.12);
+  }
+  [data-theme=light] .guide-article-copy .guide-crack-table .crack-row--instant td {
+    background: rgba(239,68,68,.09);
+  }
+  [data-theme=light] .guide-article-copy .guide-crack-table .crack-row--slow td {
+    background: rgba(234,179,8,.1);
+  }
+  [data-theme=light] .guide-article-copy .guide-crack-table .crack-row--safe td {
+    background: rgba(34,197,94,.09);
+  }
+  [data-theme=light] .guide-article-copy .guide-strength-meter,
+  [data-theme=light] .guide-article-copy .security-rank-card,
+  [data-theme=light] .guide-article-copy .guide-action-steps li {
+    background-color: rgba(255,255,255,.86);
+    box-shadow: 0 14px 32px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-warning {
+    background: linear-gradient(90deg, rgba(239,68,68,.1), rgba(239,68,68,.02));
+  }
+  [data-theme=light] .guide-article-copy .guide-recommendation {
+    background: linear-gradient(90deg, rgba(34,197,94,.1), rgba(34,197,94,.02));
+  }
+  @media (max-width: 820px) {
+    .guide-article-copy .guide-security-rank {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-formula-box,
+    .guide-article-copy .guide-strength-meter,
+    .guide-article-copy .security-rank-card,
+    .guide-article-copy .guide-action-steps li {
+      border-radius: 12px;
+    }
+    .guide-article-copy .guide-formula-box code {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .guide-article-copy .guide-table-wrap {
+      margin-left: -4px;
+      margin-right: -4px;
+      border-radius: 12px;
+    }
+    .guide-article-copy .guide-crack-table th,
+    .guide-article-copy .guide-crack-table td {
+      padding: 12px 14px;
+    }
+    .guide-article-copy .strength-labels {
+      font-size: .66rem;
+    }
+    .guide-article-copy .guide-action-steps li {
+      padding: 64px 16px 16px;
+    }
+    .guide-article-copy .guide-warning,
+    .guide-article-copy .guide-recommendation {
+      padding: 16px;
+      border-radius: 0 12px 12px 0;
+    }
+  }
+</style>`;
+
 function renderGuidesHubPage(tools) {
   const guideLastModified = getGuideContentLastModifiedDate();
   const softwarePageCount = getSoftwareEditorialPageCount();
@@ -3464,7 +3758,9 @@ function renderGuideArticlePage(guide) {
       ? COMPOUND_INTEREST_GUIDE_VISUAL_CSS
       : guide.slug === 'css-box-model-explained'
         ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${CSS_BOX_MODEL_GUIDE_VISUAL_CSS}`
-        : '';
+        : guide.slug === 'password-security-best-practices'
+          ? PASSWORD_SECURITY_GUIDE_VISUAL_CSS
+          : '';
   const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
   const structuredData = [
     {

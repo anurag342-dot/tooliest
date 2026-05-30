@@ -351,36 +351,207 @@ document.querySelectorAll('img[data-src]').forEach(img =&gt; observer.observe(im
     slug: 'password-security-best-practices',
     group: 'security-business',
     title: 'Password Security Best Practices: How to Create Strong Passwords',
-    description: 'A practical password guide covering length, randomness, passphrases, reuse risks, and how to build safer everyday login habits.',
+    description: 'Learn how password cracking actually works, why length beats complexity, what entropy means in real numbers, and the 5-minute security upgrade that protects your accounts. Includes crack-time comparison table and practical action steps.',
     socialDescription: 'Learn what actually makes a password strong and how to build safer login habits without overcomplicating them.',
     teaser: 'Learn what actually makes a password strong, why reuse stays dangerous, and how to choose between random passwords and passphrases.',
     published: '2026-05-01',
-    updated: '2026-05-01',
-    readMinutes: 8,
+    updated: '2026-05-30',
+    readMinutes: 15,
     tags: ['Password Security', 'Authentication', 'Privacy'],
     contentHtml: `
-      <p>Most password advice gets remembered as slogans: use symbols, make it long, never reuse, turn on two-factor authentication. The problem is that people hear those rules without understanding which parts matter most. In real security work, length and uniqueness usually beat clever complexity tricks, and a password manager beats human memory almost every time.</p>
-      <p>The threat model is simple. Attackers succeed when passwords are short enough to guess, predictable enough to generate, or reused often enough that one breach unlocks multiple accounts. A strong password strategy is really just a strategy for removing those advantages.</p>
+      <h2>Why Most Passwords Get Cracked (It's Not What You Think)</h2>
+      <p>The dominant mental model most people have about password cracking — a hacker sitting at a terminal hammering through combinations until one works — is almost entirely wrong. The real threat is simpler, faster, and has nothing to do with how complex your password is.</p>
+      <p>Credential stuffing is responsible for the overwhelming majority of account takeovers. Here is how it works: a company gets breached, a database of email and password combinations leaks to the dark web, and automated software immediately begins trying those exact credentials against hundreds of other websites. No cracking required. The password is already known. The attacker is just checking whether you used the same one somewhere else.</p>
+      <p>The scale of these breaches is not abstract. In 2024, a compilation called RockYou2024 leaked approximately 10 billion unique credentials — email and password pairs accumulated from thousands of individual breaches over more than a decade. That single file contains credentials from services you have used, services you have forgotten you used, and services that have been breached without ever notifying you. When LinkedIn was compromised in 2012, 117 million accounts were exposed. Years later, those credentials were still being used to break into Dropbox, Netflix, and online banking accounts belonging to people who had never touched LinkedIn since 2012 but had never changed their passwords either.</p>
+      <p>The attack flow takes minutes once the breach data exists: download the credential list, run automated login software against Gmail, Amazon, Chase, PayPal, and a hundred other targets simultaneously, collect successful logins. No GPU farm needed. No mathematical complexity to defeat. Just automation and the near-universal human habit of reusing passwords.</p>
+      <div class="guide-warning">
+        <p><strong>Reuse is the #1 everyday password vulnerability.</strong> A "strong" password — 12 characters, numbers, symbols, the works — reused across five accounts is dramatically more dangerous than a mediocre, unremarkable password that is unique to each service. The strength metric becomes irrelevant when the password is already in a database somewhere.</p>
+      </div>
 
-      <h2>Length is the first big lever</h2>
-      <p>A longer password creates a much larger search space. That matters because brute-force attacks scale badly when the number of possible combinations explodes. An eight-character password can look "complex" and still be weak by modern standards if it is built from familiar substitutions and predictable patterns.</p>
-      <p>That is why a long random password or a long unique passphrase is usually safer than a short password full of forced punctuation. You are trying to increase entropy, not win a visual-complexity contest.</p>
+      <h2>How Password Cracking Actually Works</h2>
+      <p>When passwords do get cracked rather than replayed from breach databases, three distinct attack methods are used, each targeting different types of vulnerability.</p>
 
-      <h2>Uniqueness matters as much as strength</h2>
-      <p>A strong reused password is still a weak account strategy. If one service leaks credentials and you reused the same password elsewhere, attackers do not need to crack anything. They just replay what already works. That is one of the biggest reasons password managers matter: they make unique credentials practical at scale.</p>
-      <p>If you remember only one rule, make it this one: every important account deserves its own password. That single habit closes an enormous number of cheap attack paths.</p>
+      <h3>Brute Force</h3>
+      <p>Brute force tries every possible combination in sequence: aaa, aab, aac, up through every character combination at the target length. Modern hardware makes this viable for short passwords at speeds that are genuinely staggering. A rig running eight RTX 4090 GPUs can test approximately 200 billion MD5 password hashes per second. Against an offline database of leaked hashed passwords, that speed is unconstrained — the attacker can try as many combinations as their hardware can generate.</p>
+      <p>At that speed, a 6-character lowercase password has an 8.7 billion combination space and falls in roughly 43 milliseconds. An 8-character password using only lowercase letters falls in under 2 minutes. The math turns decisively in the defender's favor only at longer lengths, which is why length matters more than any other single factor.</p>
 
-      <h2>Random passwords and passphrases both have a place</h2>
-      <p>For accounts stored in a password manager, long random strings are usually the strongest choice. They are hard to predict and easy for a manager to generate. For the few secrets you may need to type often, a long passphrase can be a reasonable compromise if it is unique and not built from obvious phrases, lyrics, or personal details.</p>
-      <p>Tooliest's <a href="/password-security-suite/">Password Security Suite</a> is useful because it lets you test length, variety, and generator settings without uploading the secret to a remote page. The point is not to obsess over a score. It is to avoid weak patterns and create something you would not invent the same way twice.</p>
+      <h3>Dictionary Attacks</h3>
+      <p>Dictionary attacks do not try every combination — they try the combinations humans actually choose. Breach databases from the past 20 years have given attackers an extraordinarily accurate picture of how people construct passwords. The patterns are consistent across cultures and demographics: a common word or name, followed by a birth year or short number string, optionally with a symbol appended or substituted.</p>
+      <p>Every known substitution is in the dictionaries: @ for a, 0 for o, 1 for l, 3 for e, $ for s. P@$$w0rd! is not a cleverly disguised password — it is a pattern that appears in attack dictionaries explicitly because it was a popular "secure" password for years. Attackers also have lists organized by keyboard patterns (qwerty, 123456, zxcvbn), sports teams with years, and first name plus birth year combinations pulled from social media. The practical reality is that humans are very bad at choosing randomly, and attackers have systematically documented exactly how bad.</p>
 
-      <h2>Two-factor authentication is not optional anymore</h2>
-      <p>Strong passwords reduce risk, but they do not eliminate phishing, credential stuffing, or session theft. That is why two-factor authentication remains one of the highest-leverage upgrades you can make. Even when a password is exposed, a second factor can stop a routine compromise from becoming account access.</p>
-      <p>Security keys and authenticator apps are usually better than SMS when you have the option, but the main point is to turn a single secret into a multi-step barrier.</p>
+      <h3>Credential Stuffing</h3>
+      <p>Credential stuffing requires no cracking at all. It takes a leaked email-password pair from one breach and tests it against other services automatically. SentinelOne's threat research found that credential stuffing attacks account for the majority of login traffic on many consumer platforms — more login attempts come from automated stuffing tools than from actual users. Services like Cloudflare have documented individual stuffing campaigns testing millions of credentials per hour against single targets.</p>
+      <p>This is the attack that makes reuse genuinely catastrophic. A mediocre password on a site with good security that eventually gets breached exposes every other account where you used that same password, regardless of how strong those other sites' security is.</p>
 
-      <h2>The boring workflow is the one that works</h2>
-      <p>Pick a reputable password manager. Use unique credentials for every real account. Generate long passwords instead of inventing them. Turn on two-factor authentication for email, banking, work, and anything connected to recovery flows. Review weak or reused passwords a few times a year. That is not glamorous, but it is how everyday account security actually improves.</p>
-      <p>Security gets better when it becomes operational, not when it becomes theatrical. The goal is fewer predictable secrets, fewer reused credentials, and fewer chances for one failure to spread.</p>
+      <h2>The Math of Password Strength: Entropy Explained Simply</h2>
+      <p>Password entropy is a measure of unpredictability expressed in bits. Higher entropy means more combinations an attacker must try. Each additional bit doubles the search space, which is why the relationship between password length and security is exponential, not linear.</p>
+      <div class="guide-formula-box guide-entropy-box">
+        <pre><code>Entropy = log₂(possible_characters ^ length)</code></pre>
+      </div>
+      <p>Using 26 lowercase letters across 8 characters: log₂(26⁸) = 37.6 bits. Using the full 95 printable ASCII characters across 12 characters: log₂(95¹²) = 78.8 bits. That jump from 37.6 to 78.8 bits is not roughly double the security — it is approximately 100 billion times more search space.</p>
+      <p>Here is how different password types perform against modern hardware. Offline crack times assume 200 billion guesses per second against an MD5 hash. Online crack times assume proper rate limiting at around 100 to 1,000 attempts per second, which most legitimate services enforce.</p>
+
+      <div class="guide-strength-meter" aria-label="Password strength levels from very weak to very strong">
+        <div class="strength-segments" aria-hidden="true">
+          <span class="strength-segment strength-very-weak"></span>
+          <span class="strength-segment strength-weak"></span>
+          <span class="strength-segment strength-fair"></span>
+          <span class="strength-segment strength-strong"></span>
+          <span class="strength-segment strength-very-strong"></span>
+        </div>
+        <div class="strength-labels">
+          <span>Very Weak</span>
+          <span>Weak</span>
+          <span>Fair</span>
+          <span>Strong</span>
+          <span>Very Strong</span>
+        </div>
+      </div>
+
+      <div class="guide-table-wrap">
+        <table class="guide-crack-table">
+          <thead>
+            <tr>
+              <th>Password Type</th>
+              <th>Example</th>
+              <th>Entropy</th>
+              <th>Offline Crack Time</th>
+              <th>Online Crack Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="crack-row--instant">
+              <td>6 chars, lowercase</td>
+              <td><code>monkey</code></td>
+              <td>28 bits</td>
+              <td>Instant</td>
+              <td>Minutes</td>
+            </tr>
+            <tr class="crack-row--slow">
+              <td>8 chars, mixed case + numbers</td>
+              <td><code>Pass1234</code></td>
+              <td>48 bits</td>
+              <td>Minutes</td>
+              <td>Months</td>
+            </tr>
+            <tr class="crack-row--slow">
+              <td>8 chars, full complexity</td>
+              <td><code>P@ss1!2#</code></td>
+              <td>52 bits</td>
+              <td>Hours</td>
+              <td>Years</td>
+            </tr>
+            <tr class="crack-row--safe">
+              <td>12 chars, mixed case + numbers</td>
+              <td><code>Treehouse4921</code></td>
+              <td>72 bits</td>
+              <td>Centuries</td>
+              <td>Heat death of universe</td>
+            </tr>
+            <tr class="crack-row--safe">
+              <td>16 chars, random</td>
+              <td><code>kX9#mP2$vL7!nQ4&amp;</code></td>
+              <td>105 bits</td>
+              <td>Longer than universe</td>
+              <td>Impossible</td>
+            </tr>
+            <tr class="crack-row--slow">
+              <td>4-word passphrase</td>
+              <td><code>correct horse battery staple</code></td>
+              <td>44–51 bits</td>
+              <td>Days to years</td>
+              <td>Practically impossible</td>
+            </tr>
+            <tr class="crack-row--safe">
+              <td>6-word passphrase</td>
+              <td><code>timber vessel proxy candle orbit mesh</code></td>
+              <td>77 bits</td>
+              <td>Centuries</td>
+              <td>Impossible</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The jump from 8 to 12 characters is not 50% more secure. Going from 52 bits to 72 bits of entropy means the attacker faces roughly one trillion times more combinations. Adding four characters to a password is not additive — it is multiplicative at every step.</p>
+      <p>One important caveat on the table: the crack times for offline attacks assume the hashing algorithm used is MD5 or a similarly fast algorithm. Sites using bcrypt, scrypt, or Argon2 — the algorithms responsible security-conscious companies actually use — reduce cracking speed to millions rather than billions per second, buying significant additional time. You cannot control which hashing algorithm a site uses, but the implication is that well-secured sites make even shorter passwords more resistant to offline attacks.</p>
+
+      <h2>Length vs Complexity: The Settled Debate</h2>
+      <p>The "make it complex" school of password advice — use uppercase, lowercase, numbers, and symbols — is not wrong, but it has been systematically outweighed by length as the dominant security factor. More importantly, forcing complexity rules often produces worse passwords by making them harder to remember, which drives reuse.</p>
+      <p>P@$$w0rd! looks complex. It has uppercase, lowercase, numbers, and symbols. Its actual entropy against a dictionary attack is roughly 20 to 30 bits because the base word is in every attack dictionary and every substitution pattern is documented. It provides false confidence while delivering weak actual security.</p>
+      <p>purple fish climbing radios has no uppercase, no numbers, and no symbols. Against a dictionary attack treating it as a phrase rather than individual words, it has 55 to 66 bits of entropy. It is stronger, memorable, and passes the actual threat model rather than the cosmetic complexity check.</p>
+      <div class="guide-recommendation">
+        <p><strong>Length and uniqueness beat cosmetic complexity.</strong> NIST Special Publication 800-63B moved decisively toward length, uniqueness, and breach checking instead of forced symbols, periodic password resets, and rules that push people toward predictable reuse.</p>
+      </div>
+      <p>NIST Special Publication 800-63B — the United States government's official password standard, which informs security requirements for federal systems and is widely adopted by the private sector — codified this in 2017 and has since reinforced it. The current NIST guidance explicitly recommends against forcing complexity rules, recommends against periodic password changes unless a compromise is suspected, recommends a minimum of 8 characters with strong preference for 15 or more, and recommends allowing passwords up to at least 64 characters. The guidance moved decisively toward length and uniqueness as the primary security factors.</p>
+
+      <h2>Passphrases: When and How to Use Them</h2>
+      <p>A passphrase is four to six random words combined into a single credential. The famous example from XKCD's 2011 comic — "correct horse battery staple" — is now so widely known that it appears in attack dictionaries and should not be used. The concept it illustrates, however, is sound.</p>
+      <p>The correct way to generate a passphrase is with actual randomness, not by thinking of four words yourself. Human "random" word selection is not random — people gravitate toward concrete nouns, avoid obscure words, and unconsciously create patterns that attackers model. The Diceware method uses a list of 7,776 words paired with rolls of a physical die. Four Diceware words produce approximately 51 bits of entropy. Six words produce approximately 77 bits — strong by any current standard.</p>
+      <p>Several good random word generators exist online. The cryptographic randomness in a properly implemented generator gives you the same statistical properties as Diceware without the physical dice.</p>
+      <p>Use passphrases for credentials you actually need to type and remember: your laptop login password, your phone's longer unlock code for high-security situations, and most critically, your password manager's master password. The master password needs to be both very strong and genuinely memorable — a 6-word Diceware passphrase is the correct solution for that specific use case.</p>
+      <p>Do not use passphrases for passwords you store in a password manager. For those, use fully random strings — 20-plus characters of mixed case, numbers, and symbols — that you never need to type or remember. The manager handles all of that.</p>
+
+      <h2>Password Managers: The Non-Negotiable Tool</h2>
+      <p>The fundamental problem with password security advice is that it asks people to remember dozens of unique, strong, random passwords. No human can do that reliably. Password managers solve this by requiring you to remember exactly one strong password while generating and storing unique random credentials for every other account.</p>
+      <p>Your password manager generates gK!3mXp9@LvQ2#nR for your Amazon account, TjW8$hN4!rM6&amp;kP1 for your bank, and something equally random and unique for every other service. You never see those passwords, never type them, and never need to remember them. The manager fills them in automatically. If one site gets breached, only that one credential is exposed — not your Amazon account, not your bank, not your email.</p>
+      <p>The three password managers worth knowing in detail: Bitwarden is free, open source, has been independently audited, and syncs across all devices. Its source code is publicly available for inspection, which is a meaningful security property. 1Password is paid at roughly $3 per month, has an excellent user experience, and includes a Travel Mode feature that removes selected vaults from your device when crossing borders — a legitimate security feature for high-risk travelers. KeePass stores your database locally with no cloud sync by default, which means no third-party server ever holds your encrypted vault. It requires more technical comfort but provides maximum control.</p>
+      <p>The objection "but what if the password manager gets breached?" is real but misweighted. Password manager breaches have happened — LastPass suffered a significant one in 2022 that exposed encrypted vaults. However, encrypted vaults with strong master passwords and proper key derivation remain practically inaccessible to attackers even after a breach. The alternative — reusing passwords across 50 accounts — guarantees that a single breach of any one of those 50 services compromises all of them. One potential risk of a correctly implemented encrypted vault is categorically smaller than the certain risk of credential reuse at scale.</p>
+
+      <h2>Two-Factor Authentication: Your Safety Net</h2>
+      <p>Two-factor authentication means that compromising your password alone is not enough to access your account — the attacker also needs a second factor that only you possess. Even if your password appears verbatim in a breach database, a correctly configured second factor stops the account takeover.</p>
+      <p>The four types of 2FA, ranked by actual security:</p>
+      <div class="guide-security-rank">
+        <div class="security-rank-card security-rank-card--best">
+          <span>Best</span>
+          <h3>Hardware security key</h3>
+          <p>Phishing-resistant physical devices like YubiKey or Google Titan for email, banking, and work systems.</p>
+        </div>
+        <div class="security-rank-card security-rank-card--strong">
+          <span>Strong</span>
+          <h3>Authenticator app</h3>
+          <p>Time-based codes from Google Authenticator, Authy, or Microsoft Authenticator. Much stronger than SMS.</p>
+        </div>
+        <div class="security-rank-card security-rank-card--acceptable">
+          <span>Acceptable</span>
+          <h3>SMS code</h3>
+          <p>Better than no 2FA, but vulnerable to SIM swapping. Use it only when stronger options are unavailable.</p>
+        </div>
+      </div>
+      <p>Hardware security keys — physical devices like YubiKey or Google Titan that plug into USB or tap via NFC — are the gold standard. They are phishing-proof by cryptographic design: the key performs a challenge-response authentication tied to the specific domain, so a fake login page cannot capture a valid response. Phishing attacks that successfully steal authenticator app codes cannot steal hardware key authentication. For high-value accounts — email, banking, work systems — a hardware key is worth the $50 price.</p>
+      <p>Authenticator apps — Google Authenticator, Authy, Microsoft Authenticator — generate time-based one-time codes that expire every 30 seconds. They are significantly stronger than SMS and widely supported. Their weakness is that sophisticated phishing attacks can intercept codes in real time using reverse proxy tools like Evilginx, which sits between you and the legitimate site. This attack is not trivial to execute and requires a targeted effort, but it exists.</p>
+      <p>SMS codes are better than no 2FA but have a documented vulnerability: SIM swapping, where an attacker convinces your mobile carrier to transfer your number to a SIM they control, redirecting all SMS codes. This attack has been used successfully against crypto holders, celebrities, and executives. For accounts that only offer SMS as a second factor, use it — the protection is still meaningful — but migrate to an authenticator app when the option exists.</p>
+      <p>Recovery codes are an often-ignored component of 2FA setup. Every service generates a set of one-time recovery codes when you enable 2FA. These codes are your only way back into your account if you lose access to your 2FA device. Print them. Store them somewhere physically secure — not in your email, not in a notes app on your phone. People lose access to accounts permanently every day because they did not save their recovery codes. The setup screen for 2FA shows you these codes exactly once.</p>
+      <p>Enable 2FA on these accounts before any others: your email account is the master key to everything else — password resets for every service flow through it, which makes it the single highest-value target. Banking and financial accounts are second. Work accounts with access to company systems are third. Social media accounts follow, both for their own value and because they often authenticate into other services.</p>
+
+      <h2>What to Do Right Now (5-Minute Security Upgrade)</h2>
+      <p>These five steps, completed today, address the majority of the actual threat surface for most people.</p>
+      <ol class="guide-action-steps">
+        <li>
+          <h3>Check your breach exposure</h3>
+          <p>Go to haveibeenpwned.com and enter your email address. Troy Hunt, a respected security researcher, maintains this database using data from verified breaches. If your email appears — and statistically it probably does — the site shows you which services were compromised and approximately when. Any password used on a breached service should be treated as fully compromised, regardless of how strong it was.</p>
+        </li>
+        <li>
+          <h3>Change any exposed passwords immediately</h3>
+          <p>Prioritize email, banking, and any account you use for work. Make the new passwords unique to each service — even a random string you generate right now is sufficient as a placeholder until you set up a password manager.</p>
+        </li>
+        <li>
+          <h3>Install Bitwarden today</h3>
+          <p>It is free, takes ten minutes to set up, and works on every device and browser. Create your account with a 6-word Diceware passphrase as the master password. As you log into sites over the next week, save each credential to the manager and let it generate a new, unique, random password for each one. You do not need to update everything at once — migrating incrementally over two weeks is fine.</p>
+        </li>
+        <li>
+          <h3>Enable 2FA on your email account right now</h3>
+          <p>This single action provides more security improvement than any other change you can make in the next five minutes. Open your email account settings, find Security or Two-Step Verification, and enable an authenticator app. Save the recovery codes to a physical document.</p>
+        </li>
+        <li>
+          <h3>Test and generate passwords locally</h3>
+          <p>Any password you type into a website that sends it to a server — even to "test its strength" — has potentially been logged. Tooliest's <a href="/password-security-suite/">Password Security Suite</a> runs entirely in your browser, meaning your password never leaves your device. Use it to generate strong random passwords and to audit existing ones without exposure risk.</p>
+        </li>
+      </ol>
+      <div class="guide-recommendation">
+        <p><strong>The practical stack is simple:</strong> a password manager, a strong unique master password, and 2FA on your email account close the vulnerabilities that account for the overwhelming majority of account takeovers.</p>
+      </div>
+      <p>The threat is real, the attacks are automated, and the defenses are not complicated. None of these changes take more than an hour to implement, and every day you delay is another day of unnecessary exposure.</p>
     `,
     faqs: [
       { q: 'Are passphrases safer than random passwords?', a: 'For password-manager-stored accounts, long random passwords are usually stronger. Passphrases can still be good for passwords you must type often, as long as they are long, unique, and not based on obvious phrases.' },
