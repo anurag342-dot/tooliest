@@ -589,18 +589,85 @@ const TOOLS = [
   {
     id: 'image-compressor',
     name: 'Image Compressor',
-    description: 'Compress images without losing quality. Reduce file size for faster loading.',
+    description: 'Compress JPEG, PNG, and WebP images by up to 70% without visible quality loss. Runs entirely in your browser \u2014 files never leave your device. No signup, no watermarks.',
     category: 'image',
     icon: '📸',
     tags: ['compress', 'optimize', 'reduce size', 'image'],
     isAI: false,
-    education: '<strong>How image compression works</strong><br>Image compression reduces file size using two methods: <em>lossy</em> compression (removes data the eye barely notices, e.g., JPEG quality reduction) and <em>lossless</em> compression (removes redundant metadata without visual change). This tool uses browser-native Canvas APIs for lossy compression, keeping everything local and private.',
-    whyUse: ['Reduce image file sizes by 50-90% without visible quality loss', 'Speed up your website by optimizing images for web delivery', 'Process images locally — nothing is uploaded to any server'],
-    whoUses: 'Web developers, bloggers, e-commerce managers, and anyone who needs smaller image files for faster page loads.',
-    faq: [
-      { q: 'How much can I compress an image without losing quality?', a: 'Most JPEG images can be compressed 50-80% with minimal visible quality loss. For PNG images, lossless compression typically achieves 10-30% reduction. The optimal compression level depends on the image content.' }
+    education: '<strong>Your 4MB photo only needs to be 400KB</strong><br>Cameras and design tools export far more data than screens display. Lossy compression strips the color variations the human eye skips over \u2014 subtle shifts in sky gradients, skin tone transitions, and out-of-focus backgrounds. The result looks the same at normal viewing distance but loads in a fraction of the time. This tool processes images using your browser\'s Canvas API, so files stay on your device. That matters when you are working with client assets, unreleased product shots, or anything under NDA.',
+    whyUse: [
+      'Reduce image weight by 40-70% \u2014 often the single fastest way to improve a Largest Contentful Paint score',
+      'Files stay in your browser. Nothing is uploaded. Safe for client work, medical images, and unreleased product photos',
+      'Adjust the quality slider per image instead of accepting a one-size-fits-all preset',
+      'Batch compress and download as a ZIP to process an entire page\'s images in one pass'
     ],
-    meta: { title: 'Image Compressor - Reduce Image Size Online Free | Tooliest', desc: 'Compress images online without losing quality. Reduce JPEG, PNG file sizes for faster web loading.' }
+    whoUses: 'Web developers hitting Core Web Vitals deadlines. Photographers sending compressed proofs without exposing RAW files to a third party. E-commerce teams meeting marketplace image size limits. Bloggers keeping page weight under 1MB on shared hosting.',
+    faq: [
+      {
+        q: 'How much can I compress a JPEG before it looks bad?',
+        a: 'Quality 80-85 is visually identical to the original for most photographs. Below 70, you will notice blocky edges around text and high-contrast lines. Portraits and landscapes tolerate more compression than screenshots or product labels with small type.'
+      },
+      {
+        q: 'What size should a web image be?',
+        a: 'A hero image typically lands between 80-200KB compressed. Blog and product images sit around 40-120KB. Thumbnails should be under 30KB. If your image is still over 300KB after compression, resize it to the actual display width first, then compress.'
+      },
+      {
+        q: 'Does this upload my images to a server?',
+        a: 'No. Processing happens in your browser using the Canvas API. Open DevTools Network tab during compression to verify \u2014 no image data is transmitted.'
+      },
+      {
+        q: 'Should I resize before or after compressing?',
+        a: 'Resize first. A 4000px-wide image at quality 80 still ships pixels a 600px layout slot will never show. Resize to target dimensions, then compress. The combined savings are dramatically larger.'
+      },
+      {
+        q: 'JPEG vs WebP vs AVIF \u2014 which is smallest?',
+        a: 'At equivalent visual quality: AVIF is 40-55% smaller than JPEG, WebP is 25-35% smaller than JPEG. AVIF has the best compression but slower encoding and narrower browser support. WebP is the practical sweet spot for most sites in 2026.'
+      },
+      {
+        q: 'What is lossy vs lossless compression?',
+        a: 'Lossy removes data the eye skips over \u2014 smaller files but not pixel-perfect. JPEG and WebP are lossy. Lossless keeps every pixel intact \u2014 larger files but identical output. PNG is lossless. Use lossy for photos, lossless for screenshots, logos, and images containing readable text.'
+      }
+    ],
+    faqLimit: 6,
+    customSections: [
+      {
+        heading: 'Quick Compression Reference by Use Case',
+        body: [
+          'Hero images and banners: resize to 1200-1600px wide, compress at quality 82-85, target under 200KB. Blog post images: resize to 800px wide, quality 78-82, target under 100KB. Product photos for e-commerce: match marketplace specs (usually 1000-1500px square), quality 85, target under 150KB. Email images: resize to 600px wide, quality 75, target under 50KB because many email clients block images over certain sizes. Social media: each platform recompresses uploads anyway, so quality 85 at the platform\'s recommended dimensions is sufficient.'
+        ]
+      },
+      {
+        heading: 'Why Browser-Based Compression Matters',
+        body: [
+          'Most online image compressors upload your file to a remote server, compress it there, and send it back. Your images pass through someone else\'s infrastructure. Tooliest runs compression in your browser tab using JavaScript and Canvas API \u2014 the file never leaves your machine. This is not a privacy marketing claim, it is a verifiable technical fact you can confirm in your browser\'s network inspector.'
+        ]
+      }
+    ],
+    contentHighlights: [
+      'One uncompressed hero image can add over a second to Largest Contentful Paint on a 4G connection \u2014 compressing it is often the single highest-impact performance fix.',
+      'The quality slider gives you control per image. A portrait at quality 80 looks perfect. A screenshot with small text might need quality 90.',
+      'Batch processing and ZIP download means you can optimize an entire page\'s images in one session instead of dragging files one at a time.'
+    ],
+    aeoSnippet: {
+      heading: 'Is There a Free Image Compressor That Does Not Upload Files?',
+      answer: 'Tooliest compresses images in your browser using the Canvas API. Files are never uploaded to any server. This is verifiable by checking the browser\'s Network tab during compression.'
+    },
+    relatedLinks: [
+      {
+        toolId: 'image-resizer',
+        title: 'Image Resizer',
+        description: 'Resize to target dimensions before compressing for maximum savings'
+      },
+      {
+        toolId: 'image-converter',
+        title: 'Image Format Converter',
+        description: 'Convert between JPEG, PNG, and WebP formats'
+      }
+    ],
+    meta: {
+      title: 'Free Image Compressor - Private, No Upload | Tooliest',
+      desc: 'Compress JPEG, PNG, and WebP by up to 70%. Files never leave your browser. Adjust quality per image, batch compress, download as ZIP. No signup, no watermarks.'
+    }
   },
   {
     id: 'image-resizer',
@@ -2730,15 +2797,16 @@ Sitemap: https://yoursite.com/sitemap.xml</code></pre><p>Blocking /wp-login.php 
     ],
   },
   'image-compressor': {
-    metaDesc: 'Compress JPG, PNG, WebP, and AVIF images online without uploads. Reduce file size fast, keep visual quality, and download instantly with Tooliest.',
+    metaDescExact: 'Compress JPEG, PNG, and WebP by up to 70%. Files never leave your browser. Adjust quality per image, batch compress, download as ZIP. No signup, no watermarks.',
     summaryHeading: 'How Do I Compress Images Online Without Losing Quality?',
     aeoSnippet: {
-      heading: 'How Much Can Image Compression Reduce File Size?',
-      answer: 'The exact savings depend on the source image and output format, but web-ready compression often cuts large photos by 60% to 90% while still looking sharp on screen. Photos with extra resolution or metadata usually shrink the most.',
+      heading: 'Is There a Free Image Compressor That Does Not Upload Files?',
+      answer: 'Tooliest compresses images in your browser using the Canvas API. Files are never uploaded to any server. This is verifiable by checking the browser\'s Network tab during compression.',
     },
     contentHighlights: [
-      'A typical 4000 x 3000 photo can often shrink from roughly 4 MB to well under 1 MB for web publishing, especially when quality settings target visual rather than archival output.',
-      'Image compression reduces transfer weight, which can improve page speed, cut mobile bandwidth usage, and lower the chance of oversized assets dragging down Core Web Vitals.',
+      'One uncompressed hero image can add over a second to Largest Contentful Paint on a 4G connection \u2014 compressing it is often the single highest-impact performance fix.',
+      'The quality slider gives you control per image. A portrait at quality 80 looks perfect. A screenshot with small text might need quality 90.',
+      'Batch processing and ZIP download means you can optimize an entire page\'s images in one session instead of dragging files one at a time.',
     ],
     faqExtras: [
       { q: 'Can I compress images for website speed without uploading them?', a: 'Yes. Tooliest processes the file inside your browser, so you can reduce file size for landing pages, blog posts, or ecommerce listings without sending the image to a remote server.' },
