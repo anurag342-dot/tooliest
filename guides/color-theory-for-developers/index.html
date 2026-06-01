@@ -7,7 +7,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Color Theory for Developers | Tooliest</title>
-  <meta name="description" content="A practical guide to hue, contrast, palette building, and UI color decisions for developers who need design judgment without design jargon.">
+  <meta name="description" content="Master practical color theory for UI development: HSL color model, contrast ratios for WCAG accessibility, building a palette from scratch, dark mode implementation, and common color mistakes. Includes hex codes, HSL values, and CSS examples.">
   <meta name="author" content="Anurag">
   <meta name="robots" content="index, follow">
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -19,7 +19,7 @@
   <link rel="manifest" href="/manifest.json">
   <meta property="og:type" content="article">
   <meta property="og:title" content="Color Theory for Developers | Tooliest">
-  <meta property="og:description" content="A practical guide to hue, contrast, palette building, and UI color decisions for developers who need design judgment without design jargon.">
+  <meta property="og:description" content="Master practical color theory for UI development: HSL color model, contrast ratios for WCAG accessibility, building a palette from scratch, dark mode implementation, and common color mistakes. Includes hex codes, HSL values, and CSS examples.">
   <meta property="og:url" content="https://tooliest.com/guides/color-theory-for-developers/">
   <meta property="og:site_name" content="Tooliest">
   <meta property="og:image" content="https://tooliest.com/og/site/guides.svg">
@@ -27,7 +27,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@tooliest">
   <meta name="twitter:title" content="Color Theory for Developers | Tooliest">
-  <meta name="twitter:description" content="A practical guide to hue, contrast, palette building, and UI color decisions for developers who need design judgment without design jargon.">
+  <meta name="twitter:description" content="Master practical color theory for UI development: HSL color model, contrast ratios for WCAG accessibility, building a palette from scratch, dark mode implementation, and common color mistakes. Includes hex codes, HSL values, and CSS examples.">
   <meta name="twitter:image" content="https://tooliest.com/og/site/guides.svg">
   <meta name="twitter:image:alt" content="Understanding Color Theory: A Developer’s Guide to Palettes guide preview card">
   <link rel="canonical" href="https://tooliest.com/guides/color-theory-for-developers/">
@@ -40,15 +40,438 @@
   <style>:root{--bg-primary:#0a0a0f;--bg-secondary:#12121a;--bg-tertiary:#1a1a2e;--bg-card:rgba(26,26,46,.6);--bg-glass:rgba(255,255,255,.03);--bg-glass-hover:rgba(255,255,255,.06);--text-primary:#e8e8f0;--text-secondary:#a0a0b8;--text-tertiary:#6b6b80;--accent-primary:#8b5cf6;--accent-secondary:#06b6d4;--accent-success:#10b981;--gradient-primary:linear-gradient(135deg,#8b5cf6,#06b6d4);--border-color:rgba(255,255,255,.06);--border-accent:rgba(139,92,246,.3);--font-primary:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:1400px;--nav-height:72px;--radius-md:12px;--radius-lg:16px;--radius-full:9999px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);--touch-target-min:44px;--z-nav:1000}[data-theme=light]{--bg-primary:#f8f9fc;--bg-secondary:#fff;--bg-tertiary:#e8eaf0;--bg-card:rgba(255,255,255,.85);--bg-glass:rgba(0,0,0,.02);--bg-glass-hover:rgba(0,0,0,.04);--text-primary:#1a1a2e;--text-secondary:#4a4a6a;--text-tertiary:#6b6b84;--border-color:rgba(0,0,0,.08)}html{font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;overscroll-behavior-y:contain}body{margin:0;font-family:var(--font-primary);background:var(--bg-primary);color:var(--text-primary);line-height:1.6;min-height:100vh}a{color:var(--accent-primary);text-decoration:none}img{display:block;max-width:100%}img[width][height]{height:auto}.skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}.skip-link:focus{left:16px;top:16px;width:auto;height:auto;padding:10px 14px;border-radius:999px;background:var(--bg-secondary);color:var(--text-primary);z-index:2000}.navbar{position:fixed;top:0;left:0;right:0;min-height:var(--nav-height);height:var(--nav-height);display:flex;align-items:center;padding:0 max(24px,calc(24px + var(--safe-left))) 0 max(24px,calc(24px + var(--safe-right)));background:rgba(10,10,15,.88);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border-color);z-index:var(--z-nav)}[data-theme=light] .navbar{background:rgba(255,255,255,.9)}.nav-inner{max-width:var(--max-width);width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px}.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.5rem;font-weight:800;color:var(--text-primary);flex-shrink:0}.nav-logo .logo-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;background:var(--gradient-primary)}.nav-logo .logo-text span,.hero h1 .gradient-text{-webkit-background-clip:text;-webkit-text-fill-color:transparent;background:var(--gradient-primary);background-clip:text}.nav-search{flex:1;max-width:480px;position:relative}.nav-search input{width:100%;height:42px;padding:0 16px 0 44px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-glass);color:var(--text-primary);font:inherit;outline:none}.nav-search .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-tertiary)}.nav-search .search-shortcut{position:absolute;right:14px;top:50%;transform:translateY(-50%);padding:2px 8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-tertiary);font:.7rem var(--font-mono);color:var(--text-tertiary)}.nav-links{display:flex;align-items:center;gap:8px;flex-shrink:0}.nav-links a,.theme-toggle-btn,.mobile-menu-btn,.mobile-search-btn{min-height:44px}.nav-links a{padding:8px 16px;border-radius:999px;color:var(--text-secondary);font-size:.9rem;font-weight:500}.theme-toggle-btn,.mobile-menu-btn,.mobile-search-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--border-color);border-radius:12px;background:none;color:var(--text-primary);cursor:pointer}.mobile-menu-btn,.mobile-search-btn{display:none}.main-content{padding-top:var(--nav-height);padding-bottom:var(--safe-bottom);min-height:100vh}.hero,.tool-page{max-width:900px;margin:0 auto;padding:80px 24px 40px}.hero{text-align:center}.hero h1{margin:0 0 20px;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;line-height:1.1}.hero p,.tool-page-header p{max-width:600px;margin:0 auto 30px;color:var(--text-secondary);font-size:clamp(1rem,2.4vw,1.2rem)}.hero-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-top:40px}.hero-stat{text-align:center}.hero-stat .stat-value{font-size:2rem;font-weight:800;color:var(--accent-primary)}.hero-stat .stat-label,.tool-breadcrumb{font-size:.85rem;color:var(--text-tertiary)}.hero-trust-strip{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:28px}.trust-badge,.category-tab,.tool-tag{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-glass);color:var(--text-secondary);font-size:.82rem;max-width:100%;white-space:normal;overflow-wrap:anywhere}.categories-section,.tools-section{padding:20px 24px}.category-tabs{max-width:var(--max-width);margin:0 auto 24px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.category-tab{white-space:nowrap}.tool-page-header{margin-bottom:32px}.tool-page-header h1{margin:0;font-size:2rem;font-weight:800}.tool-breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:16px}.tools-grid,.guide-card-grid,.tool-proof-grid,.tool-content-sections{display:grid;gap:20px}.tools-grid{max-width:var(--max-width);margin:0 auto;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}.tool-card,.guide-card,.tool-content-section,.tool-workspace,.tool-proof-card,.home-utility-panel{border:1px solid var(--border-color);border-radius:16px;background:var(--bg-card);min-width:0}.tool-card,.guide-card,.tool-content-section,.tool-proof-card,.home-utility-panel{padding:20px}.tool-card-link{display:block;color:inherit}.tool-card-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px}.tool-card-icon{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:var(--gradient-primary);font-size:1.6rem;flex-shrink:0}.tool-card-info h3{margin:0 0 4px;font-size:1.1rem}.tool-card p{margin:0 0 14px;color:var(--text-secondary)}.tool-card-tags{display:flex;flex-wrap:wrap;gap:8px}.guide-card-grid{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));margin-top:18px}.guide-card h3{margin:6px 0 10px;font-size:1.08rem}.tool-workspace{padding:0}.tool-workspace-body{padding:20px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border:none;border-radius:12px;background:var(--gradient-primary);color:#fff;font-weight:700;font:inherit;cursor:pointer}.btn-secondary{border:1px solid var(--border-color);background:var(--bg-glass);color:var(--text-primary)}.footer-verification-link img{width:320px;height:auto;max-width:100%;aspect-ratio:320/54}.ad-space,.adsbygoogle{display:block;width:100%;min-height:90px}@media (max-width:1176px){:root{--nav-height:60px}.navbar{padding:0 max(12px,calc(12px + var(--safe-left))) 0 max(12px,calc(12px + var(--safe-right)));height:60px;min-height:60px}.nav-inner{gap:8px;min-height:60px}.nav-search,.nav-links{display:none}.mobile-menu-btn,.mobile-search-btn{display:inline-flex}.nav-logo{gap:8px;font-size:1.1rem}.nav-logo .logo-icon{width:32px;height:32px;font-size:1.1rem}.hero,.tool-page{padding:48px 16px 32px}.hero-stats{gap:20px}.hero-trust-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.trust-badge{justify-content:center;text-align:center}}@media (max-width:640px){:root{--nav-height:56px}.navbar{padding:0 max(10px,calc(10px + var(--safe-left))) 0 max(10px,calc(10px + var(--safe-right)));height:56px;min-height:56px}.nav-inner{gap:6px}.hero,.tool-page,.categories-section,.tools-section{padding-left:12px;padding-right:12px}.hero h1{font-size:clamp(2rem,9vw,2.6rem)}.hero p{font-size:.98rem}.hero-stats{gap:16px}.hero-stat .stat-value{font-size:1.5rem}.tools-grid{grid-template-columns:1fr}.tool-card,.guide-card,.tool-content-section,.tool-proof-card,.home-utility-panel{padding:16px}}@media (min-width:768px) and (max-width:1176px){.nav-inner{justify-content:flex-start;gap:clamp(6px,1vw,12px)}.nav-search{display:block;flex:0 1 clamp(120px,18vw,260px);max-width:260px}.nav-search input{height:40px}.nav-search .search-shortcut{display:none}.nav-links{display:flex;align-items:center;gap:clamp(2px,.45vw,8px);flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}.nav-links::-webkit-scrollbar{display:none}.nav-links a{padding:8px clamp(8px,1vw,14px);font-size:clamp(.78rem,.95vw,.9rem);white-space:nowrap}.mobile-menu-btn,.mobile-search-btn{display:none}.theme-toggle-btn,#whats-new-btn{width:40px;height:40px;flex:0 0 40px}}@media (max-width:767px){.nav-search,.nav-links{display:none}.mobile-menu-btn,.mobile-search-btn{display:inline-flex}}</style>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin"></noscript>
-  <link rel="preload" href="/css/styles3.min.css?v=20260530-295a5c55" as="style" fetchpriority="high" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/css/styles3.min.css?v=20260530-295a5c55"></noscript>
-  <script data-cfasync="false">window.__TOOLIEST_ASSET_VERSION='20260530-295a5c55';</script>
-  <script src="/js/consent.js?v=20260530-295a5c55" defer data-cfasync="false"></script>
+  <link rel="preload" href="/css/styles3.min.css?v=20260601-367b9a70" as="style" fetchpriority="high" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/styles3.min.css?v=20260601-367b9a70"></noscript>
+  <script data-cfasync="false">window.__TOOLIEST_ASSET_VERSION='20260601-367b9a70';</script>
+  <script src="/js/consent.js?v=20260601-367b9a70" defer data-cfasync="false"></script>
   <!-- AdSense script removed for compliance: re-enable after approval -->
   <!-- <script data-cfasync="false">(function(w,d,url){var booted=false;function loadAds(){if(booted)return;booted=true;var s=d.createElement('script');s.src=url;s.async=true;s.crossOrigin='anonymous';s.fetchPriority='low';s.setAttribute('data-cfasync','false');d.head.appendChild(s);}function schedule(){if('requestIdleCallback' in w){w.requestIdleCallback(loadAds,{timeout:5500});return;}w.setTimeout(loadAds,3600);}w.addEventListener('load',function(){w.setTimeout(schedule,1400);},{once:true});})(window,document,'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3155132462698504');</script> -->
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Understanding Color Theory: A Developer’s Guide to Palettes","description":"A practical guide to hue, contrast, palette building, and UI color decisions for developers who need design judgment without design jargon.","author":{"@type":"Person","name":"Anurag"},"publisher":{"@type":"Organization","name":"Tooliest","logo":{"@type":"ImageObject","url":"https://tooliest.com/icon-512.png"}},"datePublished":"2026-05-01","dateModified":"2026-05-01","mainEntityOfPage":"https://tooliest.com/guides/color-theory-for-developers/"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Understanding Color Theory: A Developer’s Guide to Palettes","description":"Master practical color theory for UI development: HSL color model, contrast ratios for WCAG accessibility, building a palette from scratch, dark mode implementation, and common color mistakes. Includes hex codes, HSL values, and CSS examples.","author":{"@type":"Person","name":"Anurag"},"publisher":{"@type":"Organization","name":"Tooliest","logo":{"@type":"ImageObject","url":"https://tooliest.com/icon-512.png"}},"datePublished":"2026-05-01","dateModified":"2026-06-01","mainEntityOfPage":"https://tooliest.com/guides/color-theory-for-developers/"}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tooliest.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://tooliest.com/guides/"},{"@type":"ListItem","position":3,"name":"Understanding Color Theory: A Developer’s Guide to Palettes","item":"https://tooliest.com/guides/color-theory-for-developers/"}]}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the most important color rule for UI work?","acceptedAnswer":{"@type":"Answer","text":"Clarity. A palette should create hierarchy, support readability, and make interactive states obvious before it tries to feel expressive."}},{"@type":"Question","name":"Why do palettes that look good in isolation fail in interfaces?","acceptedAnswer":{"@type":"Answer","text":"Because interface colors have to work together across text, surfaces, buttons, alerts, and states. A color that looks attractive alone may create conflict or low contrast once it appears in context."}},{"@type":"Question","name":"Do developers need to understand WCAG contrast ratios?","acceptedAnswer":{"@type":"Answer","text":"Yes. Even a basic understanding helps prevent hard-to-read text and inaccessible action states. It is one of the quickest ways to make a UI more robust."}},{"@type":"Question","name":"How many brand or accent colors should most interfaces use?","acceptedAnswer":{"@type":"Answer","text":"Usually fewer than people expect. One dominant accent and a small supporting system are often enough for a clean, professional interface."}}]}</script>
+  <style>
+  .guide-article-copy .guide-table-wrap {
+    width: 100%;
+    margin: 22px 0 28px;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: rgba(255,255,255,.025);
+    -webkit-overflow-scrolling: touch;
+  }
+  .guide-article-copy table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+    font-size: .95rem;
+  }
+  .guide-article-copy th,
+  .guide-article-copy td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+  }
+  .guide-article-copy th {
+    color: var(--text-primary);
+    background: rgba(139,92,246,.16);
+    font-weight: 750;
+  }
+  .guide-article-copy td {
+    color: var(--text-secondary);
+    background: rgba(255,255,255,.015);
+  }
+  .guide-article-copy tr:nth-child(even) td {
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-code-window {
+    margin: 22px 0 28px;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.22);
+    border-radius: 14px;
+    background: #080b12;
+    box-shadow: 0 18px 45px rgba(0,0,0,.28);
+  }
+  .guide-code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(148,163,184,.18);
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025));
+  }
+  .guide-code-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .guide-code-dots {
+    display: inline-flex;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+  .guide-code-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: block;
+  }
+  .guide-code-dots span:nth-child(1) { background: #ff5f56; }
+  .guide-code-dots span:nth-child(2) { background: #ffbd2e; }
+  .guide-code-dots span:nth-child(3) { background: #27c93f; }
+  .guide-code-language {
+    color: #94a3b8;
+    font: 700 .72rem var(--font-mono);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .guide-code-copy {
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid rgba(148,163,184,.24);
+    border-radius: 10px;
+    background: rgba(15,23,42,.82);
+    color: #e2e8f0;
+    font: 700 .78rem var(--font-primary);
+    cursor: pointer;
+  }
+  .guide-code-copy:hover,
+  .guide-code-copy:focus-visible {
+    border-color: rgba(139,92,246,.72);
+    background: rgba(139,92,246,.22);
+    outline: none;
+  }
+  .guide-code-window pre {
+    margin: 0;
+    padding: 18px;
+    overflow-x: auto;
+    background: transparent;
+    color: #e5e7eb;
+    font: .9rem/1.7 var(--font-mono);
+    white-space: pre;
+    tab-size: 2;
+  }
+  .guide-code-window code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+  }
+  [data-theme=light] .guide-article-copy .guide-table-wrap {
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 12px 30px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy th {
+    background: rgba(139,92,246,.12);
+  }
+  [data-theme=light] .guide-article-copy td {
+    background: rgba(255,255,255,.72);
+  }
+  [data-theme=light] .guide-article-copy tr:nth-child(even) td {
+    background: rgba(15,23,42,.025);
+  }
+  [data-theme=light] .guide-code-window {
+    background: #f8fafc;
+    border-color: rgba(15,23,42,.12);
+    box-shadow: 0 16px 34px rgba(15,23,42,.08);
+  }
+  [data-theme=light] .guide-code-header {
+    border-bottom-color: rgba(15,23,42,.1);
+    background: linear-gradient(180deg, rgba(15,23,42,.06), rgba(15,23,42,.018));
+  }
+  [data-theme=light] .guide-code-language {
+    color: #475569;
+  }
+  [data-theme=light] .guide-code-copy {
+    background: rgba(255,255,255,.9);
+    color: #1e293b;
+    border-color: rgba(15,23,42,.16);
+  }
+  [data-theme=light] .guide-code-window pre {
+    color: #0f172a;
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-table-wrap {
+      margin-left: -4px;
+      margin-right: -4px;
+      border-radius: 12px;
+    }
+    .guide-article-copy th,
+    .guide-article-copy td {
+      padding: 12px 14px;
+    }
+    .guide-code-window {
+      border-radius: 12px;
+    }
+    .guide-code-header {
+      padding: 9px 10px;
+    }
+    .guide-code-window pre {
+      padding: 14px;
+      font-size: .82rem;
+      line-height: 1.65;
+    }
+    .guide-code-copy {
+      min-height: 32px;
+      padding: 6px 10px;
+    }
+  }
+</style><style>
+  .guide-article-copy .guide-color-wheel,
+  .guide-article-copy .guide-palette-demo,
+  .guide-article-copy .guide-palette-builder,
+  .guide-article-copy .guide-mode-compare {
+    margin: 24px 0 30px;
+  }
+  .guide-article-copy .color-wheel-strip {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 16px;
+    box-shadow: 0 18px 42px rgba(0,0,0,.2);
+  }
+  .guide-article-copy .color-wheel-strip span {
+    min-height: 92px;
+    display: grid;
+    place-items: center;
+    padding: 12px 8px;
+    background: var(--swatch);
+    color: #fff;
+    text-align: center;
+    font-weight: 900;
+    line-height: 1.2;
+    text-shadow: 0 1px 10px rgba(0,0,0,.42);
+  }
+  .guide-article-copy .color-wheel-strip small {
+    display: block;
+    margin-top: 5px;
+    font: 800 .72rem/1 var(--font-mono);
+  }
+  .guide-article-copy .color-relationship-grid,
+  .guide-article-copy .guide-palette-demo,
+  .guide-article-copy .guide-mode-compare {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .guide-article-copy .color-relationship-grid {
+    margin-top: 16px;
+  }
+  .guide-article-copy .color-relationship-card,
+  .guide-article-copy .mode-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy .color-relationship-card h3,
+  .guide-article-copy .mode-card h3 {
+    margin-top: 0;
+  }
+  .guide-article-copy .relationship-dots {
+    display: flex;
+    gap: 9px;
+    margin: 10px 0 12px;
+  }
+  .guide-article-copy .relationship-dots span {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--dot);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 8px 18px rgba(0,0,0,.18);
+  }
+  .guide-article-copy .guide-palette-demo {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .guide-article-copy .palette-demo-swatch,
+  .guide-article-copy .palette-builder-swatches span {
+    min-width: 0;
+    display: grid;
+    align-content: end;
+    gap: 7px;
+    min-height: 132px;
+    padding: 14px;
+    border-radius: 16px;
+    background: var(--swatch);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 14px 28px rgba(0,0,0,.14);
+  }
+  .guide-article-copy .palette-demo-swatch strong,
+  .guide-article-copy .palette-builder-swatches strong {
+    font-weight: 900;
+  }
+  .guide-article-copy .palette-demo-swatch span,
+  .guide-article-copy .palette-builder-swatches small {
+    font: 750 .75rem/1.35 var(--font-mono);
+  }
+  .guide-article-copy .palette-demo-swatch code,
+  .guide-article-copy .palette-builder-swatches code {
+    width: fit-content;
+    max-width: 100%;
+    color: inherit;
+    background: rgba(255,255,255,.22);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 8px;
+    padding: 3px 7px;
+    word-break: break-word;
+  }
+  .guide-article-copy .guide-contrast-table .contrast-pass td {
+    background: rgba(34,197,94,.13);
+  }
+  .guide-article-copy .guide-contrast-table .contrast-fail td {
+    background: rgba(239,68,68,.13);
+  }
+  .guide-article-copy .guide-contrast-table .contrast-pass td:first-child {
+    border-left: 4px solid #22c55e;
+  }
+  .guide-article-copy .guide-contrast-table .contrast-fail td:first-child {
+    border-left: 4px solid #ef4444;
+  }
+  .guide-article-copy .contrast-swatch {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin: 0 6px -3px 0;
+    border: 1px solid rgba(148,163,184,.5);
+    border-radius: 5px;
+    background: var(--swatch);
+  }
+  .guide-article-copy .guide-palette-builder {
+    display: grid;
+    gap: 18px;
+    padding: 18px;
+    border: 1px solid rgba(139,92,246,.28);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(6,182,212,.04)), rgba(255,255,255,.025);
+  }
+  .guide-article-copy .palette-builder-row {
+    display: grid;
+    gap: 12px;
+  }
+  .guide-article-copy .palette-builder-row h3 {
+    margin: 0;
+  }
+  .guide-article-copy .palette-builder-swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .guide-article-copy .guide-mode-compare {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .guide-article-copy .mode-card {
+    display: grid;
+    gap: 10px;
+    min-height: 230px;
+    align-content: center;
+  }
+  .guide-article-copy .mode-card span {
+    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .guide-article-copy .mode-card p {
+    margin-bottom: 6px;
+  }
+  .guide-article-copy .mode-card button {
+    width: fit-content;
+    min-height: 42px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 11px;
+    font: 800 .92rem var(--font-primary);
+  }
+  .guide-article-copy .mode-card-light {
+    background: #f6f5fb;
+    color: #1a1823;
+  }
+  .guide-article-copy .mode-card-light span {
+    background: rgba(124,58,237,.12);
+    color: #5b21b6;
+  }
+  .guide-article-copy .mode-card-light p {
+    color: #6e6a84;
+  }
+  .guide-article-copy .mode-card-light button {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-article-copy .mode-card-dark {
+    background: #0f0d17;
+    color: #e9e5f5;
+  }
+  .guide-article-copy .mode-card-dark span {
+    background: rgba(167,139,250,.18);
+    color: #c4b5fd;
+  }
+  .guide-article-copy .mode-card-dark p {
+    color: #aba3c3;
+  }
+  .guide-article-copy .mode-card-dark button {
+    background: #a78bfa;
+    color: #150f2b;
+  }
+  [data-theme=light] .guide-article-copy .color-wheel-strip,
+  [data-theme=light] .guide-article-copy .guide-palette-builder {
+    box-shadow: 0 16px 34px rgba(15,23,42,.08);
+  }
+  [data-theme=light] .guide-article-copy .color-relationship-card,
+  [data-theme=light] .guide-article-copy .guide-palette-builder {
+    background-color: rgba(255,255,255,.86);
+  }
+  [data-theme=light] .guide-article-copy .guide-contrast-table .contrast-pass td {
+    background: rgba(34,197,94,.09);
+  }
+  [data-theme=light] .guide-article-copy .guide-contrast-table .contrast-fail td {
+    background: rgba(239,68,68,.09);
+  }
+  @media (max-width: 840px) {
+    .guide-article-copy .color-relationship-grid,
+    .guide-article-copy .guide-mode-compare {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-palette-demo {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .color-wheel-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-radius: 12px;
+    }
+    .guide-article-copy .color-wheel-strip span {
+      min-height: 78px;
+    }
+    .guide-article-copy .guide-palette-demo {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .color-relationship-card,
+    .guide-article-copy .palette-demo-swatch,
+    .guide-article-copy .guide-palette-builder,
+    .guide-article-copy .mode-card {
+      border-radius: 12px;
+    }
+    .guide-article-copy .guide-palette-builder {
+      padding: 14px;
+    }
+  }
+</style>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -94,34 +517,205 @@
           <span>Understanding Color Theory: A Developer’s Guide to Palettes</span>
         </div>
         <h1 style="margin:0">Understanding Color Theory: A Developer’s Guide to Palettes</h1>
-        <p>A practical guide to hue, contrast, palette building, and UI color decisions for developers who need design judgment without design jargon.</p>
-        <p class="tool-last-updated">By Anurag &middot; Published May 1, 2026 &middot; Updated May 1, 2026 &middot; ~8 min read</p>
+        <p>Master practical color theory for UI development: HSL color model, contrast ratios for WCAG accessibility, building a palette from scratch, dark mode implementation, and common color mistakes. Includes hex codes, HSL values, and CSS examples.</p>
+        <p class="tool-last-updated">By Anurag &middot; Published May 1, 2026 &middot; Updated June 1, 2026 &middot; ~11 min read</p>
       </div>
       <div class="tool-content-sections">
         <section class="tool-content-section guide-article-copy">
           
-      <p>Developers rarely need a full fine-arts course in color theory, but they do need enough judgment to avoid building interfaces that feel muddy, low-contrast, or visually confused. The practical version of color theory is about relationships: how colors sit next to each other, how they guide attention, and how they behave once text, buttons, alerts, and backgrounds all share the same screen.</p>
-      <p>You do not need twenty accent colors to make a UI feel considered. In most product work, better color decisions come from restraint, hierarchy, and accessibility rather than from chasing novelty.</p>
+      <h2>Why Developers Need Color Theory (Even If They Think They Don't)</h2>
+      <p>Every UI decision involves color. The background you chose. The button shade. The text you assumed was readable. The error state you picked because red felt right. These decisions happen whether you think about them or not - the difference is whether they are defensible or accidental.</p>
+      <p>Bad color decisions produce three concrete, measurable problems. The first is accessibility failure. Approximately 4.5% of men have red-green color vision deficiency - that is roughly 300 million people globally who cannot distinguish certain color combinations. Low contrast text is not a design preference issue, it is an exclusion issue, and in several jurisdictions it is a legal liability under accessibility legislation. The second is visual hierarchy collapse. When every element on a screen carries the same visual weight because nothing has been intentionally emphasized, users lose the ability to prioritize - their eyes have nowhere to go. The third is brand inconsistency. Ad hoc color picks made without a system produce interfaces that read as unfinished, because they are. Colors that almost match but do not quite match are more visually disturbing than a deliberately minimal palette.</p>
+      <p>You do not need to become a designer. You need enough color knowledge to make choices you can justify and reproduce, rather than choices you made by vague intuition and cannot replicate next week.</p>
 
-      <h2>Start with hue roles, not endless swatches</h2>
-      <p>The most useful mental model is to assign jobs. One color leads the brand or primary action. Another handles support states or secondary emphasis. Neutral tones carry most surfaces, borders, and text scaffolding. Success, warning, and error states get their own semantic roles. Once the roles are clear, you stop choosing colors randomly and start building a system.</p>
-      <p>Tooliest's <a href="/palette-generator/">Palette Generator</a> and <a href="/color-picker/">Color Picker</a> are helpful because they let you test variations quickly without pretending every new hex code deserves equal weight in the interface.</p>
+      <h2>The Color Wheel: What Actually Matters</h2>
+      <p>The color wheel organizes hues by their relationship to each other. In the traditional RYB model used in painting, primaries are red, yellow, and blue. In digital work - screens, monitors, interfaces - the additive model applies: primaries are red, green, and blue. Mixing two primaries produces secondaries: orange, green, purple in RYB. Mixing a primary with an adjacent secondary produces tertiaries: red-orange, blue-green, yellow-green.</p>
+      <p>What you actually need from this as a UI developer is an understanding of three color relationships, each with a specific use case.</p>
+      <div class="guide-color-wheel" aria-label="Hue spectrum and common color relationships">
+        <div class="color-wheel-strip">
+          <span style="--swatch:#ef4444">Red<br><small>0&deg;</small></span>
+          <span style="--swatch:#f97316">Orange<br><small>30&deg;</small></span>
+          <span style="--swatch:#eab308">Yellow<br><small>60&deg;</small></span>
+          <span style="--swatch:#22c55e">Green<br><small>120&deg;</small></span>
+          <span style="--swatch:#06b6d4">Cyan<br><small>180&deg;</small></span>
+          <span style="--swatch:#3b82f6">Blue<br><small>240&deg;</small></span>
+          <span style="--swatch:#8b5cf6">Purple<br><small>270&deg;</small></span>
+          <span style="--swatch:#d946ef">Magenta<br><small>330&deg;</small></span>
+        </div>
+        <div class="color-relationship-grid">
+          <div class="color-relationship-card">
+            <h3>Complementary</h3>
+            <div class="relationship-dots" aria-hidden="true"><span style="--dot:#3b82f6"></span><span style="--dot:#f97316"></span></div>
+            <p>Opposite hues create maximum attention for primary CTAs and critical alerts.</p>
+          </div>
+          <div class="color-relationship-card">
+            <h3>Analogous</h3>
+            <div class="relationship-dots" aria-hidden="true"><span style="--dot:#3b82f6"></span><span style="--dot:#06b6d4"></span><span style="--dot:#22c55e"></span></div>
+            <p>Neighboring hues create harmony for gradients, dashboards, and continuous data scales.</p>
+          </div>
+          <div class="color-relationship-card">
+            <h3>Triadic</h3>
+            <div class="relationship-dots" aria-hidden="true"><span style="--dot:#3b82f6"></span><span style="--dot:#ef4444"></span><span style="--dot:#eab308"></span></div>
+            <p>Three evenly spaced hues separate categories without making one color dominate.</p>
+          </div>
+        </div>
+      </div>
+      <p>Complementary colors sit directly opposite each other on the wheel. Blue and orange. Red and green. Purple and yellow. Complementary pairs produce maximum visual contrast - each color makes the other appear more vivid. This is why a bright orange CTA button on a deep blue background commands attention without any other visual treatment. Use complementary pairings for primary call-to-action elements and critical alerts where the user's eye needs to be pulled immediately.</p>
+      <p>Analogous colors are adjacent on the wheel - blue, blue-green, and green share a neighborhood. They create harmony because they share underlying hue components. Use analogous relationships for gradients, for related sections of a dashboard that should feel connected, and for data visualization color scales where you want continuous progression rather than sharp contrast. An area chart showing growth over time works beautifully in analogous blues and teals. It would look chaotic in complementary colors.</p>
+      <p>Triadic colors are three hues equally spaced around the wheel - blue, red, and yellow at 120-degree intervals. They provide variety without the visual tension of complementary pairs. This is the right relationship for multi-category systems: tag colors in a project management tool, legend items in a multi-series chart, status badges that need to be visually distinct without any one color screaming louder than the others.</p>
 
-      <h2>Contrast is a product decision, not just an accessibility checkbox</h2>
-      <p>Low-contrast design often looks elegant in static mockups and frustrating in real use. Users do not experience a palette in a still Dribbble shot. They experience it on laptops in bright rooms, on low-battery mobile screens, and during long reading sessions where weak contrast becomes actual friction.</p>
-      <p>That is why contrast checking is not only about compliance. It is about readability, scannability, and confidence. Tooliest's <a href="/contrast-checker/">Contrast Checker</a> helps turn vague design instinct into something measurable before the problem ships.</p>
+      <h2>HSL: The Only Color Model You Need for UI Work</h2>
+      <p>RGB describes how your screen produces color - the ratio of red, green, and blue phosphors lit at different intensities. It is the right model for hardware. For making UI color decisions, it is nearly useless. <code>rgb(74, 144, 217)</code> tells you nothing useful about how to modify that color, how to generate related shades, or how to ensure visual cohesion.</p>
+      <p>HSL - Hue, Saturation, Lightness - maps to how humans actually perceive and describe color, which makes it the right model for design decisions.</p>
+      <p>Hue is the pure color expressed as a degree on the color wheel. 0&deg; is red, 120&deg; is green, 240&deg; is blue, 360&deg; returns to red. Every other color lives at some degree between those anchors. Hue 30&deg; is orange. Hue 270&deg; is violet.</p>
+      <p>Saturation is the intensity of the color from 0% (completely gray, no color) to 100% (the most vivid possible version of that hue). <code>hsl(240, 0%, 50%)</code> is a medium gray. <code>hsl(240, 100%, 50%)</code> is pure, vivid blue.</p>
+      <p>Lightness runs from 0% (black) to 100% (white), with the purest expression of the color at 50%. This is not brightness in the photographic sense - it is specifically how much white or black has been mixed into the hue.</p>
+      <p>Why does this matter practically? Because every palette manipulation becomes a systematic parameter adjustment rather than a guess. Want a darker version of your brand color? Same hue, same saturation, lower lightness. Want a background tint that feels related but does not compete? Same hue, much lower saturation, much higher lightness. Want to generate five shades of any color for a scale? Keep the hue constant and step lightness at even intervals.</p>
+      <p>Here is a complete, usable blue palette built from a single hue:</p>
+      <pre><code class="language-css">--blue-50:  hsl(220, 60%, 95%);   /* #EBF0FA - very light background tint */
+--blue-200: hsl(220, 40%, 80%);   /* #B3C3E0 - muted border, divider */
+--blue-800: hsl(220, 50%, 30%);   /* #233D7A - dark text on light backgrounds */
+--blue-500: hsl(220, 80%, 50%);   /* #1A5CE6 - primary button, link */
+--blue-700: hsl(220, 80%, 40%);   /* #1549B8 - button hover, active state */</code></pre>
+      <div class="guide-palette-demo" aria-label="Five-shade HSL blue palette demo">
+        <div class="palette-demo-swatch" style="--swatch:#ebf0fa;--text:#172554"><strong>Background</strong><span>hsl(220, 60%, 95%)</span><code>#EBF0FA</code></div>
+        <div class="palette-demo-swatch" style="--swatch:#b3c3e0;--text:#172554"><strong>Border</strong><span>hsl(220, 40%, 80%)</span><code>#B3C3E0</code></div>
+        <div class="palette-demo-swatch" style="--swatch:#233d7a;--text:#ffffff"><strong>Text</strong><span>hsl(220, 50%, 30%)</span><code>#233D7A</code></div>
+        <div class="palette-demo-swatch" style="--swatch:#1a5ce6;--text:#ffffff"><strong>Button</strong><span>hsl(220, 80%, 50%)</span><code>#1A5CE6</code></div>
+        <div class="palette-demo-swatch" style="--swatch:#1549b8;--text:#ffffff"><strong>Hover</strong><span>hsl(220, 80%, 40%)</span><code>#1549B8</code></div>
+      </div>
+      <p>All five share hue 220. They are cohesive because they share a genetic hue identity - the variations are purely in saturation and lightness, which your eye reads as the same color family at different weights. Compare this to picking colors by hex code from an eyedropper on a mood board. Those colors have no systematic relationship and will never feel like a palette.</p>
 
-      <h2>Build palettes from relationships, not from isolated favorites</h2>
-      <p>A common mistake is picking several individually attractive colors that do not work together in context. Good palettes are relational. They need a dominant anchor, a supporting range, and neutrals that do not fight for attention. If every card, badge, and button competes visually, the page feels louder than the content deserves.</p>
-      <p>For most developer-facing interfaces, a small controlled palette wins. Use one strong accent, one or two complementary support colors, and a carefully spaced neutral scale. That gives the UI room to breathe and keeps states understandable.</p>
+      <h2>Contrast Ratios: The Numbers That Matter</h2>
+      <p>WCAG 2.1 specifies minimum contrast ratios between foreground text and background color. These are not suggestions - they are the legal accessibility standard in the EU, UK, Canada, and are referenced by ADA compliance frameworks in the US.</p>
+      <p>The relevant thresholds:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Standard</th>
+            <th>Text size</th>
+            <th>Minimum ratio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>AA baseline</td><td>Normal text</td><td>4.5:1</td></tr>
+          <tr><td>AA baseline</td><td>Large text, 18px+ regular or 14px+ bold</td><td>3:1</td></tr>
+          <tr><td>AAA enhanced</td><td>Normal text</td><td>7:1</td></tr>
+          <tr><td>AAA enhanced</td><td>Large text</td><td>4.5:1</td></tr>
+        </tbody>
+      </table>
+      <p>Real examples with pass/fail verdicts:</p>
+      <table class="guide-contrast-table">
+        <thead>
+          <tr>
+            <th>Combination</th>
+            <th>Ratio</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="contrast-pass"><td><span class="contrast-swatch" style="--swatch:#ffffff"></span>#FFFFFF on <span class="contrast-swatch" style="--swatch:#0000ff"></span>#0000FF</td><td>8.59:1</td><td>Passes AAA</td></tr>
+          <tr class="contrast-fail"><td><span class="contrast-swatch" style="--swatch:#ffffff"></span>#FFFFFF on <span class="contrast-swatch" style="--swatch:#4a90d9"></span>#4A90D9</td><td>3.56:1</td><td>Fails AA for normal text</td></tr>
+          <tr class="contrast-pass"><td><span class="contrast-swatch" style="--swatch:#333333"></span>#333333 on <span class="contrast-swatch" style="--swatch:#ffffff"></span>#FFFFFF</td><td>12.63:1</td><td>Passes AAA easily</td></tr>
+          <tr class="contrast-fail"><td><span class="contrast-swatch" style="--swatch:#999999"></span>#999999 on <span class="contrast-swatch" style="--swatch:#ffffff"></span>#FFFFFF</td><td>2.85:1</td><td>Fails everything</td></tr>
+          <tr class="contrast-pass"><td><span class="contrast-swatch" style="--swatch:#1a1a1a"></span>#1A1A1A on <span class="contrast-swatch" style="--swatch:#f5f5f5"></span>#F5F5F5</td><td>16.1:1</td><td>Passes AAA</td></tr>
+        </tbody>
+      </table>
+      <p>The #999999 on white example is critical because it is the single most common contrast failure in real interfaces. Secondary text, captions, placeholder text, helper text below form fields - designers reach for mid-gray instinctively and it routinely fails. The fix is always lightness adjustment, not hue change. Move #999999 toward #767676 and you hit exactly 4.54:1, the minimum AA pass. Move to #666666 and you are at 5.74:1 with comfortable headroom.</p>
+      <p>Check every text-on-background combination you ship. There are no exceptions: button text on button background, placeholder on input background, label on card background, badge text on badge background. Tools like the WebAIM Contrast Checker take two hex codes and return the ratio instantly.</p>
 
-      <h2>Accessibility and color meaning should line up</h2>
-      <p>Color should not carry meaning alone. Success messages, destructive actions, and warnings should also use text, icons, or layout cues. That is especially important for users with low vision or color-vision differences. Tools such as <a href="/color-blindness-sim/">Color Blindness Simulator</a> help you see when a palette only works for the people with the luckiest screens and strongest eyesight.</p>
-      <p>A palette is successful when it is beautiful enough to feel intentional and clear enough to survive real use. The second part is usually more important.</p>
+      <h2>Building a UI Palette From Scratch (Step by Step)</h2>
+      <p>Step 1 - Pick one brand color. One. Not three. Start with <code>hsl(250, 70%, 55%)</code> - this produces a purple at approximately <code>#7C3AED</code>. This is your primary: the color of interactive elements, active states, links, and your primary CTA button. Everything else in the palette exists to support or contrast with this decision.</p>
+      <p>Step 2 - Generate tinted neutrals. Do not use pure gray (<code>hsl(0, 0%, X%)</code>). Pure grays look disconnected from colored interfaces. Instead, use a low-saturation version of your brand hue. With hue 250, your neutral scale becomes:</p>
+      <pre><code class="language-css">--gray-50:  hsl(250, 20%, 97%);   /* #F6F5FB - page background */
+--gray-100: hsl(250, 15%, 92%);   /* #E8E6F2 - card background */
+--gray-300: hsl(250, 12%, 75%);   /* #B8B4CF - borders, dividers */
+--gray-600: hsl(250, 10%, 45%);   /* #6E6A84 - secondary text */
+--gray-900: hsl(250, 15%, 12%);   /* #1A1823 - primary text */</code></pre>
+      <p>The saturation at 10-20% is low enough that these read as neutral but share a genetic connection to your brand color. Side by side with a purple primary button, they feel like a unified system rather than borrowed Tailwind defaults.</p>
+      <p>Step 3 - Define semantic colors. Semantic colors communicate meaning regardless of brand. Success is green, warning is amber, error is red, informational is blue. Pick HSL values that sit comfortably alongside your brand purple without competing:</p>
+      <pre><code class="language-css">--success: hsl(142, 70%, 40%);    /* #1E9953 - green */
+--warning: hsl(38, 90%, 48%);     /* #E8960A - amber */
+--error:   hsl(0, 72%, 50%);      /* #D62525 - red */
+--info:    hsl(205, 75%, 48%);    /* #1C8FCC - blue */</code></pre>
+      <p>Step 4 - Generate light and dark variants of each semantic color. Every semantic color needs three expressions: a light background tint for alert containers, a medium border color, and a dark text color for labels. Using success green as the example:</p>
+      <pre><code class="language-css">--success-bg:     hsl(142, 60%, 93%);   /* #DEF5E8 - alert background */
+--success-border: hsl(142, 50%, 65%);   /* #65CC8F - border */
+--success-text:   hsl(142, 70%, 22%);   /* #0F5C2A - label text */</code></pre>
+      <div class="guide-palette-builder" aria-label="Complete UI palette builder example">
+        <div class="palette-builder-row">
+          <h3>Brand color</h3>
+          <div class="palette-builder-swatches">
+            <span style="--swatch:#7c3aed;--text:#fff"><strong>Primary</strong><code>#7C3AED</code><small>hsl(250, 70%, 55%)</small></span>
+          </div>
+        </div>
+        <div class="palette-builder-row">
+          <h3>Neutral grays</h3>
+          <div class="palette-builder-swatches">
+            <span style="--swatch:#f6f5fb;--text:#1a1823"><strong>Gray 50</strong><code>#F6F5FB</code><small>hsl(250, 20%, 97%)</small></span>
+            <span style="--swatch:#e8e6f2;--text:#1a1823"><strong>Gray 100</strong><code>#E8E6F2</code><small>hsl(250, 15%, 92%)</small></span>
+            <span style="--swatch:#b8b4cf;--text:#1a1823"><strong>Gray 300</strong><code>#B8B4CF</code><small>hsl(250, 12%, 75%)</small></span>
+            <span style="--swatch:#6e6a84;--text:#fff"><strong>Gray 600</strong><code>#6E6A84</code><small>hsl(250, 10%, 45%)</small></span>
+            <span style="--swatch:#1a1823;--text:#fff"><strong>Gray 900</strong><code>#1A1823</code><small>hsl(250, 15%, 12%)</small></span>
+          </div>
+        </div>
+        <div class="palette-builder-row">
+          <h3>Semantic colors</h3>
+          <div class="palette-builder-swatches">
+            <span style="--swatch:#1e9953;--text:#fff"><strong>Success</strong><code>#1E9953</code><small>hsl(142, 70%, 40%)</small></span>
+            <span style="--swatch:#e8960a;--text:#1a1823"><strong>Warning</strong><code>#E8960A</code><small>hsl(38, 90%, 48%)</small></span>
+            <span style="--swatch:#d62525;--text:#fff"><strong>Error</strong><code>#D62525</code><small>hsl(0, 72%, 50%)</small></span>
+            <span style="--swatch:#1c8fcc;--text:#fff"><strong>Info</strong><code>#1C8FCC</code><small>hsl(205, 75%, 48%)</small></span>
+          </div>
+        </div>
+      </div>
+      <p>Step 5 - Contrast test every combination. Before shipping, check: primary text on page background, secondary text on page background, primary text on card background, all button text on button backgrounds, all semantic text on semantic backgrounds. If anything fails 4.5:1, adjust the lightness value until it passes. Hue and saturation stay constant - only lightness moves.</p>
 
-      <h2>The fastest path to better UI color choices</h2>
-      <p>Begin with roles. Check contrast early. Keep the palette smaller than your first instinct. Use semantic colors consistently. Test the palette on real components, not just standalone swatches. Those habits will improve most product interfaces more than learning obscure terminology ever will.</p>
-      <p>The right tools do not replace taste, but they shorten the trial-and-error loop that developers often face when design responsibility lands on their desk unexpectedly.</p>
+      <h2>Dark Mode: Not Just Invert Everything</h2>
+      <p>Inverting a light mode palette for dark mode does not work. The primary failure is that colors tuned for legibility on white become overwhelming on black - vivid brand colors that were readable at normal saturation cause visual vibration on dark backgrounds, and borders that were subtle become stark.</p>
+      <p>Do not use #000000 as your dark background. Pure black causes perceptual eye strain because the contrast with any colored content is maximally harsh. Use #0F0F0F, #121212, or a tinted dark like #0F0D17 (hue 250, very dark, very low saturation) that echoes your brand.</p>
+      <p>Reduce saturation by 10 to 20 percentage points on all colors in dark mode. <code>hsl(250, 70%, 55%)</code> in light mode becomes <code>hsl(250, 55%, 65%)</code> in dark mode - lightness goes up because it needs to be lighter to read on a dark background, and saturation goes down to prevent vibration. The hue stays identical, preserving brand recognition across modes.</p>
+      <div class="guide-mode-compare" aria-label="Light mode and dark mode color comparison">
+        <div class="mode-card mode-card-light">
+          <span>Light Mode</span>
+          <h3>Project Dashboard</h3>
+          <p>Neutral surfaces, dark tinted text, and a saturated brand button.</p>
+          <button type="button">Primary Action</button>
+        </div>
+        <div class="mode-card mode-card-dark">
+          <span>Dark Mode</span>
+          <h3>Project Dashboard</h3>
+          <p>Same hue family, softer saturation, and brighter foreground values.</p>
+          <button type="button">Primary Action</button>
+        </div>
+      </div>
+      <p>The cleanest implementation uses CSS custom properties with a data attribute toggle:</p>
+      <pre><code class="language-css">:root {
+  --bg-primary: hsl(250, 20%, 97%);
+  --bg-secondary: hsl(250, 15%, 92%);
+  --text-primary: hsl(250, 15%, 12%);
+  --text-secondary: hsl(250, 10%, 45%);
+  --brand: hsl(250, 70%, 55%);
+  --brand-hover: hsl(250, 70%, 45%);
+}
+
+[data-theme="dark"] {
+  --bg-primary: hsl(250, 15%, 8%);
+  --bg-secondary: hsl(250, 12%, 13%);
+  --text-primary: hsl(250, 20%, 92%);
+  --text-secondary: hsl(250, 10%, 65%);
+  --brand: hsl(250, 55%, 68%);
+  --brand-hover: hsl(250, 55%, 78%);
+}</code></pre>
+      <p>Toggle <code>data-theme="dark"</code> on the <code>html</code> element via JavaScript and the entire UI switches without touching a component. Every hardcoded color bypassing these custom properties is a bug waiting to happen in dark mode - audit for them specifically.</p>
+
+      <h2>Common Color Mistakes Developers Make</h2>
+      <p>Using pure black on pure white. #000000 on #FFFFFF has a 21:1 contrast ratio, which sounds good until you look at it for an hour. The harshness causes eye fatigue. Use #1A1A1A or #222222 for body text and #F8F8F8 or #FAFAFA for backgrounds. You lose nothing from an accessibility standpoint and gain significant readability on long-form content.</p>
+      <p>Using color as the only differentiator. An error state that turns a border red communicates nothing to a user with red-green color blindness - to them it looks identical to a normal state. Pair every color-based state change with a text label, an icon, or both. "Error: Email is required" with a red border and an error icon communicates to everyone. A red border alone communicates to some.</p>
+      <p>Accumulating too many colors. Most interfaces need one brand color, one set of five to seven neutrals, and three to four semantic colors. That is eight to twelve values total. If your palette has twenty-five colors, you do not have a palette - you have a collection of individual decisions that will fight each other. When in doubt, reach for a neutral rather than introducing a new hue.</p>
+      <p>Picking colors from imagination. No developer should be eyeballing hex values without tooling. Generate palettes systematically using HSL, verify contrast ratios with a checker, and use a color picker that shows you HSL alongside hex so you can adjust parameters rather than guess codes.</p>
+      <p>Forgetting interactive states. Every clickable element needs at minimum three color states: default, hover, and focus. Focus states are especially neglected and are both an accessibility requirement and a keyboard navigation necessity. Generate them mechanically: hover is your default with lightness decreased by 10%. Focus is your default with lightness decreased by 10% plus a 3px offset outline at full brand saturation. Active (mousedown) is lightness decreased by 20%. These three adjustments take thirty seconds to implement and cover every interactive state a user can produce.</p>
+      <p>You can explore, adjust, and convert colors using Tooliest's browser-based <a href="/color-picker/">color picker</a> and <a href="/hex-to-rgb/">color converter</a> - test HSL, RGB, and hex values instantly, convert between formats, and verify your palette without leaving your browser.</p>
     
         </section>
         <section class="tool-content-section">
@@ -229,6 +823,7 @@
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
   <script data-cfasync="false">(function(){if(window.__TOOLIEST_CONSENT_FALLBACK_READY)return;window.__TOOLIEST_CONSENT_FALLBACK_READY=true;var key='tooliest_cookie_consent';var version='2';var tourKey='tooliest_tour_completed';var tourEvent='tooliest:welcome-tour-complete';var waiting=false;function read(){try{var raw=localStorage.getItem(key);return raw?JSON.parse(raw):null;}catch(e){return null;}}function tourDone(){try{return localStorage.getItem(tourKey)==='1';}catch(e){return true;}}function shouldDelay(){var path=String(location.pathname||'/').replace(/\/index\.html$/,'/');return path==='/'&&!(document.body&&document.body.classList.contains('embed-mode'))&&!tourDone();}function save(accepted){try{localStorage.setItem(key,JSON.stringify({accepted:accepted,version:version,timestamp:new Date().toISOString()}));}catch(e){}}function clear(){try{localStorage.removeItem(key);}catch(e){}}function setHeight(px){document.documentElement.style.setProperty('--cookie-banner-height',Math.max(0,Math.round(px||0))+'px');}function banner(){return document.getElementById('cookie-banner');}function afterTour(){if(waiting)return;waiting=true;window.addEventListener(tourEvent,function done(){waiting=false;window.removeEventListener(tourEvent,done);window.setTimeout(show,900);});}function show(){if(shouldDelay()){afterTour();return;}var el=banner();if(!el)return;document.body.classList.add('cookie-banner-open');el.classList.remove('banner-hidden','banner-visible');el.setAttribute('aria-hidden','false');window.requestAnimationFrame(function(){el.classList.add('banner-visible');setHeight(el.getBoundingClientRect().height);});}function hide(){var el=banner();document.body.classList.remove('cookie-banner-open');if(el){el.classList.remove('banner-visible');el.classList.add('banner-hidden');el.setAttribute('aria-hidden','true');}setHeight(0);}function accept(){save(true);hide();}function reject(){save(false);hide();}function reset(event){if(event&&event.preventDefault)event.preventDefault();clear();show();}function bind(){var acceptBtn=document.getElementById('cookie-accept-btn');var rejectBtn=document.getElementById('cookie-reject-btn');if(acceptBtn)acceptBtn.addEventListener('click',accept);if(rejectBtn)rejectBtn.addEventListener('click',reject);document.addEventListener('click',function(event){var trigger=event.target&&event.target.closest&&event.target.closest('[data-consent-reset]');if(!trigger)return;var api=window.TooliestConsent;if(api&&api!==fallback&&typeof api.reset==='function'){event.preventDefault();api.reset(event);return;}reset(event);});var saved=read();if(!saved||saved.version!==version)show();}var fallback={reset:reset,open:show,refreshLayout:function(){var el=banner();setHeight(el&&!el.classList.contains('banner-hidden')?el.getBoundingClientRect().height:0);},getStatus:read};window.TooliestConsent=window.TooliestConsent||fallback;if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',bind,{once:true});}else{bind();}})();</script>
-  <script src="/bundle.min.js?v=20260530-295a5c55" defer data-cfasync="false"></script>
+  <script data-cfasync="false">(function(){function copyText(text){if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(text);}return new Promise(function(resolve,reject){var textarea=document.createElement('textarea');textarea.value=text;textarea.setAttribute('readonly','');textarea.style.position='fixed';textarea.style.top='-9999px';document.body.appendChild(textarea);textarea.select();try{document.execCommand('copy')?resolve():reject(new Error('copy failed'));}catch(error){reject(error);}finally{textarea.remove();}});}function enhanceGuideArticle(){var root=document.querySelector('.guide-article-copy');if(!root)return;root.querySelectorAll('table').forEach(function(table){if(table.parentElement&&table.parentElement.classList.contains('guide-table-wrap'))return;var wrap=document.createElement('div');wrap.className='guide-table-wrap';table.parentNode.insertBefore(wrap,table);wrap.appendChild(table);});root.querySelectorAll('pre').forEach(function(pre,index){if(pre.closest('.guide-code-window'))return;var code=pre.querySelector('code');var language='code';if(code){var match=String(code.className||'').match(/language-([a-z0-9-]+)/i);if(match)language=match[1];}var windowEl=document.createElement('div');windowEl.className='guide-code-window';var header=document.createElement('div');header.className='guide-code-header';var meta=document.createElement('div');meta.className='guide-code-meta';var dots=document.createElement('span');dots.className='guide-code-dots';dots.setAttribute('aria-hidden','true');dots.innerHTML='<span></span><span></span><span></span>';var label=document.createElement('span');label.className='guide-code-language';label.textContent=language;var button=document.createElement('button');button.type='button';button.className='guide-code-copy';button.textContent='Copy';button.setAttribute('aria-label','Copy code snippet '+(index+1));button.addEventListener('click',function(){var text=(code||pre).innerText;copyText(text).then(function(){button.textContent='Copied';window.setTimeout(function(){button.textContent='Copy';},1400);}).catch(function(){button.textContent='Select';window.setTimeout(function(){button.textContent='Copy';},1400);});});meta.appendChild(dots);meta.appendChild(label);header.appendChild(meta);header.appendChild(button);pre.parentNode.insertBefore(windowEl,pre);windowEl.appendChild(header);windowEl.appendChild(pre);});}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',enhanceGuideArticle,{once:true});}else{enhanceGuideArticle();}})();</script>
+  <script src="/bundle.min.js?v=20260601-367b9a70" defer data-cfasync="false"></script>
 </body>
 </html>

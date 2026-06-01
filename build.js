@@ -3636,6 +3636,253 @@ const PASSWORD_SECURITY_GUIDE_VISUAL_CSS = `<style>
   }
 </style>`;
 
+const COLOR_THEORY_GUIDE_VISUAL_CSS = `<style>
+  .guide-article-copy .guide-color-wheel,
+  .guide-article-copy .guide-palette-demo,
+  .guide-article-copy .guide-palette-builder,
+  .guide-article-copy .guide-mode-compare {
+    margin: 24px 0 30px;
+  }
+  .guide-article-copy .color-wheel-strip {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 16px;
+    box-shadow: 0 18px 42px rgba(0,0,0,.2);
+  }
+  .guide-article-copy .color-wheel-strip span {
+    min-height: 92px;
+    display: grid;
+    place-items: center;
+    padding: 12px 8px;
+    background: var(--swatch);
+    color: #fff;
+    text-align: center;
+    font-weight: 900;
+    line-height: 1.2;
+    text-shadow: 0 1px 10px rgba(0,0,0,.42);
+  }
+  .guide-article-copy .color-wheel-strip small {
+    display: block;
+    margin-top: 5px;
+    font: 800 .72rem/1 var(--font-mono);
+  }
+  .guide-article-copy .color-relationship-grid,
+  .guide-article-copy .guide-palette-demo,
+  .guide-article-copy .guide-mode-compare {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .guide-article-copy .color-relationship-grid {
+    margin-top: 16px;
+  }
+  .guide-article-copy .color-relationship-card,
+  .guide-article-copy .mode-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy .color-relationship-card h3,
+  .guide-article-copy .mode-card h3 {
+    margin-top: 0;
+  }
+  .guide-article-copy .relationship-dots {
+    display: flex;
+    gap: 9px;
+    margin: 10px 0 12px;
+  }
+  .guide-article-copy .relationship-dots span {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--dot);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 8px 18px rgba(0,0,0,.18);
+  }
+  .guide-article-copy .guide-palette-demo {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .guide-article-copy .palette-demo-swatch,
+  .guide-article-copy .palette-builder-swatches span {
+    min-width: 0;
+    display: grid;
+    align-content: end;
+    gap: 7px;
+    min-height: 132px;
+    padding: 14px;
+    border-radius: 16px;
+    background: var(--swatch);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 14px 28px rgba(0,0,0,.14);
+  }
+  .guide-article-copy .palette-demo-swatch strong,
+  .guide-article-copy .palette-builder-swatches strong {
+    font-weight: 900;
+  }
+  .guide-article-copy .palette-demo-swatch span,
+  .guide-article-copy .palette-builder-swatches small {
+    font: 750 .75rem/1.35 var(--font-mono);
+  }
+  .guide-article-copy .palette-demo-swatch code,
+  .guide-article-copy .palette-builder-swatches code {
+    width: fit-content;
+    max-width: 100%;
+    color: inherit;
+    background: rgba(255,255,255,.22);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 8px;
+    padding: 3px 7px;
+    word-break: break-word;
+  }
+  .guide-article-copy .guide-contrast-table .contrast-pass td {
+    background: rgba(34,197,94,.13);
+  }
+  .guide-article-copy .guide-contrast-table .contrast-fail td {
+    background: rgba(239,68,68,.13);
+  }
+  .guide-article-copy .guide-contrast-table .contrast-pass td:first-child {
+    border-left: 4px solid #22c55e;
+  }
+  .guide-article-copy .guide-contrast-table .contrast-fail td:first-child {
+    border-left: 4px solid #ef4444;
+  }
+  .guide-article-copy .contrast-swatch {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin: 0 6px -3px 0;
+    border: 1px solid rgba(148,163,184,.5);
+    border-radius: 5px;
+    background: var(--swatch);
+  }
+  .guide-article-copy .guide-palette-builder {
+    display: grid;
+    gap: 18px;
+    padding: 18px;
+    border: 1px solid rgba(139,92,246,.28);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(6,182,212,.04)), rgba(255,255,255,.025);
+  }
+  .guide-article-copy .palette-builder-row {
+    display: grid;
+    gap: 12px;
+  }
+  .guide-article-copy .palette-builder-row h3 {
+    margin: 0;
+  }
+  .guide-article-copy .palette-builder-swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .guide-article-copy .guide-mode-compare {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .guide-article-copy .mode-card {
+    display: grid;
+    gap: 10px;
+    min-height: 230px;
+    align-content: center;
+  }
+  .guide-article-copy .mode-card span {
+    width: fit-content;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .guide-article-copy .mode-card p {
+    margin-bottom: 6px;
+  }
+  .guide-article-copy .mode-card button {
+    width: fit-content;
+    min-height: 42px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 11px;
+    font: 800 .92rem var(--font-primary);
+  }
+  .guide-article-copy .mode-card-light {
+    background: #f6f5fb;
+    color: #1a1823;
+  }
+  .guide-article-copy .mode-card-light span {
+    background: rgba(124,58,237,.12);
+    color: #5b21b6;
+  }
+  .guide-article-copy .mode-card-light p {
+    color: #6e6a84;
+  }
+  .guide-article-copy .mode-card-light button {
+    background: #7c3aed;
+    color: #fff;
+  }
+  .guide-article-copy .mode-card-dark {
+    background: #0f0d17;
+    color: #e9e5f5;
+  }
+  .guide-article-copy .mode-card-dark span {
+    background: rgba(167,139,250,.18);
+    color: #c4b5fd;
+  }
+  .guide-article-copy .mode-card-dark p {
+    color: #aba3c3;
+  }
+  .guide-article-copy .mode-card-dark button {
+    background: #a78bfa;
+    color: #150f2b;
+  }
+  [data-theme=light] .guide-article-copy .color-wheel-strip,
+  [data-theme=light] .guide-article-copy .guide-palette-builder {
+    box-shadow: 0 16px 34px rgba(15,23,42,.08);
+  }
+  [data-theme=light] .guide-article-copy .color-relationship-card,
+  [data-theme=light] .guide-article-copy .guide-palette-builder {
+    background-color: rgba(255,255,255,.86);
+  }
+  [data-theme=light] .guide-article-copy .guide-contrast-table .contrast-pass td {
+    background: rgba(34,197,94,.09);
+  }
+  [data-theme=light] .guide-article-copy .guide-contrast-table .contrast-fail td {
+    background: rgba(239,68,68,.09);
+  }
+  @media (max-width: 840px) {
+    .guide-article-copy .color-relationship-grid,
+    .guide-article-copy .guide-mode-compare {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-palette-demo {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .color-wheel-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-radius: 12px;
+    }
+    .guide-article-copy .color-wheel-strip span {
+      min-height: 78px;
+    }
+    .guide-article-copy .guide-palette-demo {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .color-relationship-card,
+    .guide-article-copy .palette-demo-swatch,
+    .guide-article-copy .guide-palette-builder,
+    .guide-article-copy .mode-card {
+      border-radius: 12px;
+    }
+    .guide-article-copy .guide-palette-builder {
+      padding: 14px;
+    }
+  }
+</style>`;
+
 function renderGuidesHubPage(tools) {
   const guideLastModified = getGuideContentLastModifiedDate();
   const softwarePageCount = getSoftwareEditorialPageCount();
@@ -3761,8 +4008,10 @@ function renderGuideArticlePage(guide) {
         ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${CSS_BOX_MODEL_GUIDE_VISUAL_CSS}`
         : guide.slug === 'password-security-best-practices'
           ? PASSWORD_SECURITY_GUIDE_VISUAL_CSS
-          : '';
-  const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
+          : guide.slug === 'color-theory-for-developers'
+            ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${COLOR_THEORY_GUIDE_VISUAL_CSS}`
+            : '';
+  const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' || guide.slug === 'color-theory-for-developers' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
   const structuredData = [
     {
       '@context': 'https://schema.org',

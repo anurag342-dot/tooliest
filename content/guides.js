@@ -568,36 +568,207 @@ document.querySelectorAll('img[data-src]').forEach(img =&gt; observer.observe(im
     slug: 'color-theory-for-developers',
     group: 'security-business',
     title: 'Understanding Color Theory: A Developer’s Guide to Palettes',
-    description: 'A practical guide to hue, contrast, palette building, and UI color decisions for developers who need design judgment without design jargon.',
+    description: 'Master practical color theory for UI development: HSL color model, contrast ratios for WCAG accessibility, building a palette from scratch, dark mode implementation, and common color mistakes. Includes hex codes, HSL values, and CSS examples.',
     socialDescription: 'Learn the practical color theory concepts that help developers build cleaner, more usable palettes and UI systems.',
     teaser: 'Learn the practical color theory ideas that help developers choose better palettes, stronger contrast, and cleaner UI systems.',
     published: '2026-05-01',
-    updated: '2026-05-01',
-    readMinutes: 8,
+    updated: '2026-06-01',
+    readMinutes: 11,
     tags: ['Color Theory', 'UI Design', 'Accessibility'],
     contentHtml: `
-      <p>Developers rarely need a full fine-arts course in color theory, but they do need enough judgment to avoid building interfaces that feel muddy, low-contrast, or visually confused. The practical version of color theory is about relationships: how colors sit next to each other, how they guide attention, and how they behave once text, buttons, alerts, and backgrounds all share the same screen.</p>
-      <p>You do not need twenty accent colors to make a UI feel considered. In most product work, better color decisions come from restraint, hierarchy, and accessibility rather than from chasing novelty.</p>
+      <h2>Why Developers Need Color Theory (Even If They Think They Don't)</h2>
+      <p>Every UI decision involves color. The background you chose. The button shade. The text you assumed was readable. The error state you picked because red felt right. These decisions happen whether you think about them or not - the difference is whether they are defensible or accidental.</p>
+      <p>Bad color decisions produce three concrete, measurable problems. The first is accessibility failure. Approximately 4.5% of men have red-green color vision deficiency - that is roughly 300 million people globally who cannot distinguish certain color combinations. Low contrast text is not a design preference issue, it is an exclusion issue, and in several jurisdictions it is a legal liability under accessibility legislation. The second is visual hierarchy collapse. When every element on a screen carries the same visual weight because nothing has been intentionally emphasized, users lose the ability to prioritize - their eyes have nowhere to go. The third is brand inconsistency. Ad hoc color picks made without a system produce interfaces that read as unfinished, because they are. Colors that almost match but do not quite match are more visually disturbing than a deliberately minimal palette.</p>
+      <p>You do not need to become a designer. You need enough color knowledge to make choices you can justify and reproduce, rather than choices you made by vague intuition and cannot replicate next week.</p>
 
-      <h2>Start with hue roles, not endless swatches</h2>
-      <p>The most useful mental model is to assign jobs. One color leads the brand or primary action. Another handles support states or secondary emphasis. Neutral tones carry most surfaces, borders, and text scaffolding. Success, warning, and error states get their own semantic roles. Once the roles are clear, you stop choosing colors randomly and start building a system.</p>
-      <p>Tooliest's <a href="/palette-generator/">Palette Generator</a> and <a href="/color-picker/">Color Picker</a> are helpful because they let you test variations quickly without pretending every new hex code deserves equal weight in the interface.</p>
+      <h2>The Color Wheel: What Actually Matters</h2>
+      <p>The color wheel organizes hues by their relationship to each other. In the traditional RYB model used in painting, primaries are red, yellow, and blue. In digital work - screens, monitors, interfaces - the additive model applies: primaries are red, green, and blue. Mixing two primaries produces secondaries: orange, green, purple in RYB. Mixing a primary with an adjacent secondary produces tertiaries: red-orange, blue-green, yellow-green.</p>
+      <p>What you actually need from this as a UI developer is an understanding of three color relationships, each with a specific use case.</p>
+      <div class="guide-color-wheel" aria-label="Hue spectrum and common color relationships">
+        <div class="color-wheel-strip">
+          <span style="--swatch:#ef4444">Red<br><small>0&deg;</small></span>
+          <span style="--swatch:#f97316">Orange<br><small>30&deg;</small></span>
+          <span style="--swatch:#eab308">Yellow<br><small>60&deg;</small></span>
+          <span style="--swatch:#22c55e">Green<br><small>120&deg;</small></span>
+          <span style="--swatch:#06b6d4">Cyan<br><small>180&deg;</small></span>
+          <span style="--swatch:#3b82f6">Blue<br><small>240&deg;</small></span>
+          <span style="--swatch:#8b5cf6">Purple<br><small>270&deg;</small></span>
+          <span style="--swatch:#d946ef">Magenta<br><small>330&deg;</small></span>
+        </div>
+        <div class="color-relationship-grid">
+          <div class="color-relationship-card">
+            <h3>Complementary</h3>
+            <div class="relationship-dots" aria-hidden="true"><span style="--dot:#3b82f6"></span><span style="--dot:#f97316"></span></div>
+            <p>Opposite hues create maximum attention for primary CTAs and critical alerts.</p>
+          </div>
+          <div class="color-relationship-card">
+            <h3>Analogous</h3>
+            <div class="relationship-dots" aria-hidden="true"><span style="--dot:#3b82f6"></span><span style="--dot:#06b6d4"></span><span style="--dot:#22c55e"></span></div>
+            <p>Neighboring hues create harmony for gradients, dashboards, and continuous data scales.</p>
+          </div>
+          <div class="color-relationship-card">
+            <h3>Triadic</h3>
+            <div class="relationship-dots" aria-hidden="true"><span style="--dot:#3b82f6"></span><span style="--dot:#ef4444"></span><span style="--dot:#eab308"></span></div>
+            <p>Three evenly spaced hues separate categories without making one color dominate.</p>
+          </div>
+        </div>
+      </div>
+      <p>Complementary colors sit directly opposite each other on the wheel. Blue and orange. Red and green. Purple and yellow. Complementary pairs produce maximum visual contrast - each color makes the other appear more vivid. This is why a bright orange CTA button on a deep blue background commands attention without any other visual treatment. Use complementary pairings for primary call-to-action elements and critical alerts where the user's eye needs to be pulled immediately.</p>
+      <p>Analogous colors are adjacent on the wheel - blue, blue-green, and green share a neighborhood. They create harmony because they share underlying hue components. Use analogous relationships for gradients, for related sections of a dashboard that should feel connected, and for data visualization color scales where you want continuous progression rather than sharp contrast. An area chart showing growth over time works beautifully in analogous blues and teals. It would look chaotic in complementary colors.</p>
+      <p>Triadic colors are three hues equally spaced around the wheel - blue, red, and yellow at 120-degree intervals. They provide variety without the visual tension of complementary pairs. This is the right relationship for multi-category systems: tag colors in a project management tool, legend items in a multi-series chart, status badges that need to be visually distinct without any one color screaming louder than the others.</p>
 
-      <h2>Contrast is a product decision, not just an accessibility checkbox</h2>
-      <p>Low-contrast design often looks elegant in static mockups and frustrating in real use. Users do not experience a palette in a still Dribbble shot. They experience it on laptops in bright rooms, on low-battery mobile screens, and during long reading sessions where weak contrast becomes actual friction.</p>
-      <p>That is why contrast checking is not only about compliance. It is about readability, scannability, and confidence. Tooliest's <a href="/contrast-checker/">Contrast Checker</a> helps turn vague design instinct into something measurable before the problem ships.</p>
+      <h2>HSL: The Only Color Model You Need for UI Work</h2>
+      <p>RGB describes how your screen produces color - the ratio of red, green, and blue phosphors lit at different intensities. It is the right model for hardware. For making UI color decisions, it is nearly useless. <code>rgb(74, 144, 217)</code> tells you nothing useful about how to modify that color, how to generate related shades, or how to ensure visual cohesion.</p>
+      <p>HSL - Hue, Saturation, Lightness - maps to how humans actually perceive and describe color, which makes it the right model for design decisions.</p>
+      <p>Hue is the pure color expressed as a degree on the color wheel. 0&deg; is red, 120&deg; is green, 240&deg; is blue, 360&deg; returns to red. Every other color lives at some degree between those anchors. Hue 30&deg; is orange. Hue 270&deg; is violet.</p>
+      <p>Saturation is the intensity of the color from 0% (completely gray, no color) to 100% (the most vivid possible version of that hue). <code>hsl(240, 0%, 50%)</code> is a medium gray. <code>hsl(240, 100%, 50%)</code> is pure, vivid blue.</p>
+      <p>Lightness runs from 0% (black) to 100% (white), with the purest expression of the color at 50%. This is not brightness in the photographic sense - it is specifically how much white or black has been mixed into the hue.</p>
+      <p>Why does this matter practically? Because every palette manipulation becomes a systematic parameter adjustment rather than a guess. Want a darker version of your brand color? Same hue, same saturation, lower lightness. Want a background tint that feels related but does not compete? Same hue, much lower saturation, much higher lightness. Want to generate five shades of any color for a scale? Keep the hue constant and step lightness at even intervals.</p>
+      <p>Here is a complete, usable blue palette built from a single hue:</p>
+      <pre><code class="language-css">--blue-50:  hsl(220, 60%, 95%);   /* #EBF0FA - very light background tint */
+--blue-200: hsl(220, 40%, 80%);   /* #B3C3E0 - muted border, divider */
+--blue-800: hsl(220, 50%, 30%);   /* #233D7A - dark text on light backgrounds */
+--blue-500: hsl(220, 80%, 50%);   /* #1A5CE6 - primary button, link */
+--blue-700: hsl(220, 80%, 40%);   /* #1549B8 - button hover, active state */</code></pre>
+      <div class="guide-palette-demo" aria-label="Five-shade HSL blue palette demo">
+        <div class="palette-demo-swatch" style="--swatch:#ebf0fa;--text:#172554"><strong>Background</strong><span>hsl(220, 60%, 95%)</span><code>#EBF0FA</code></div>
+        <div class="palette-demo-swatch" style="--swatch:#b3c3e0;--text:#172554"><strong>Border</strong><span>hsl(220, 40%, 80%)</span><code>#B3C3E0</code></div>
+        <div class="palette-demo-swatch" style="--swatch:#233d7a;--text:#ffffff"><strong>Text</strong><span>hsl(220, 50%, 30%)</span><code>#233D7A</code></div>
+        <div class="palette-demo-swatch" style="--swatch:#1a5ce6;--text:#ffffff"><strong>Button</strong><span>hsl(220, 80%, 50%)</span><code>#1A5CE6</code></div>
+        <div class="palette-demo-swatch" style="--swatch:#1549b8;--text:#ffffff"><strong>Hover</strong><span>hsl(220, 80%, 40%)</span><code>#1549B8</code></div>
+      </div>
+      <p>All five share hue 220. They are cohesive because they share a genetic hue identity - the variations are purely in saturation and lightness, which your eye reads as the same color family at different weights. Compare this to picking colors by hex code from an eyedropper on a mood board. Those colors have no systematic relationship and will never feel like a palette.</p>
 
-      <h2>Build palettes from relationships, not from isolated favorites</h2>
-      <p>A common mistake is picking several individually attractive colors that do not work together in context. Good palettes are relational. They need a dominant anchor, a supporting range, and neutrals that do not fight for attention. If every card, badge, and button competes visually, the page feels louder than the content deserves.</p>
-      <p>For most developer-facing interfaces, a small controlled palette wins. Use one strong accent, one or two complementary support colors, and a carefully spaced neutral scale. That gives the UI room to breathe and keeps states understandable.</p>
+      <h2>Contrast Ratios: The Numbers That Matter</h2>
+      <p>WCAG 2.1 specifies minimum contrast ratios between foreground text and background color. These are not suggestions - they are the legal accessibility standard in the EU, UK, Canada, and are referenced by ADA compliance frameworks in the US.</p>
+      <p>The relevant thresholds:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Standard</th>
+            <th>Text size</th>
+            <th>Minimum ratio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>AA baseline</td><td>Normal text</td><td>4.5:1</td></tr>
+          <tr><td>AA baseline</td><td>Large text, 18px+ regular or 14px+ bold</td><td>3:1</td></tr>
+          <tr><td>AAA enhanced</td><td>Normal text</td><td>7:1</td></tr>
+          <tr><td>AAA enhanced</td><td>Large text</td><td>4.5:1</td></tr>
+        </tbody>
+      </table>
+      <p>Real examples with pass/fail verdicts:</p>
+      <table class="guide-contrast-table">
+        <thead>
+          <tr>
+            <th>Combination</th>
+            <th>Ratio</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="contrast-pass"><td><span class="contrast-swatch" style="--swatch:#ffffff"></span>#FFFFFF on <span class="contrast-swatch" style="--swatch:#0000ff"></span>#0000FF</td><td>8.59:1</td><td>Passes AAA</td></tr>
+          <tr class="contrast-fail"><td><span class="contrast-swatch" style="--swatch:#ffffff"></span>#FFFFFF on <span class="contrast-swatch" style="--swatch:#4a90d9"></span>#4A90D9</td><td>3.56:1</td><td>Fails AA for normal text</td></tr>
+          <tr class="contrast-pass"><td><span class="contrast-swatch" style="--swatch:#333333"></span>#333333 on <span class="contrast-swatch" style="--swatch:#ffffff"></span>#FFFFFF</td><td>12.63:1</td><td>Passes AAA easily</td></tr>
+          <tr class="contrast-fail"><td><span class="contrast-swatch" style="--swatch:#999999"></span>#999999 on <span class="contrast-swatch" style="--swatch:#ffffff"></span>#FFFFFF</td><td>2.85:1</td><td>Fails everything</td></tr>
+          <tr class="contrast-pass"><td><span class="contrast-swatch" style="--swatch:#1a1a1a"></span>#1A1A1A on <span class="contrast-swatch" style="--swatch:#f5f5f5"></span>#F5F5F5</td><td>16.1:1</td><td>Passes AAA</td></tr>
+        </tbody>
+      </table>
+      <p>The #999999 on white example is critical because it is the single most common contrast failure in real interfaces. Secondary text, captions, placeholder text, helper text below form fields - designers reach for mid-gray instinctively and it routinely fails. The fix is always lightness adjustment, not hue change. Move #999999 toward #767676 and you hit exactly 4.54:1, the minimum AA pass. Move to #666666 and you are at 5.74:1 with comfortable headroom.</p>
+      <p>Check every text-on-background combination you ship. There are no exceptions: button text on button background, placeholder on input background, label on card background, badge text on badge background. Tools like the WebAIM Contrast Checker take two hex codes and return the ratio instantly.</p>
 
-      <h2>Accessibility and color meaning should line up</h2>
-      <p>Color should not carry meaning alone. Success messages, destructive actions, and warnings should also use text, icons, or layout cues. That is especially important for users with low vision or color-vision differences. Tools such as <a href="/color-blindness-sim/">Color Blindness Simulator</a> help you see when a palette only works for the people with the luckiest screens and strongest eyesight.</p>
-      <p>A palette is successful when it is beautiful enough to feel intentional and clear enough to survive real use. The second part is usually more important.</p>
+      <h2>Building a UI Palette From Scratch (Step by Step)</h2>
+      <p>Step 1 - Pick one brand color. One. Not three. Start with <code>hsl(250, 70%, 55%)</code> - this produces a purple at approximately <code>#7C3AED</code>. This is your primary: the color of interactive elements, active states, links, and your primary CTA button. Everything else in the palette exists to support or contrast with this decision.</p>
+      <p>Step 2 - Generate tinted neutrals. Do not use pure gray (<code>hsl(0, 0%, X%)</code>). Pure grays look disconnected from colored interfaces. Instead, use a low-saturation version of your brand hue. With hue 250, your neutral scale becomes:</p>
+      <pre><code class="language-css">--gray-50:  hsl(250, 20%, 97%);   /* #F6F5FB - page background */
+--gray-100: hsl(250, 15%, 92%);   /* #E8E6F2 - card background */
+--gray-300: hsl(250, 12%, 75%);   /* #B8B4CF - borders, dividers */
+--gray-600: hsl(250, 10%, 45%);   /* #6E6A84 - secondary text */
+--gray-900: hsl(250, 15%, 12%);   /* #1A1823 - primary text */</code></pre>
+      <p>The saturation at 10-20% is low enough that these read as neutral but share a genetic connection to your brand color. Side by side with a purple primary button, they feel like a unified system rather than borrowed Tailwind defaults.</p>
+      <p>Step 3 - Define semantic colors. Semantic colors communicate meaning regardless of brand. Success is green, warning is amber, error is red, informational is blue. Pick HSL values that sit comfortably alongside your brand purple without competing:</p>
+      <pre><code class="language-css">--success: hsl(142, 70%, 40%);    /* #1E9953 - green */
+--warning: hsl(38, 90%, 48%);     /* #E8960A - amber */
+--error:   hsl(0, 72%, 50%);      /* #D62525 - red */
+--info:    hsl(205, 75%, 48%);    /* #1C8FCC - blue */</code></pre>
+      <p>Step 4 - Generate light and dark variants of each semantic color. Every semantic color needs three expressions: a light background tint for alert containers, a medium border color, and a dark text color for labels. Using success green as the example:</p>
+      <pre><code class="language-css">--success-bg:     hsl(142, 60%, 93%);   /* #DEF5E8 - alert background */
+--success-border: hsl(142, 50%, 65%);   /* #65CC8F - border */
+--success-text:   hsl(142, 70%, 22%);   /* #0F5C2A - label text */</code></pre>
+      <div class="guide-palette-builder" aria-label="Complete UI palette builder example">
+        <div class="palette-builder-row">
+          <h3>Brand color</h3>
+          <div class="palette-builder-swatches">
+            <span style="--swatch:#7c3aed;--text:#fff"><strong>Primary</strong><code>#7C3AED</code><small>hsl(250, 70%, 55%)</small></span>
+          </div>
+        </div>
+        <div class="palette-builder-row">
+          <h3>Neutral grays</h3>
+          <div class="palette-builder-swatches">
+            <span style="--swatch:#f6f5fb;--text:#1a1823"><strong>Gray 50</strong><code>#F6F5FB</code><small>hsl(250, 20%, 97%)</small></span>
+            <span style="--swatch:#e8e6f2;--text:#1a1823"><strong>Gray 100</strong><code>#E8E6F2</code><small>hsl(250, 15%, 92%)</small></span>
+            <span style="--swatch:#b8b4cf;--text:#1a1823"><strong>Gray 300</strong><code>#B8B4CF</code><small>hsl(250, 12%, 75%)</small></span>
+            <span style="--swatch:#6e6a84;--text:#fff"><strong>Gray 600</strong><code>#6E6A84</code><small>hsl(250, 10%, 45%)</small></span>
+            <span style="--swatch:#1a1823;--text:#fff"><strong>Gray 900</strong><code>#1A1823</code><small>hsl(250, 15%, 12%)</small></span>
+          </div>
+        </div>
+        <div class="palette-builder-row">
+          <h3>Semantic colors</h3>
+          <div class="palette-builder-swatches">
+            <span style="--swatch:#1e9953;--text:#fff"><strong>Success</strong><code>#1E9953</code><small>hsl(142, 70%, 40%)</small></span>
+            <span style="--swatch:#e8960a;--text:#1a1823"><strong>Warning</strong><code>#E8960A</code><small>hsl(38, 90%, 48%)</small></span>
+            <span style="--swatch:#d62525;--text:#fff"><strong>Error</strong><code>#D62525</code><small>hsl(0, 72%, 50%)</small></span>
+            <span style="--swatch:#1c8fcc;--text:#fff"><strong>Info</strong><code>#1C8FCC</code><small>hsl(205, 75%, 48%)</small></span>
+          </div>
+        </div>
+      </div>
+      <p>Step 5 - Contrast test every combination. Before shipping, check: primary text on page background, secondary text on page background, primary text on card background, all button text on button backgrounds, all semantic text on semantic backgrounds. If anything fails 4.5:1, adjust the lightness value until it passes. Hue and saturation stay constant - only lightness moves.</p>
 
-      <h2>The fastest path to better UI color choices</h2>
-      <p>Begin with roles. Check contrast early. Keep the palette smaller than your first instinct. Use semantic colors consistently. Test the palette on real components, not just standalone swatches. Those habits will improve most product interfaces more than learning obscure terminology ever will.</p>
-      <p>The right tools do not replace taste, but they shorten the trial-and-error loop that developers often face when design responsibility lands on their desk unexpectedly.</p>
+      <h2>Dark Mode: Not Just Invert Everything</h2>
+      <p>Inverting a light mode palette for dark mode does not work. The primary failure is that colors tuned for legibility on white become overwhelming on black - vivid brand colors that were readable at normal saturation cause visual vibration on dark backgrounds, and borders that were subtle become stark.</p>
+      <p>Do not use #000000 as your dark background. Pure black causes perceptual eye strain because the contrast with any colored content is maximally harsh. Use #0F0F0F, #121212, or a tinted dark like #0F0D17 (hue 250, very dark, very low saturation) that echoes your brand.</p>
+      <p>Reduce saturation by 10 to 20 percentage points on all colors in dark mode. <code>hsl(250, 70%, 55%)</code> in light mode becomes <code>hsl(250, 55%, 65%)</code> in dark mode - lightness goes up because it needs to be lighter to read on a dark background, and saturation goes down to prevent vibration. The hue stays identical, preserving brand recognition across modes.</p>
+      <div class="guide-mode-compare" aria-label="Light mode and dark mode color comparison">
+        <div class="mode-card mode-card-light">
+          <span>Light Mode</span>
+          <h3>Project Dashboard</h3>
+          <p>Neutral surfaces, dark tinted text, and a saturated brand button.</p>
+          <button type="button">Primary Action</button>
+        </div>
+        <div class="mode-card mode-card-dark">
+          <span>Dark Mode</span>
+          <h3>Project Dashboard</h3>
+          <p>Same hue family, softer saturation, and brighter foreground values.</p>
+          <button type="button">Primary Action</button>
+        </div>
+      </div>
+      <p>The cleanest implementation uses CSS custom properties with a data attribute toggle:</p>
+      <pre><code class="language-css">:root {
+  --bg-primary: hsl(250, 20%, 97%);
+  --bg-secondary: hsl(250, 15%, 92%);
+  --text-primary: hsl(250, 15%, 12%);
+  --text-secondary: hsl(250, 10%, 45%);
+  --brand: hsl(250, 70%, 55%);
+  --brand-hover: hsl(250, 70%, 45%);
+}
+
+[data-theme="dark"] {
+  --bg-primary: hsl(250, 15%, 8%);
+  --bg-secondary: hsl(250, 12%, 13%);
+  --text-primary: hsl(250, 20%, 92%);
+  --text-secondary: hsl(250, 10%, 65%);
+  --brand: hsl(250, 55%, 68%);
+  --brand-hover: hsl(250, 55%, 78%);
+}</code></pre>
+      <p>Toggle <code>data-theme="dark"</code> on the <code>html</code> element via JavaScript and the entire UI switches without touching a component. Every hardcoded color bypassing these custom properties is a bug waiting to happen in dark mode - audit for them specifically.</p>
+
+      <h2>Common Color Mistakes Developers Make</h2>
+      <p>Using pure black on pure white. #000000 on #FFFFFF has a 21:1 contrast ratio, which sounds good until you look at it for an hour. The harshness causes eye fatigue. Use #1A1A1A or #222222 for body text and #F8F8F8 or #FAFAFA for backgrounds. You lose nothing from an accessibility standpoint and gain significant readability on long-form content.</p>
+      <p>Using color as the only differentiator. An error state that turns a border red communicates nothing to a user with red-green color blindness - to them it looks identical to a normal state. Pair every color-based state change with a text label, an icon, or both. "Error: Email is required" with a red border and an error icon communicates to everyone. A red border alone communicates to some.</p>
+      <p>Accumulating too many colors. Most interfaces need one brand color, one set of five to seven neutrals, and three to four semantic colors. That is eight to twelve values total. If your palette has twenty-five colors, you do not have a palette - you have a collection of individual decisions that will fight each other. When in doubt, reach for a neutral rather than introducing a new hue.</p>
+      <p>Picking colors from imagination. No developer should be eyeballing hex values without tooling. Generate palettes systematically using HSL, verify contrast ratios with a checker, and use a color picker that shows you HSL alongside hex so you can adjust parameters rather than guess codes.</p>
+      <p>Forgetting interactive states. Every clickable element needs at minimum three color states: default, hover, and focus. Focus states are especially neglected and are both an accessibility requirement and a keyboard navigation necessity. Generate them mechanically: hover is your default with lightness decreased by 10%. Focus is your default with lightness decreased by 10% plus a 3px offset outline at full brand saturation. Active (mousedown) is lightness decreased by 20%. These three adjustments take thirty seconds to implement and cover every interactive state a user can produce.</p>
+      <p>You can explore, adjust, and convert colors using Tooliest's browser-based <a href="/color-picker/">color picker</a> and <a href="/hex-to-rgb/">color converter</a> - test HSL, RGB, and hex values instantly, convert between formats, and verify your palette without leaving your browser.</p>
     `,
     faqs: [
       { q: 'What is the most important color rule for UI work?', a: 'Clarity. A palette should create hierarchy, support readability, and make interactive states obvious before it tries to feel expressive.' },
