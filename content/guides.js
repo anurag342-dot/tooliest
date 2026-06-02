@@ -787,41 +787,158 @@ document.querySelectorAll('img[data-src]').forEach(img =&gt; observer.observe(im
     slug: 'meta-tags-that-improve-rankings',
     group: 'seo-growth',
     title: 'How to Write Meta Tags That Actually Improve Your Rankings',
-    description: 'A practical guide to title tags, meta descriptions, canonicals, Open Graph, and structured metadata that supports stronger SEO execution.',
+    description: 'A practical guide to writing effective title tags, meta descriptions, canonical tags, robots directives, and Open Graph tags. Includes HTML code examples, character limits, before-and-after comparisons, and a copy-paste meta tag template.',
     socialDescription: 'Learn which meta tags matter, how to write them well, and how to avoid the common metadata mistakes that weaken search visibility.',
     teaser: 'Learn which meta tags still matter, how to write titles and descriptions that hold up, and how to avoid metadata mistakes that waste rankings.',
     published: '2026-05-01',
-    updated: '2026-05-03',
-    readMinutes: 9,
+    updated: '2026-06-02',
+    readMinutes: 11,
     tags: ['SEO', 'Meta Tags', 'SERP Snippets'],
     contentHtml: `
-      <p>Pages don’t rise just because tags are packed tight. Yet those tiny lines help search engines grasp meaning, sort results, and show snippets that fit. Clarity beats clutter every time - especially when picking which copy of a page stands tall. What matters most? Telling machines plainly: here’s what this is, here’s how to display it.</p>
-      <p>Most of the time, errors in metadata aren’t flashy or obvious. Sloppy headings sneak in, summaries stay too fuzzy, canonical links get forgotten, social snippets don’t match up, and reused blocks fail to show what makes a page unique. Solid metadata often comes down to consistency more than cleverness.</p>
+      <div class="guide-meta-tags-seo">
+        <h2>The Six Meta Tags That Actually Affect Your Rankings and Clicks</h2>
+        <p>Most <code>&lt;meta&gt;</code> tags are noise. Google explicitly ignores the meta keywords tag, and the same is true for old leftovers like meta author and meta copyright; they do not help indexing or ranking. In practice, the tags worth your time are the title element, meta description, canonical, robots, Open Graph, and viewport. meta keywords was publicly declared useless by Google in 2009, and that has not changed. Some CMSs still generate it, but it does nothing for Google Search.</p>
 
-      <h2>Title tags still carry the biggest weight</h2>
-      <p>Start strong - focus on the title tag if nothing else changes. This tiny line remains a powerful signal to both people and search bots about your page's core idea. Instead of piling on keywords, good ones open with clarity, flow like natural speech, and match exactly what visitors find when they click through.</p>
-      <p>Most folks skip titles that feel vague or overloaded. What matters is how it sounds to someone reading it. These days, search tools get meaning faster than before. Clunky repeating tricks tend to backfire now instead of boosting visibility.</p>
+        <h2>Title Tags: The Single Most Important On-Page SEO Element</h2>
+        <p>Google uses the <code>&lt;title&gt;</code> element to generate the blue clickable title link in Search, and it recommends every page have a unique, descriptive title. Google also says there is no fixed character limit; the title link is truncated as needed to fit the device width. In real-world SERP testing tools, the practical display budget is about 580 pixels on desktop and about 480 pixels on mobile, which usually works out to roughly 50-60 characters depending on letter width.</p>
+        <p>Write titles for humans first, but structure them for search engines. Put the main topic early because Google recommends using words people would search for in prominent locations such as the title, and because long boilerplate titles make pages harder to distinguish. Keep branding at the end only when the page still reads cleanly. Avoid titles that repeat the same phrase multiple times.</p>
+        <p>Rules that hold up in production:</p>
+        <ul>
+          <li>Put the primary keyword near the front; do not bury the page topic after a brand or a slogan. Google recommends concise, descriptive titles and warns against vague or repetitive boilerplate.</li>
+          <li>Keep the title short enough to survive device-width truncation. A practical target is 50-60 characters, but pixel width matters more than character count.</li>
+          <li>Add the brand at the end if it still fits naturally. Google's own examples show brand naming as a concise suffix separated by a delimiter.</li>
+          <li>Make every page's title unique. Google says repeated or boilerplate titles make pages hard to tell apart.</li>
+        </ul>
 
-      <h2>Meta descriptions shape clicks</h2>
-      <p><strong>Clicks get shaped by meta descriptions even though these snippets don’t affect rankings.</strong></p>
-      <p>Clicking often hinges on what shows below the title. Descriptions back up the page’s intent, spell out value differently, yet make sure confusion doesn’t stop interest. This counts - ranking means little when snippets fail to draw clicks despite position.</p>
-      <p>Whatever works comes down to how well it matches the page. Tooliest’s <a href="/meta-tag-generator/">Meta Tag Generator</a> pairs with its <a href="/ai-meta-writer/">AI Meta Description Writer</a> to speed up drafts, yet someone must review each output. A strong snippet reflects content truthfully. What matters most shows up only after careful tweaking.</p>
+        <div class="guide-before-after" aria-label="Before and after title tag comparison">
+          <div class="guide-title-card guide-title-card-bad">
+            <span class="guide-title-card-label">Before</span>
+            <strong>Meta Tags | SEO | HTML Meta Tags Guide | Best Meta Tags for SEO 2026 | Tooliest</strong>
+            <span>82 characters - keyword-stuffed and likely truncated</span>
+          </div>
+          <div class="guide-title-card guide-title-card-good">
+            <span class="guide-title-card-label">After</span>
+            <strong>How to Write Meta Tags That Improve Rankings - Practical Guide | Tooliest</strong>
+            <span>73 characters - clearer, readable, and focused</span>
+          </div>
+        </div>
 
-      <h2>Canonical tags are about authority control</h2>
-      <p>Pages come in different forms even on small websites. When links point to similar content through slight URL changes, one version should stand out. Because search engines see these as separate pages otherwise. Splitting attention like that weakens how strong any single page appears. A clear pointer helps concentrate what matters. That pointer is called a canonical - use it where repetition sneaks in unnoticed.</p>
-      <p>Picture canonical tags like a quiet suggestion - this version matters most. When websites generate multiple routes to similar content, because of filters or category links, these markers help clarify which one leads the pack. Slugs, date-based folders, or sorted views might otherwise confuse the system. The main page gets picked without loud announcements, just subtle guidance.</p>
+        <p>Before / after:</p>
+        <p><strong>Bad:</strong> Meta Tags | SEO | HTML Meta Tags Guide | Best Meta Tags for SEO 2026 | Tooliest</p>
+        <p><strong>Good:</strong> How to Write Meta Tags That Improve Rankings - Practical Guide | Tooliest</p>
+        <p>The second version is better because the page topic appears immediately, the wording is readable, and the brand is tucked into the end instead of taking up the first screenful. The title is also much less likely to be cut off on smaller devices.</p>
+        <pre><code class="language-html"><span class="html-tag">&lt;title&gt;</span>How to Write Meta Tags That Improve Rankings | Tooliest<span class="html-tag">&lt;/title&gt;</span></code></pre>
 
-      <h2>Open Graph and Twitter tags matter beyond search</h2>
-      <p>Someone sends a link inside a message, post, or team app. If the little picture or description appears messy or unclear, trust dips right away. Tags shaped for social networks turn random snapshots into clear, chosen messages. The moment someone sees it, they understand what waits behind the click.</p>
-      <p>Just because it looks different doesn’t mean it’s a new branding job. This ties back to how clean your data labels are. Any page needs to present the same story no matter where someone finds it - search results, chat threads, social feeds, professional networks, or internal docs.</p>
+        <div class="guide-serp-preview" aria-label="Google search result preview">
+          <div class="guide-serp-url">tooliest.com &rsaquo; guides &rsaquo; meta-tags-that-improve-rankings</div>
+          <div class="guide-serp-title">How to Write Meta Tags That Improve Rankings | Tooliest</div>
+          <div class="guide-serp-description">Write title tags under 60 characters, meta descriptions under 155, and canonical tags that prevent duplicate content. Includes HTML code examples.</div>
+          <div class="guide-serp-count">
+            <span>Title 57 / 60</span>
+            <span>Description 147 / 155</span>
+          </div>
+        </div>
 
-      <h2>Metadata fails when it becomes a template with no editorial judgment</h2>
-      <p>Some websites carry metadata yet stumble since each page feels identical. Speed comes from templates, though that strips away purpose. One page compares things, another runs numbers, a third explains steps, while one sells an item - none ought to mirror a recycled line where only a word changes.</p>
-      <p>What works isn’t layers of detail. It’s sharp focus. Start by picturing the live webpage. Build from the real intent behind it. Bring up the reader or role if that clears things up. Stronger metadata comes from choices an editor would actually make.</p>
+        <h2>Meta Descriptions: Your 155-Character Sales Pitch</h2>
+        <p>Google says meta descriptions are not the main source of snippets and are not guaranteed to be used, but they can still influence how your result looks and whether people click it. Google often rewrites descriptions from page content when it thinks that text better matches the query. In Ahrefs' 2020 study, Google rewrote meta descriptions 62.78% of the time. That is exactly why you still write them: not because Google must use them, but because when Google does use them, they shape the snippet people see.</p>
+        <p>There is no hard Google character limit for descriptions either, but practical SERP tools usually plan for about 920 pixels on desktop and about 680 pixels on mobile, which often lands around 150-160 characters on desktop and about 120 characters on mobile. Put the important part first, because the first line is what you can count on across devices and many query layouts.</p>
 
-      <h2>A reliable metadata workflow</h2>
-      <p>Pick what the page should do first. A clear title shows exactly what it is about. The description tells why it matters - no extra words. Choose one main web address on purpose. Social media labels repeat the central idea simply. Check the results first thing once they’re ready. A tiny step like that one prevents plenty of SEO headaches down the road.</p>
-      <p>Starting strong, Tooliest handles much of the workflow using tools like <a href="/meta-tag-generator/">Meta Tag Generator</a>, <a href="/schema-generator/">Schema Generator</a> pops up next, then <a href="/slug-generator/">Slug Generator</a> follows close behind, while <a href="/keyword-density/">Keyword Density Checker</a> keeps pace when shifting from draft into quality review - all inside your browser.</p>
+        <div class="guide-char-limit" aria-label="Meta tag character limit reference">
+          <div class="guide-char-limit-row guide-char-limit-good">
+            <div class="guide-char-limit-copy">
+              <strong>Title tag</strong>
+              <span>57 / 60 characters</span>
+            </div>
+            <div class="guide-char-limit-track"><span style="width:95%"></span></div>
+          </div>
+          <div class="guide-char-limit-row guide-char-limit-bad">
+            <div class="guide-char-limit-copy">
+              <strong>Meta description</strong>
+              <span>169 / 155 characters</span>
+            </div>
+            <div class="guide-char-limit-track"><span style="width:100%"></span></div>
+          </div>
+        </div>
+
+        <p>Rules that actually matter:</p>
+        <ul>
+          <li>Front-load the value proposition. The first 120 characters are the safest part of the description on mobile.</li>
+          <li>Include the main keyword naturally. Google can bold matching terms in snippets, which makes the result easier to scan.</li>
+          <li>End with a clear action when the page is commercial or instructional: "Learn how," "See examples," "Try the free tool." That gives the snippet a reason to win the click. This is an implementation choice, not a Google requirement.</li>
+          <li>Do not duplicate descriptions sitewide. Google may ignore them anyway, and duplicates make your pages look interchangeable. If you cannot write a real description, leaving it blank is better than repeating the same sentence across 200 pages.</li>
+        </ul>
+        <p><strong>Bad:</strong> This is our comprehensive guide about meta tags. We cover title tags, meta descriptions, and more. Read this guide to learn about meta tags for SEO.</p>
+        <p><strong>Good:</strong> Write title tags under 60 characters, meta descriptions under 155, and canonical tags that prevent duplicate content. Includes HTML code examples and a character-count reference.</p>
+        <pre><code class="language-html"><span class="html-tag">&lt;meta</span> <span class="html-attr">name=</span><span class="html-value">"description"</span> <span class="html-attr">content=</span><span class="html-value">"Write title tags under 60 characters, meta descriptions under 155, and canonical tags that prevent duplicate content. Includes HTML code examples and a character-count reference."</span><span class="html-tag">&gt;</span></code></pre>
+
+        <h2>Canonical Tags: Preventing Your Own Pages From Competing Against Each Other</h2>
+        <p>A canonical tag tells Google which URL should represent a set of similar or duplicate pages. Google treats <code>rel="canonical"</code> as a strong signal, and it uses canonicalization to consolidate ranking signals onto one representative URL. That matters whenever the same content appears under multiple URLs, such as filtered product pages, HTTP vs HTTPS, trailing slashes, www vs non-www, or pagination that creates near-duplicates.</p>
+        <p>Use canonicals to remove ambiguity, not to force unrelated pages together. Google says the pages should be similar, and it may ignore canonicals when the content mismatch is too large. In other words, do not canonical a shoe product page to a blog post just to "send authority" somewhere else; that is a broken signal and usually a wasted one.</p>
+        <p>Every page should normally have a self-referencing canonical pointing to its preferred URL. That preferred URL should use the exact protocol, host, and path format you actually want indexed. If your site is <code>https://www.example.com/</code>, do not canonical some pages to <code>http://example.com/</code> and others to <code>https://example.com/</code>; make one version the standard and keep it consistent.</p>
+        <pre><code class="language-html"><span class="html-tag">&lt;link</span> <span class="html-attr">rel=</span><span class="html-value">"canonical"</span> <span class="html-attr">href=</span><span class="html-value">"https://example.com/shoes"</span><span class="html-tag">&gt;</span></code></pre>
+
+        <h2>Robots Meta Tag: Controlling What Google Indexes</h2>
+        <p>The robots meta tag lets you control whether Google indexes a page, follows links, or shows snippets. Google's default behavior is index, follow, so you usually do not need to write that explicitly. The useful settings are the ones you apply intentionally: noindex for pages that should stay out of Search, nofollow for links you do not want crawled from that page, nosnippet when you want the page indexed but not previewed, and max-snippet when you want to cap snippet length.</p>
+        <p>Use <code>noindex, follow</code> for internal search results, login pages, thin filters, and utility pages that users may need but searchers should not land on. Use <code>noindex, nofollow</code> for staging environments and pages that should not be crawled through links. Google also notes that if a page is blocked by robots.txt, the crawler may never see the noindex rule, so blocking and noindexing are not interchangeable.</p>
+        <p>Do not noindex pages you expect to rank. CMS plugins and theme settings routinely break sites by applying a blanket noindex to the whole domain or to every post type. Also keep your sitemap clean: a sitemap is for URLs you want Google to discover and crawl efficiently, so do not list URLs you are intentionally hiding from Search. That is a practical consistency rule based on how Google describes sitemaps and noindex, not a decorative best practice.</p>
+        <pre><code class="language-html"><span class="html-tag">&lt;meta</span> <span class="html-attr">name=</span><span class="html-value">"robots"</span> <span class="html-attr">content=</span><span class="html-value">"noindex, follow"</span><span class="html-tag">&gt;</span>
+<span class="html-tag">&lt;meta</span> <span class="html-attr">name=</span><span class="html-value">"robots"</span> <span class="html-attr">content=</span><span class="html-value">"nosnippet"</span><span class="html-tag">&gt;</span>
+<span class="html-tag">&lt;meta</span> <span class="html-attr">name=</span><span class="html-value">"robots"</span> <span class="html-attr">content=</span><span class="html-value">"max-snippet:155"</span><span class="html-tag">&gt;</span></code></pre>
+
+        <h2>Open Graph Tags: Controlling How Your Page Looks When Shared</h2>
+        <p>Open Graph tags are the metadata social platforms read to build link previews. The Open Graph protocol's required fields are <code>og:title</code>, <code>og:type</code>, <code>og:image</code>, and <code>og:url</code>, and it also recommends <code>og:description</code> plus optional fields like <code>og:site_name</code> and image dimensions. If the page has no strong OG markup, the platform has to guess, and guessing usually produces a weak preview.</p>
+        <p>For previews, <code>og:image</code> is the most important tag because it determines whether the card feels worth clicking. Meta's documentation says images should be at least 1200 x 630 pixels for best display on high-resolution devices, and the Open Graph spec supports <code>og:image:width</code> and <code>og:image:height</code> so scrapers can render the card cleanly. Use the same canonical URL in <code>og:url</code> that you use in your canonical tag.</p>
+        <p>Twitter/X cards are still worth setting because they give X an explicit preview format. In practice, set <code>twitter:card</code> along with your Open Graph tags so X has a clear card type to render. The safest default for most content pages is a large-image card, especially when your preview image is already built for social sharing.</p>
+        <p>The easiest mistake to avoid is shipping shared links with no image or the wrong image. That creates a bare preview, which is much weaker than a card with a large, clean thumbnail. Use the Facebook Sharing Debugger to force a rescrape whenever you update OG tags, because social platforms cache aggressively.</p>
+
+        <div class="guide-og-preview" aria-label="Open Graph preview mockup">
+          <div class="guide-og-image">1200 x 630</div>
+          <div class="guide-og-body">
+            <span>tooliest.com</span>
+            <strong>How to Write Meta Tags That Improve Rankings | Tooliest</strong>
+            <p>Write production-quality title tags, descriptions, canonicals, robots rules, and social previews.</p>
+          </div>
+        </div>
+
+        <pre><code class="language-html"><span class="html-tag">&lt;meta</span> <span class="html-attr">property=</span><span class="html-value">"og:title"</span> <span class="html-attr">content=</span><span class="html-value">"How to Write Meta Tags That Improve Rankings | Tooliest"</span><span class="html-tag">&gt;</span>
+<span class="html-tag">&lt;meta</span> <span class="html-attr">property=</span><span class="html-value">"og:description"</span> <span class="html-attr">content=</span><span class="html-value">"Write production-quality title tags, descriptions, canonicals, robots rules, and social previews."</span><span class="html-tag">&gt;</span>
+<span class="html-tag">&lt;meta</span> <span class="html-attr">property=</span><span class="html-value">"og:image"</span> <span class="html-attr">content=</span><span class="html-value">"https://example.com/images/meta-tags-guide-og.jpg"</span><span class="html-tag">&gt;</span>
+<span class="html-tag">&lt;meta</span> <span class="html-attr">property=</span><span class="html-value">"og:url"</span> <span class="html-attr">content=</span><span class="html-value">"https://example.com/meta-tags-guide"</span><span class="html-tag">&gt;</span>
+<span class="html-tag">&lt;meta</span> <span class="html-attr">property=</span><span class="html-value">"og:type"</span> <span class="html-attr">content=</span><span class="html-value">"article"</span><span class="html-tag">&gt;</span>
+<span class="html-tag">&lt;meta</span> <span class="html-attr">name=</span><span class="html-value">"twitter:card"</span> <span class="html-attr">content=</span><span class="html-value">"summary_large_image"</span><span class="html-tag">&gt;</span></code></pre>
+
+        <h2>A Complete Meta Tag Template You Can Copy</h2>
+        <p>This is the version I would start from on a real site. It includes the basic HTML essentials, the SEO tags that matter, and the social preview tags that prevent ugly shares. Replace the example URLs, image path, and copy with page-specific values before publishing.</p>
+        <pre><code class="language-html"><span class="html-tag">&lt;head&gt;</span>
+  <span class="html-tag">&lt;meta</span> <span class="html-attr">charset=</span><span class="html-value">"utf-8"</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- Ensures correct character encoding --&gt;</span>
+  <span class="html-tag">&lt;meta</span> <span class="html-attr">name=</span><span class="html-value">"viewport"</span> <span class="html-attr">content=</span><span class="html-value">"width=device-width, initial-scale=1"</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- Mobile rendering / mobile-friendly signal --&gt;</span>
+  <span class="html-tag">&lt;title&gt;</span>How to Write Meta Tags That Improve Rankings | Tooliest<span class="html-tag">&lt;/title&gt;</span> <span class="html-comment">&lt;!-- Search title / clickable result title --&gt;</span>
+  <span class="html-tag">&lt;meta</span> <span class="html-attr">name=</span><span class="html-value">"description"</span> <span class="html-attr">content=</span><span class="html-value">"Write production-quality title tags, descriptions, canonicals, robots rules, and social previews."</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- Search snippet fallback --&gt;</span>
+  <span class="html-tag">&lt;link</span> <span class="html-attr">rel=</span><span class="html-value">"canonical"</span> <span class="html-attr">href=</span><span class="html-value">"https://example.com/meta-tags-guide"</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- Preferred indexable URL --&gt;</span>
+  <span class="html-tag">&lt;meta</span> <span class="html-attr">name=</span><span class="html-value">"robots"</span> <span class="html-attr">content=</span><span class="html-value">"index, follow"</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- Default indexing/crawling behavior; include only if you need to be explicit --&gt;</span>
+  <span class="html-tag">&lt;meta</span> <span class="html-attr">property=</span><span class="html-value">"og:title"</span> <span class="html-attr">content=</span><span class="html-value">"How to Write Meta Tags That Improve Rankings | Tooliest"</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- Social share title --&gt;</span>
+  <span class="html-tag">&lt;meta</span> <span class="html-attr">property=</span><span class="html-value">"og:description"</span> <span class="html-attr">content=</span><span class="html-value">"Write production-quality title tags, descriptions, canonicals, robots rules, and social previews."</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- Social share description --&gt;</span>
+  <span class="html-tag">&lt;meta</span> <span class="html-attr">property=</span><span class="html-value">"og:image"</span> <span class="html-attr">content=</span><span class="html-value">"https://example.com/images/meta-tags-guide-og.jpg"</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- Social share image --&gt;</span>
+  <span class="html-tag">&lt;meta</span> <span class="html-attr">property=</span><span class="html-value">"og:url"</span> <span class="html-attr">content=</span><span class="html-value">"https://example.com/meta-tags-guide"</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- Share URL / canonical identity --&gt;</span>
+  <span class="html-tag">&lt;meta</span> <span class="html-attr">property=</span><span class="html-value">"og:type"</span> <span class="html-attr">content=</span><span class="html-value">"article"</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- Content type for social parsers --&gt;</span>
+  <span class="html-tag">&lt;meta</span> <span class="html-attr">name=</span><span class="html-value">"twitter:card"</span> <span class="html-attr">content=</span><span class="html-value">"summary_large_image"</span><span class="html-tag">&gt;</span> <span class="html-comment">&lt;!-- X card format --&gt;</span>
+<span class="html-tag">&lt;/head&gt;</span></code></pre>
+
+        <h2>The Meta Tag Audit Checklist</h2>
+        <ul class="guide-checklist">
+          <li>Title tag exists, is unique, and stays under the practical display limit for the device you care about. Google truncates by device width, so pixel width matters more than a raw character count.</li>
+          <li>The primary keyword appears early in the title and the title reads naturally. Google recommends concise, descriptive titles without keyword stuffing.</li>
+          <li>Meta description exists, is unique, and is written for clicks rather than rankings. Google may rewrite it, so the first part must still stand on its own.</li>
+          <li>Canonical points to the exact URL format you want indexed, and it matches the protocol and host you actually use. Google treats canonical as a strong signal, not magic.</li>
+          <li>Robots directives are correct for the page's purpose. Do not accidentally noindex pages that should rank.</li>
+          <li>Noindexed URLs are not included in your sitemap. Sitemaps are for important URLs you want discovered efficiently.</li>
+          <li><code>og:image</code> exists and is large enough to look clean in social cards, ideally 1200 x 630 pixels or better.</li>
+          <li>Social preview text and image match the actual page content. Mismatches create low-trust previews and bad shares.</li>
+          <li>Facebook / Meta's debugger or equivalent preview tool shows the correct card after a rescrape. Social platforms cache metadata, so stale previews are normal unless you refresh them.</li>
+          <li>There are no duplicate or conflicting meta tags from plugins, themes, or server-side rendering. Google warns that conflicting canonical or robots signals can produce unexpected results.</li>
+        </ul>
+        <p>You can generate all of these tags instantly using Tooliest's browser-based <a href="/meta-tag-generator/">Meta Tag Generator</a>, preview your social cards with the <a href="/og-preview/">Open Graph Preview</a> tool, and create structured data with the <a href="/schema-generator/">Schema Markup Generator</a> - all free, no signup required.</p>
+      </div>
     `,
     faqs: [
       { q: 'Do meta descriptions directly improve rankings?', a: 'Not in the same way title tags or page content can, but strong descriptions can improve click-through rate and make a result more compelling when it appears in search.' },

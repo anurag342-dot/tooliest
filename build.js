@@ -3883,6 +3883,257 @@ const COLOR_THEORY_GUIDE_VISUAL_CSS = `<style>
   }
 </style>`;
 
+const META_TAGS_GUIDE_VISUAL_CSS = `<style>
+  .guide-article-copy .guide-meta-tags-seo .guide-serp-preview,
+  .guide-article-copy .guide-meta-tags-seo .guide-before-after,
+  .guide-article-copy .guide-meta-tags-seo .guide-char-limit,
+  .guide-article-copy .guide-meta-tags-seo .guide-og-preview,
+  .guide-article-copy .guide-meta-tags-seo .guide-checklist {
+    margin: 24px 0 30px;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-serp-preview {
+    max-width: 720px;
+    padding: 22px;
+    border: 1px solid rgba(148,163,184,.24);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 22px 46px rgba(0,0,0,.22);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-serp-url {
+    margin-bottom: 5px;
+    color: #188038;
+    font: 400 14px/1.35 Arial, sans-serif;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-serp-title {
+    margin-bottom: 7px;
+    color: #1a0dab;
+    font: 400 20px/1.3 Arial, sans-serif;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-serp-description {
+    color: #3c4043;
+    font: 400 14px/1.55 Arial, sans-serif;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-serp-count {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-serp-count span {
+    display: inline-flex;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: rgba(24,128,56,.1);
+    color: #137333;
+    font: 700 .74rem/1.2 var(--font-primary);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-before-after {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-title-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-title-card-bad {
+    border-color: rgba(239,68,68,.48);
+    background: linear-gradient(135deg, rgba(239,68,68,.13), rgba(255,255,255,.025));
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-title-card-good {
+    border-color: rgba(34,197,94,.5);
+    background: linear-gradient(135deg, rgba(34,197,94,.13), rgba(139,92,246,.045));
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-title-card-label {
+    display: inline-flex;
+    margin-bottom: 12px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    color: var(--text-primary);
+    font-size: .78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-title-card strong,
+  .guide-article-copy .guide-meta-tags-seo .guide-title-card span:last-child {
+    display: block;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-title-card strong {
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-title-card span:last-child {
+    color: var(--text-tertiary);
+    font-size: .86rem;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-char-limit {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid rgba(139,92,246,.26);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(6,182,212,.04)), rgba(255,255,255,.025);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-char-limit-row {
+    display: grid;
+    gap: 9px;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-char-limit-copy {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--text-primary);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-char-limit-copy span {
+    color: var(--text-tertiary);
+    font: 750 .82rem/1.2 var(--font-mono);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-char-limit-track {
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(148,163,184,.18);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-char-limit-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-char-limit-good .guide-char-limit-track span {
+    background: linear-gradient(90deg, #22c55e, #10b981);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-char-limit-bad .guide-char-limit-track span {
+    background: linear-gradient(90deg, #fb923c, #ef4444);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-og-preview {
+    max-width: 620px;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.22);
+    border-radius: 18px;
+    background: #f1f5f9;
+    box-shadow: 0 20px 44px rgba(0,0,0,.18);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-og-image {
+    aspect-ratio: 1200 / 630;
+    display: grid;
+    place-items: center;
+    background:
+      linear-gradient(135deg, rgba(139,92,246,.88), rgba(6,182,212,.76)),
+      radial-gradient(circle at 22% 20%, rgba(255,255,255,.28), transparent 28%);
+    color: #fff;
+    font: 900 clamp(1.3rem, 5vw, 2.4rem)/1 var(--font-mono);
+    text-shadow: 0 2px 18px rgba(0,0,0,.25);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-og-body {
+    padding: 16px 18px 18px;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-og-body span {
+    display: block;
+    margin-bottom: 6px;
+    color: #64748b;
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-og-body strong {
+    display: block;
+    color: #0f172a;
+    font-size: 1.02rem;
+    line-height: 1.35;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-og-body p {
+    margin: 7px 0 0;
+    color: #475569;
+    font-size: .92rem;
+    line-height: 1.5;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-checklist {
+    display: grid;
+    gap: 11px;
+    padding-left: 0;
+    list-style: none;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-checklist li {
+    position: relative;
+    margin: 0;
+    padding: 15px 16px 15px 48px;
+    border: 1px solid rgba(34,197,94,.24);
+    border-radius: 14px;
+    background: rgba(255,255,255,.035);
+    color: var(--text-secondary);
+    box-shadow: 0 12px 26px rgba(0,0,0,.08);
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-checklist li::before {
+    content: "✓";
+    position: absolute;
+    left: 16px;
+    top: 15px;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(34,197,94,.18);
+    color: #22c55e;
+    font-weight: 900;
+  }
+  .guide-article-copy .guide-meta-tags-seo .guide-code-window .html-tag { color: #7dd3fc; }
+  .guide-article-copy .guide-meta-tags-seo .guide-code-window .html-attr { color: #c4b5fd; }
+  .guide-article-copy .guide-meta-tags-seo .guide-code-window .html-value { color: #86efac; }
+  .guide-article-copy .guide-meta-tags-seo .guide-code-window .html-comment {
+    color: #94a3b8;
+    font-style: italic;
+  }
+  [data-theme=light] .guide-article-copy .guide-meta-tags-seo .guide-title-card,
+  [data-theme=light] .guide-article-copy .guide-meta-tags-seo .guide-char-limit,
+  [data-theme=light] .guide-article-copy .guide-meta-tags-seo .guide-checklist li {
+    background-color: rgba(255,255,255,.84);
+    box-shadow: 0 16px 34px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-meta-tags-seo .guide-code-window .html-tag { color: #0369a1; }
+  [data-theme=light] .guide-article-copy .guide-meta-tags-seo .guide-code-window .html-attr { color: #7c3aed; }
+  [data-theme=light] .guide-article-copy .guide-meta-tags-seo .guide-code-window .html-value { color: #047857; }
+  [data-theme=light] .guide-article-copy .guide-meta-tags-seo .guide-code-window .html-comment { color: #64748b; }
+  @media (max-width: 760px) {
+    .guide-article-copy .guide-meta-tags-seo .guide-before-after {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-meta-tags-seo .guide-serp-preview,
+    .guide-article-copy .guide-meta-tags-seo .guide-title-card,
+    .guide-article-copy .guide-meta-tags-seo .guide-char-limit,
+    .guide-article-copy .guide-meta-tags-seo .guide-og-preview,
+    .guide-article-copy .guide-meta-tags-seo .guide-checklist li {
+      border-radius: 12px;
+    }
+    .guide-article-copy .guide-meta-tags-seo .guide-serp-preview,
+    .guide-article-copy .guide-meta-tags-seo .guide-char-limit {
+      padding: 16px;
+    }
+    .guide-article-copy .guide-meta-tags-seo .guide-char-limit-copy {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .guide-article-copy .guide-meta-tags-seo .guide-serp-title {
+      font-size: 18px;
+    }
+    .guide-article-copy .guide-meta-tags-seo .guide-og-body {
+      padding: 14px 15px 16px;
+    }
+  }
+</style>`;
+
 function renderGuidesHubPage(tools) {
   const guideLastModified = getGuideContentLastModifiedDate();
   const softwarePageCount = getSoftwareEditorialPageCount();
@@ -4010,8 +4261,10 @@ function renderGuideArticlePage(guide) {
           ? PASSWORD_SECURITY_GUIDE_VISUAL_CSS
           : guide.slug === 'color-theory-for-developers'
             ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${COLOR_THEORY_GUIDE_VISUAL_CSS}`
-            : '';
-  const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' || guide.slug === 'color-theory-for-developers' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
+            : guide.slug === 'meta-tags-that-improve-rankings'
+              ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${META_TAGS_GUIDE_VISUAL_CSS}`
+              : '';
+  const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' || guide.slug === 'color-theory-for-developers' || guide.slug === 'meta-tags-that-improve-rankings' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
   const structuredData = [
     {
       '@context': 'https://schema.org',
