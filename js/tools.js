@@ -589,7 +589,7 @@ const TOOLS = [
   {
     id: 'image-compressor',
     name: 'Image Compressor',
-    description: 'Compress JPEG, PNG, and WebP images by up to 70% without visible quality loss. Runs entirely in your browser \u2014 files never leave your device. No signup, no watermarks.',
+    description: 'Compress JPEG, PNG, and WebP images by up to 70% without visible quality loss. Uses your browser\'s Canvas API \u2014 files never leave your device. Adjust quality with a slider, preview original vs compressed side by side, and download instantly.',
     category: 'image',
     icon: '📸',
     tags: ['compress', 'optimize', 'reduce size', 'image'],
@@ -664,9 +664,35 @@ const TOOLS = [
         description: 'Convert between JPEG, PNG, and WebP formats'
       }
     ],
+    contentSectionsHtml: `
+<section class="tool-content-section">
+  <h2>What the JPEG Quality Slider Actually Does</h2>
+  <p>JPEG works by dividing your image into 8×8 pixel blocks, running each through a Discrete Cosine Transform (DCT), and quantizing the result. Lower quality means coarser quantization and more high-frequency detail discarded — fine texture, edge sharpness, subtle color variation. Quality 100 is not uncompressed: it still runs through the DCT pipeline, just with minimal quantization. It's the lightest JPEG, not a lossless format.</p>
+  <p>Quality 80–85 is the sweet spot for photographs. What gets discarded at that level lives in soft color gradients and tonal transitions — exactly where human vision is least sensitive. You'd need to zoom in substantially to see any difference from quality 100. Below quality 65–70, the losses become visible: ringing artifacts appear around sharp edges, and text picks up a blurry halo at high-contrast boundaries. One thing to know upfront: this tool always outputs JPEG regardless of input format. Upload a PNG with a transparent background and that transparency is replaced with white — plan for that before compressing logos or UI assets with transparent layers.</p>
+</section>
+<section class="tool-content-section">
+  <h2>File Size Targets by Where the Image Will Be Used</h2>
+  <p>Website hero or banner (1200–1600px wide): 100–200KB. Blog or article image (800px wide): 40–100KB. Email newsletter (600px wide): 30–60KB — email clients block heavy images and large total message size hurts deliverability. Social media: quality 85 at the platform's recommended dimensions is enough; every major platform recompresses uploads on their end anyway. E-commerce product photos: quality 85, under 150KB, typically at 1000–1500px square to match marketplace specs. Thumbnails and avatars: under 20KB.</p>
+</section>
+<section class="tool-content-section">
+  <h2>Canvas API Compression vs Server-Side Processing</h2>
+  <p>Most online compressors — TinyPNG, Compressor.io, iLoveIMG — upload your image to their servers, compress it there, and send it back. Your file passes through third-party infrastructure every time. This tool draws your image onto an invisible HTML canvas element and exports a JPEG blob at your chosen quality using the browser's built-in encoder. Nothing leaves your machine — open DevTools → Network tab while compressing and you'll see zero outbound image requests.</p>
+  <p>The honest tradeoff: server-side tools squeeze harder. Where TinyPNG might achieve 70% reduction, Canvas API compression typically lands around 60%. If maximum compression ratio is the only goal and privacy isn't a constraint, server-side tools have the edge. But for unreleased product photos under NDA, medical images, or anything with GPS coordinates still embedded in the EXIF metadata, nothing leaving your machine isn't a nice-to-have — it's the requirement.</p>
+</section>
+<section class="tool-content-section">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-list">
+    <details class="faq-item"><summary>What JPEG quality should I use for web images?</summary><p>Quality 80–85 is the standard range for web photographs. Below 80, ringing artifacts and edge degradation become visible at normal screen size; above 85, file size climbs with no perceptible quality gain. For images containing sharp text or high-contrast edges like logos, quality 85–90 is the safer floor.</p></details>
+    <details class="faq-item"><summary>Does this image compressor upload my files to a server?</summary><p>No. This tool runs entirely in your browser using the Canvas API — your image is drawn onto an HTML canvas element and compressed locally using the browser's built-in encoder. Nothing is transmitted to any server. You can verify this by opening DevTools and checking the Network tab while compressing: zero outbound image requests are made.</p></details>
+    <details class="faq-item"><summary>What happens when you compress a PNG as a JPEG?</summary><p>Two things happen: transparency is lost — replaced by a white background — and the image becomes lossy. PNG is lossless, JPEG is not, so this conversion is one-way and permanent. If your PNG has a transparent layer, composite it onto the correct background color before converting, or the output will have an unwanted white fill.</p></details>
+    <details class="faq-item"><summary>What size should images be for a website?</summary><p>A hero or banner image should be 1200–1600px wide and under 200KB. Blog and article images work well at 800px wide and under 100KB. These targets support fast Core Web Vitals scores — particularly Largest Contentful Paint — without visible quality loss at standard screen resolutions.</p></details>
+    <details class="faq-item"><summary>Should I resize or compress images first?</summary><p>Resize first, then compress. Compressing a 4000px-wide image at quality 80 produces a far larger file than resizing it to 1200px first, then compressing. Resizing reduces total pixel count, which is the bigger lever; compression then reduces file size within those dimensions. Always do them in that order.</p></details>
+    <details class="faq-item"><summary>What is the difference between lossy and lossless image compression?</summary><p>Lossless compression (PNG, WebP lossless) reduces file size without discarding any pixel data — the original is perfectly reconstructable. Lossy compression (JPEG, WebP lossy) permanently removes detail to achieve much smaller files. For photographs on the web, lossy compression at quality 75–85 produces significantly smaller files with differences that are imperceptible at normal viewing sizes.</p></details>
+  </div>
+</section>`,
     meta: {
-      title: 'Free Image Compressor - Private, No Upload | Tooliest',
-      desc: 'Compress JPEG, PNG, and WebP by up to 70%. Files never leave your browser. Adjust quality per image, batch compress, download as ZIP. No signup, no watermarks.'
+      title: 'Free Image Compressor - No Upload, Browser-Only | Tooliest',
+      desc: 'Compress JPEG, PNG, and WebP images by up to 70%. Runs in your browser \u2014 files never leave your device. Adjust quality, see side-by-side preview, download instantly.'
     }
   },
   {
@@ -2797,7 +2823,7 @@ Sitemap: https://yoursite.com/sitemap.xml</code></pre><p>Blocking /wp-login.php 
     ],
   },
   'image-compressor': {
-    metaDescExact: 'Compress JPEG, PNG, and WebP by up to 70%. Files never leave your browser. Adjust quality per image, batch compress, download as ZIP. No signup, no watermarks.',
+    metaDescExact: 'Compress JPEG, PNG, and WebP images by up to 70%. Runs in your browser \u2014 files never leave your device. Adjust quality, see side-by-side preview, download instantly.',
     summaryHeading: 'How Do I Compress Images Online Without Losing Quality?',
     aeoSnippet: {
       heading: 'Is There a Free Image Compressor That Does Not Upload Files?',
