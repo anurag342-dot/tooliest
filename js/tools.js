@@ -698,7 +698,7 @@ const TOOLS = [
   {
     id: 'image-resizer',
     name: 'Image Resizer',
-    description: 'Resize images to any dimensions. Maintain aspect ratio or crop.',
+    description: 'Resize images to exact pixel dimensions with one click. Lock or unlock aspect ratio, preview original dimensions, and download the resized PNG instantly. Runs 100% in your browser — no upload required.',
     category: 'image',
     icon: '📐',
     tags: ['resize', 'dimensions', 'scale', 'image'],
@@ -706,7 +706,41 @@ const TOOLS = [
     education: '<strong>Image resizing for the web</strong><br>Serving correctly-sized images is one of the simplest performance wins. An image displayed at 400px but served at 2000px wastes bandwidth. This tool lets you resize to exact pixel dimensions while maintaining aspect ratio. For responsive sites, prepare multiple sizes and serve them with the HTML <code>srcset</code> attribute.',
     whyUse: ['Resize images to exact pixel dimensions for web, social media, or print', 'Maintain aspect ratio to prevent distortion', 'Process images 100% locally — no uploads required'],
     whoUses: 'Web content managers, social media marketers, photographers, and e-commerce teams preparing product images.',
-    meta: { title: 'Image Resizer - Resize Images Online Free | Tooliest', desc: 'Resize images to any dimensions. Maintain aspect ratio, crop, or scale. Free online image resizer.' }
+    contentSectionsHtml: `<section class="tool-content-section">
+  <h2>Pixels, Dimensions, and Why the Numbers Matter</h2>
+  <p>A smartphone photo is typically 4000–4500 pixels wide (12–50MP), which contains far more data than any website needs. Pixel dimensions determine detail capacity, but display size depends entirely on context — that 4000px photo fills a phone screen while appearing modest on a 4K monitor at native scaling.</p>
+  <p>Resizing down (4000px → 800px) discards pixels permanently. This tool's Canvas drawImage() uses bilinear interpolation — it blends groups of neighboring pixels into single output pixels, which is why downscaled images stay sharp. Resizing up inverts this: interpolation invents pixel values from surrounding colors, producing visible blur at the edges of detail. No algorithm creates information that wasn't captured in the original.</p>
+  <p>Always start from the largest source file you have and resize down, never up. For full-width website banners: 1200–1600px. Blog post images: 800px. Thumbnails: 300px.</p>
+</section>
+
+<section class="tool-content-section">
+  <h2>When to Keep Aspect Ratio Locked (and the One Case Where You Shouldn't)</h2>
+  <p>Aspect ratio is the proportional relationship between width and height — 16:9 for widescreen, 4:3 for traditional cameras, 1:1 for square. This tool locks it by default because unlocking it scales width and height independently, distorting the image. A portrait face becomes wide; a landscape scene compresses vertically.</p>
+  <p>The one valid exception: a platform requires an exact pixel size and slight distortion is acceptable — for example, forcing an image into exactly 1200×628 pixels for an Open Graph preview card. A cleaner approach for strict platform requirements: resize with the ratio locked, then crop to the exact target dimensions using <a href="/image-cropper/">Tooliest's Image Cropper</a>.</p>
+  <p>Common platform targets where both dimensions are fixed: Instagram post (1080×1080), YouTube thumbnail (1280×720), Facebook cover (820×312), Twitter/X header (1500×500).</p>
+</section>
+
+<section class="tool-content-section">
+  <h2>Why This Tool Outputs PNG (and When That's Not What You Want)</h2>
+  <p>PNG is lossless — every pixel value survives the resize process unchanged. The tradeoff is file size: a 1200px-wide photograph saved as PNG typically runs 2–4MB. The same image as JPEG at quality 85 runs 150–300KB. For most web use, PNG after resizing is a starting point, not a final deliverable.</p>
+  <p>If you need a smaller file, resize here first, then run the output through <a href="/image-compressor/">Tooliest's Image Compressor</a> or convert to JPEG or WebP using the <a href="/image-converter/">Image Format Converter</a>. If you are resizing a graphic with a transparent background, the PNG output preserves the alpha channel exactly — JPEG cannot do this, so PNG is the correct final format for transparent graphics.</p>
+  <p>Recommended workflow: resize to target dimensions here → convert to JPEG or WebP → compress if the file size is still above your target.</p>
+</section>
+
+<section class="tool-content-section">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-list">
+    <details class="faq-item"><summary>How do I resize an image without losing quality?</summary><p>Resizing down — reducing pixel dimensions — preserves perceived quality because you are removing excess pixels, not degrading the ones that remain. The Canvas bilinear interpolation used during downscaling blends neighboring pixels cleanly. Resizing up always degrades sharpness because the algorithm has to invent pixel values that were never captured. The rule is: always start from the highest-resolution source file you have and resize downward to your target. Never try to enlarge a small image to recover detail — the detail was not recorded, so it cannot be recovered.</p></details>
+    <details class="faq-item"><summary>What image size should I use for a website header?</summary><p>For a full-width hero or banner that spans the entire browser viewport, 1200–1600 pixels wide covers most screens without serving unnecessarily large files. For images embedded in blog post content, 800px wide is the standard — wider than this adds file size without visible benefit at typical reading column widths. For thumbnail images in grids, cards, or sidebars, 300px is usually sufficient. Aim to keep any image used in a web page under 200KB in file size after compression — a 1200px PNG from this tool will need to be converted to JPEG or WebP to reach that target.</p></details>
+    <details class="faq-item"><summary>Does resizing an image reduce its file size?</summary><p>Yes, significantly. File size is directly related to pixel count — a 4000×3000 image contains 12 million pixels, while a 1200×900 version contains only 1.08 million. As PNG, that resize typically takes a file from 4–6MB down to 500KB–1.5MB. Converting the resized PNG to JPEG at quality 85 reduces it further to 100–300KB for photographic content. The resize handles the dimension reduction; the format conversion handles the remaining file size. Both steps together are the standard workflow for preparing images for web use.</p></details>
+    <details class="faq-item"><summary>What is aspect ratio in images?</summary><p>Aspect ratio is the proportional relationship between an image's width and height, expressed as two numbers — for example, 16:9 means the image is 16 units wide for every 9 units tall. A 1280×720 image and a 1920×1080 image both have a 16:9 aspect ratio despite different pixel dimensions. Common ratios: 16:9 is standard widescreen (video, YouTube thumbnails), 4:3 is traditional camera format, 1:1 is square (Instagram grid posts). Keeping the aspect ratio locked when resizing means both dimensions scale proportionally — the image gets smaller or larger without stretching or squashing.</p></details>
+    <details class="faq-item"><summary>What size should I resize my image for Instagram?</summary><p>Instagram displays different formats at specific pixel dimensions. For feed posts, the three supported formats are: square at 1080×1080 pixels (1:1 ratio), portrait at 1080×1350 pixels (4:5 ratio — this format gets the most screen space in the feed and typically sees higher engagement), and landscape at 1080×566 pixels. For Stories and Reels, the correct dimensions are 1080×1920 pixels (9:16 vertical). For your profile picture, upload at 320×320 pixels minimum — Instagram displays it as a circle, so keep important content centered and away from the corners.</p></details>
+  </div>
+</section>`,
+    meta: {
+      title: 'Free Image Resizer - Resize to Exact Pixels, No Upload | Tooliest',
+      desc: 'Resize images to exact pixel dimensions with aspect ratio control. Runs in your browser — files never leave your device. Download as PNG instantly.'
+    }
   },
   {
     id: 'image-cropper',
@@ -750,18 +784,54 @@ const TOOLS = [
   {
     id: 'image-converter',
     name: 'Image Format Converter',
-    description: 'Convert images to PNG, WebP, JPEG, and AVIF instantly with zero quality loss.',
+    description: 'Convert images between PNG, JPEG, and WebP formats instantly. Adjust quality for lossy formats, preview the result, and download — all in your browser with no upload required.',
     category: 'image',
     icon: '🔮',
-    tags: ['convert', 'format', 'png', 'jpeg', 'webp', 'avif', 'image'],
+    tags: ['convert', 'format', 'png', 'jpeg', 'webp', 'image'],
     isAI: false,
-    education: '<strong>Modern image formats compared</strong><br>JPEG is best for photographs, PNG for graphics with transparency, WebP offers 25-35% smaller files than JPEG at equivalent quality, and AVIF provides even better compression (50%+ smaller). Browser support for WebP is now 97%+ and AVIF is at 93%+, making both excellent choices for modern websites.',
-    whyUse: ['Convert between PNG, JPEG, WebP, and AVIF formats instantly', 'Reduce file sizes by converting to modern formats like WebP and AVIF', 'Process images 100% in your browser — no server uploads'],
+    education: '<strong>Modern image formats compared</strong><br>JPEG is best for photographs, PNG for graphics with transparency, and WebP offers 25-35% smaller files than JPEG at equivalent quality. Browser support for WebP is now 97%+, making it a practical modern default for websites that need smaller image files.',
+    whyUse: ['Convert between PNG, JPEG, and WebP formats instantly', 'Reduce file sizes by converting photos and graphics to WebP', 'Process images 100% in your browser — no server uploads'],
     whoUses: 'Web developers optimizing image delivery, photographers preparing files for different uses, and content teams managing image assets.',
+    contentSectionsHtml: `<section class="tool-content-section">
+  <h2>JPEG, PNG, and WebP: Which Format for Which Job</h2>
+  <p>JPEG was designed specifically for photographs. Its encoder divides an image into 8×8 pixel blocks and discards high-frequency color detail that human vision is least sensitive to — this is why it handles skin tones and sky gradients cleanly but creates visible halos around sharp edges like text. A web-ready photo typically lands between 100–400KB as JPEG. The hard limitation: JPEG has no alpha channel, so transparency is not possible. When this tool converts any image to JPEG, it fills the canvas white before drawing your image on top — transparent areas become solid white.</p>
+  <p>PNG uses the DEFLATE lossless compression algorithm, which reorganizes pixel data more efficiently without discarding any of it. Every pixel you put in is the pixel you get back. This makes PNG the correct choice for logos, icons, UI screenshots, and any image where transparency must survive the conversion. The tradeoff is file size — a photograph stored as PNG runs 2–10× larger than its JPEG equivalent, because DEFLATE cannot compress photographic color variation as aggressively as JPEG's perceptual model.</p>
+  <p>WebP, developed by Google, supports both lossy and lossless compression in the same format — and it supports transparency in both modes. Lossy WebP files run 25–35% smaller than JPEG at equivalent visual quality. Lossless WebP files run roughly 26% smaller than PNG. Browser support sits above 97% in 2026. For web images that need to balance quality, file size, and transparency support, WebP is the practical default.</p>
+</section>
+
+<section class="tool-content-section">
+  <h2>The Quality Slider: What It Does and What It Doesn't Do</h2>
+  <p>The quality slider controls how aggressively the encoder discards color data during compression. It only applies to JPEG and WebP output — PNG is always lossless, so the slider has no effect when PNG is selected.</p>
+  <p>At quality 100, JPEG still applies lossy compression — it simply discards less data. The visual difference from the source is imperceptible, but file size is substantially larger than necessary for web use. At quality 75 (this tool's default), most photographs are visually indistinguishable from quality 100 at normal viewing distance, while file size drops 40–60%. This is the range where the compression math aligns with human visual perception most efficiently. At quality 50, artifacts become visible: soft halos around edges, color banding in gradients. This setting is acceptable for thumbnails or previews where sharpness is not the priority. Below 30, JPEG's block-based compression produces obvious 8×8 pixel artifacts and color smearing — useful only when file size matters more than image integrity.</p>
+  <p>WebP's encoder is more efficient than JPEG's at every quality level. WebP at quality 75 typically produces smaller files than JPEG at quality 85 while preserving similar visual detail — this gap is WebP's core practical advantage. If you are converting a JPEG photo for web use, converting to WebP at the same quality setting will almost always produce a smaller output file.</p>
+</section>
+
+<section class="tool-content-section">
+  <h2>Converting Formats Without Losing What Matters</h2>
+  <p>Camera photo (JPEG) to WebP for a website: use quality 75–80. Expect a 30–40% reduction in file size with no visible quality difference at normal display sizes. This single conversion has more impact on page load performance than almost any other image optimization step.</p>
+  <p>Screenshot with text (PNG) to JPEG for email: set quality to 90 or above. JPEG's block compression creates visible artifacts around high-contrast edges like dark text on white backgrounds, and lower quality settings make this worse. Any transparent areas become white in the output.</p>
+  <p>Logo with transparency (PNG) to WebP: transparency is preserved exactly in WebP output. File size drops noticeably compared to PNG. This is the correct workflow for website logos, icon files, and any graphic that needs a transparent background in a browser context.</p>
+  <p>JPEG to PNG: the output file will be larger than the source JPEG, and the quality that JPEG's encoder discarded when the file was originally created is not recovered. PNG stores the already-compressed pixel values losslessly — it preserves the degradation, not the original. This is why this tool shows a warning when PNG is selected as the target format. The only reason to make this conversion is when a downstream tool requires PNG input and you have no lossless source available.</p>
+  <p>If your workflow requires both resizing and format conversion, resize first using <a href="/image-resizer/">Tooliest's Image Resizer</a> (which outputs PNG), then convert to your target format here.</p>
+</section>
+
+<section class="tool-content-section">
+  <h2>Frequently Asked Questions</h2>
+  <div class="faq-list">
+    <details class="faq-item"><summary>How do I convert a PNG to JPG online?</summary><p>Upload your PNG file, select JPEG from the format dropdown, and set the quality slider based on your content. For photographs, quality 85 produces good results at a reasonable file size. For screenshots containing text or UI elements, use quality 90 or above — JPEG's block compression creates visible artifacts around sharp edges at lower settings, and text is particularly sensitive to this. If your PNG has transparent areas, those will become solid white in the JPEG output, since JPEG does not support transparency. Click Convert and download the result — the conversion runs entirely in your browser.</p></details>
+    <details class="faq-item"><summary>WebP vs JPEG: which is better?</summary><p>WebP produces 25–35% smaller files than JPEG at equivalent visual quality, and it supports transparency while JPEG does not. Browser support for WebP sits above 97% in 2026, covering every modern browser. For images published on the web, WebP is the better choice in almost every case — smaller files load faster with no visible quality tradeoff. JPEG remains useful for universal compatibility: email clients, older desktop software, and any context where you cannot guarantee the receiving environment handles WebP. If you are unsure, WebP is the safe default for anything destined for a webpage.</p></details>
+    <details class="faq-item"><summary>Does converting image format lose quality?</summary><p>It depends on the direction of the conversion. Converting from a lossless format to a lossy one — for example, PNG to JPEG or PNG to WebP at quality below 100 — does reduce quality, controlled by the quality slider. Converting from a lossy format to a lossless one — for example, JPEG to PNG — does not recover quality. PNG will store the already-degraded pixel data without discarding anything further, producing a larger file that contains the same quality as the JPEG source. The quality that JPEG's encoder removed when the file was originally created is gone permanently. Converting PNG to WebP in lossless mode preserves quality completely and typically reduces file size by around 26%.</p></details>
+    <details class="faq-item"><summary>How do I convert an image to WebP?</summary><p>Upload your JPEG, PNG, or GIF image, select WebP from the target format dropdown, and adjust the quality slider — 75 is a good starting point for photographs, and produces files noticeably smaller than JPEG at quality 85 with similar visual results. The tool shows you the converted file size before you download so you can adjust the quality slider and reconvert if needed. The entire process runs in your browser using the Canvas API — no file is sent to a server at any point. Click download when the output size and preview look correct.</p></details>
+    <details class="faq-item"><summary>Why is my PNG file so large?</summary><p>PNG uses lossless compression, which means it stores every pixel value exactly without discarding any color data. For photographs and other images with complex, continuous color variation, lossless compression cannot reduce file size as aggressively as lossy compression. A photograph stored as PNG typically runs 2–10 times larger than the same image stored as JPEG. If the image is a photograph and does not need transparency, convert it to JPEG or WebP — either format will reduce the file size dramatically. PNG is the correct format for logos, icons, screenshots with text, and any image that requires a transparent background. For everything else, use a lossy format.</p></details>
+  </div>
+</section>`,
     faq: [
-      { q: 'Should I use WebP or AVIF for my website?', a: 'WebP has broader browser support (97%+) and is a safe default. AVIF offers better compression but has slightly less support (93%+). Use both with the HTML <picture> element and JPEG as a fallback for maximum compatibility.' }
+      { q: 'Which image formats does this converter support?', a: 'This converter supports PNG, JPEG, and WebP output. Pick PNG for lossless images and transparency, JPEG for photographs and broad compatibility, or WebP for smaller web-ready files.' }
     ],
-    meta: { title: 'Image Format Converter - Convert to PNG, JPEG, WebP, AVIF | Tooliest', desc: 'Convert image formats instantly entirely in your browser. Download as PNG, WebP, JPEG or AVIF completely offline.' }
+    meta: {
+      title: 'Image Format Converter - PNG, JPEG, WebP | Free Browser Tool | Tooliest',
+      desc: 'Convert images between PNG, JPEG, and WebP formats with quality control. Runs in your browser — files stay on your device. See file size comparison instantly.'
+    }
   },
   {
     id: 'qr-code-generator',
@@ -2843,6 +2913,9 @@ Sitemap: https://yoursite.com/sitemap.xml</code></pre><p>Blocking /wp-login.php 
       { date: '2026-03-15', text: 'Launched browser-based image compression with instant download support.' },
     ],
   },
+  'image-converter': {
+    metaDescExact: 'Convert images between PNG, JPEG, and WebP formats with quality control. Runs in your browser — files stay on your device. See file size comparison instantly.',
+  },
   'color-picker': {
     metaDesc: 'Pick colors from HEX, RGB, and HSL values with instant conversion and browser-safe previews. Free, fast, no signup. Try Tooliest now.',
     summaryHeading: 'How Do I Pick and Convert Colors Online?',
@@ -3875,7 +3948,7 @@ Sitemap: https://yoursite.com/sitemap.xml</code></pre><p>Blocking /wp-login.php 
     ],
   },
   'image-resizer': {
-    metaDesc: 'Resize images to exact dimensions or by percentage. Maintain aspect ratio or crop freely. Free, browser-based, no signup required. Try Tooliest.',
+    metaDesc: 'Resize images to exact pixel dimensions with aspect ratio control. Runs in your browser — files never leave your device. Download as PNG instantly.',
     summaryHeading: 'How Do I Resize Images Online Without Uploads?',
     topicLabel: 'images',
     howToSteps: [
@@ -4518,7 +4591,7 @@ const TOOLIEST_META_TITLE_OVERRIDES = {
   'css-animation-generator': 'CSS Animation Generator | Tooliest',
   'email-signature-generator': 'Email Signature Generator - Gmail and Outlook | Tooliest',
   'gradient-generator': 'Gradient Generator - CSS Backgrounds | Tooliest',
-  'image-converter': 'Image Format Converter - PNG, WebP, AVIF | Tooliest',
+  'image-converter': 'Image Format Converter - PNG, JPEG, WebP | Tooliest',
   'image-exif-stripper': 'EXIF Metadata Stripper | Tooliest',
   'inflation-calculator': 'Inflation Calculator - Buying Power | Tooliest',
   'invoice-generator': 'Invoice Generator - Fast PDF Billing | Tooliest',
