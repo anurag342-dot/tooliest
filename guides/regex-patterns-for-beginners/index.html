@@ -7,7 +7,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Regex for Beginners | Tooliest</title>
-  <meta name="description" content="Learn the regex patterns developers reach for most often and how to test them safely before they end up in production.">
+  <meta name="description" content="Learn 10 regex patterns developers actually use: email validation, URL extraction, phone numbers, dates, IP addresses, password strength, and more. Each pattern includes a character-by-character breakdown, match examples, and ready-to-copy JavaScript code.">
   <meta name="author" content="Anurag">
   <meta name="robots" content="index, follow">
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -19,7 +19,7 @@
   <link rel="manifest" href="/manifest.json">
   <meta property="og:type" content="article">
   <meta property="og:title" content="Regex for Beginners | Tooliest">
-  <meta property="og:description" content="Learn the regex patterns developers reach for most often and how to test them safely before they end up in production.">
+  <meta property="og:description" content="Learn 10 regex patterns developers actually use: email validation, URL extraction, phone numbers, dates, IP addresses, password strength, and more. Each pattern includes a character-by-character breakdown, match examples, and ready-to-copy JavaScript code.">
   <meta property="og:url" content="https://tooliest.com/guides/regex-patterns-for-beginners/">
   <meta property="og:site_name" content="Tooliest">
   <meta property="og:image" content="https://tooliest.com/og/site/guides.svg">
@@ -27,7 +27,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@tooliest">
   <meta name="twitter:title" content="Regex for Beginners | Tooliest">
-  <meta name="twitter:description" content="Learn the regex patterns developers reach for most often and how to test them safely before they end up in production.">
+  <meta name="twitter:description" content="Learn 10 regex patterns developers actually use: email validation, URL extraction, phone numbers, dates, IP addresses, password strength, and more. Each pattern includes a character-by-character breakdown, match examples, and ready-to-copy JavaScript code.">
   <meta name="twitter:image" content="https://tooliest.com/og/site/guides.svg">
   <meta name="twitter:image:alt" content="Regex for Beginners: 10 Patterns Every Developer Should Know guide preview card">
   <link rel="canonical" href="https://tooliest.com/guides/regex-patterns-for-beginners/">
@@ -40,15 +40,447 @@
   <style>:root{--bg-primary:#0a0a0f;--bg-secondary:#12121a;--bg-tertiary:#1a1a2e;--bg-card:rgba(26,26,46,.6);--bg-glass:rgba(255,255,255,.03);--bg-glass-hover:rgba(255,255,255,.06);--text-primary:#e8e8f0;--text-secondary:#a0a0b8;--text-tertiary:#6b6b80;--accent-primary:#8b5cf6;--accent-secondary:#06b6d4;--accent-success:#10b981;--gradient-primary:linear-gradient(135deg,#8b5cf6,#06b6d4);--border-color:rgba(255,255,255,.06);--border-accent:rgba(139,92,246,.3);--font-primary:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:1400px;--nav-height:72px;--radius-md:12px;--radius-lg:16px;--radius-full:9999px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);--touch-target-min:44px;--z-nav:1000}[data-theme=light]{--bg-primary:#f8f9fc;--bg-secondary:#fff;--bg-tertiary:#e8eaf0;--bg-card:rgba(255,255,255,.85);--bg-glass:rgba(0,0,0,.02);--bg-glass-hover:rgba(0,0,0,.04);--text-primary:#1a1a2e;--text-secondary:#4a4a6a;--text-tertiary:#6b6b84;--border-color:rgba(0,0,0,.08)}html{font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;overscroll-behavior-y:contain}body{margin:0;font-family:var(--font-primary);background:var(--bg-primary);color:var(--text-primary);line-height:1.6;min-height:100vh}a{color:var(--accent-primary);text-decoration:none}img{display:block;max-width:100%}img[width][height]{height:auto}.skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}.skip-link:focus{left:16px;top:16px;width:auto;height:auto;padding:10px 14px;border-radius:999px;background:var(--bg-secondary);color:var(--text-primary);z-index:2000}.navbar{position:fixed;top:0;left:0;right:0;min-height:var(--nav-height);height:var(--nav-height);display:flex;align-items:center;padding:0 max(24px,calc(24px + var(--safe-left))) 0 max(24px,calc(24px + var(--safe-right)));background:rgba(10,10,15,.88);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border-color);z-index:var(--z-nav)}[data-theme=light] .navbar{background:rgba(255,255,255,.9)}.nav-inner{max-width:var(--max-width);width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px}.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.5rem;font-weight:800;color:var(--text-primary);flex-shrink:0}.nav-logo .logo-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;background:var(--gradient-primary)}.nav-logo .logo-text span,.hero h1 .gradient-text{-webkit-background-clip:text;-webkit-text-fill-color:transparent;background:var(--gradient-primary);background-clip:text}.nav-search{flex:1;max-width:480px;position:relative}.nav-search input{width:100%;height:42px;padding:0 16px 0 44px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-glass);color:var(--text-primary);font:inherit;outline:none}.nav-search .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-tertiary)}.nav-search .search-shortcut{position:absolute;right:14px;top:50%;transform:translateY(-50%);padding:2px 8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-tertiary);font:.7rem var(--font-mono);color:var(--text-tertiary)}.nav-links{display:flex;align-items:center;gap:8px;flex-shrink:0}.nav-links a,.theme-toggle-btn,.mobile-menu-btn,.mobile-search-btn{min-height:44px}.nav-links a{padding:8px 16px;border-radius:999px;color:var(--text-secondary);font-size:.9rem;font-weight:500}.theme-toggle-btn,.mobile-menu-btn,.mobile-search-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--border-color);border-radius:12px;background:none;color:var(--text-primary);cursor:pointer}.mobile-menu-btn,.mobile-search-btn{display:none}.main-content{padding-top:var(--nav-height);padding-bottom:var(--safe-bottom);min-height:100vh}.hero,.tool-page{max-width:900px;margin:0 auto;padding:80px 24px 40px}.hero{text-align:center}.hero h1{margin:0 0 20px;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;line-height:1.1}.hero p,.tool-page-header p{max-width:600px;margin:0 auto 30px;color:var(--text-secondary);font-size:clamp(1rem,2.4vw,1.2rem)}.hero-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-top:40px}.hero-stat{text-align:center}.hero-stat .stat-value{font-size:2rem;font-weight:800;color:var(--accent-primary)}.hero-stat .stat-label,.tool-breadcrumb{font-size:.85rem;color:var(--text-tertiary)}.hero-trust-strip{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:28px}.trust-badge,.category-tab,.tool-tag{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-glass);color:var(--text-secondary);font-size:.82rem;max-width:100%;white-space:normal;overflow-wrap:anywhere}.categories-section,.tools-section{padding:20px 24px}.category-tabs{max-width:var(--max-width);margin:0 auto 24px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.category-tab{white-space:nowrap}.tool-page-header{margin-bottom:32px}.tool-page-header h1{margin:0;font-size:2rem;font-weight:800}.tool-breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:16px}.tools-grid,.guide-card-grid,.tool-proof-grid,.tool-content-sections{display:grid;gap:20px}.tools-grid{max-width:var(--max-width);margin:0 auto;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}.tool-card,.guide-card,.tool-content-section,.tool-workspace,.tool-proof-card,.home-utility-panel{border:1px solid var(--border-color);border-radius:16px;background:var(--bg-card);min-width:0}.tool-card,.guide-card,.tool-content-section,.tool-proof-card,.home-utility-panel{padding:20px}.tool-card-link{display:block;color:inherit}.tool-card-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px}.tool-card-icon{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:var(--gradient-primary);font-size:1.6rem;flex-shrink:0}.tool-card-info h3{margin:0 0 4px;font-size:1.1rem}.tool-card p{margin:0 0 14px;color:var(--text-secondary)}.tool-card-tags{display:flex;flex-wrap:wrap;gap:8px}.guide-card-grid{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));margin-top:18px}.guide-card h3{margin:6px 0 10px;font-size:1.08rem}.tool-workspace{padding:0}.tool-workspace-body{padding:20px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border:none;border-radius:12px;background:var(--gradient-primary);color:#fff;font-weight:700;font:inherit;cursor:pointer}.btn-secondary{border:1px solid var(--border-color);background:var(--bg-glass);color:var(--text-primary)}.footer-verification-link img{width:320px;height:auto;max-width:100%;aspect-ratio:320/54}.ad-space,.adsbygoogle{display:block;width:100%;min-height:90px}@media (max-width:1176px){:root{--nav-height:60px}.navbar{padding:0 max(12px,calc(12px + var(--safe-left))) 0 max(12px,calc(12px + var(--safe-right)));height:60px;min-height:60px}.nav-inner{gap:8px;min-height:60px}.nav-search,.nav-links{display:none}.mobile-menu-btn,.mobile-search-btn{display:inline-flex}.nav-logo{gap:8px;font-size:1.1rem}.nav-logo .logo-icon{width:32px;height:32px;font-size:1.1rem}.hero,.tool-page{padding:48px 16px 32px}.hero-stats{gap:20px}.hero-trust-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.trust-badge{justify-content:center;text-align:center}}@media (max-width:640px){:root{--nav-height:56px}.navbar{padding:0 max(10px,calc(10px + var(--safe-left))) 0 max(10px,calc(10px + var(--safe-right)));height:56px;min-height:56px}.nav-inner{gap:6px}.hero,.tool-page,.categories-section,.tools-section{padding-left:12px;padding-right:12px}.hero h1{font-size:clamp(2rem,9vw,2.6rem)}.hero p{font-size:.98rem}.hero-stats{gap:16px}.hero-stat .stat-value{font-size:1.5rem}.tools-grid{grid-template-columns:1fr}.tool-card,.guide-card,.tool-content-section,.tool-proof-card,.home-utility-panel{padding:16px}}@media (min-width:768px) and (max-width:1176px){.nav-inner{justify-content:flex-start;gap:clamp(6px,1vw,12px)}.nav-search{display:block;flex:0 1 clamp(120px,18vw,260px);max-width:260px}.nav-search input{height:40px}.nav-search .search-shortcut{display:none}.nav-links{display:flex;align-items:center;gap:clamp(2px,.45vw,8px);flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}.nav-links::-webkit-scrollbar{display:none}.nav-links a{padding:8px clamp(8px,1vw,14px);font-size:clamp(.78rem,.95vw,.9rem);white-space:nowrap}.mobile-menu-btn,.mobile-search-btn{display:none}.theme-toggle-btn,#whats-new-btn{width:40px;height:40px;flex:0 0 40px}}@media (max-width:767px){.nav-search,.nav-links{display:none}.mobile-menu-btn,.mobile-search-btn{display:inline-flex}}</style>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin"></noscript>
-  <link rel="preload" href="/css/styles3.min.css?v=20260530-295a5c55" as="style" fetchpriority="high" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/css/styles3.min.css?v=20260530-295a5c55"></noscript>
-  <script data-cfasync="false">window.__TOOLIEST_ASSET_VERSION='20260530-295a5c55';</script>
-  <script src="/js/consent.js?v=20260530-295a5c55" defer data-cfasync="false"></script>
+  <link rel="preload" href="/css/styles3.min.css?v=20260604-08d61903" as="style" fetchpriority="high" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/styles3.min.css?v=20260604-08d61903"></noscript>
+  <script data-cfasync="false">window.__TOOLIEST_ASSET_VERSION='20260604-08d61903';</script>
+  <script src="/js/consent.js?v=20260604-08d61903" defer data-cfasync="false"></script>
   <!-- AdSense script removed for compliance: re-enable after approval -->
   <!-- <script data-cfasync="false">(function(w,d,url){var booted=false;function loadAds(){if(booted)return;booted=true;var s=d.createElement('script');s.src=url;s.async=true;s.crossOrigin='anonymous';s.fetchPriority='low';s.setAttribute('data-cfasync','false');d.head.appendChild(s);}function schedule(){if('requestIdleCallback' in w){w.requestIdleCallback(loadAds,{timeout:5500});return;}w.setTimeout(loadAds,3600);}w.addEventListener('load',function(){w.setTimeout(schedule,1400);},{once:true});})(window,document,'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3155132462698504');</script> -->
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Regex for Beginners: 10 Patterns Every Developer Should Know","description":"Learn the regex patterns developers reach for most often and how to test them safely before they end up in production.","author":{"@type":"Person","name":"Anurag"},"publisher":{"@type":"Organization","name":"Tooliest","logo":{"@type":"ImageObject","url":"https://tooliest.com/icon-512.png"}},"datePublished":"2026-05-01","dateModified":"2026-05-03","mainEntityOfPage":"https://tooliest.com/guides/regex-patterns-for-beginners/"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Regex for Beginners: 10 Patterns Every Developer Should Know","description":"Learn 10 regex patterns developers actually use: email validation, URL extraction, phone numbers, dates, IP addresses, password strength, and more. Each pattern includes a character-by-character breakdown, match examples, and ready-to-copy JavaScript code.","author":{"@type":"Person","name":"Anurag"},"publisher":{"@type":"Organization","name":"Tooliest","logo":{"@type":"ImageObject","url":"https://tooliest.com/icon-512.png"}},"datePublished":"2026-05-01","dateModified":"2026-06-04","mainEntityOfPage":"https://tooliest.com/guides/regex-patterns-for-beginners/"}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tooliest.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://tooliest.com/guides/"},{"@type":"ListItem","position":3,"name":"Regex for Beginners: 10 Patterns Every Developer Should Know","item":"https://tooliest.com/guides/regex-patterns-for-beginners/"}]}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What does ^ and $ mean in regex?","acceptedAnswer":{"@type":"Answer","text":"They are anchors. ^ marks the start of the string or line, and $ marks the end. They are useful when you want to match the whole input rather than just any substring."}},{"@type":"Question","name":"Why does .* match too much?","acceptedAnswer":{"@type":"Answer","text":"Because it is greedy by default. It will keep consuming characters as long as the pattern can still succeed, which is why non-greedy matching often matters."}},{"@type":"Question","name":"Can one regex fully validate every email address?","acceptedAnswer":{"@type":"Answer","text":"Not reliably in one short beginner-friendly pattern. Simple regexes are fine for basic client-side checks, but real-world email validation often needs broader business logic."}},{"@type":"Question","name":"When should I avoid regex?","acceptedAnswer":{"@type":"Answer","text":"Avoid it when a simple parser, built-in string method, or explicit rule set would be clearer and easier to maintain than a dense pattern."}}]}</script>
+  <style>
+  .guide-article-copy .guide-table-wrap {
+    width: 100%;
+    margin: 22px 0 28px;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: rgba(255,255,255,.025);
+    -webkit-overflow-scrolling: touch;
+  }
+  .guide-article-copy table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+    font-size: .95rem;
+  }
+  .guide-article-copy th,
+  .guide-article-copy td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+  }
+  .guide-article-copy th {
+    color: var(--text-primary);
+    background: rgba(139,92,246,.16);
+    font-weight: 750;
+  }
+  .guide-article-copy td {
+    color: var(--text-secondary);
+    background: rgba(255,255,255,.015);
+  }
+  .guide-article-copy tr:nth-child(even) td {
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-code-window {
+    margin: 22px 0 28px;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.22);
+    border-radius: 14px;
+    background: #080b12;
+    box-shadow: 0 18px 45px rgba(0,0,0,.28);
+  }
+  .guide-code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(148,163,184,.18);
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025));
+  }
+  .guide-code-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .guide-code-dots {
+    display: inline-flex;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+  .guide-code-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: block;
+  }
+  .guide-code-dots span:nth-child(1) { background: #ff5f56; }
+  .guide-code-dots span:nth-child(2) { background: #ffbd2e; }
+  .guide-code-dots span:nth-child(3) { background: #27c93f; }
+  .guide-code-language {
+    color: #94a3b8;
+    font: 700 .72rem var(--font-mono);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .guide-code-copy {
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid rgba(148,163,184,.24);
+    border-radius: 10px;
+    background: rgba(15,23,42,.82);
+    color: #e2e8f0;
+    font: 700 .78rem var(--font-primary);
+    cursor: pointer;
+  }
+  .guide-code-copy:hover,
+  .guide-code-copy:focus-visible {
+    border-color: rgba(139,92,246,.72);
+    background: rgba(139,92,246,.22);
+    outline: none;
+  }
+  .guide-code-window pre {
+    margin: 0;
+    padding: 18px;
+    overflow-x: auto;
+    background: transparent;
+    color: #e5e7eb;
+    font: .9rem/1.7 var(--font-mono);
+    white-space: pre;
+    tab-size: 2;
+  }
+  .guide-code-window code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+  }
+  [data-theme=light] .guide-article-copy .guide-table-wrap {
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 12px 30px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy th {
+    background: rgba(139,92,246,.12);
+  }
+  [data-theme=light] .guide-article-copy td {
+    background: rgba(255,255,255,.72);
+  }
+  [data-theme=light] .guide-article-copy tr:nth-child(even) td {
+    background: rgba(15,23,42,.025);
+  }
+  [data-theme=light] .guide-code-window {
+    background: #f8fafc;
+    border-color: rgba(15,23,42,.12);
+    box-shadow: 0 16px 34px rgba(15,23,42,.08);
+  }
+  [data-theme=light] .guide-code-header {
+    border-bottom-color: rgba(15,23,42,.1);
+    background: linear-gradient(180deg, rgba(15,23,42,.06), rgba(15,23,42,.018));
+  }
+  [data-theme=light] .guide-code-language {
+    color: #475569;
+  }
+  [data-theme=light] .guide-code-copy {
+    background: rgba(255,255,255,.9);
+    color: #1e293b;
+    border-color: rgba(15,23,42,.16);
+  }
+  [data-theme=light] .guide-code-window pre {
+    color: #0f172a;
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-table-wrap {
+      margin-left: -4px;
+      margin-right: -4px;
+      border-radius: 12px;
+    }
+    .guide-article-copy th,
+    .guide-article-copy td {
+      padding: 12px 14px;
+    }
+    .guide-code-window {
+      border-radius: 12px;
+    }
+    .guide-code-header {
+      padding: 9px 10px;
+    }
+    .guide-code-window pre {
+      padding: 14px;
+      font-size: .82rem;
+      line-height: 1.65;
+    }
+    .guide-code-copy {
+      min-height: 32px;
+      padding: 6px 10px;
+    }
+  }
+</style><style>
+  .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet,
+  .guide-article-copy .guide-regex-patterns .guide-regex-anatomy,
+  .guide-article-copy .guide-regex-patterns .guide-match-card,
+  .guide-article-copy .guide-regex-patterns .guide-warning-box {
+    margin: 24px 0 30px;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid rgba(139,92,246,.28);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.11), rgba(6,182,212,.04)), rgba(255,255,255,.025);
+  }
+  .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet div {
+    display: grid;
+    grid-template-columns: minmax(78px, auto) 1fr;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid rgba(148,163,184,.18);
+    border-radius: 12px;
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet code {
+    width: fit-content;
+    max-width: 100%;
+    color: #c4b5fd;
+    background: rgba(139,92,246,.16);
+    border: 1px solid rgba(139,92,246,.26);
+    border-radius: 8px;
+    padding: 4px 7px;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet span {
+    min-width: 0;
+    color: var(--text-secondary);
+    font-size: .9rem;
+    line-height: 1.35;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-regex-anatomy {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px;
+    border: 1px solid rgba(148,163,184,.2);
+    border-radius: 18px;
+    background: rgba(255,255,255,.025);
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part {
+    min-width: 104px;
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    padding: 14px 12px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px;
+    box-shadow: 0 12px 26px rgba(0,0,0,.11);
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part code {
+    color: var(--text-primary);
+    background: rgba(0,0,0,.2);
+    border-radius: 9px;
+    padding: 5px 8px;
+    font-size: 1.05rem;
+    font-weight: 900;
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part span {
+    color: var(--text-primary);
+    font-size: .78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part-anchor {
+    background: linear-gradient(135deg, rgba(59,130,246,.3), rgba(59,130,246,.13));
+    border-color: rgba(59,130,246,.5);
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part-digit {
+    background: linear-gradient(135deg, rgba(34,197,94,.3), rgba(34,197,94,.13));
+    border-color: rgba(34,197,94,.5);
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part-literal {
+    background: linear-gradient(135deg, rgba(107,114,128,.32), rgba(107,114,128,.13));
+    border-color: rgba(148,163,184,.42);
+  }
+  .guide-article-copy .guide-regex-patterns .guide-match-card {
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.22);
+    border-radius: 16px;
+    background: rgba(255,255,255,.035);
+    box-shadow: 0 16px 34px rgba(0,0,0,.12);
+  }
+  .guide-article-copy .guide-regex-patterns .match-card-header {
+    display: grid;
+    gap: 7px;
+    padding: 15px 16px;
+    border-bottom: 1px solid rgba(148,163,184,.16);
+    background: linear-gradient(135deg, rgba(139,92,246,.16), rgba(6,182,212,.06));
+  }
+  .guide-article-copy .guide-regex-patterns .match-card-header strong {
+    color: var(--text-primary);
+    font-size: .95rem;
+  }
+  .guide-article-copy .guide-regex-patterns .match-card-header code {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    color: #67e8f9;
+    background: rgba(15,23,42,.66);
+    border: 1px solid rgba(148,163,184,.16);
+    border-radius: 9px;
+    padding: 7px 9px;
+    white-space: nowrap;
+  }
+  .guide-article-copy .guide-regex-patterns .match-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(148,163,184,.12);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: .88rem;
+  }
+  .guide-article-copy .guide-regex-patterns .match-row:last-child {
+    border-bottom: 0;
+  }
+  .guide-article-copy .guide-regex-patterns .match-row span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .guide-article-copy .guide-regex-patterns .match-icon {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font: 900 .7rem/1 var(--font-primary);
+  }
+  .guide-article-copy .guide-regex-patterns .match-yes .match-icon {
+    background: rgba(34,197,94,.16);
+    color: #22c55e;
+  }
+  .guide-article-copy .guide-regex-patterns .match-no .match-icon {
+    background: rgba(239,68,68,.14);
+    color: #f87171;
+  }
+  .guide-article-copy .guide-regex-patterns .match-row mark {
+    padding: 2px 5px;
+    border-radius: 7px;
+    background: rgba(34,197,94,.22);
+    color: var(--text-primary);
+  }
+  .guide-article-copy .guide-regex-patterns .match-no {
+    background: rgba(239,68,68,.045);
+  }
+  .guide-article-copy .guide-regex-patterns .guide-warning-box {
+    padding: 18px 20px;
+    border: 1px solid rgba(245,158,11,.26);
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 15px 15px 0;
+    background: linear-gradient(90deg, rgba(245,158,11,.16), rgba(245,158,11,.04));
+  }
+  .guide-article-copy .guide-regex-patterns .guide-warning-box h3 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 0;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-warning-box h3 span {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(245,158,11,.18);
+    color: #f59e0b;
+    font-size: .9rem;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-warning-box p:last-child {
+    margin-bottom: 0;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-code-window .regex-literal { color: #67e8f9; }
+  .guide-article-copy .guide-regex-patterns .guide-code-window .js-keyword { color: #c4b5fd; }
+  .guide-article-copy .guide-regex-patterns .guide-code-window .js-string { color: #fde68a; }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet,
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-regex-anatomy,
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-match-card {
+    background-color: rgba(255,255,255,.86);
+    box-shadow: 0 16px 34px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet div {
+    background: rgba(255,255,255,.72);
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet code {
+    color: #6d28d9;
+    background: rgba(139,92,246,.1);
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .match-card-header code {
+    color: #0369a1;
+    background: rgba(255,255,255,.76);
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .match-row mark {
+    background: #dcfce7;
+    color: #14532d;
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .match-no {
+    background: rgba(254,202,202,.46);
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-warning-box {
+    background: linear-gradient(90deg, rgba(245,158,11,.12), rgba(245,158,11,.025));
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-code-window .regex-literal { color: #0891b2; }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-code-window .js-keyword { color: #7c3aed; }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-code-window .js-string { color: #b45309; }
+  @media (max-width: 760px) {
+    .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet,
+    .guide-article-copy .guide-regex-patterns .guide-regex-anatomy,
+    .guide-article-copy .guide-regex-patterns .guide-match-card {
+      border-radius: 12px;
+    }
+    .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet {
+      padding: 13px;
+    }
+    .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet div {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .guide-article-copy .guide-regex-patterns .regex-part {
+      min-width: 92px;
+      padding: 12px 10px;
+    }
+    .guide-article-copy .guide-regex-patterns .match-card-header,
+    .guide-article-copy .guide-regex-patterns .match-row {
+      padding-left: 13px;
+      padding-right: 13px;
+    }
+    .guide-article-copy .guide-regex-patterns .guide-warning-box {
+      padding: 16px;
+      border-radius: 0 12px 12px 0;
+    }
+  }
+</style>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -94,41 +526,311 @@
           <span>Regex for Beginners: 10 Patterns Every Developer Should Know</span>
         </div>
         <h1 style="margin:0">Regex for Beginners: 10 Patterns Every Developer Should Know</h1>
-        <p>Learn the regex patterns developers reach for most often and how to test them safely before they end up in production.</p>
-        <p class="tool-last-updated">By Anurag &middot; Published May 1, 2026 &middot; Updated May 3, 2026 &middot; ~9 min read</p>
+        <p>Learn 10 regex patterns developers actually use: email validation, URL extraction, phone numbers, dates, IP addresses, password strength, and more. Each pattern includes a character-by-character breakdown, match examples, and ready-to-copy JavaScript code.</p>
+        <p class="tool-last-updated">By Anurag &middot; Published May 1, 2026 &middot; Updated June 4, 2026 &middot; ~12 min read</p>
       </div>
       <div class="tool-content-sections">
         <section class="tool-content-section guide-article-copy">
           
-      <p>When regex breaks during a demo, the magic vanishes fast. A tiny code sample might seem correct - then it grabs too much, misses key parts, or confuses everyone who sees it. Because of moments like these, new learners skip memorizing every character at first. Instead, grasp what frequent patterns actually do - and practice checking them without causing chaos.</p>
-      <p>What matters about regex isn’t showing off smarts. Accuracy defines it. One solid pattern fixes a single text issue cleanly - no digging through layers later just to make changes.</p>
+      <div class="guide-regex-patterns">
+        <h2>How to Read a Regex Pattern (60-Second Crash Course)</h2>
+        <p>You only need eight symbols to understand every pattern in this guide. Here they are, nothing more:</p>
+        <p><code>^</code> marks the start of a string. <code>$</code> marks the end. Together they mean "this is the whole string, not just part of it."</p>
+        <p><code>\d</code> matches any digit 0-9. <code>\w</code> matches any word character - letter, digit, or underscore. <code>\s</code> matches any whitespace character including spaces, tabs, and newlines.</p>
+        <p><code>[abc]</code> matches any single character inside the brackets. <code>[a-z]</code> is a range - any lowercase letter. <code>[^abc]</code> is a negation - any character that is NOT a, b, or c.</p>
+        <p><code>+</code> means one or more of the preceding thing. <code>*</code> means zero or more. <code>?</code> means zero or one - it makes the preceding character optional.</p>
+        <p><code>{3}</code> means exactly 3 times. <code>{2,5}</code> means between 2 and 5 times. <code>{2,}</code> means at least 2 times.</p>
+        <p><code>()</code> is a capture group - it saves whatever it matches so you can reference it later.</p>
+        <p><code>|</code> is OR. <code>/cat|dog/</code> matches either "cat" or "dog."</p>
+        <p><code>\</code> is an escape. Since <code>.</code> means "any character" in regex, <code>\.</code> means a literal dot. Same principle applies to <code>(</code>, <code>)</code>, <code>+</code>, <code>*</code>, <code>?</code>, <code>$</code>, <code>^</code>, and <code>|</code>.</p>
 
-      <h2>Start with anchors, classes, and repetition</h2>
-      <p><strong>Whatever you do first, think about anchors. Then move on to who shows up - the characters that fit each class. After that comes how often things repeat themselves.</strong></p>
-      <p>Start anywhere. Anchors such as <code>^</code> or <code>$</code> pin matches to edges of text. Character types - like <code>d</code> for digits, <code>w</code> for word symbols, <code>[a-z]</code> for lowercase runs - fill in the middle parts. Quantity markers follow: <code>+</code> means one or more, <code>*</code> stands for zero or more, <code>{n,m}</code> sets exact ranges. Put these together. Suddenly, common patterns make sense instead of seeming like noise.</p>
-      <p>A simple slug format could look like this: <code>^[a-z0-9-]+$</code>. From beginning to end, only small letters, digits, or dashes are accepted. Nothing mystical here - just clear rules laid out plainly.</p>
+        <div class="guide-regex-cheatsheet" aria-label="Regex symbol cheat sheet">
+          <div><code>^</code> / <code>$</code><span>Start and end anchors</span></div>
+          <div><code>\d</code><span>Any digit 0-9</span></div>
+          <div><code>\w</code><span>Letter, digit, or underscore</span></div>
+          <div><code>\s</code><span>Whitespace</span></div>
+          <div><code>[abc]</code><span>Any listed character</span></div>
+          <div><code>+</code> / <code>*</code> / <code>?</code><span>Repetition controls</span></div>
+          <div><code>{3}</code> / <code>{2,5}</code><span>Exact or ranged counts</span></div>
+          <div><code>()</code> / <code>|</code><span>Capture group and OR</span></div>
+        </div>
 
-      <h2>Ten patterns developers actually reuse</h2>
-      <p>Most folks run into the same tasks over and over when checking forms, pulling data, tidying text, or testing inputs. This starting pack helps out with bits like cleaning up extra spaces, grabbing pieces of text for swaps, spotting numbers only, handling parts of dates, trimming messy separators, catching email-style entries, dealing with line breaks at edges, pulling simple web links, using lazy matches, shaping URL slugs, plus isolating chunks through grouped captures.</p>
-      <p>Most new learners jump straight into fixing rare problems right away. Still, a basic email pattern might help spot obvious errors before sending data. What counts isn’t flawless logic on paper - it’s how well it works where used.</p>
+        <p>Quick example - break down <code>/^\d{3}-\d{4}$/</code> character by character:</p>
+        <div class="guide-regex-anatomy" aria-label="Regex anatomy diagram">
+          <div class="regex-part regex-part-anchor"><code>^</code><span>start</span></div>
+          <div class="regex-part regex-part-digit"><code>\d{3}</code><span>3 digits</span></div>
+          <div class="regex-part regex-part-literal"><code>-</code><span>literal dash</span></div>
+          <div class="regex-part regex-part-digit"><code>\d{4}</code><span>4 digits</span></div>
+          <div class="regex-part regex-part-anchor"><code>$</code><span>end</span></div>
+        </div>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>\d{3}</code> - exactly three digits</li>
+          <li><code>-</code> - a literal hyphen</li>
+          <li><code>\d{4}</code> - exactly four digits</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches "555-1234". Does not match "55-1234" (only two digits before the dash) or "555-12345" (five digits after it).</p>
+        <p>That is the entire theory section. Everything else is application.</p>
 
-      <h2>Capture groups turn matches into tools</h2>
-      <p><strong>Certain parts of a pattern can be isolated when they’re grouped like this - that’s what makes regular expressions truly useful. Capturing pieces this way opens up options you wouldn’t have otherwise.</strong></p>
-      <p>Pieces of the match matter just as much as finding them. With capture groups, those bits turn into tools - sliding right back into new strings exactly when needed. Instead of rewriting everything by hand, keep what fits and reshape the rest around it.</p>
-      <p>Most useful during log cleanup, string renames, date formatting, or tweaking data prior to feeding it into a different environment. With Tooliest's <a href="/regex-tester/">Regex Tester</a>, results show up instantly - no more wondering if your captures split things right.</p>
+        <h2>10 Regex Patterns Developers Actually Reuse</h2>
 
-      <h2>New learners often want too much at once</h2>
-      <p><strong>What trips up new learners isn’t just mistakes - it’s often wanting too much at once.</strong></p>
-      <p>Most folks stumble on the dot-star trap without realizing how hungry it acts at first. This match grabs everything nearby unless stopped somehow. Watch what happens when a tiny question mark steps in - suddenly things end much sooner. Learning this shift from take-all to take-some separates new users from those who get consistent outcomes. Early drills on this flip make later work smoother, quieter.</p>
-      <p>Start by looking at greediness if regex seems off. Anchors might be the real culprit, though. Escaping often trips things up more than expected. Before tossing out the entire approach, examine these pieces closely. Most confusing outcomes trace back to just these three. The problem usually isn’t the concept - it’s how it's written.</p>
+        <h3>Pattern 1 - Email Address (Basic Validation)</h3>
+        <p><code>/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>Email address</strong><code>/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>user@example.com</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>first.last@company.co.uk</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>dev+tag@gmail.com</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>user@</span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>@example.com</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>[a-zA-Z0-9._%+-]+</code> - one or more characters that can be letters (upper or lower), digits, dots, underscores, percent signs, plus signs, or hyphens - this is the local part before the @</li>
+          <li><code>@</code> - literal at sign</li>
+          <li><code>[a-zA-Z0-9.-]+</code> - one or more characters for the domain name (letters, digits, dots, hyphens)</li>
+          <li><code>\.</code> - literal dot separating domain from TLD</li>
+          <li><code>[a-zA-Z]{2,}</code> - at least two letters for the TLD (.com, .org, .uk, .museum)</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>user@example.com</code>, <code>first.last@company.co.uk</code>, <code>dev+tag@gmail.com</code></p>
+        <p>Does not match: <code>user@</code> (no domain), <code>@example.com</code> (no local part)</p>
+        <p>Note: This catches obviously malformed strings. It will not tell you whether the address actually exists or whether the mailbox accepts mail. For anything important, send a verification email - regex cannot do that job.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidEmail = <span class="regex-literal">/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/</span>.test(input);</code></pre>
 
-      <h2>Test regex on real cases, not perfect samples</h2>
-      <p>Start with cluttered data if you want to see patterns clearly. Try it on awkward stuff like random spaces, odd punctuation, letters in different sizes, blank spots, or lines that have nothing to do with the pattern. Only when it handles those does a regex actually work.</p>
-      <p>Here’s how a live browser tester makes things clearer. Try different inputs one after another, tweak settings on the fly, look inside captured segments - suddenly it shows if the regex holds up under real conditions. Each adjustment reveals exactly what happens when actual data runs through.</p>
+        <h3>Pattern 2 - URL (HTTP/HTTPS)</h3>
+        <p><code>/https?:\/\/[^\s/$.?#].[^\s]*/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>HTTP/HTTPS URL</strong><code>/https?:\/\/[^\s/$.?#].[^\s]*/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>https://example.com</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>http://blog.site.co/path?q=1</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>https://api.example.com/v2/users</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>ftp://files.example.com</span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>example.com</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>https?</code> - matches "http" or "https" - the s is made optional by <code>?</code></li>
+          <li><code>:\/\/</code> - literal "://" with the slashes escaped because <code>/</code> is the regex delimiter</li>
+          <li><code>[^\s/$.?#]</code> - the first domain character, which cannot be whitespace or URL-structural characters</li>
+          <li><code>.</code> - any single character (the dot here is unescaped, intentionally matching anything)</li>
+          <li><code>[^\s]*</code> - zero or more characters that are not whitespace - this captures the rest of the URL until a space</li>
+        </ul>
+        <p>Matches: <code>https://example.com</code>, <code>http://blog.site.co/path?q=1</code>, <code>https://api.example.com/v2/users</code></p>
+        <p>Does not match: <code>ftp://files.example.com</code> (protocol does not start with http), <code>example.com</code> (no protocol prefix)</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> urls = text.match(<span class="regex-literal">/https?:\/\/[^\s/$.?#].[^\s]*/g</span>);</code></pre>
 
-      <h2>Readable regex usually beats clever regex</h2>
-      <p>Readability often wins when others will see your code later. A second step in parsing can help, also adding a few notes might do more than squeezing it all into one clever line. Using regex does not show how good you are at coding - it just works as one option among many.</p>
-      <p>Start small. Build just enough to meet the need. Try it out using real-world data instead of waiting. Halt while it still feels clear - before clutter creeps in and nobody dares touch it later.</p>
+        <h3>Pattern 3 - Phone Number (US Format)</h3>
+        <p><code>/^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>US phone number</strong><code>/^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>(555) 123-4567</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>555-123-4567</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>555.123.4567</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>5551234567</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>55-123-4567</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>\(?</code> - optional opening parenthesis (escaped because <code>(</code> is a special character)</li>
+          <li><code>\d{3}</code> - exactly three digits for the area code</li>
+          <li><code>\)?</code> - optional closing parenthesis</li>
+          <li><code>[-.\s]?</code> - optional separator: hyphen, dot, or whitespace</li>
+          <li><code>\d{3}</code> - three-digit exchange</li>
+          <li><code>[-.\s]?</code> - another optional separator</li>
+          <li><code>\d{4}</code> - four-digit subscriber number</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>(555) 123-4567</code>, <code>555-123-4567</code>, <code>555.123.4567</code>, <code>5551234567</code></p>
+        <p>Does not match: <code>55-123-4567</code> (only two digits in area code), <code>555-123-45678</code> (five digits in the last group)</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidPhone = <span class="regex-literal">/^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/</span>.test(phone);</code></pre>
+
+        <h3>Pattern 4 - Date (YYYY-MM-DD)</h3>
+        <p><code>/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>ISO-style date</strong><code>/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>2026-06-04</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>2025-12-31</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>2024-01-01</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>2026-13-01</span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>06-04-2026</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>\d{4}</code> - four-digit year</li>
+          <li><code>-</code> - literal hyphen</li>
+          <li><code>(0[1-9]|1[0-2])</code> - month from 01 to 12: either 0 followed by 1-9, or 1 followed by 0-2</li>
+          <li><code>-</code> - literal hyphen</li>
+          <li><code>(0[1-9]|[12]\d|3[01])</code> - day from 01 to 31: either 0 + 1-9, or 1 or 2 + any digit, or 3 + 0 or 1</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>2026-06-04</code>, <code>2025-12-31</code>, <code>2024-01-01</code></p>
+        <p>Does not match: <code>2026-13-01</code> (month 13 does not exist), <code>2026-00-15</code> (month 00 does not exist), <code>06-04-2026</code> (wrong order, year is not four digits at the start)</p>
+        <p>Note: This validates format and plausible ranges, not calendar logic. It will accept <code>2026-02-30</code> without complaint. For actual date validation, parse with a library like date-fns or dayjs after the format check passes.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidDate = <span class="regex-literal">/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/</span>.test(date);</code></pre>
+
+        <h3>Pattern 5 - IP Address (IPv4)</h3>
+        <p><code>^(\d{1,3}\.){3}\d{1,3}$</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>IPv4 address</strong><code>/^(\d{1,3}\.){3}\d{1,3}$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>192.168.1.1</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>10.0.0.1</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>255.255.255.0</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>192.168.1</span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>192.168.1.1.1</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>(\d{1,3}\.)</code> - a group: one to three digits followed by a literal dot</li>
+          <li><code>{3}</code> - that group repeated exactly three times (covers the first three octets)</li>
+          <li><code>\d{1,3}</code> - one to three digits for the fourth octet, no trailing dot</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>192.168.1.1</code>, <code>10.0.0.1</code>, <code>255.255.255.0</code></p>
+        <p>Does not match: <code>192.168.1</code> (only three octets), <code>192.168.1.1.1</code> (five octets)</p>
+        <p>Note: <code>999.999.999.999</code> will pass this pattern because the regex validates structure, not value ranges. If you need to confirm each octet is between 0 and 255, add a post-match check in JavaScript - splitting on <code>.</code> and running <code>parseInt</code> on each segment is cleaner than extending the regex into an unreadable wall of alternation.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidIP = <span class="regex-literal">/^(\d{1,3}\.){3}\d{1,3}$/</span>.test(ip);</code></pre>
+
+        <h3>Pattern 6 - HTML Tag (Extracting Tag Names)</h3>
+        <p><code>/&lt;\/?([a-zA-Z][a-zA-Z0-9]*)\b[^&gt;]*&gt;/g</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>HTML tag extraction</strong><code>/&lt;\/?([a-zA-Z][a-zA-Z0-9]*)\b[^&gt;]*&gt;/g</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>&lt;div&gt;</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>&lt;/p&gt;</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>&lt;input type="text"&gt;</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>&lt;img src="photo.jpg" /&gt;</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>&lt; div&gt;</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>&lt;</code> - literal opening angle bracket</li>
+          <li><code>\/?</code> - optional forward slash for closing tags like <code>&lt;/p&gt;</code></li>
+          <li><code>([a-zA-Z][a-zA-Z0-9]*)</code> - capture group: tag name must start with a letter, followed by zero or more letters or digits</li>
+          <li><code>\b</code> - word boundary, prevents partial matches bleeding into attribute text</li>
+          <li><code>[^&gt;]*</code> - any characters that are not <code>&gt;</code> - this captures attributes like <code>class="foo"</code> without consuming the closing bracket</li>
+          <li><code>&gt;</code> - literal closing angle bracket</li>
+          <li><code>/g</code> - global flag, find all matches in the string</li>
+        </ul>
+        <p>Matches: <code>&lt;div&gt;</code>, <code>&lt;/p&gt;</code>, <code>&lt;input type="text"&gt;</code>, <code>&lt;img src="photo.jpg" /&gt;</code></p>
+        <p>Does not match: <code>&lt; div&gt;</code> (space after opening bracket), plain text with no angle brackets</p>
+        <p>Warning: Do not use regex to parse HTML documents. Use <code>document.querySelector</code>, <code>DOMParser</code>, or a proper HTML parser library. Regex cannot handle nested tags, optional attributes, or malformed markup reliably. This pattern is for log file scanning, quick extraction from controlled strings, or template processing - not for building anything that touches arbitrary HTML from the web.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> tags = html.match(<span class="regex-literal">/&lt;\/?([a-zA-Z][a-zA-Z0-9]*)\b[^&gt;]*&gt;/g</span>);</code></pre>
+
+        <h3>Pattern 7 - Whitespace Cleanup (Multiple Spaces to One)</h3>
+        <p><code>/\s{2,}/g</code> - collapse multiple spaces</p>
+        <p><code>/^\s+|\s+$/g</code> - trim leading and trailing whitespace</p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>Whitespace cleanup</strong><code>/\s{2,}/g</code> and <code>/^\s+|\s+$/g</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span>hello<mark>&nbsp;&nbsp;&nbsp;</mark>world</span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>&nbsp;&nbsp;</mark>trim me</span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span>trim me<mark>&nbsp;&nbsp;</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>already clean</span></div>
+        </div>
+        <p>Breakdown of <code>/\s{2,}/g</code>:</p>
+        <ul>
+          <li><code>\s</code> - any whitespace character: space, tab, newline, carriage return</li>
+          <li><code>{2,}</code> - two or more consecutive occurrences</li>
+          <li><code>/g</code> - replace all instances, not just the first</li>
+        </ul>
+        <p>Breakdown of <code>/^\s+|\s+$/g</code>:</p>
+        <ul>
+          <li><code>^\s+</code> - one or more whitespace characters at the very start of the string</li>
+          <li><code>|</code> - OR</li>
+          <li><code>\s+$</code> - one or more whitespace characters at the very end</li>
+          <li><code>/g</code> - apply globally</li>
+        </ul>
+        <p>Use case: Users paste text from Word documents, PDFs, or Slack messages. That content arrives with double spaces, non-breaking spaces, tab indentation, and trailing newlines. Before you store or display any user-submitted text, clean it.</p>
+        <p>Note: JavaScript's built-in <code>.trim()</code> handles leading and trailing whitespace fine, so the second pattern is mainly useful when you also need to handle the multi-space collapse in the same pipeline. Chaining both handles everything in two operations.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> cleaned = input.replace(<span class="regex-literal">/\s{2,}/g</span>, <span class="js-string">' '</span>).replace(<span class="regex-literal">/^\s+|\s+$/g</span>, <span class="js-string">''</span>);</code></pre>
+
+        <h3>Pattern 8 - Password Strength Check</h3>
+        <p><code>/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&amp;*]).{8,}$/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>Password strength</strong><code>/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&amp;*]).{8,}$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>Str0ng!Pass</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>MyP@ss1234</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>Ab1!efgh</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>password</span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>SHORT1!</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>(?=.*[a-z])</code> - lookahead: somewhere in the string there must be at least one lowercase letter</li>
+          <li><code>(?=.*[A-Z])</code> - lookahead: at least one uppercase letter</li>
+          <li><code>(?=.*\d)</code> - lookahead: at least one digit</li>
+          <li><code>(?=.*[!@#$%^&amp;*])</code> - lookahead: at least one of these specific special characters</li>
+          <li><code>.{8,}</code> - any character, at least 8 times - the actual length requirement</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>Str0ng!Pass</code>, <code>MyP@ss1234</code>, <code>Ab1!efgh</code></p>
+        <p>Does not match: <code>password</code> (no uppercase, no digit, no special character), <code>SHORT1!</code> (fewer than 8 characters)</p>
+        <p>Key concept: Lookaheads <code>(?=...)</code> assert that a condition is true at the current position without actually consuming characters. All four lookaheads run from the start of the string before <code>.{8,}</code> does its job. This is how you enforce multiple independent requirements in a single pattern without a mess of nested conditions.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isStrongPassword = <span class="regex-literal">/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&amp;*]).{8,}$/</span>.test(pw);</code></pre>
+
+        <h3>Pattern 9 - File Extension Check</h3>
+        <p><code>/\.(jpg|jpeg|png|gif|webp|svg)$/i</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>Image file extension</strong><code>/\.(jpg|jpeg|png|gif|webp|svg)$/i</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>photo.jpg</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>image.PNG</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>icon.svg</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>banner.WebP</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>document.pdf</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>\.</code> - literal dot (escaped because unescaped <code>.</code> means "any character")</li>
+          <li><code>(jpg|jpeg|png|gif|webp|svg)</code> - one of these six extensions, matched by the <code>|</code> OR operator</li>
+          <li><code>$</code> - end of string - only matches if the extension is at the very end of the filename</li>
+          <li><code>/i</code> - case-insensitive flag - .JPG, .Png, and .WebP all match</li>
+        </ul>
+        <p>Matches: <code>photo.jpg</code>, <code>image.PNG</code>, <code>icon.svg</code>, <code>banner.WebP</code></p>
+        <p>Does not match: <code>document.pdf</code> (extension not in the list), <code>noextension</code> (no dot at all)</p>
+        <p>Important: Client-side extension checking is a user experience feature, not a security feature. A malicious user can rename <code>malware.exe</code> to <code>malware.jpg</code> and your regex will happily accept it. Always validate file type on the server using actual MIME type detection - read the file's magic bytes, not its name.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidImageFile = <span class="regex-literal">/\.(jpg|jpeg|png|gif|webp|svg)$/i</span>.test(filename);</code></pre>
+
+        <h3>Pattern 10 - URL Slug Validation</h3>
+        <p><code>/^[a-z0-9]+(-[a-z0-9]+)*$/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>URL slug</strong><code>/^[a-z0-9]+(-[a-z0-9]+)*$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>hello-world</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>my-blog-post-2026</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>regex</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>section-4b</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>Hello-World</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>[a-z0-9]+</code> - one or more lowercase letters or digits - the slug must start with this, which prevents a leading hyphen</li>
+          <li><code>(-[a-z0-9]+)*</code> - zero or more groups of: a hyphen followed by one or more lowercase letters or digits - this structure prevents trailing hyphens and consecutive hyphens because every hyphen must be followed by at least one letter or digit</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>hello-world</code>, <code>my-blog-post-2026</code>, <code>regex</code>, <code>section-4b</code></p>
+        <p>Does not match: <code>Hello-World</code> (uppercase letters fail the <code>[a-z0-9]</code> set), <code>-leading-dash</code> (starts with a hyphen, fails <code>[a-z0-9]+</code> at the beginning), <code>trailing-dash-</code> (the final group requires at least one character after the hyphen), <code>double--dash</code> (two consecutive hyphens - the second hyphen has no preceding letter/digit group)</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidSlug = <span class="regex-literal">/^[a-z0-9]+(-[a-z0-9]+)*$/</span>.test(slug);</code></pre>
+
+        <h2>Three Regex Mistakes That Bite Every Beginner</h2>
+        <div class="guide-warning-box">
+          <h3><span aria-hidden="true">&#9888;</span> Greedy vs lazy matching</h3>
+          <p>By default, <code>.*</code> is greedy - it grabs as many characters as possible before yielding. If you try to extract content between quotes using <code>".*"</code> on the string <code>"first" and "second"</code>, the match runs from the opening quote of "first" all the way to the closing quote of "second", swallowing the word "and" in between. Use <code>".*?"</code> instead - the <code>?</code> after <code>*</code> switches to lazy matching, grabbing as few characters as possible. The lazy version stops at the first closing quote it finds rather than the last. In practice, whenever you are extracting content between delimiters, your default should be lazy until you have a specific reason to be greedy.</p>
+        </div>
+        <div class="guide-warning-box">
+          <h3><span aria-hidden="true">&#9888;</span> Forgetting to escape special characters</h3>
+          <p>This produces bugs that are baffling to debug because the pattern technically runs without errors - it just matches the wrong things. The dot <code>.</code> in regex means "any single character except newline." If you write <code>/3.14/</code> expecting to match the number 3.14, it also matches <code>3X14</code>, <code>3!14</code>, and <code>3 14</code>. Write <code>/3\.14/</code> to mean a literal dot. The characters that require escaping when you mean them literally are: <code>.</code> <code>^</code> <code>$</code> <code>*</code> <code>+</code> <code>?</code> <code>{</code> <code>}</code> <code>[</code> <code>]</code> <code>\</code> <code>|</code> <code>(</code> <code>)</code>. When in doubt, escape it.</p>
+        </div>
+        <div class="guide-warning-box">
+          <h3><span aria-hidden="true">&#9888;</span> Not using anchors when validating</h3>
+          <p>There is a significant difference between searching a string and validating it. The pattern <code>/\d{3}/</code> searches for any sequence of three digits anywhere in the input - it matches in <code>abc123def</code>, <code>phone: 555-1234</code>, and <code>999 bottles</code>. If you use this to validate that a user entered exactly three digits and nothing else, you will accept all of those strings and your validation is broken. Add <code>^</code> and <code>$</code> to make it <code>/^\d{3}$/</code> and now it only matches a string that is three digits from start to finish. Every validation pattern in this guide uses anchors for exactly this reason.</p>
+        </div>
+
+        <p>Test your regex patterns instantly with JavaScript in Tooliest's browser-based developer tools - your code stays in your browser, nothing is sent to a server.</p>
+      </div>
     
         </section>
         <section class="tool-content-section">
@@ -236,6 +938,7 @@
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
   <script data-cfasync="false">(function(){if(window.__TOOLIEST_CONSENT_FALLBACK_READY)return;window.__TOOLIEST_CONSENT_FALLBACK_READY=true;var key='tooliest_cookie_consent';var version='2';var tourKey='tooliest_tour_completed';var tourEvent='tooliest:welcome-tour-complete';var waiting=false;function read(){try{var raw=localStorage.getItem(key);return raw?JSON.parse(raw):null;}catch(e){return null;}}function tourDone(){try{return localStorage.getItem(tourKey)==='1';}catch(e){return true;}}function shouldDelay(){var path=String(location.pathname||'/').replace(/\/index\.html$/,'/');return path==='/'&&!(document.body&&document.body.classList.contains('embed-mode'))&&!tourDone();}function save(accepted){try{localStorage.setItem(key,JSON.stringify({accepted:accepted,version:version,timestamp:new Date().toISOString()}));}catch(e){}}function clear(){try{localStorage.removeItem(key);}catch(e){}}function setHeight(px){document.documentElement.style.setProperty('--cookie-banner-height',Math.max(0,Math.round(px||0))+'px');}function banner(){return document.getElementById('cookie-banner');}function afterTour(){if(waiting)return;waiting=true;window.addEventListener(tourEvent,function done(){waiting=false;window.removeEventListener(tourEvent,done);window.setTimeout(show,900);});}function show(){if(shouldDelay()){afterTour();return;}var el=banner();if(!el)return;document.body.classList.add('cookie-banner-open');el.classList.remove('banner-hidden','banner-visible');el.setAttribute('aria-hidden','false');window.requestAnimationFrame(function(){el.classList.add('banner-visible');setHeight(el.getBoundingClientRect().height);});}function hide(){var el=banner();document.body.classList.remove('cookie-banner-open');if(el){el.classList.remove('banner-visible');el.classList.add('banner-hidden');el.setAttribute('aria-hidden','true');}setHeight(0);}function accept(){save(true);hide();}function reject(){save(false);hide();}function reset(event){if(event&&event.preventDefault)event.preventDefault();clear();show();}function bind(){var acceptBtn=document.getElementById('cookie-accept-btn');var rejectBtn=document.getElementById('cookie-reject-btn');if(acceptBtn)acceptBtn.addEventListener('click',accept);if(rejectBtn)rejectBtn.addEventListener('click',reject);document.addEventListener('click',function(event){var trigger=event.target&&event.target.closest&&event.target.closest('[data-consent-reset]');if(!trigger)return;var api=window.TooliestConsent;if(api&&api!==fallback&&typeof api.reset==='function'){event.preventDefault();api.reset(event);return;}reset(event);});var saved=read();if(!saved||saved.version!==version)show();}var fallback={reset:reset,open:show,refreshLayout:function(){var el=banner();setHeight(el&&!el.classList.contains('banner-hidden')?el.getBoundingClientRect().height:0);},getStatus:read};window.TooliestConsent=window.TooliestConsent||fallback;if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',bind,{once:true});}else{bind();}})();</script>
-  <script src="/bundle.min.js?v=20260530-295a5c55" defer data-cfasync="false"></script>
+  <script data-cfasync="false">(function(){function copyText(text){if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(text);}return new Promise(function(resolve,reject){var textarea=document.createElement('textarea');textarea.value=text;textarea.setAttribute('readonly','');textarea.style.position='fixed';textarea.style.top='-9999px';document.body.appendChild(textarea);textarea.select();try{document.execCommand('copy')?resolve():reject(new Error('copy failed'));}catch(error){reject(error);}finally{textarea.remove();}});}function enhanceGuideArticle(){var root=document.querySelector('.guide-article-copy');if(!root)return;root.querySelectorAll('table').forEach(function(table){if(table.parentElement&&table.parentElement.classList.contains('guide-table-wrap'))return;var wrap=document.createElement('div');wrap.className='guide-table-wrap';table.parentNode.insertBefore(wrap,table);wrap.appendChild(table);});root.querySelectorAll('pre').forEach(function(pre,index){if(pre.closest('.guide-code-window'))return;var code=pre.querySelector('code');var language='code';if(code){var match=String(code.className||'').match(/language-([a-z0-9-]+)/i);if(match)language=match[1];}var windowEl=document.createElement('div');windowEl.className='guide-code-window';var header=document.createElement('div');header.className='guide-code-header';var meta=document.createElement('div');meta.className='guide-code-meta';var dots=document.createElement('span');dots.className='guide-code-dots';dots.setAttribute('aria-hidden','true');dots.innerHTML='<span></span><span></span><span></span>';var label=document.createElement('span');label.className='guide-code-language';label.textContent=language;var button=document.createElement('button');button.type='button';button.className='guide-code-copy';button.textContent='Copy';button.setAttribute('aria-label','Copy code snippet '+(index+1));button.addEventListener('click',function(){var text=(code||pre).innerText;copyText(text).then(function(){button.textContent='Copied';window.setTimeout(function(){button.textContent='Copy';},1400);}).catch(function(){button.textContent='Select';window.setTimeout(function(){button.textContent='Copy';},1400);});});meta.appendChild(dots);meta.appendChild(label);header.appendChild(meta);header.appendChild(button);pre.parentNode.insertBefore(windowEl,pre);windowEl.appendChild(header);windowEl.appendChild(pre);});}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',enhanceGuideArticle,{once:true});}else{enhanceGuideArticle();}})();</script>
+  <script src="/bundle.min.js?v=20260604-08d61903" defer data-cfasync="false"></script>
 </body>
 </html>

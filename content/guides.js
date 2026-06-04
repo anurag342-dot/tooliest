@@ -957,43 +957,313 @@ document.querySelectorAll('img[data-src]').forEach(img =&gt; observer.observe(im
     slug: 'regex-patterns-for-beginners',
     group: 'developer-data',
     title: 'Regex for Beginners: 10 Patterns Every Developer Should Know',
-    description: 'Learn the regex patterns developers reach for most often and how to test them safely before they end up in production.',
+    description: 'Learn 10 regex patterns developers actually use: email validation, URL extraction, phone numbers, dates, IP addresses, password strength, and more. Each pattern includes a character-by-character breakdown, match examples, and ready-to-copy JavaScript code.',
     socialDescription: 'A beginner-friendly regex guide covering useful patterns, anchors, capture groups, and the mistakes that trip people up.',
     teaser: 'Learn the regex patterns developers use most often, what they really mean, and how to test them safely before they hit production.',
     published: '2026-05-01',
-    updated: '2026-05-03',
-    readMinutes: 9,
+    updated: '2026-06-04',
+    readMinutes: 12,
     tags: ['Regex', 'Validation', 'Developer Workflows'],
     contentHtml: `
-      <p>When regex breaks during a demo, the magic vanishes fast. A tiny code sample might seem correct - then it grabs too much, misses key parts, or confuses everyone who sees it. Because of moments like these, new learners skip memorizing every character at first. Instead, grasp what frequent patterns actually do - and practice checking them without causing chaos.</p>
-      <p>What matters about regex isn’t showing off smarts. Accuracy defines it. One solid pattern fixes a single text issue cleanly - no digging through layers later just to make changes.</p>
+      <div class="guide-regex-patterns">
+        <h2>How to Read a Regex Pattern (60-Second Crash Course)</h2>
+        <p>You only need eight symbols to understand every pattern in this guide. Here they are, nothing more:</p>
+        <p><code>^</code> marks the start of a string. <code>$</code> marks the end. Together they mean "this is the whole string, not just part of it."</p>
+        <p><code>\\d</code> matches any digit 0-9. <code>\\w</code> matches any word character - letter, digit, or underscore. <code>\\s</code> matches any whitespace character including spaces, tabs, and newlines.</p>
+        <p><code>[abc]</code> matches any single character inside the brackets. <code>[a-z]</code> is a range - any lowercase letter. <code>[^abc]</code> is a negation - any character that is NOT a, b, or c.</p>
+        <p><code>+</code> means one or more of the preceding thing. <code>*</code> means zero or more. <code>?</code> means zero or one - it makes the preceding character optional.</p>
+        <p><code>{3}</code> means exactly 3 times. <code>{2,5}</code> means between 2 and 5 times. <code>{2,}</code> means at least 2 times.</p>
+        <p><code>()</code> is a capture group - it saves whatever it matches so you can reference it later.</p>
+        <p><code>|</code> is OR. <code>/cat|dog/</code> matches either "cat" or "dog."</p>
+        <p><code>\\</code> is an escape. Since <code>.</code> means "any character" in regex, <code>\\.</code> means a literal dot. Same principle applies to <code>(</code>, <code>)</code>, <code>+</code>, <code>*</code>, <code>?</code>, <code>$</code>, <code>^</code>, and <code>|</code>.</p>
 
-      <h2>Start with anchors, classes, and repetition</h2>
-      <p><strong>Whatever you do first, think about anchors. Then move on to who shows up - the characters that fit each class. After that comes how often things repeat themselves.</strong></p>
-      <p>Start anywhere. Anchors such as <code>^</code> or <code>$</code> pin matches to edges of text. Character types - like <code>\d</code> for digits, <code>\w</code> for word symbols, <code>[a-z]</code> for lowercase runs - fill in the middle parts. Quantity markers follow: <code>+</code> means one or more, <code>*</code> stands for zero or more, <code>{n,m}</code> sets exact ranges. Put these together. Suddenly, common patterns make sense instead of seeming like noise.</p>
-      <p>A simple slug format could look like this: <code>^[a-z0-9-]+$</code>. From beginning to end, only small letters, digits, or dashes are accepted. Nothing mystical here - just clear rules laid out plainly.</p>
+        <div class="guide-regex-cheatsheet" aria-label="Regex symbol cheat sheet">
+          <div><code>^</code> / <code>$</code><span>Start and end anchors</span></div>
+          <div><code>\\d</code><span>Any digit 0-9</span></div>
+          <div><code>\\w</code><span>Letter, digit, or underscore</span></div>
+          <div><code>\\s</code><span>Whitespace</span></div>
+          <div><code>[abc]</code><span>Any listed character</span></div>
+          <div><code>+</code> / <code>*</code> / <code>?</code><span>Repetition controls</span></div>
+          <div><code>{3}</code> / <code>{2,5}</code><span>Exact or ranged counts</span></div>
+          <div><code>()</code> / <code>|</code><span>Capture group and OR</span></div>
+        </div>
 
-      <h2>Ten patterns developers actually reuse</h2>
-      <p>Most folks run into the same tasks over and over when checking forms, pulling data, tidying text, or testing inputs. This starting pack helps out with bits like cleaning up extra spaces, grabbing pieces of text for swaps, spotting numbers only, handling parts of dates, trimming messy separators, catching email-style entries, dealing with line breaks at edges, pulling simple web links, using lazy matches, shaping URL slugs, plus isolating chunks through grouped captures.</p>
-      <p>Most new learners jump straight into fixing rare problems right away. Still, a basic email pattern might help spot obvious errors before sending data. What counts isn’t flawless logic on paper - it’s how well it works where used.</p>
+        <p>Quick example - break down <code>/^\\d{3}-\\d{4}$/</code> character by character:</p>
+        <div class="guide-regex-anatomy" aria-label="Regex anatomy diagram">
+          <div class="regex-part regex-part-anchor"><code>^</code><span>start</span></div>
+          <div class="regex-part regex-part-digit"><code>\\d{3}</code><span>3 digits</span></div>
+          <div class="regex-part regex-part-literal"><code>-</code><span>literal dash</span></div>
+          <div class="regex-part regex-part-digit"><code>\\d{4}</code><span>4 digits</span></div>
+          <div class="regex-part regex-part-anchor"><code>$</code><span>end</span></div>
+        </div>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>\\d{3}</code> - exactly three digits</li>
+          <li><code>-</code> - a literal hyphen</li>
+          <li><code>\\d{4}</code> - exactly four digits</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches "555-1234". Does not match "55-1234" (only two digits before the dash) or "555-12345" (five digits after it).</p>
+        <p>That is the entire theory section. Everything else is application.</p>
 
-      <h2>Capture groups turn matches into tools</h2>
-      <p><strong>Certain parts of a pattern can be isolated when they’re grouped like this - that’s what makes regular expressions truly useful. Capturing pieces this way opens up options you wouldn’t have otherwise.</strong></p>
-      <p>Pieces of the match matter just as much as finding them. With capture groups, those bits turn into tools - sliding right back into new strings exactly when needed. Instead of rewriting everything by hand, keep what fits and reshape the rest around it.</p>
-      <p>Most useful during log cleanup, string renames, date formatting, or tweaking data prior to feeding it into a different environment. With Tooliest's <a href="/regex-tester/">Regex Tester</a>, results show up instantly - no more wondering if your captures split things right.</p>
+        <h2>10 Regex Patterns Developers Actually Reuse</h2>
 
-      <h2>New learners often want too much at once</h2>
-      <p><strong>What trips up new learners isn’t just mistakes - it’s often wanting too much at once.</strong></p>
-      <p>Most folks stumble on the dot-star trap without realizing how hungry it acts at first. This match grabs everything nearby unless stopped somehow. Watch what happens when a tiny question mark steps in - suddenly things end much sooner. Learning this shift from take-all to take-some separates new users from those who get consistent outcomes. Early drills on this flip make later work smoother, quieter.</p>
-      <p>Start by looking at greediness if regex seems off. Anchors might be the real culprit, though. Escaping often trips things up more than expected. Before tossing out the entire approach, examine these pieces closely. Most confusing outcomes trace back to just these three. The problem usually isn’t the concept - it’s how it's written.</p>
+        <h3>Pattern 1 - Email Address (Basic Validation)</h3>
+        <p><code>/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>Email address</strong><code>/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>user@example.com</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>first.last@company.co.uk</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>dev+tag@gmail.com</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>user@</span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>@example.com</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>[a-zA-Z0-9._%+-]+</code> - one or more characters that can be letters (upper or lower), digits, dots, underscores, percent signs, plus signs, or hyphens - this is the local part before the @</li>
+          <li><code>@</code> - literal at sign</li>
+          <li><code>[a-zA-Z0-9.-]+</code> - one or more characters for the domain name (letters, digits, dots, hyphens)</li>
+          <li><code>\\.</code> - literal dot separating domain from TLD</li>
+          <li><code>[a-zA-Z]{2,}</code> - at least two letters for the TLD (.com, .org, .uk, .museum)</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>user@example.com</code>, <code>first.last@company.co.uk</code>, <code>dev+tag@gmail.com</code></p>
+        <p>Does not match: <code>user@</code> (no domain), <code>@example.com</code> (no local part)</p>
+        <p>Note: This catches obviously malformed strings. It will not tell you whether the address actually exists or whether the mailbox accepts mail. For anything important, send a verification email - regex cannot do that job.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidEmail = <span class="regex-literal">/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/</span>.test(input);</code></pre>
 
-      <h2>Test regex on real cases, not perfect samples</h2>
-      <p>Start with cluttered data if you want to see patterns clearly. Try it on awkward stuff like random spaces, odd punctuation, letters in different sizes, blank spots, or lines that have nothing to do with the pattern. Only when it handles those does a regex actually work.</p>
-      <p>Here’s how a live browser tester makes things clearer. Try different inputs one after another, tweak settings on the fly, look inside captured segments - suddenly it shows if the regex holds up under real conditions. Each adjustment reveals exactly what happens when actual data runs through.</p>
+        <h3>Pattern 2 - URL (HTTP/HTTPS)</h3>
+        <p><code>/https?:\\/\\/[^\\s/$.?#].[^\\s]*/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>HTTP/HTTPS URL</strong><code>/https?:\\/\\/[^\\s/$.?#].[^\\s]*/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>https://example.com</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>http://blog.site.co/path?q=1</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>https://api.example.com/v2/users</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>ftp://files.example.com</span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>example.com</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>https?</code> - matches "http" or "https" - the s is made optional by <code>?</code></li>
+          <li><code>:\\/\\/</code> - literal "://" with the slashes escaped because <code>/</code> is the regex delimiter</li>
+          <li><code>[^\\s/$.?#]</code> - the first domain character, which cannot be whitespace or URL-structural characters</li>
+          <li><code>.</code> - any single character (the dot here is unescaped, intentionally matching anything)</li>
+          <li><code>[^\\s]*</code> - zero or more characters that are not whitespace - this captures the rest of the URL until a space</li>
+        </ul>
+        <p>Matches: <code>https://example.com</code>, <code>http://blog.site.co/path?q=1</code>, <code>https://api.example.com/v2/users</code></p>
+        <p>Does not match: <code>ftp://files.example.com</code> (protocol does not start with http), <code>example.com</code> (no protocol prefix)</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> urls = text.match(<span class="regex-literal">/https?:\\/\\/[^\\s/$.?#].[^\\s]*/g</span>);</code></pre>
 
-      <h2>Readable regex usually beats clever regex</h2>
-      <p>Readability often wins when others will see your code later. A second step in parsing can help, also adding a few notes might do more than squeezing it all into one clever line. Using regex does not show how good you are at coding - it just works as one option among many.</p>
-      <p>Start small. Build just enough to meet the need. Try it out using real-world data instead of waiting. Halt while it still feels clear - before clutter creeps in and nobody dares touch it later.</p>
+        <h3>Pattern 3 - Phone Number (US Format)</h3>
+        <p><code>/^\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}$/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>US phone number</strong><code>/^\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>(555) 123-4567</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>555-123-4567</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>555.123.4567</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>5551234567</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>55-123-4567</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>\\(?</code> - optional opening parenthesis (escaped because <code>(</code> is a special character)</li>
+          <li><code>\\d{3}</code> - exactly three digits for the area code</li>
+          <li><code>\\)?</code> - optional closing parenthesis</li>
+          <li><code>[-.\\s]?</code> - optional separator: hyphen, dot, or whitespace</li>
+          <li><code>\\d{3}</code> - three-digit exchange</li>
+          <li><code>[-.\\s]?</code> - another optional separator</li>
+          <li><code>\\d{4}</code> - four-digit subscriber number</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>(555) 123-4567</code>, <code>555-123-4567</code>, <code>555.123.4567</code>, <code>5551234567</code></p>
+        <p>Does not match: <code>55-123-4567</code> (only two digits in area code), <code>555-123-45678</code> (five digits in the last group)</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidPhone = <span class="regex-literal">/^\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}$/</span>.test(phone);</code></pre>
+
+        <h3>Pattern 4 - Date (YYYY-MM-DD)</h3>
+        <p><code>/^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>ISO-style date</strong><code>/^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>2026-06-04</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>2025-12-31</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>2024-01-01</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>2026-13-01</span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>06-04-2026</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>\\d{4}</code> - four-digit year</li>
+          <li><code>-</code> - literal hyphen</li>
+          <li><code>(0[1-9]|1[0-2])</code> - month from 01 to 12: either 0 followed by 1-9, or 1 followed by 0-2</li>
+          <li><code>-</code> - literal hyphen</li>
+          <li><code>(0[1-9]|[12]\\d|3[01])</code> - day from 01 to 31: either 0 + 1-9, or 1 or 2 + any digit, or 3 + 0 or 1</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>2026-06-04</code>, <code>2025-12-31</code>, <code>2024-01-01</code></p>
+        <p>Does not match: <code>2026-13-01</code> (month 13 does not exist), <code>2026-00-15</code> (month 00 does not exist), <code>06-04-2026</code> (wrong order, year is not four digits at the start)</p>
+        <p>Note: This validates format and plausible ranges, not calendar logic. It will accept <code>2026-02-30</code> without complaint. For actual date validation, parse with a library like date-fns or dayjs after the format check passes.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidDate = <span class="regex-literal">/^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$/</span>.test(date);</code></pre>
+
+        <h3>Pattern 5 - IP Address (IPv4)</h3>
+        <p><code>^(\\d{1,3}\\.){3}\\d{1,3}$</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>IPv4 address</strong><code>/^(\\d{1,3}\\.){3}\\d{1,3}$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>192.168.1.1</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>10.0.0.1</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>255.255.255.0</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>192.168.1</span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>192.168.1.1.1</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>(\\d{1,3}\\.)</code> - a group: one to three digits followed by a literal dot</li>
+          <li><code>{3}</code> - that group repeated exactly three times (covers the first three octets)</li>
+          <li><code>\\d{1,3}</code> - one to three digits for the fourth octet, no trailing dot</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>192.168.1.1</code>, <code>10.0.0.1</code>, <code>255.255.255.0</code></p>
+        <p>Does not match: <code>192.168.1</code> (only three octets), <code>192.168.1.1.1</code> (five octets)</p>
+        <p>Note: <code>999.999.999.999</code> will pass this pattern because the regex validates structure, not value ranges. If you need to confirm each octet is between 0 and 255, add a post-match check in JavaScript - splitting on <code>.</code> and running <code>parseInt</code> on each segment is cleaner than extending the regex into an unreadable wall of alternation.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidIP = <span class="regex-literal">/^(\\d{1,3}\\.){3}\\d{1,3}$/</span>.test(ip);</code></pre>
+
+        <h3>Pattern 6 - HTML Tag (Extracting Tag Names)</h3>
+        <p><code>/&lt;\\/?([a-zA-Z][a-zA-Z0-9]*)\\b[^&gt;]*&gt;/g</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>HTML tag extraction</strong><code>/&lt;\\/?([a-zA-Z][a-zA-Z0-9]*)\\b[^&gt;]*&gt;/g</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>&lt;div&gt;</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>&lt;/p&gt;</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>&lt;input type="text"&gt;</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>&lt;img src="photo.jpg" /&gt;</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>&lt; div&gt;</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>&lt;</code> - literal opening angle bracket</li>
+          <li><code>\\/?</code> - optional forward slash for closing tags like <code>&lt;/p&gt;</code></li>
+          <li><code>([a-zA-Z][a-zA-Z0-9]*)</code> - capture group: tag name must start with a letter, followed by zero or more letters or digits</li>
+          <li><code>\\b</code> - word boundary, prevents partial matches bleeding into attribute text</li>
+          <li><code>[^&gt;]*</code> - any characters that are not <code>&gt;</code> - this captures attributes like <code>class="foo"</code> without consuming the closing bracket</li>
+          <li><code>&gt;</code> - literal closing angle bracket</li>
+          <li><code>/g</code> - global flag, find all matches in the string</li>
+        </ul>
+        <p>Matches: <code>&lt;div&gt;</code>, <code>&lt;/p&gt;</code>, <code>&lt;input type="text"&gt;</code>, <code>&lt;img src="photo.jpg" /&gt;</code></p>
+        <p>Does not match: <code>&lt; div&gt;</code> (space after opening bracket), plain text with no angle brackets</p>
+        <p>Warning: Do not use regex to parse HTML documents. Use <code>document.querySelector</code>, <code>DOMParser</code>, or a proper HTML parser library. Regex cannot handle nested tags, optional attributes, or malformed markup reliably. This pattern is for log file scanning, quick extraction from controlled strings, or template processing - not for building anything that touches arbitrary HTML from the web.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> tags = html.match(<span class="regex-literal">/&lt;\\/?([a-zA-Z][a-zA-Z0-9]*)\\b[^&gt;]*&gt;/g</span>);</code></pre>
+
+        <h3>Pattern 7 - Whitespace Cleanup (Multiple Spaces to One)</h3>
+        <p><code>/\\s{2,}/g</code> - collapse multiple spaces</p>
+        <p><code>/^\\s+|\\s+$/g</code> - trim leading and trailing whitespace</p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>Whitespace cleanup</strong><code>/\\s{2,}/g</code> and <code>/^\\s+|\\s+$/g</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span>hello<mark>&nbsp;&nbsp;&nbsp;</mark>world</span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>&nbsp;&nbsp;</mark>trim me</span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span>trim me<mark>&nbsp;&nbsp;</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>already clean</span></div>
+        </div>
+        <p>Breakdown of <code>/\\s{2,}/g</code>:</p>
+        <ul>
+          <li><code>\\s</code> - any whitespace character: space, tab, newline, carriage return</li>
+          <li><code>{2,}</code> - two or more consecutive occurrences</li>
+          <li><code>/g</code> - replace all instances, not just the first</li>
+        </ul>
+        <p>Breakdown of <code>/^\\s+|\\s+$/g</code>:</p>
+        <ul>
+          <li><code>^\\s+</code> - one or more whitespace characters at the very start of the string</li>
+          <li><code>|</code> - OR</li>
+          <li><code>\\s+$</code> - one or more whitespace characters at the very end</li>
+          <li><code>/g</code> - apply globally</li>
+        </ul>
+        <p>Use case: Users paste text from Word documents, PDFs, or Slack messages. That content arrives with double spaces, non-breaking spaces, tab indentation, and trailing newlines. Before you store or display any user-submitted text, clean it.</p>
+        <p>Note: JavaScript's built-in <code>.trim()</code> handles leading and trailing whitespace fine, so the second pattern is mainly useful when you also need to handle the multi-space collapse in the same pipeline. Chaining both handles everything in two operations.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> cleaned = input.replace(<span class="regex-literal">/\\s{2,}/g</span>, <span class="js-string">' '</span>).replace(<span class="regex-literal">/^\\s+|\\s+$/g</span>, <span class="js-string">''</span>);</code></pre>
+
+        <h3>Pattern 8 - Password Strength Check</h3>
+        <p><code>/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&amp;*]).{8,}$/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>Password strength</strong><code>/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&amp;*]).{8,}$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>Str0ng!Pass</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>MyP@ss1234</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>Ab1!efgh</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>password</span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>SHORT1!</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>(?=.*[a-z])</code> - lookahead: somewhere in the string there must be at least one lowercase letter</li>
+          <li><code>(?=.*[A-Z])</code> - lookahead: at least one uppercase letter</li>
+          <li><code>(?=.*\\d)</code> - lookahead: at least one digit</li>
+          <li><code>(?=.*[!@#$%^&amp;*])</code> - lookahead: at least one of these specific special characters</li>
+          <li><code>.{8,}</code> - any character, at least 8 times - the actual length requirement</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>Str0ng!Pass</code>, <code>MyP@ss1234</code>, <code>Ab1!efgh</code></p>
+        <p>Does not match: <code>password</code> (no uppercase, no digit, no special character), <code>SHORT1!</code> (fewer than 8 characters)</p>
+        <p>Key concept: Lookaheads <code>(?=...)</code> assert that a condition is true at the current position without actually consuming characters. All four lookaheads run from the start of the string before <code>.{8,}</code> does its job. This is how you enforce multiple independent requirements in a single pattern without a mess of nested conditions.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isStrongPassword = <span class="regex-literal">/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&amp;*]).{8,}$/</span>.test(pw);</code></pre>
+
+        <h3>Pattern 9 - File Extension Check</h3>
+        <p><code>/\\.(jpg|jpeg|png|gif|webp|svg)$/i</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>Image file extension</strong><code>/\\.(jpg|jpeg|png|gif|webp|svg)$/i</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>photo.jpg</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>image.PNG</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>icon.svg</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>banner.WebP</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>document.pdf</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>\\.</code> - literal dot (escaped because unescaped <code>.</code> means "any character")</li>
+          <li><code>(jpg|jpeg|png|gif|webp|svg)</code> - one of these six extensions, matched by the <code>|</code> OR operator</li>
+          <li><code>$</code> - end of string - only matches if the extension is at the very end of the filename</li>
+          <li><code>/i</code> - case-insensitive flag - .JPG, .Png, and .WebP all match</li>
+        </ul>
+        <p>Matches: <code>photo.jpg</code>, <code>image.PNG</code>, <code>icon.svg</code>, <code>banner.WebP</code></p>
+        <p>Does not match: <code>document.pdf</code> (extension not in the list), <code>noextension</code> (no dot at all)</p>
+        <p>Important: Client-side extension checking is a user experience feature, not a security feature. A malicious user can rename <code>malware.exe</code> to <code>malware.jpg</code> and your regex will happily accept it. Always validate file type on the server using actual MIME type detection - read the file's magic bytes, not its name.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidImageFile = <span class="regex-literal">/\\.(jpg|jpeg|png|gif|webp|svg)$/i</span>.test(filename);</code></pre>
+
+        <h3>Pattern 10 - URL Slug Validation</h3>
+        <p><code>/^[a-z0-9]+(-[a-z0-9]+)*$/</code></p>
+        <div class="guide-match-card">
+          <div class="match-card-header"><strong>URL slug</strong><code>/^[a-z0-9]+(-[a-z0-9]+)*$/</code></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>hello-world</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>my-blog-post-2026</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>regex</mark></span></div>
+          <div class="match-row match-yes"><span class="match-icon">OK</span><span><mark>section-4b</mark></span></div>
+          <div class="match-row match-no"><span class="match-icon">&#10007;</span><span>Hello-World</span></div>
+        </div>
+        <p>Breakdown:</p>
+        <ul>
+          <li><code>^</code> - start of string</li>
+          <li><code>[a-z0-9]+</code> - one or more lowercase letters or digits - the slug must start with this, which prevents a leading hyphen</li>
+          <li><code>(-[a-z0-9]+)*</code> - zero or more groups of: a hyphen followed by one or more lowercase letters or digits - this structure prevents trailing hyphens and consecutive hyphens because every hyphen must be followed by at least one letter or digit</li>
+          <li><code>$</code> - end of string</li>
+        </ul>
+        <p>Matches: <code>hello-world</code>, <code>my-blog-post-2026</code>, <code>regex</code>, <code>section-4b</code></p>
+        <p>Does not match: <code>Hello-World</code> (uppercase letters fail the <code>[a-z0-9]</code> set), <code>-leading-dash</code> (starts with a hyphen, fails <code>[a-z0-9]+</code> at the beginning), <code>trailing-dash-</code> (the final group requires at least one character after the hyphen), <code>double--dash</code> (two consecutive hyphens - the second hyphen has no preceding letter/digit group)</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> isValidSlug = <span class="regex-literal">/^[a-z0-9]+(-[a-z0-9]+)*$/</span>.test(slug);</code></pre>
+
+        <h2>Three Regex Mistakes That Bite Every Beginner</h2>
+        <div class="guide-warning-box">
+          <h3><span aria-hidden="true">&#9888;</span> Greedy vs lazy matching</h3>
+          <p>By default, <code>.*</code> is greedy - it grabs as many characters as possible before yielding. If you try to extract content between quotes using <code>".*"</code> on the string <code>"first" and "second"</code>, the match runs from the opening quote of "first" all the way to the closing quote of "second", swallowing the word "and" in between. Use <code>".*?"</code> instead - the <code>?</code> after <code>*</code> switches to lazy matching, grabbing as few characters as possible. The lazy version stops at the first closing quote it finds rather than the last. In practice, whenever you are extracting content between delimiters, your default should be lazy until you have a specific reason to be greedy.</p>
+        </div>
+        <div class="guide-warning-box">
+          <h3><span aria-hidden="true">&#9888;</span> Forgetting to escape special characters</h3>
+          <p>This produces bugs that are baffling to debug because the pattern technically runs without errors - it just matches the wrong things. The dot <code>.</code> in regex means "any single character except newline." If you write <code>/3.14/</code> expecting to match the number 3.14, it also matches <code>3X14</code>, <code>3!14</code>, and <code>3 14</code>. Write <code>/3\\.14/</code> to mean a literal dot. The characters that require escaping when you mean them literally are: <code>.</code> <code>^</code> <code>$</code> <code>*</code> <code>+</code> <code>?</code> <code>{</code> <code>}</code> <code>[</code> <code>]</code> <code>\\</code> <code>|</code> <code>(</code> <code>)</code>. When in doubt, escape it.</p>
+        </div>
+        <div class="guide-warning-box">
+          <h3><span aria-hidden="true">&#9888;</span> Not using anchors when validating</h3>
+          <p>There is a significant difference between searching a string and validating it. The pattern <code>/\\d{3}/</code> searches for any sequence of three digits anywhere in the input - it matches in <code>abc123def</code>, <code>phone: 555-1234</code>, and <code>999 bottles</code>. If you use this to validate that a user entered exactly three digits and nothing else, you will accept all of those strings and your validation is broken. Add <code>^</code> and <code>$</code> to make it <code>/^\\d{3}$/</code> and now it only matches a string that is three digits from start to finish. Every validation pattern in this guide uses anchors for exactly this reason.</p>
+        </div>
+
+        <p>Test your regex patterns instantly with JavaScript in Tooliest's browser-based developer tools - your code stays in your browser, nothing is sent to a server.</p>
+      </div>
     `,
     faqs: [
       { q: 'What does ^ and $ mean in regex?', a: 'They are anchors. ^ marks the start of the string or line, and $ marks the end. They are useful when you want to match the whole input rather than just any substring.' },

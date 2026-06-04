@@ -4134,6 +4134,262 @@ const META_TAGS_GUIDE_VISUAL_CSS = `<style>
   }
 </style>`;
 
+const REGEX_PATTERNS_GUIDE_VISUAL_CSS = `<style>
+  .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet,
+  .guide-article-copy .guide-regex-patterns .guide-regex-anatomy,
+  .guide-article-copy .guide-regex-patterns .guide-match-card,
+  .guide-article-copy .guide-regex-patterns .guide-warning-box {
+    margin: 24px 0 30px;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid rgba(139,92,246,.28);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.11), rgba(6,182,212,.04)), rgba(255,255,255,.025);
+  }
+  .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet div {
+    display: grid;
+    grid-template-columns: minmax(78px, auto) 1fr;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid rgba(148,163,184,.18);
+    border-radius: 12px;
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet code {
+    width: fit-content;
+    max-width: 100%;
+    color: #c4b5fd;
+    background: rgba(139,92,246,.16);
+    border: 1px solid rgba(139,92,246,.26);
+    border-radius: 8px;
+    padding: 4px 7px;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet span {
+    min-width: 0;
+    color: var(--text-secondary);
+    font-size: .9rem;
+    line-height: 1.35;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-regex-anatomy {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px;
+    border: 1px solid rgba(148,163,184,.2);
+    border-radius: 18px;
+    background: rgba(255,255,255,.025);
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part {
+    min-width: 104px;
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    padding: 14px 12px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px;
+    box-shadow: 0 12px 26px rgba(0,0,0,.11);
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part code {
+    color: var(--text-primary);
+    background: rgba(0,0,0,.2);
+    border-radius: 9px;
+    padding: 5px 8px;
+    font-size: 1.05rem;
+    font-weight: 900;
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part span {
+    color: var(--text-primary);
+    font-size: .78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part-anchor {
+    background: linear-gradient(135deg, rgba(59,130,246,.3), rgba(59,130,246,.13));
+    border-color: rgba(59,130,246,.5);
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part-digit {
+    background: linear-gradient(135deg, rgba(34,197,94,.3), rgba(34,197,94,.13));
+    border-color: rgba(34,197,94,.5);
+  }
+  .guide-article-copy .guide-regex-patterns .regex-part-literal {
+    background: linear-gradient(135deg, rgba(107,114,128,.32), rgba(107,114,128,.13));
+    border-color: rgba(148,163,184,.42);
+  }
+  .guide-article-copy .guide-regex-patterns .guide-match-card {
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.22);
+    border-radius: 16px;
+    background: rgba(255,255,255,.035);
+    box-shadow: 0 16px 34px rgba(0,0,0,.12);
+  }
+  .guide-article-copy .guide-regex-patterns .match-card-header {
+    display: grid;
+    gap: 7px;
+    padding: 15px 16px;
+    border-bottom: 1px solid rgba(148,163,184,.16);
+    background: linear-gradient(135deg, rgba(139,92,246,.16), rgba(6,182,212,.06));
+  }
+  .guide-article-copy .guide-regex-patterns .match-card-header strong {
+    color: var(--text-primary);
+    font-size: .95rem;
+  }
+  .guide-article-copy .guide-regex-patterns .match-card-header code {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    color: #67e8f9;
+    background: rgba(15,23,42,.66);
+    border: 1px solid rgba(148,163,184,.16);
+    border-radius: 9px;
+    padding: 7px 9px;
+    white-space: nowrap;
+  }
+  .guide-article-copy .guide-regex-patterns .match-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(148,163,184,.12);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: .88rem;
+  }
+  .guide-article-copy .guide-regex-patterns .match-row:last-child {
+    border-bottom: 0;
+  }
+  .guide-article-copy .guide-regex-patterns .match-row span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .guide-article-copy .guide-regex-patterns .match-icon {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font: 900 .7rem/1 var(--font-primary);
+  }
+  .guide-article-copy .guide-regex-patterns .match-yes .match-icon {
+    background: rgba(34,197,94,.16);
+    color: #22c55e;
+  }
+  .guide-article-copy .guide-regex-patterns .match-no .match-icon {
+    background: rgba(239,68,68,.14);
+    color: #f87171;
+  }
+  .guide-article-copy .guide-regex-patterns .match-row mark {
+    padding: 2px 5px;
+    border-radius: 7px;
+    background: rgba(34,197,94,.22);
+    color: var(--text-primary);
+  }
+  .guide-article-copy .guide-regex-patterns .match-no {
+    background: rgba(239,68,68,.045);
+  }
+  .guide-article-copy .guide-regex-patterns .guide-warning-box {
+    padding: 18px 20px;
+    border: 1px solid rgba(245,158,11,.26);
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 15px 15px 0;
+    background: linear-gradient(90deg, rgba(245,158,11,.16), rgba(245,158,11,.04));
+  }
+  .guide-article-copy .guide-regex-patterns .guide-warning-box h3 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 0;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-warning-box h3 span {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(245,158,11,.18);
+    color: #f59e0b;
+    font-size: .9rem;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-warning-box p:last-child {
+    margin-bottom: 0;
+  }
+  .guide-article-copy .guide-regex-patterns .guide-code-window .regex-literal { color: #67e8f9; }
+  .guide-article-copy .guide-regex-patterns .guide-code-window .js-keyword { color: #c4b5fd; }
+  .guide-article-copy .guide-regex-patterns .guide-code-window .js-string { color: #fde68a; }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet,
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-regex-anatomy,
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-match-card {
+    background-color: rgba(255,255,255,.86);
+    box-shadow: 0 16px 34px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet div {
+    background: rgba(255,255,255,.72);
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet code {
+    color: #6d28d9;
+    background: rgba(139,92,246,.1);
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .match-card-header code {
+    color: #0369a1;
+    background: rgba(255,255,255,.76);
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .match-row mark {
+    background: #dcfce7;
+    color: #14532d;
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .match-no {
+    background: rgba(254,202,202,.46);
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-warning-box {
+    background: linear-gradient(90deg, rgba(245,158,11,.12), rgba(245,158,11,.025));
+  }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-code-window .regex-literal { color: #0891b2; }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-code-window .js-keyword { color: #7c3aed; }
+  [data-theme=light] .guide-article-copy .guide-regex-patterns .guide-code-window .js-string { color: #b45309; }
+  @media (max-width: 760px) {
+    .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet,
+    .guide-article-copy .guide-regex-patterns .guide-regex-anatomy,
+    .guide-article-copy .guide-regex-patterns .guide-match-card {
+      border-radius: 12px;
+    }
+    .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet {
+      padding: 13px;
+    }
+    .guide-article-copy .guide-regex-patterns .guide-regex-cheatsheet div {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .guide-article-copy .guide-regex-patterns .regex-part {
+      min-width: 92px;
+      padding: 12px 10px;
+    }
+    .guide-article-copy .guide-regex-patterns .match-card-header,
+    .guide-article-copy .guide-regex-patterns .match-row {
+      padding-left: 13px;
+      padding-right: 13px;
+    }
+    .guide-article-copy .guide-regex-patterns .guide-warning-box {
+      padding: 16px;
+      border-radius: 0 12px 12px 0;
+    }
+  }
+</style>`;
+
 function renderGuidesHubPage(tools) {
   const guideLastModified = getGuideContentLastModifiedDate();
   const softwarePageCount = getSoftwareEditorialPageCount();
@@ -4263,8 +4519,10 @@ function renderGuideArticlePage(guide) {
             ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${COLOR_THEORY_GUIDE_VISUAL_CSS}`
             : guide.slug === 'meta-tags-that-improve-rankings'
               ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${META_TAGS_GUIDE_VISUAL_CSS}`
-              : '';
-  const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' || guide.slug === 'color-theory-for-developers' || guide.slug === 'meta-tags-that-improve-rankings' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
+              : guide.slug === 'regex-patterns-for-beginners'
+                ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${REGEX_PATTERNS_GUIDE_VISUAL_CSS}`
+                : '';
+  const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' || guide.slug === 'color-theory-for-developers' || guide.slug === 'meta-tags-that-improve-rankings' || guide.slug === 'regex-patterns-for-beginners' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
   const structuredData = [
     {
       '@context': 'https://schema.org',
