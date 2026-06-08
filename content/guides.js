@@ -1281,37 +1281,234 @@ document.querySelectorAll('img[data-src]').forEach(img =&gt; observer.observe(im
     slug: 'what-is-base64-encoding',
     group: 'developer-data',
     title: 'What Is Base64 Encoding and When Should You Use It?',
-    description: 'Learn what Base64 encoding actually does, what it is good for, and the tradeoffs you should understand before using it everywhere.',
+    description: 'Understand how Base64 encoding works mechanically: the 6-bit grouping process, the 64-character alphabet, and the 33% size overhead. Covers data URIs, JWT tokens, Basic Auth, email MIME, and API payloads with JavaScript code examples. Learn why encoding is not encryption.',
     socialDescription: 'A practical Base64 guide explaining what it is, when it helps, and why encoding is not the same thing as security.',
     teaser: 'Learn what Base64 encoding really does, when it is useful, and why it should never be confused with encryption or privacy.',
     published: '2026-05-01',
-    updated: '2026-05-03',
-    readMinutes: 7,
+    updated: '2026-06-08',
+    readMinutes: 11,
     tags: ['Base64', 'Encoding', 'Developer Basics'],
     contentHtml: `
-      <p>Something you see a lot before getting how it works - that’s Base64. Pops up in email attachments, web APIs, embedded image tags, login requests, also when moving files around. Since the output seems jumbled, folks assume it hides data safely. Wrong guess. Its role? Making information fit where it needs to go, never about locking things down.</p>
-      <p>Most likely, Base64 changes raw data into regular letters so text-based setups handle it without breaking. Helpful, sure - though there's a downside too.</p>
+      <div class="guide-base64-encoding">
+        <h2>How Base64 Encoding Actually Works (The Mechanical Process)</h2>
+        <p>Base64 takes binary data and converts it into a string built from exactly 64 printable ASCII characters: the 26 uppercase letters A-Z, the 26 lowercase letters a-z, the 10 digits 0-9, and the two symbols + and /. The = character appears only as padding at the end. Every piece of Base64 output you will ever see in production code is built entirely from these 65 characters.</p>
+        <p>The encoding process works in groups of three bytes at a time.</p>
+        <p>Take 3 bytes of input - that is 24 bits of raw data. Split those 24 bits into four groups of 6 bits each. Look up each 6-bit value, 0 through 63, in the Base64 alphabet. Output the corresponding character. Three bytes in, four characters out. That is the entire algorithm.</p>
+        <p>Walk through a real example with the string <code>"Hi!"</code>:</p>
+        <ul>
+          <li><code>"H"</code> = ASCII 72 = <code>01001000</code></li>
+          <li><code>"i"</code> = ASCII 105 = <code>01101001</code></li>
+          <li><code>"!"</code> = ASCII 33 = <code>00100001</code></li>
+        </ul>
+        <p>Combined into 24 bits: <code>010010000110100100100001</code></p>
+        <p>Split into four 6-bit groups: <code>010010</code> | <code>000110</code> | <code>100100</code> | <code>100001</code></p>
+        <p>Decimal values: 18, 6, 36, 33</p>
+        <p>Base64 alphabet lookup: S, G, k, h</p>
+        <p>Result: <code>"Hi!"</code> -> <code>"SGkh"</code></p>
 
-      <h2>Why Base64 Exists</h2>
-      <p>Back then, certain setups managed text better than plain binary stuff. Take email routing - it’s a perfect case. Since binaries could not move freely, they had to wear a textual disguise just to get delivered. That wrapping step slipped into workflows naturally. Even now, whenever coders slip data into text-based paths, that old habit tags along quietly.</p>
-      <p>Because of this, a picture or document becomes a stretched-out line of text while keeping every original piece. Not hidden. Just shown another way.</p>
+        <div class="guide-b64-pipeline" aria-label="Base64 encoding pipeline for Hi! to SGkh">
+          <div class="b64-pipeline-row b64-input-row">
+            <div class="b64-byte-card">
+              <strong>"H"</strong>
+              <span>decimal 72</span>
+              <code>01001000</code>
+            </div>
+            <div class="b64-byte-card">
+              <strong>"i"</strong>
+              <span>decimal 105</span>
+              <code>01101001</code>
+            </div>
+            <div class="b64-byte-card">
+              <strong>"!"</strong>
+              <span>decimal 33</span>
+              <code>00100001</code>
+            </div>
+          </div>
+          <div class="b64-pipeline-arrow">Split 24 bits into 4 groups of 6</div>
+          <div class="b64-pipeline-row b64-bits-row">
+            <div class="b64-bit-card"><code>010010</code><span>18</span></div>
+            <div class="b64-bit-card"><code>000110</code><span>6</span></div>
+            <div class="b64-bit-card"><code>100100</code><span>36</span></div>
+            <div class="b64-bit-card"><code>100001</code><span>33</span></div>
+          </div>
+          <div class="b64-pipeline-arrow">Map to Base64 alphabet</div>
+          <div class="b64-pipeline-row b64-output-row">
+            <div class="b64-output-card">S</div>
+            <div class="b64-output-card">G</div>
+            <div class="b64-output-card">k</div>
+            <div class="b64-output-card">h</div>
+          </div>
+        </div>
 
-      <h2>Size comes at a cost</h2>
-      <p>One third bigger - that is how much space a Base64 string takes compared to raw binary. Data grows because each three bytes become four characters through encoding. It helps move files safely across systems that handle text better than binaries. Yet bulk comes at a cost: efficiency drops when sizes matter most. Some developers forget this, tucking images or files into code without thinking ahead. Soon, what seemed convenient now drags performance down.</p>
-      <p>Now here's a different take on things: tiny bits tucked right into code might work fine sometimes. Yet when files grow big, requests pile up, or speed really matters, that choice tends to fall short.</p>
+        <p>You can verify this right now in any browser console: <code>btoa("Hi!")</code> returns <code>"SGkh"</code>. The math is that mechanical.</p>
+        <pre><code class="language-javascript"><span class="js-function">btoa</span>(<span class="js-string">"Hi!"</span>);
+<span class="js-comment">// "SGkh"</span>
 
-      <h2>Common real-world uses</h2>
-      <p>Most times, Base64 shows up inside data URIs where images get embedded straight into code. When authentication tokens travel in headers, they often arrive wrapped in Base64 instead of raw bytes. Inline assets, especially tiny ones, slip through HTML or CSS using this format just enough to avoid external requests. Anytime a JSON message carries part of a file - say, an icon - it usually gets encoded first so things stay predictable. Tools built for developers lean on it when moving files across systems that only accept text safely. Spotting issues becomes easier too since you can peek at the content without opening separate programs.</p>
-      <p>When speed matters, Tooliest turns data into images - or back - right inside your browser. Quick jobs like encoding text or pulling images from code? Handled without leaving the tab. Sometimes you simply want things converted fast, no setup needed. That is what these tools sit ready for: basic tasks, solved now. Helpful companions here are <a href="/base64-encoder/">Base64 Encoder</a>, <a href="/base64-to-image/">Base64 to Image</a>, and <a href="/image-to-base64/">Image to Base64</a>.</p>
+<span class="js-function">btoa</span>(<span class="js-string">"Hi"</span>);
+<span class="js-comment">// "SGk="</span></code></pre>
+        <p>When the input is not divisible by 3, padding fills the gap. One leftover byte produces 2 Base64 characters followed by <code>==</code>. Two leftover bytes produce 3 Base64 characters followed by <code>=</code>. The string <code>"Hi"</code> is 2 bytes - two characters short of a clean group of three - so it encodes to <code>"SGk="</code>. The <code>=</code> is not meaningful data; it signals that the final group was padded to reach the required 4-character block size.</p>
 
-      <h2>Encoding is not encryption</h2>
-      <p><strong>Just because something is encoded does not mean it is encrypted.</strong></p>
-      <p>This idea needs saying again. When data comes in Base64 form, most people can turn it back just as fast. So using it to protect private info falls short. It might mask the original look from someone glancing over, yet stands no real chance when tested. Meaningful safety? Not here.</p>
-      <p>When handling private information, real encryption becomes necessary - something like a secure transmission method does the job. Base64 isn’t protection at all; it merely alters how data looks.</p>
+        <div class="guide-b64-alphabet" aria-label="Base64 alphabet table">
+          <span><strong>0</strong>A</span><span><strong>1</strong>B</span><span><strong>2</strong>C</span><span><strong>3</strong>D</span><span><strong>4</strong>E</span><span><strong>5</strong>F</span><span><strong>6</strong>G</span><span><strong>7</strong>H</span>
+          <span><strong>8</strong>I</span><span><strong>9</strong>J</span><span><strong>10</strong>K</span><span><strong>11</strong>L</span><span><strong>12</strong>M</span><span><strong>13</strong>N</span><span><strong>14</strong>O</span><span><strong>15</strong>P</span>
+          <span><strong>16</strong>Q</span><span><strong>17</strong>R</span><span><strong>18</strong>S</span><span><strong>19</strong>T</span><span><strong>20</strong>U</span><span><strong>21</strong>V</span><span><strong>22</strong>W</span><span><strong>23</strong>X</span>
+          <span><strong>24</strong>Y</span><span><strong>25</strong>Z</span><span><strong>26</strong>a</span><span><strong>27</strong>b</span><span><strong>28</strong>c</span><span><strong>29</strong>d</span><span><strong>30</strong>e</span><span><strong>31</strong>f</span>
+          <span><strong>32</strong>g</span><span><strong>33</strong>h</span><span><strong>34</strong>i</span><span><strong>35</strong>j</span><span><strong>36</strong>k</span><span><strong>37</strong>l</span><span><strong>38</strong>m</span><span><strong>39</strong>n</span>
+          <span><strong>40</strong>o</span><span><strong>41</strong>p</span><span><strong>42</strong>q</span><span><strong>43</strong>r</span><span><strong>44</strong>s</span><span><strong>45</strong>t</span><span><strong>46</strong>u</span><span><strong>47</strong>v</span>
+          <span><strong>48</strong>w</span><span><strong>49</strong>x</span><span><strong>50</strong>y</span><span><strong>51</strong>z</span><span><strong>52</strong>0</span><span><strong>53</strong>1</span><span><strong>54</strong>2</span><span><strong>55</strong>3</span>
+          <span><strong>56</strong>4</span><span><strong>57</strong>5</span><span><strong>58</strong>6</span><span><strong>59</strong>7</span><span><strong>60</strong>8</span><span><strong>61</strong>9</span><span><strong>62</strong>+</span><span><strong>63</strong>/</span>
+          <span class="b64-padding-cell"><strong>pad</strong>=</span>
+        </div>
 
-      <h2>Choose it on purpose, not by default</h2>
-      <p>Start by asking yourself something better than whether you can Base64-encode it. Instead, wonder - does this process truly demand a format that plays well with text, even if it means growing larger? When that's clearly the case, Base64 steps in quietly, doing its job without flair. Otherwise, it might only add bulk where none is needed.</p>
-      <p>Most people never notice how their thinking turns habits into invisible weights. A shift in perspective writes better code without slowing down. Quiet damage hides in automatic moves you stop seeing.</p>
+        <h2>The 33% Size Tax (and Why It Matters)</h2>
+        <p>The math is unavoidable: 3 input bytes become 4 output bytes. That is a 33.3% size increase on every single Base64 encoding operation, no exceptions. The reason is straightforward - you are storing 6 bits of actual data inside an 8-bit ASCII character. 8 divided by 6 equals 1.333. The extra 2 bits per character is the overhead you pay to keep the output within printable ASCII.</p>
+        <p>Real numbers to keep in your head:</p>
+        <ul>
+          <li>A 1KB file -> 1.37KB as Base64</li>
+          <li>A 100KB image -> 137KB as a Base64 data URI</li>
+          <li>A 1MB PDF attachment -> 1.37MB in MIME encoding</li>
+          <li>A 5MB image embedded as Base64 in HTML -> 6.85MB HTML file</li>
+        </ul>
+        <div class="guide-size-compare" aria-label="Base64 size overhead comparison">
+          <div class="size-compare-row">
+            <div class="size-compare-label"><strong>1KB file</strong><span>1.37KB Base64 - 37% larger</span></div>
+            <div class="size-bars"><span class="size-bar size-original">1KB</span><span class="size-bar size-b64">1.37KB</span></div>
+          </div>
+          <div class="size-compare-row">
+            <div class="size-compare-label"><strong>100KB image</strong><span>137KB Base64</span></div>
+            <div class="size-bars"><span class="size-bar size-original">100KB</span><span class="size-bar size-b64">137KB</span></div>
+          </div>
+          <div class="size-compare-row">
+            <div class="size-compare-label"><strong>1MB PDF</strong><span>1.37MB Base64</span></div>
+            <div class="size-bars"><span class="size-bar size-original">1MB</span><span class="size-bar size-b64">1.37MB</span></div>
+          </div>
+          <div class="size-compare-row">
+            <div class="size-compare-label"><strong>5MB image</strong><span>6.85MB Base64</span></div>
+            <div class="size-bars"><span class="size-bar size-original">5MB</span><span class="size-bar size-b64">6.85MB</span></div>
+          </div>
+        </div>
+        <p>When Base64 travels via email using MIME encoding, line breaks are inserted every 76 characters, followed by a CRLF sequence. Those line break characters push the overhead from 33% to approximately 36-37%.</p>
+        <p>Where developers get burned by this: embedding images as Base64 in CSS files. A 20KB favicon encoded as a Base64 data URI adds 27KB to every CSS file download, for every visitor, on every page load, without any browser caching benefit applied to the image independently. Ten 50KB product images embedded as Base64 in a marketing email become 685KB of Base64 text instead of 500KB of linked images. The email is slower and heavier, and the images cannot be cached.</p>
+        <p>The size tax is the price of using a text channel to carry binary data. Pay it when you have to. Do not pay it when you do not have to.</p>
+
+        <h2>Five Real Places You'll See Base64 in Production Code</h2>
+        <h3>1. Data URIs in HTML and CSS</h3>
+        <p>A data URI embeds file content directly in markup or stylesheets using the format <code>data:[mediatype];base64,[data]</code>.</p>
+        <pre><code class="language-html"><span class="html-tag">&lt;img</span> <span class="html-attr">src=</span><span class="html-value">"data:image/png;base64,iVBORw0KGgo..."</span> <span class="html-tag">/&gt;</span></code></pre>
+        <pre><code class="language-css">.icon {
+  background-image: url(data:image/svg+xml;base64,PHN2Zy...);
+}</code></pre>
+        <div class="guide-datauri-demo" aria-label="Rendered Base64 data URI demo">
+          <div>
+            <h3>Data URI code</h3>
+            <pre><code class="language-html"><span class="html-tag">&lt;img</span> <span class="html-attr">src=</span><span class="html-value">"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZWY0NDQ0Ii8+PC9zdmc+"</span> <span class="html-attr">alt=</span><span class="html-value">"Base64 red square"</span><span class="html-tag">&gt;</span></code></pre>
+          </div>
+          <div class="datauri-preview">
+            <h3>Rendered result</h3>
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZWY0NDQ0Ii8+PC9zdmc+" alt="Base64 red square" width="24" height="24">
+          </div>
+        </div>
+        <p>The legitimate use case is tiny assets - icons and SVGs under 2-3KB - where eliminating an HTTP request is worth the 33% size overhead. A 1KB inline SVG saves one network round trip. A 10KB inline PNG costs 13.7KB in your CSS file, cannot be cached independently, and bloats every page that imports that stylesheet. The crossover point where data URIs stop making sense is around 5KB. Above that, use a regular URL and let the browser cache the asset.</p>
+
+        <h3>2. JWT Tokens</h3>
+        <p>A JSON Web Token has three Base64url-encoded sections separated by dots: header.payload.signature. Base64url is a URL-safe variant that substitutes + with - and / with _ to prevent conflicts in URLs and HTTP headers.</p>
+        <pre><code class="language-javascript"><span class="js-comment">// Decode a JWT header - no library needed</span>
+<span class="js-keyword">JSON</span>.<span class="js-function">parse</span>(<span class="js-function">atob</span>(<span class="js-string">'eyJhbGciOiJIUzI1NiJ9'</span>));
+<span class="js-comment">// Returns: { alg: "HS256" }</span></code></pre>
+        <p>The header and payload are encoded, not encrypted. Anyone who has the token can decode the payload without any key or credential. This is intentional - JWTs are designed for verification, not secrecy. The signature proves the token was issued by a trusted party; the payload is readable by anyone.</p>
+        <p>The failure mode that appears in production regularly: developers include sensitive data in JWT payloads - internal user IDs, role names, system details, API keys - under the mistaken assumption that Base64 encoding protects the data. It does not. If it needs to be secret, it does not belong in a JWT payload.</p>
+
+        <h3>3. HTTP Basic Authentication</h3>
+        <p>Basic Auth transmits credentials as <code>base64(username:password)</code> in the Authorization header.</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> credentials = <span class="js-function">btoa</span>(<span class="js-string">'admin:secret123'</span>);
+<span class="js-comment">// Returns: "YWRtaW46c2VjcmV0MTIz"</span>
+
+<span class="js-comment">// The header sent to the server:</span>
+<span class="js-comment">// Authorization: Basic YWRtaW46c2VjcmV0MTIz</span></code></pre>
+        <div class="guide-security-warning">
+          <h3><span>⚠️</span> Basic Auth depends on HTTPS</h3>
+          <p>Decode that value in any browser console and you get <code>"admin:secret123"</code> back in one step. Basic Auth is not a security mechanism - it is an encoding mechanism that makes credentials safe to transmit in an HTTP header. Security comes entirely from HTTPS. Over plain HTTP, Basic Auth credentials are readable by anyone who can see the network traffic. Over HTTPS, the encoded string is protected by TLS. Never use Basic Auth without HTTPS.</p>
+        </div>
+
+        <h3>4. Email Attachments (MIME)</h3>
+        <p>The original email protocols were built for 7-bit ASCII text. Binary files - PDFs, images, executables - cannot be transmitted through those protocols directly. MIME, or Multipurpose Internet Mail Extensions, uses Base64 to convert binary attachments into text-safe strings, with line breaks inserted every 76 characters.</p>
+        <pre><code class="language-text">Content-Type: application/pdf; name="report.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKJcOkw7zDtsOfCjIgMCBvYmoKPDwKL0xlbmd0aCAzIDAgUgo...</code></pre>
+        <p>This is where the 33% overhead has direct user-facing consequences. A 10MB PDF attached to an email becomes approximately 13.7MB in the MIME-encoded message body. Corporate email size limits are measured against the encoded attachment size, not the original file size. When someone sends a batch of photos and hits a 25MB limit, the real file content is closer to 18MB - the rest is Base64 overhead.</p>
+
+        <h3>5. API Payloads (JSON + Binary Data)</h3>
+        <p>JSON is a text format. It has no native binary data type. When an API endpoint needs to deliver file content - an avatar image, a generated PDF, a signature - inside a JSON response body, Base64 is the standard way to encode it.</p>
+        <pre><code class="language-json">{
+  "user_id": "u_8472",
+  "avatar": "data:image/jpeg;base64,/9j/4AAQSkZJRgAB..."
+}</code></pre>
+        <p>This works and is widely used. It is also the expensive option. For file uploads, <code>multipart/form-data</code> transmits binary directly without any encoding overhead - the 33% size tax disappears entirely. If you control both sides of the API and file sizes are non-trivial, <code>multipart/form-data</code> or a pre-signed URL upload approach will always be more efficient than Base64 in JSON.</p>
+
+        <h2>Base64 in JavaScript: btoa(), atob(), and Buffer</h2>
+        <p>The browser provides two global functions for Base64 operations. <code>btoa</code> stands for "binary to ASCII" - it encodes. <code>atob</code> stands for "ASCII to binary" - it decodes.</p>
+        <pre><code class="language-javascript"><span class="js-comment">// Browser - basic encode/decode</span>
+<span class="js-keyword">const</span> encoded = <span class="js-function">btoa</span>(<span class="js-string">'Hello, World!'</span>);
+<span class="js-comment">// "SGVsbG8sIFdvcmxkIQ=="</span>
+
+<span class="js-keyword">const</span> decoded = <span class="js-function">atob</span>(<span class="js-string">'SGVsbG8sIFdvcmxkIQ=='</span>);
+<span class="js-comment">// "Hello, World!"</span></code></pre>
+        <p><code>btoa</code> has one significant limitation: it only accepts Latin-1 characters, code points 0-255. Passing a string containing emoji or non-Latin characters throws <code>InvalidCharacterError</code>. The standard workaround encodes Unicode to UTF-8 first:</p>
+        <pre><code class="language-javascript"><span class="js-comment">// Browser - Unicode-safe encoding</span>
+<span class="js-keyword">const</span> unicodeSafe = <span class="js-function">btoa</span>(<span class="js-function">unescape</span>(<span class="js-function">encodeURIComponent</span>(<span class="js-string">'Hello 🌍'</span>)));
+
+<span class="js-comment">// Decode it back</span>
+<span class="js-keyword">const</span> original = <span class="js-function">decodeURIComponent</span>(<span class="js-function">escape</span>(<span class="js-function">atob</span>(unicodeSafe)));</code></pre>
+        <p>In Node.js, <code>Buffer</code> handles encoding without the Latin-1 restriction:</p>
+        <pre><code class="language-javascript"><span class="js-comment">// Node.js - encode to Base64</span>
+<span class="js-keyword">const</span> encoded = Buffer.<span class="js-function">from</span>(<span class="js-string">'Hello, World!'</span>, <span class="js-string">'utf-8'</span>).<span class="js-function">toString</span>(<span class="js-string">'base64'</span>);
+<span class="js-comment">// "SGVsbG8sIFdvcmxkIQ=="</span>
+
+<span class="js-comment">// Node.js - decode from Base64</span>
+<span class="js-keyword">const</span> decoded = Buffer.<span class="js-function">from</span>(<span class="js-string">'SGVsbG8sIFdvcmxkIQ=='</span>, <span class="js-string">'base64'</span>).<span class="js-function">toString</span>(<span class="js-string">'utf-8'</span>);
+<span class="js-comment">// "Hello, World!"</span></code></pre>
+        <p>Complete round-trip for binary data in Node.js, which is the common pattern for processing file content through an API:</p>
+        <pre><code class="language-javascript"><span class="js-keyword">const</span> fs = <span class="js-function">require</span>(<span class="js-string">'fs'</span>);
+
+<span class="js-comment">// Encode a file to Base64</span>
+<span class="js-keyword">const</span> fileBuffer = fs.<span class="js-function">readFileSync</span>(<span class="js-string">'./image.png'</span>);
+<span class="js-keyword">const</span> base64String = fileBuffer.<span class="js-function">toString</span>(<span class="js-string">'base64'</span>);
+
+<span class="js-comment">// Decode Base64 back to a file</span>
+<span class="js-keyword">const</span> decoded = Buffer.<span class="js-function">from</span>(base64String, <span class="js-string">'base64'</span>);
+fs.<span class="js-function">writeFileSync</span>(<span class="js-string">'./image-restored.png'</span>, decoded);</code></pre>
+        <p>The restored file is byte-for-byte identical to the original. Base64 is lossless - the encoding adds overhead but discards nothing.</p>
+
+        <h2>Encoding Is Not Encryption (This Will Save Your Career)</h2>
+        <div class="guide-security-warning">
+          <h3><span>🔒</span> Base64 is reversible by design</h3>
+          <p>Base64 is reversible by anyone, instantly, with no key and no password. There is nothing to break. There is no algorithm to defeat.</p>
+        </div>
+        <pre><code class="language-javascript"><span class="js-function">atob</span>(<span class="js-string">'cGFzc3dvcmQxMjM='</span>);
+<span class="js-comment">// "password123"</span></code></pre>
+        <p>That took one function call. No credentials required. The person who encoded it did not protect anything.</p>
+        <p>Real encryption - AES-256, RSA, ChaCha20 - requires a key to decrypt. Without the key, the ciphertext is computationally infeasible to reverse. Base64 requires nothing. The alphabet is public. The algorithm is public. The transformation is deterministic and completely reversible by any developer in thirty seconds using tools built into every programming environment on the planet.</p>
+        <p>This distinction matters because the pattern of "store credentials as Base64 to obscure them" appears in production code regularly, often written by developers who genuinely believed they were adding a layer of security. They were not. They encoded their API key in Base64, pushed it to a public GitHub repository, and made it marginally more annoying to read than plain text - which is not the same thing as making it secure. It is the technical equivalent of writing your password in Pig Latin and leaving it on your desk.</p>
+        <p>If you encounter Base64-encoded credentials in a codebase - an API key, a database password, an OAuth secret - that is a security vulnerability, not a security practice. The credentials are exposed. Treat them as compromised and rotate them.</p>
+        <p>The legitimate uses of Base64 have nothing to do with secrecy: they are about format compatibility. Making binary data safe to travel through a text channel, embedding a file in a JSON field, fitting credentials into an HTTP header - these are transport problems that Base64 solves. Confidentiality is not one of them.</p>
+
+        <h2>When to Use Base64 (Decision Checklist)</h2>
+        <h3>Use Base64 when:</h3>
+        <ul>
+          <li>You are transmitting binary data through a channel that only handles text - email, JSON payloads, XML, URL parameters. Base64 is the standard solution to this specific problem.</li>
+          <li>You are embedding tiny assets, under 2-3KB, as data URIs to eliminate an HTTP request. The size overhead is outweighed by the round-trip savings for very small files.</li>
+          <li>You need URL-safe encoding for binary data passed in query strings or path segments. Use the Base64url variant, <code>-</code> instead of <code>+</code>, <code>_</code> instead of <code>/</code>, no padding, to avoid URL-encoding conflicts.</li>
+        </ul>
+        <h3>Do not use Base64 when:</h3>
+        <ul>
+          <li>The data is already text. Encoding a plain string as Base64 adds 33% size overhead and decoding complexity with no benefit. Send the string.</li>
+          <li>You are embedding images over 5KB as data URIs. The size penalty exceeds the request-elimination benefit, and the images cannot be independently cached.</li>
+          <li>You think encoding provides any form of security or obscurity worth having. It does not.</li>
+          <li><code>multipart/form-data</code> is available for file uploads. The MIME boundary format transmits binary data at its actual size without any encoding overhead. Use it instead of Base64 in JSON whenever you control the API contract.</li>
+        </ul>
+        <p>You can encode and decode Base64 strings instantly with Tooliest's browser-based <a href="/base64-encoder/">Base64 Encoder</a> and Base64 Decoder, or convert images to and from Base64 data URIs with the <a href="/image-to-base64/">Image to Base64</a> and <a href="/base64-to-image/">Base64 to Image</a> tools - all free, no signup, processing stays in your browser.</p>
+      </div>
     `,
     faqs: [
       { q: 'Is Base64 a form of encryption?', a: 'No. Base64 is only an encoding method. Anyone with a decoder can turn it back into the original data immediately.' },

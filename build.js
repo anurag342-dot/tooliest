@@ -4390,6 +4390,301 @@ const REGEX_PATTERNS_GUIDE_VISUAL_CSS = `<style>
   }
 </style>`;
 
+const BASE64_ENCODING_GUIDE_VISUAL_CSS = `<style>
+  .guide-article-copy .guide-base64-encoding .guide-b64-pipeline,
+  .guide-article-copy .guide-base64-encoding .guide-b64-alphabet,
+  .guide-article-copy .guide-base64-encoding .guide-size-compare,
+  .guide-article-copy .guide-base64-encoding .guide-datauri-demo {
+    margin: 24px 0 30px;
+    border: 1px solid rgba(148,163,184,.22);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(139,92,246,.08), rgba(6,182,212,.035)), rgba(255,255,255,.025);
+    box-shadow: 0 18px 38px rgba(0,0,0,.12);
+  }
+  .guide-article-copy .guide-base64-encoding .guide-b64-pipeline {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+  }
+  .guide-article-copy .guide-base64-encoding .b64-pipeline-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+  .guide-article-copy .guide-base64-encoding .b64-byte-card,
+  .guide-article-copy .guide-base64-encoding .b64-bit-card,
+  .guide-article-copy .guide-base64-encoding .b64-output-card {
+    min-width: 104px;
+    display: grid;
+    gap: 7px;
+    place-items: center;
+    padding: 14px 12px;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 14px 28px rgba(0,0,0,.12);
+  }
+  .guide-article-copy .guide-base64-encoding .b64-byte-card {
+    background: linear-gradient(135deg, rgba(59,130,246,.3), rgba(59,130,246,.12));
+    border-color: rgba(59,130,246,.46);
+  }
+  .guide-article-copy .guide-base64-encoding .b64-bit-card {
+    background: linear-gradient(135deg, rgba(107,114,128,.24), rgba(107,114,128,.1));
+    border-color: rgba(148,163,184,.38);
+  }
+  .guide-article-copy .guide-base64-encoding .b64-output-card {
+    min-width: 76px;
+    background: linear-gradient(135deg, rgba(34,197,94,.32), rgba(34,197,94,.12));
+    border-color: rgba(34,197,94,.5);
+    color: var(--text-primary);
+    font: 900 1.45rem/1 var(--font-mono);
+  }
+  .guide-article-copy .guide-base64-encoding .b64-byte-card strong {
+    color: var(--text-primary);
+    font: 900 1.24rem/1 var(--font-mono);
+  }
+  .guide-article-copy .guide-base64-encoding .b64-byte-card span,
+  .guide-article-copy .guide-base64-encoding .b64-bit-card span {
+    color: var(--text-secondary);
+    font-size: .82rem;
+    font-weight: 800;
+  }
+  .guide-article-copy .guide-base64-encoding .b64-byte-card code,
+  .guide-article-copy .guide-base64-encoding .b64-bit-card code {
+    max-width: 100%;
+    color: var(--text-primary);
+    background: rgba(15,23,42,.36);
+    border: 1px solid rgba(148,163,184,.16);
+    border-radius: 9px;
+    padding: 6px 8px;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+  .guide-article-copy .guide-base64-encoding .b64-pipeline-arrow {
+    justify-self: center;
+    position: relative;
+    padding: 8px 14px 8px 34px;
+    border: 1px solid rgba(139,92,246,.28);
+    border-radius: 999px;
+    background: rgba(139,92,246,.14);
+    color: var(--text-secondary);
+    font-size: .9rem;
+    font-weight: 850;
+  }
+  .guide-article-copy .guide-base64-encoding .b64-pipeline-arrow::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid #8b5cf6;
+  }
+  .guide-article-copy .guide-base64-encoding .guide-b64-alphabet {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(62px, 1fr));
+    gap: 7px;
+    padding: 16px;
+  }
+  .guide-article-copy .guide-base64-encoding .guide-b64-alphabet span {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+    padding: 7px 9px;
+    border: 1px solid rgba(148,163,184,.16);
+    border-radius: 9px;
+    background: rgba(255,255,255,.035);
+    color: var(--text-primary);
+    font: 800 .8rem/1.2 var(--font-mono);
+  }
+  .guide-article-copy .guide-base64-encoding .guide-b64-alphabet strong {
+    color: #93c5fd;
+    font-size: .72rem;
+  }
+  .guide-article-copy .guide-base64-encoding .guide-b64-alphabet .b64-padding-cell {
+    border-color: rgba(139,92,246,.34);
+    background: rgba(139,92,246,.12);
+  }
+  .guide-article-copy .guide-base64-encoding .guide-size-compare {
+    display: grid;
+    gap: 16px;
+    padding: 18px;
+  }
+  .guide-article-copy .guide-base64-encoding .size-compare-row {
+    display: grid;
+    gap: 8px;
+  }
+  .guide-article-copy .guide-base64-encoding .size-compare-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: .92rem;
+  }
+  .guide-article-copy .guide-base64-encoding .size-compare-label strong {
+    color: var(--text-primary);
+  }
+  .guide-article-copy .guide-base64-encoding .size-bars {
+    display: grid;
+    gap: 6px;
+  }
+  .guide-article-copy .guide-base64-encoding .size-bar {
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 11px;
+    border-radius: 999px;
+    font: 900 .78rem/1 var(--font-mono);
+    white-space: nowrap;
+  }
+  .guide-article-copy .guide-base64-encoding .size-original {
+    width: 73%;
+    background: linear-gradient(90deg, #2563eb, #38bdf8);
+    color: #f8fafc;
+  }
+  .guide-article-copy .guide-base64-encoding .size-b64 {
+    width: 100%;
+    background: linear-gradient(90deg, #f97316, #facc15);
+    color: #1f1300;
+  }
+  .guide-article-copy .guide-base64-encoding .guide-datauri-demo {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(220px, .65fr);
+    gap: 18px;
+    align-items: stretch;
+    padding: 18px;
+  }
+  .guide-article-copy .guide-base64-encoding .guide-datauri-demo h3 {
+    margin-top: 0;
+  }
+  .guide-article-copy .guide-base64-encoding .guide-datauri-demo .guide-code-window {
+    margin-bottom: 0;
+  }
+  .guide-article-copy .guide-base64-encoding .datauri-preview {
+    min-height: 180px;
+    display: grid;
+    place-items: center;
+    border: 1px dashed rgba(148,163,184,.34);
+    border-radius: 14px;
+    background: rgba(15,23,42,.18);
+  }
+  .guide-article-copy .guide-base64-encoding .datauri-preview img {
+    width: 96px;
+    height: 96px;
+    border-radius: 16px;
+    image-rendering: pixelated;
+    box-shadow: 0 20px 36px rgba(0,0,0,.25);
+  }
+  .guide-article-copy .guide-base64-encoding .guide-security-warning {
+    margin: 22px 0 28px;
+    padding: 18px 20px;
+    border: 1px solid rgba(239,68,68,.28);
+    border-left: 4px solid #ef4444;
+    border-radius: 0 15px 15px 0;
+    background: linear-gradient(90deg, rgba(239,68,68,.16), rgba(239,68,68,.045));
+  }
+  .guide-article-copy .guide-base64-encoding .guide-security-warning h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0;
+  }
+  .guide-article-copy .guide-base64-encoding .guide-security-warning h3 span {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(239,68,68,.18);
+    color: #f87171;
+    font-size: .95rem;
+  }
+  .guide-article-copy .guide-base64-encoding .guide-security-warning p:last-child {
+    margin-bottom: 0;
+  }
+  .guide-article-copy .guide-base64-encoding .guide-code-window .js-keyword { color: #c4b5fd; }
+  .guide-article-copy .guide-base64-encoding .guide-code-window .js-function { color: #67e8f9; }
+  .guide-article-copy .guide-base64-encoding .guide-code-window .js-string { color: #fde68a; }
+  .guide-article-copy .guide-base64-encoding .guide-code-window .js-comment {
+    color: #94a3b8;
+    font-style: italic;
+  }
+  .guide-article-copy .guide-base64-encoding .guide-code-window .html-tag { color: #7dd3fc; }
+  .guide-article-copy .guide-base64-encoding .guide-code-window .html-attr { color: #c4b5fd; }
+  .guide-article-copy .guide-base64-encoding .guide-code-window .html-value { color: #86efac; }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-b64-pipeline,
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-b64-alphabet,
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-size-compare,
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-datauri-demo {
+    background: rgba(255,255,255,.88);
+    box-shadow: 0 16px 34px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-b64-alphabet span {
+    background: rgba(255,255,255,.76);
+  }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .b64-byte-card code,
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .b64-bit-card code {
+    background: rgba(255,255,255,.64);
+  }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .datauri-preview {
+    background: rgba(15,23,42,.025);
+  }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-security-warning {
+    background: linear-gradient(90deg, rgba(254,202,202,.7), rgba(254,242,242,.82));
+  }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-code-window .js-keyword { color: #7c3aed; }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-code-window .js-function { color: #0891b2; }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-code-window .js-string { color: #b45309; }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-code-window .js-comment { color: #64748b; }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-code-window .html-tag { color: #0369a1; }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-code-window .html-attr { color: #7c3aed; }
+  [data-theme=light] .guide-article-copy .guide-base64-encoding .guide-code-window .html-value { color: #047857; }
+  @media (max-width: 760px) {
+    .guide-article-copy .guide-base64-encoding .guide-datauri-demo {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-base64-encoding .size-compare-label {
+      flex-direction: column;
+      gap: 2px;
+    }
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-base64-encoding .guide-b64-pipeline,
+    .guide-article-copy .guide-base64-encoding .guide-b64-alphabet,
+    .guide-article-copy .guide-base64-encoding .guide-size-compare,
+    .guide-article-copy .guide-base64-encoding .guide-datauri-demo {
+      border-radius: 13px;
+      padding: 13px;
+    }
+    .guide-article-copy .guide-base64-encoding .guide-b64-alphabet {
+      grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+    }
+    .guide-article-copy .guide-base64-encoding .b64-byte-card,
+    .guide-article-copy .guide-base64-encoding .b64-bit-card {
+      min-width: min(130px, 100%);
+      flex: 1 1 126px;
+    }
+    .guide-article-copy .guide-base64-encoding .b64-output-card {
+      min-width: 64px;
+    }
+    .guide-article-copy .guide-base64-encoding .size-bar {
+      min-height: 30px;
+      font-size: .72rem;
+    }
+    .guide-article-copy .guide-base64-encoding .guide-security-warning {
+      padding: 16px;
+      border-radius: 0 12px 12px 0;
+    }
+  }
+</style>`;
+
 function renderGuidesHubPage(tools) {
   const guideLastModified = getGuideContentLastModifiedDate();
   const softwarePageCount = getSoftwareEditorialPageCount();
@@ -4521,8 +4816,10 @@ function renderGuideArticlePage(guide) {
               ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${META_TAGS_GUIDE_VISUAL_CSS}`
               : guide.slug === 'regex-patterns-for-beginners'
                 ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${REGEX_PATTERNS_GUIDE_VISUAL_CSS}`
-                : '';
-  const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' || guide.slug === 'color-theory-for-developers' || guide.slug === 'meta-tags-that-improve-rankings' || guide.slug === 'regex-patterns-for-beginners' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
+                : guide.slug === 'what-is-base64-encoding'
+                  ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${BASE64_ENCODING_GUIDE_VISUAL_CSS}`
+                  : '';
+  const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' || guide.slug === 'color-theory-for-developers' || guide.slug === 'meta-tags-that-improve-rankings' || guide.slug === 'regex-patterns-for-beginners' || guide.slug === 'what-is-base64-encoding' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
   const structuredData = [
     {
       '@context': 'https://schema.org',
