@@ -836,7 +836,7 @@ const TOOLS = [
   {
     id: 'qr-code-generator',
     name: 'QR Code Generator',
-    description: 'Generate downloadable QR codes for URLs, text, email, phone numbers, and Wi-Fi details right in your browser.',
+    description: 'Generate scannable QR codes for URLs, plain text, email addresses, phone numbers, and Wi-Fi access credentials. Customize image size, quiet zone margin, error correction level, and module colors. Download as PNG instantly — everything runs in your browser.',
     category: 'image',
     icon: 'QR',
     tags: ['qr code', 'generator', 'url to qr', 'wifi qr', 'marketing'],
@@ -849,14 +849,43 @@ const TOOLS = [
       { q: 'Can I make a QR code for Wi-Fi login details?', a: 'Yes. Select Wi-Fi mode, enter the network name, password, and security type, then generate the code. Compatible scanners can join the network without manually typing the password.' },
       { q: 'Is this QR code generator private?', a: 'Yes. Tooliest generates the QR image locally in your browser, so the content you encode is not sent to any external server.' }
     ],
-    meta: { title: 'QR Code Generator - Create QR Codes Online Free | Tooliest', desc: 'Generate QR codes for URLs, text, email, phone numbers, and Wi-Fi. Free browser-based QR code generator with instant PNG download.' }
+    contentSectionsHtml: `<section class="tool-content-section">
+      <h2>What Gets Stored Inside a QR Code (And What Doesn't)</h2>
+      <p>A QR code is a grid of black and white squares — called modules — where each module represents a binary 1 or 0. The data capacity depends on what type of data is being stored: a Version 40 QR code (the largest standard) holds up to 7,089 numeric digits, 4,296 alphanumeric characters, or 2,953 bytes of binary data. A typical URL like "https://tooliest.com" uses roughly 20 characters — a small fraction of that capacity — which is why URL codes look visually simpler than Wi-Fi codes. A Wi-Fi string encodes the network name, password, security protocol, and connection flags together, producing a longer string that requires more modules to represent.</p>
+      <p>Nothing inside a QR code is smart, interactive, or rich. Everything is raw text that the scanning device interprets. A URL is text a browser opens. A mailto: address is text that launches an email client. A WIFI: string is text that triggers the phone's network connection dialog. The QR code does not contain the website, the inbox, or the Wi-Fi router — it only contains the address. If the URL it points to goes offline, the code still scans perfectly, but the destination no longer exists. Static codes generated here cannot be updated after they are downloaded and printed.</p>
+      <p>For print materials — brochures, menus, signage — generate at 384px or 512px minimum. The 256px option is sufficient for screens only, where scanning distance is short and display resolution is consistent.</p>
+    </section>
+    <section class="tool-content-section">
+      <h2>Error Correction: Why QR Codes Still Scan When Partially Damaged</h2>
+      <p>QR codes use Reed-Solomon error correction — a mathematical redundancy system originally developed for deep-space communication that adds recovery data alongside the encoded payload. This lets scanners reconstruct missing or damaged sections without needing the full grid intact. There are four levels: L recovers up to 7% data loss, M recovers 15%, Q recovers 25%, and H recovers 30%. The tradeoff is density — higher correction adds more modules to store the redundancy data, making the same payload produce a visually more complex code.</p>
+      <p>For most digital uses, M (Medium) is the correct default. It handles minor screen glare and small obstructions without making the code unnecessarily dense. Use H (High) for anything printed on surfaces that will face physical wear: restaurant table tents, product packaging, stickers, conference badges. A code with a coffee stain covering 20% of its modules will still scan cleanly at H level. Use L (Low) only when you need the cleanest, simplest possible code and the scanning environment is controlled — a phone screen showing a code to a barcode reader, for instance.</p>
+      <p>Error correction is also the mechanism that makes logo-overlay QR codes possible. Placing a logo in the center deliberately destroys a portion of the modules, but H-level redundancy reconstructs the lost data during scanning. This tool does not add logos, but the error correction level you choose directly controls how much physical damage the printed code can absorb before it stops scanning reliably.</p>
+    </section>
+    <section class="tool-content-section">
+      <h2>Choosing Colors and Quiet Zones That Scanners Can Actually Read</h2>
+      <p>The quiet zone is the blank margin surrounding the QR code. Scanners use this empty border to locate the code boundary — without sufficient quiet zone, the scanner cannot determine where the code begins and the surrounding design ends. The minimum recommended width is 4 modules on all sides, which is this tool's default. Reducing it below 3 modules risks scan failures, particularly in low-light conditions or when the code is placed near other visual elements.</p>
+      <p>Custom colors work reliably as long as the contrast between dark and light modules is high. Dark navy on white scans cleanly. Light yellow on white does not — the scanner's camera cannot distinguish modules from background. Dark-on-light is not required: a dark purple background (#1a1a2e) with white modules scans just as well as the traditional black-on-white, because the scanner inverts the image when the dark-light relationship is reversed. What fails is low contrast in either direction — dark gray on light gray, olive on tan, or any pair where the luminance difference is small.</p>
+      <p>For branded codes, set the dark color to your brand color and keep the light color white. A dark green (#1a4731) QR code on white for a restaurant menu, or a deep blue on white for a product package, maintains full scannability while matching brand guidelines. Before printing any custom-colored code at scale, scan it with at least two different phones — camera sensors vary, and a code that reads well on one device may struggle on another in poor lighting. If you are embedding the QR PNG in an email, run it through <a href="/image-compressor/">Tooliest's Image Compressor</a> first to reduce file size without affecting scan quality.</p>
+    </section>
+    <section class="tool-content-section">
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-list">
+        <details class="faq-item"><summary>Is this QR code generator free with no sign up?</summary><p>Yes — this tool generates QR codes directly in your browser without an account, email address, or registration of any kind. There are no watermarks on the downloaded PNG, no usage limits, and no subscription required. The QR code is generated locally using a JavaScript library that renders onto an HTML Canvas element, so the data you encode never touches a server. Download as many codes as you need.</p></details>
+        <details class="faq-item"><summary>How do I create a QR code for a Wi-Fi password?</summary><p>Select Wi-Fi Access from the QR code type options. Enter your network name (SSID) exactly as it appears in your Wi-Fi settings — capitalization matters. Enter the password, then select your security type: WPA/WPA2 for most modern routers, WEP for older hardware, or Open Network if the network has no password. If your network is hidden (not broadcasting its SSID), toggle the hidden network option. Download the PNG and print it. When guests scan the code, their phone automatically prompts them to connect without typing the password manually.</p></details>
+        <details class="faq-item"><summary>What size should a QR code be for printing?</summary><p>The minimum printable size for reliable close-range scanning — business cards, table tents, product labels — is approximately 2cm × 2cm (0.8 inches square). For posters or signage that will be scanned from one meter or further, use at least 10cm × 10cm. As a rule, scanning distance should not exceed ten times the code's physical width. For print output, generate at 512px or 768px using this tool — higher pixel counts give print software more data to work with when sizing the image on the page, reducing pixelation at larger print dimensions.</p></details>
+        <details class="faq-item"><summary>Can I change the color of a QR code?</summary><p>Yes — this tool lets you set both the dark module color and the light module color using a color picker. The critical requirement is high contrast between the two colors. Replace the dark modules with your brand color and keep the light modules white for the safest result. Dark-on-light and light-on-dark both work — a white code on a dark background scans correctly because scanners detect module contrast, not absolute color. What consistently fails is low-contrast combinations: gray on light gray, yellow on white, olive on tan. Always scan the finished code with two different phones in normal lighting conditions before committing to a print run.</p></details>
+        <details class="faq-item"><summary>Do QR codes expire?</summary><p>Static QR codes — the type this tool generates — do not expire. The encoded data is stored directly in the image file as a pattern of modules. The code will scan correctly ten years from now the same way it does today. What can stop working is the destination the code points to. If a URL QR code links to a webpage that goes offline, gets moved, or has its domain expire, the code still scans and still decodes correctly — but the browser will return an error when it tries to load the address. The QR code itself never stops functioning; only the destination can become unavailable.</p></details>
+        <details class="faq-item"><summary>How do I create a QR code for a restaurant menu?</summary><p>Generate a URL QR code linking to your online menu page. Use error correction level H (High) — printed codes on restaurant tables get scratched, spilled on, and folded, and H-level Reed-Solomon correction recovers up to 30% data loss before the code stops scanning. Export at 512px or 768px for print quality. Consider setting the dark module color to your restaurant's brand color to keep it consistent with your other materials. Link to a responsive web page rather than a PDF — PDFs require a separate application to open and load slowly on mobile connections, which frustrates guests. If you need help ensuring the landing page is properly optimized for mobile, use <a href='/meta-tag-generator/'>Tooliest's Meta Tag Generator</a> to set correct title, description, and Open Graph tags before printing the code.</p></details>
+      </div>
+    </section>`,
+    meta: { title: 'Free QR Code Generator - URL, Text, Wi-Fi, Email, Phone | Tooliest', desc: 'Generate QR codes for URLs, text, email, phone numbers, and Wi-Fi networks. Customize size, colors, and error correction. Free, private, runs in your browser — no signup or upload.' }
   },
 
   // ===== PDF TOOLS =====
   {
     id: 'pdf-merger',
     name: 'PDF Merger',
-    description: 'Merge multiple PDF files into one document with drag-and-drop page ordering and thumbnail previews.',
+    description: 'Combine multiple PDF files into a single document with visual page thumbnails, drag-and-drop page reordering, and individual page removal. Runs entirely in your browser — files are never uploaded to a server.',
     category: 'pdf',
     icon: '📄',
     tags: ['merge pdf', 'combine pdf', 'reorder pdf pages', 'pdf toolkit'],
@@ -870,7 +899,30 @@ const TOOLS = [
       { q: 'How do I combine PDFs without uploading them?', a: 'Open Tooliest PDF Merger, add your files, drag pages into the order you want, and export the merged PDF. The workflow runs locally in your browser instead of on a remote server.' },
       { q: 'Can I rearrange pages before I merge my PDFs?', a: 'Yes. Tooliest PDF Merger includes page thumbnails so you can reorder or remove pages before you create the final merged file.' }
     ],
-    meta: { title: 'PDF Merger - Merge PDF Files Online Free | Tooliest', desc: 'Merge multiple PDF files into one browser-based document with page reordering and thumbnails. Free, private, and no signup required. Combine PDFs now.' }
+    contentSectionsHtml: `<section class="tool-content-section">
+      <h2>What Happens to Your PDFs During a Browser-Based Merge</h2>
+      <p>When you add a PDF, JavaScript reads it with the File API. pdf-lib parses the PDF structure: page objects, fonts, images, form fields, and metadata. When you click merge, it creates a brand-new PDFDocument, copies pages in the order you arranged, and turns the result into a downloadable Blob. Nothing leaves your device: no fetch(), no POST request, no cloud processing. Sensitive files can stay local. PDFs above 150-200MB may slow down or crash on low-RAM devices.</p>
+    </section>
+    <section class="tool-content-section">
+      <h2>Page Ordering Strategy: Getting the Right Pages in the Right Order</h2>
+      <p>The biggest mistake is merging in the wrong order and noticing only after the file has been shared. Tooliest shows thumbnails so you can verify the sequence before export, and drag pages across all uploaded PDFs. A job packet usually works best as cover letter, resume, references, then portfolio samples. A real estate package should follow purchase agreement, addenda, inspection report, appraisal, and title documents. For student work, use title page, essay body, bibliography, then appendices. Fix scanned rotation with PDF Rotate, or extract only the pages you need with PDF Splitter first.</p>
+    </section>
+    <section class="tool-content-section">
+      <h2>File Size, Fonts, and What Gets Preserved in the Merged PDF</h2>
+      <p>The merged file is usually close to the combined size of its sources because merging does not compress anything. Fonts, images, hyperlinks, and form fields are copied as they exist, so readability stays intact and quality does not drop. Duplicate embedded fonts may remain, which is redundant but harmless. Images stay at original resolution, so photo-heavy PDFs can become large quickly. If the finished file is too big for email, use PDF Compressor after merging. One caution: form fields with the same internal name can behave oddly in some viewers.</p>
+    </section>
+    <section class="tool-content-section">
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq-list">
+        <details class="faq-item"><summary>merge pdf files free online</summary><p>Upload your PDFs, drag pages into the order you want using the visual thumbnails, and download the merged result. Everything runs in your browser, so no file is uploaded to a server, no signup is required, and the output has no watermark.</p></details>
+        <details class="faq-item"><summary>how to combine pdf files into one</summary><p>Open the PDF Merger, add your files by clicking or dragging them in, arrange the page thumbnails, then click Merge. The combined PDF downloads automatically.</p></details>
+        <details class="faq-item"><summary>merge pdf without losing quality</summary><p>This merger copies pages exactly as they exist in the source files, with no re-encoding, compression, or resolution changes. Fonts, images, links, and form fields stay at their original quality.</p></details>
+        <details class="faq-item"><summary>is it safe to merge pdfs online</summary><p>With Tooliest, yes, because your files never leave your browser. The tool processes everything locally with JavaScript, so no file data is transmitted over the network.</p></details>
+        <details class="faq-item"><summary>combine scanned documents into one pdf</summary><p>Add each scanned PDF to the merger, check the thumbnails for upside-down or rotated pages, use PDF Rotate if needed, then arrange and merge. Scanned pages are handled the same way as text-based pages.</p></details>
+        <details class="faq-item"><summary>maximum file size for pdf merge</summary><p>The practical limit depends on your device memory. Modern laptops with 8-16GB RAM usually handle merged totals up to about 150-200MB, but for much larger sets of PDFs, desktop software is more reliable.</p></details>
+      </div>
+    </section>`,
+    meta: { title: 'PDF Merger - Combine PDF Files Free, No Upload | Tooliest', desc: 'Merge multiple PDF files into one document with visual page thumbnails and drag-and-drop reordering. Browser-based — your files never leave your device. Free, no signup.' }
   },
   {
     id: 'pdf-splitter',

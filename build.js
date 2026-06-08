@@ -5392,6 +5392,7 @@ function refreshStandaloneToolTemplateSections(tools, categories) {
   const proofGridPattern = /<div class="tool-proof-grid">\s*<div class="tool-proof-card">[\s\S]*?<\/div>\s*<div class="tool-proof-card">[\s\S]*?<\/div>\s*<div class="tool-proof-card">[\s\S]*?<\/div>\s*<\/div>/;
   const authorWithHeadingPattern = /<section class="tool-content-section" style="margin-top:24px">\s*<h2>About the Author<\/h2>[\s\S]*?<\/section>/;
   const compactAuthorPattern = /<section class="tool-content-section tool-author-bio" aria-label="Author bio">[\s\S]*?<\/section>/;
+  const standaloneArticlePattern = /<article class="tool-article">[\s\S]*?<\/article>/;
 
   tools
     .filter((tool) => tool.standalonePage || tool.staticShellPage)
@@ -5409,6 +5410,19 @@ function refreshStandaloneToolTemplateSections(tools, categories) {
         includeHeading: false,
         ariaLabel: 'Author bio',
       }));
+      if (tool.id === 'pdf-merger' && typeof tool.contentSectionsHtml === 'string' && tool.contentSectionsHtml.trim()) {
+        const compactAuthorBio = renderToolAuthorBio(tools, {
+          sectionClass: 'tool-content-section tool-author-bio',
+          includeHeading: false,
+          ariaLabel: 'Author bio',
+        });
+        const authoredArticle = renderToolContentSections(tool, categories)
+          .replace(/\s*<\/div>\s*<\/article>\s*$/, `
+      ${compactAuthorBio}
+    </div>
+  </article>`);
+        html = html.replace(standaloneArticlePattern, authoredArticle);
+      }
 
       if (html !== originalHtml) {
         fs.writeFileSync(outputPath, html);
