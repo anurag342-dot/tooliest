@@ -1730,39 +1730,210 @@ fs.<span class="js-function">writeFileSync</span>(<span class="js-string">'./ima
     slug: 'seo-friendly-url-structure',
     group: 'seo-growth',
     title: 'How to Structure URLs for SEO: Slugs, Paths, and Best Practices',
-    description: 'A practical guide to clean URL design, slug choices, path depth, redirects, and avoiding structures that confuse both users and search engines.',
+    description: 'Learn how to structure URLs for SEO with real before-and-after examples. Covers slug rules, path depth, trailing slashes, 301 redirects with server config code, and query parameter handling. Includes URL anatomy breakdown and migration playbook.',
     socialDescription: 'Learn how to structure URLs for clarity, SEO, and maintainability without overcomplicating your site architecture.',
     teaser: 'Learn how to build cleaner SEO-friendly URLs, avoid ugly path structures, and handle slug changes without making a mess.',
     published: '2026-05-01',
-    updated: '2026-05-03',
-    readMinutes: 8,
+    updated: '2026-06-09',
+    readMinutes: 11,
     tags: ['SEO', 'URL Structure', 'Slugs'],
     contentHtml: `
-      <p>Most times, short links seem nice but that does not lift rankings. Clarity matters more than charm, especially when sharing or tracking changes across years. When structure stays tidy, confusion drops off - search bots notice just as much as people do. Pages with neat paths feel intentional; tangled ones whisper neglect behind the scenes.</p>
-      <p>Stability matters more than stuffing keywords into the path. Readability shows up when the URL reflects what the page actually says, not just search terms. A clear path sticks around without breaking. Matching user expectation keeps things grounded. Lasting structure beats short-term tricks every time.</p>
+      <div class="guide-url-structure">
+        <h2>Anatomy of a URL (Every Part Has an SEO Job)</h2>
+        <p>Pull up any page on your site and look at the address bar. Every character in that URL is doing something &mdash; or failing to do something. Take this example apart piece by piece:</p>
+        <p><code>https://www.tooliest.com/guides/seo-friendly-url-structure/?ref=newsletter#path-depth</code></p>
+        <div class="guide-url-anatomy" aria-label="URL anatomy diagram">
+          <div class="url-segment segment-protocol"><code>https://</code><span>Protocol</span></div>
+          <div class="url-segment segment-subdomain"><code>www.</code><span>Subdomain</span></div>
+          <div class="url-segment segment-domain"><code>tooliest.com</code><span>Domain</span></div>
+          <div class="url-segment segment-path"><code>/guides/</code><span>Path</span></div>
+          <div class="url-segment segment-slug"><code>seo-friendly-url-structure</code><span>Slug</span></div>
+          <div class="url-segment segment-query"><code>/?ref=newsletter</code><span>Query</span></div>
+          <div class="url-segment segment-fragment"><code>#path-depth</code><span>Fragment</span></div>
+        </div>
+        <p><code>https://</code> &mdash; The protocol. Google confirmed HTTPS as a ranking signal in 2014. HTTP sites display a "Not Secure" warning in Chrome before the user reads a single word on your page. If you are still on HTTP in 2026, fix that before touching anything else in this guide.</p>
+        <p><code>www</code> &mdash; The subdomain. Technically optional. The problem is that <code>www.example.com</code> and <code>example.com</code> are treated as separate sites by Google unless you set up proper canonicalization. Pick one, redirect the other with a 301, and set your preferred version in Google Search Console. Most sites use <code>www</code> because it gives you more flexibility with DNS configuration, but either choice is fine &mdash; consistency is what matters.</p>
+        <p><code>tooliest.com</code> &mdash; The domain. Short, spell-checkable, and brandable is the goal. Nothing you do to your slugs will compensate for a domain that is 35 characters long and contains three hyphens.</p>
+        <p><code>/guides/</code> &mdash; The path. This creates a content hierarchy that both users and crawlers navigate. A page sitting at <code>/guides/seo-friendly-url-structure/</code> signals to Google that it belongs to a "guides" section, which groups it thematically with other guide content. This grouping matters for topical authority.</p>
+        <p><code>seo-friendly-url-structure</code> &mdash; The slug. This is where most of the optimization work happens and where most mistakes get made. More on this shortly.</p>
+        <p><code>?ref=newsletter</code> &mdash; The query string. Useful for tracking traffic sources, filtering products, or sorting results. Not ideal for content pages &mdash; Google can crawl parameter variations as separate URLs, creating duplicate content and wasting crawl budget.</p>
+        <p><code>#path-depth</code> &mdash; The fragment. An anchor link to a specific section on the page. Google ignores fragments for indexing purposes &mdash; the URL <code>https://tooliest.com/guide/#section-two</code> and <code>https://tooliest.com/guide/</code> index as the same page.</p>
+        <p>The practical point: Google reads your path and slug as signals about page content. <code>/guides/seo-friendly-url-structure/</code> communicates the topic before Googlebot reads a single line of your HTML. <code>/p/12847/</code> communicates nothing.</p>
 
-      <h2>Pick short names that still mean something</h2>
-      <p>Page names need to show what's inside, yet stay short enough to avoid spoilers. A good label gives a hint, not every detail. Skip long explanations up front - just point the way. Let visitors discover more once they click through. Clear beats clever here. The name works best when it feels obvious after you see the content.</p>
-      <p>What lives up front matters more than what gets explained below. Length tempts when titles pile on details - resist that pull. Specificity helps recognition without becoming a cluttered tag. Stability keeps links working even when ideas shift slightly over time. Short stays useful longer, especially if it avoids repeating nearby words. Rewriting them too much defeats their core role altogether.</p>
-      <p>Still, picking the right short name comes down to judgment. Tooliest's <a href="/slug-generator/">Slug Generator</a> helps by cutting clutter quickly, leaving less to sort through. What matters most? Finding a clear, honest tag for the page - nothing more.</p>
+        <h2>Eight Rules for Slugs That Help Rankings (With Before and After)</h2>
+        <h3>1. Use hyphens, not underscores or spaces</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/blog/seo_friendly_urls</code><small>Underscores join words into a single token.</small></div>
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/blog/seo%20friendly%20urls</code><small>Spaces become encoded clutter.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/blog/seo-friendly-urls</code><small>Hyphens separate words cleanly.</small></div>
+        </div>
+        <p>Google treats hyphens as word separators. <code>seo-friendly</code> is parsed as two distinct words &mdash; "seo" and "friendly." Underscores join words: <code>seo_friendly</code> is read as a single token "seofriendly," which matches neither search query. Spaces become <code>%20</code> in the URL, which looks broken and does not help either.</p>
 
-      <h2>Path depth matters less than clarity</h2>
-      <p>Most folks think pages need to sit near the top, but that is not always true. What counts? Whether it feels logical. Pages tucked in <code>/guides/</code> often make better sense. So do tools grouped inside <code>/software/</code>. Spreading things out at the root just to seem clean can backfire. Clarity beats rules every time.</p>
-      <p>Deep inside, some routes make sense if they follow how info is truly built. Trouble kicks in once things get cluttered, echo themselves, or drift from what’s actually being shown.</p>
+        <h3>2. Use lowercase only</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/Blog/SEO-Friendly-URL-Structure</code><small>Case-sensitive servers can split one page into variants.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/blog/seo-friendly-url-structure</code><small>Lowercase is predictable and link-safe.</small></div>
+        </div>
+        <p>Most Linux servers are case-sensitive. <code>/Page</code> and <code>/page</code> can return different content or produce 404 errors, creating duplicate content and broken internal links. Enforce lowercase at the server level so the problem cannot occur:</p>
+        <pre><code class="language-nginx"># nginx - force lowercase
+if ($request_uri ~ "[A-Z]") {
+  rewrite ^(.*)$ $scheme://$host\${uri} permanent;
+}</code></pre>
 
-      <h2>Changing URLs is more expensive than people expect</h2>
-      <p>Most teams tweak slugs right after publishing - some fresh keyword seems smarter. Yet shifting a link means wrestling with redirects, slow reindexing, maybe even shattered connections inside or outside the site. Picking one that lasts makes more sense than tossing URLs away like notes on scrap paper.</p>
-      <p>Start by picking a new address on purpose. A correct 301 shift keeps things working - handle that first. Fix every link inside your site right away; skipping causes trouble later. Jumping through multiple redirects? That slows everything down. Most people overlook how much steady paths matter.</p>
+        <h3>3. Keep the slug under 60 characters</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/guides/how-to-structure-your-website-urls-for-search-engine-optimization-complete-guide-2026</code><small>Too long to scan or share cleanly.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/guides/seo-friendly-url-structure</code><small>Short enough to stay readable in search results.</small></div>
+        </div>
+        <p>Google truncates long URLs in search results with an ellipsis. Users see a clipped URL and cannot tell where they are going. Shorter slugs are also easier to share in email, copy from a printed page, or include in a tweet. The 60-character limit applies to the slug portion specifically, not the entire URL.</p>
 
-      <h2>Clean URLs beat clutter</h2>
-      <p><strong>Most times, simplicity beats clutter without trying. A straightforward route often works where complexity fails. Skip the messy bits if an easier way exists. Why choose hard when soft bends work. Smooth moves outrun jagged edges every now and then.</strong></p>
-      <p>Sure, parameters serve a purpose. Yet clean paths work better than messy links crammed with extras. Pages shine when they skip the strings of tags tacked onto the end. Cluttered addresses feel sketchy to users passing them around. Sharing gets awkward fast. Search engines stumble too - especially when guidance about main versions is fuzzy or missing entirely. Duplicate entries pop up like weeds without clear direction.</p>
-      <p>Tools such as <a href="/meta-tag-generator/">Meta Tag Generator</a>, <a href="/sitemap-generator/">Sitemap Generator</a>, or <a href="/robots-txt-generator/">Robots.txt Generator</a> fit right into that routine. Technical SEO connects everything - URL quality included. It does not stand apart.</p>
+        <h3>4. Include the primary keyword</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/guides/article-47</code><small>No topic signal for users or crawlers.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/guides/seo-friendly-url-structure</code><small>The page topic is visible before the click.</small></div>
+        </div>
+        <p>URL words are a lightweight relevance signal. They are not the strongest signal Google uses &mdash; content quality and links carry far more weight &mdash; but in competitive SERPs where everything else is close, a keyword in the URL contributes. More importantly, a descriptive slug improves click-through rate because users can predict the content before clicking.</p>
 
-      <h2>A good URL pattern feels ordinary</h2>
-      <p><strong>A well-built address line feels ordinary, yet sticks to one clear pattern. What matters most? It stays predictable. Each part follows the last without surprise. Simplicity wins because it works every time. The shape never shifts just for flair.</strong></p>
-      <p>Years on, clarity beats ingenuity every time. Those links you can still understand? Usually plain words, nothing flashy. Readable chunks matter more than tricks. When dates aren’t essential to the topic itself, leave them out. Lowercase helps - stick to it always. Hyphens work better than dots, underscores, or worse. Structure each path like a map of what's actually there.</p>
-      <p>Most times a site feels stronger when its URLs seem dull. Quiet choices there tend to help.</p>
+        <h3>5. Remove most stop words</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/guides/how-to-structure-urls-for-the-best-seo</code><small>Extra filler words burn space.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/guides/seo-url-structure-best-practices</code><small>The meaning stays intact with fewer words.</small></div>
+        </div>
+        <p>Words like "how," "to," "the," "for," and "and" add character count without adding search relevance. Strip them. The exception: when removing stop words makes the slug unnatural or ambiguous, keep them. <code>/what-is-base64</code> is clearer than <code>/base64</code> for an explanatory page. <code>/is-react-dead</code> reads correctly; <code>/react-dead</code> does not.</p>
+
+        <h3>6. Avoid dates in the slug</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/blog/2026/06/09/seo-url-tips</code><small>The URL ages even after the article is updated.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/blog/seo-url-tips</code><small>Evergreen content can stay evergreen.</small></div>
+        </div>
+        <p>Dates lock your content to a moment. When you update and expand the article in 2028, the URL still says 2026, making it appear outdated to users and signaling to Google that the content may be stale. Use the <code>lastmod</code> field in your sitemap to communicate freshness instead. Date-based URL structures also produce deep paths &mdash; <code>/blog/2026/06/09/slug/</code> is depth 5, which reduces crawl priority.</p>
+
+        <h3>7. Avoid parameter-style URLs for content pages</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/article?id=472&amp;category=seo</code><small>Parameters create crawl and trust problems.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/guides/seo-friendly-url-structure</code><small>A clean path names the page directly.</small></div>
+        </div>
+        <p>Parameter URLs have three problems: they are harder for search engines to crawl predictably, they create parameter-order variations (<code>?a=1&amp;b=2</code> vs <code>?b=2&amp;a=1</code> as separate URLs), and they look untrustworthy in search results. CMS platforms that default to this pattern &mdash; WordPress with <code>?p=123</code>, older Drupal sites with <code>?q=node/47</code> &mdash; should have clean URL rewrites configured on day one.</p>
+
+        <h3>8. Match the page's H1, approximately</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/product-review-12/</code><small>The slug does not explain the title.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/seo-friendly-url-structure</code><small>The slug and H1 describe the same topic.</small></div>
+        </div>
+        <p>H1: "How to Structure URLs for SEO: Slugs, Paths, and Best Practices"</p>
+        <p>Slug: <code>seo-friendly-url-structure</code></p>
+        <p>The slug does not need to reproduce the H1 word-for-word &mdash; titles are for readers, slugs are for navigation. But they should describe the same content. If your H1 is "10 Best Coffee Machines for Home Use in 2026" and your slug is <code>/product-review-12/</code>, users who see the URL in a Google result have no idea what the page contains.</p>
+
+        <h2>Path Depth: How Many Folders Is Too Many?</h2>
+        <p>Path depth is the number of forward slashes in your URL path. <code>/tools/</code> is depth 1. <code>/tools/slug-generator/</code> is depth 2. <code>/tools/seo/text/slug-generator/</code> is depth 4.</p>
+        <div class="guide-path-tree" aria-label="Path depth tree">
+          <div class="tree-row tree-root"><code>/</code><span>root</span></div>
+          <div class="tree-row depth-1"><code>/blog/</code><span>depth 1</span></div>
+          <div class="tree-row depth-2 tree-good"><code>/blog/post-slug/</code><span>depth 2 - recommended</span></div>
+          <div class="tree-row depth-4 tree-bad"><code>/blog/cat/sub/post/</code><span>depth 4 - too deep for most posts</span></div>
+        </div>
+        <p>Google has explicitly said path depth is not a direct ranking factor. In practice, it matters indirectly for two reasons: deeper pages receive fewer internal links naturally (because navigation structures rarely link five levels deep), and crawl budget gets distributed more thinly across deep URL trees on large sites.</p>
+        <p>The structural principle is that flatter architecture distributes PageRank more evenly. A page at <code>/slug-generator/</code> sits closer to the homepage's authority than the same page at <code>/tools/seo/text/utilities/slug-generator/</code>. Both get crawled &mdash; but the shallow version gets there faster and more frequently.</p>
+        <p>Recommended depth by site type:</p>
+        <ul>
+          <li><strong>Blog:</strong> <code>/blog/post-slug/</code> at depth 2. Not <code>/blog/2026/category/subcategory/post-slug/</code> at depth 5. Category taxonomy belongs in the metadata and internal linking structure, not the URL path.</li>
+          <li><strong>E-commerce:</strong> <code>/category/product-slug/</code> at depth 2. Not <code>/shop/clothing/mens/shirts/formal/blue-oxford-shirt/</code> at depth 6. Deep product category nesting was a common pattern a decade ago and has caused significant crawl problems for large retailers. Flatten it.</li>
+          <li><strong>Tool sites:</strong> <code>/tool-slug/</code> at depth 1 or <code>/tools/tool-slug/</code> at depth 2. Both are fine. If you have enough tools to need subcategories, <code>/tools/seo/</code> and <code>/tools/dev/</code> are reasonable groupings.</li>
+          <li><strong>Documentation:</strong> Depth 3 is acceptable here. <code>/docs/api/authentication/</code> makes sense because documentation genuinely has a hierarchical relationship between sections, pages, and subsections that matches the path structure.</li>
+        </ul>
+
+        <h2>Trailing Slashes: Pick One and Enforce It</h2>
+        <p><code>/page/</code> and <code>/page</code> are technically different URLs. If your server returns the same content for both &mdash; which is the default behavior on most web servers &mdash; you have two URLs serving identical content. Google will index one, potentially both, and the link equity pointing to each version does not consolidate unless you canonicalize.</p>
+        <p>This is a simple problem with a simple solution: pick a format and enforce it at every layer.</p>
+        <ol>
+          <li>Decide. Trailing slash or no trailing slash. Either is valid. Most CMS-driven sites use trailing slashes. Most application-driven sites do not.</li>
+          <li>Redirect the wrong version with a 301.</li>
+        </ol>
+        <pre><code class="language-apache"># .htaccess - force trailing slash
+RewriteCond %{REQUEST_URI} !/$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ /$1/ [L,R=301]</code></pre>
+        <pre><code class="language-nginx"># nginx - force trailing slash
+rewrite ^([^.]*[^/])$ $1/ permanent;</code></pre>
+        <pre><code class="language-javascript">// next.config.js
+module.exports = {
+  trailingSlash: true,
+};</code></pre>
+        <ol start="3">
+          <li>Set your canonical tag to match. If you use trailing slashes, every canonical should use trailing slashes.</li>
+          <li>Audit your sitemap. Every URL in <code>sitemap.xml</code> should use the format you chose. A sitemap with mixed trailing slash usage tells Google you are not sure which version is canonical.</li>
+          <li>Check your internal links. Do not rely on redirects to fix internal links. If your correct URL is <code>/guide/</code> and 50 internal links point to <code>/guide</code>, those links hit a redirect before reaching the destination. Update the links to point directly to the canonical URL.</li>
+        </ol>
+
+        <h2>URL Migrations: The 301 Redirect Playbook</h2>
+        <p>Changing an indexed URL is expensive. Google says 301 redirects pass "most" PageRank &mdash; which is honest and slightly unsettling, because "most" is not "all." Rankings typically dip during a migration and recover over weeks to months. Run migrations only when the benefit justifies the cost.</p>
+        <div class="guide-redirect-flow" aria-label="Redirect flow diagram">
+          <div class="redirect-lane redirect-good">
+            <span class="flow-label">Correct migration</span>
+            <div class="flow-box"><code>/old-url</code></div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box flow-redirect">301 Redirect</div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box"><code>/new-url</code></div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box flow-google">Google re-indexes</div>
+          </div>
+          <div class="redirect-lane redirect-bad">
+            <span class="flow-label">Never chain</span>
+            <div class="flow-box"><code>/page-v1</code></div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box flow-error"><code>/page-v2</code></div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box flow-error"><code>/page-v3</code></div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box"><code>/current-page</code></div>
+          </div>
+        </div>
+        <p>When you must change a URL, execute this sequence in order:</p>
+        <ol>
+          <li>Create the 301 redirect from old to new.</li>
+        </ol>
+        <pre><code class="language-apache"># .htaccess
+Redirect 301 /old-url-slug /new-url-slug</code></pre>
+        <pre><code class="language-nginx"># nginx
+location = /old-url-slug {
+  return 301 /new-url-slug;
+}</code></pre>
+        <pre><code class="language-javascript">// next.config.js
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/old-url-slug',
+        destination: '/new-url-slug',
+        permanent: true,
+      },
+    ];
+  },
+};</code></pre>
+        <ol start="2">
+          <li>Update every internal link on your site to point directly to the new URL. Redirects are for external links and bookmarks you cannot control. Your own site should never be sending traffic through a redirect hop.</li>
+          <li>Update your sitemap to reference the new URL exclusively.</li>
+          <li>Submit the updated sitemap in Google Search Console under Indexing &rarr; Sitemaps.</li>
+          <li>Use the URL Inspection tool in Search Console to request indexing of the new URL.</li>
+          <li>Wait. Google's full processing of a URL migration typically takes 2 to 8 weeks. Rankings may drop temporarily before recovering. This is normal and expected.</li>
+        </ol>
+        <p>Two hard rules that every developer eventually learns the expensive way:</p>
+        <p><strong>Never chain redirects.</strong> <code>/page-v1</code> &rarr; <code>/page-v2</code> &rarr; <code>/page-v3</code> is a redirect chain. Each hop adds latency and potentially bleeds ranking power. If you have changed a URL more than once, every old version should redirect directly to the current final destination. Audit redirect chains regularly using a crawler like Screaming Frog.</p>
+        <p><strong>Never use 302 for permanent changes.</strong> A 302 tells Google the move is temporary. Google may continue indexing the old URL indefinitely. If you are permanently removing a URL from your site, use 301. Reserve 302 for genuinely temporary situations like maintenance pages or A/B tests.</p>
+
+        <h2>Query Parameters vs Clean URLs</h2>
+        <p>Query parameters are unavoidable in certain contexts &mdash; e-commerce filtering, search results, session tracking. The problem is that each parameter combination technically creates a unique URL. <code>/shoes?color=blue&amp;size=10</code> and <code>/shoes?size=10&amp;color=blue</code> contain identical content but different URLs. At scale, a product catalog with 10 filter options can generate millions of URL variations &mdash; most of which Googlebot will try to crawl, wasting your crawl budget on pages you never intended to index.</p>
+        <p>The solutions, in order of preference:</p>
+        <ol>
+          <li>For indexable content, use clean paths. <code>/shoes/blue/</code> instead of <code>/shoes?color=blue</code>. This is more work to implement but produces better URLs, better crawlability, and better user trust signals in search results.</li>
+          <li>For filter and sort variations, block parameter crawling. In Google Search Console under Legacy Tools, the URL Parameters tool lets you tell Google which parameters to ignore. Alternatively, add a <code>noindex</code> meta tag to filtered pages and exclude them from your sitemap.</li>
+          <li>For any parameterized page that might get crawled, set a canonical. <code>/shoes?color=blue&amp;size=10</code> should have a canonical pointing to <code>/shoes/</code> or <code>/shoes/blue/</code> &mdash; whichever is the authoritative indexable version.</li>
+        </ol>
+        <p>UTM tracking parameters &mdash; <code>utm_source</code>, <code>utm_medium</code>, <code>utm_campaign</code>, <code>utm_content</code>, <code>utm_term</code> &mdash; are handled automatically by Google. They are stripped from the URL before indexing. You do not need to canonicalize or block UTM parameters.</p>
+        <p>One pattern that causes recurring problems: session IDs or user tokens appended as URL parameters. <code>/checkout?session=a8f3b2c1</code> creates a unique URL for every user session. If any of these URLs get linked externally or crawled, you end up with thousands of indexed checkout pages, each returning either a session error or duplicate content. Strip session parameters from URLs or handle them in cookies, not query strings.</p>
+        <p>Generate clean URL slugs instantly with Tooliest's browser-based <a href="/slug-generator/">Slug Generator</a>, then pair them with proper meta tags using the <a href="/meta-tag-generator/">Meta Tag Generator</a>. Document your canonical URLs in your sitemap using the <a href="/sitemap-generator/">Sitemap Generator</a>, and control which paths search engines can access with the <a href="/robots-txt-generator/">Robots.txt Generator</a>.</p>
+      </div>
     `,
     faqs: [
       { q: 'Do shorter URLs always rank better?', a: 'Not automatically. Shorter URLs can be easier to read and share, but clarity and relevance matter more than aggressively trimming every path.' },

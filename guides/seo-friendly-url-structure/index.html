@@ -7,7 +7,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SEO-Friendly URL Structure | Tooliest</title>
-  <meta name="description" content="A practical guide to clean URL design, slug choices, path depth, redirects, and avoiding structures that confuse both users and search engines.">
+  <meta name="description" content="Learn how to structure URLs for SEO with real before-and-after examples. Covers slug rules, path depth, trailing slashes, 301 redirects with server config code, and query parameter handling. Includes URL anatomy breakdown and migration playbook.">
   <meta name="author" content="Anurag">
   <meta name="robots" content="index, follow">
   <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -19,7 +19,7 @@
   <link rel="manifest" href="/manifest.json">
   <meta property="og:type" content="article">
   <meta property="og:title" content="SEO-Friendly URL Structure | Tooliest">
-  <meta property="og:description" content="A practical guide to clean URL design, slug choices, path depth, redirects, and avoiding structures that confuse both users and search engines.">
+  <meta property="og:description" content="Learn how to structure URLs for SEO with real before-and-after examples. Covers slug rules, path depth, trailing slashes, 301 redirects with server config code, and query parameter handling. Includes URL anatomy breakdown and migration playbook.">
   <meta property="og:url" content="https://tooliest.com/guides/seo-friendly-url-structure/">
   <meta property="og:site_name" content="Tooliest">
   <meta property="og:image" content="https://tooliest.com/og/site/guides.svg">
@@ -27,7 +27,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@tooliest">
   <meta name="twitter:title" content="SEO-Friendly URL Structure | Tooliest">
-  <meta name="twitter:description" content="A practical guide to clean URL design, slug choices, path depth, redirects, and avoiding structures that confuse both users and search engines.">
+  <meta name="twitter:description" content="Learn how to structure URLs for SEO with real before-and-after examples. Covers slug rules, path depth, trailing slashes, 301 redirects with server config code, and query parameter handling. Includes URL anatomy breakdown and migration playbook.">
   <meta name="twitter:image" content="https://tooliest.com/og/site/guides.svg">
   <meta name="twitter:image:alt" content="How to Structure URLs for SEO: Slugs, Paths, and Best Practices guide preview card">
   <link rel="canonical" href="https://tooliest.com/guides/seo-friendly-url-structure/">
@@ -40,15 +40,468 @@
   <style>:root{--bg-primary:#0a0a0f;--bg-secondary:#12121a;--bg-tertiary:#1a1a2e;--bg-card:rgba(26,26,46,.6);--bg-glass:rgba(255,255,255,.03);--bg-glass-hover:rgba(255,255,255,.06);--text-primary:#e8e8f0;--text-secondary:#a0a0b8;--text-tertiary:#6b6b80;--accent-primary:#8b5cf6;--accent-secondary:#06b6d4;--accent-success:#10b981;--gradient-primary:linear-gradient(135deg,#8b5cf6,#06b6d4);--border-color:rgba(255,255,255,.06);--border-accent:rgba(139,92,246,.3);--font-primary:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--max-width:1400px;--nav-height:72px;--radius-md:12px;--radius-lg:16px;--radius-full:9999px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);--touch-target-min:44px;--z-nav:1000}[data-theme=light]{--bg-primary:#f8f9fc;--bg-secondary:#fff;--bg-tertiary:#e8eaf0;--bg-card:rgba(255,255,255,.85);--bg-glass:rgba(0,0,0,.02);--bg-glass-hover:rgba(0,0,0,.04);--text-primary:#1a1a2e;--text-secondary:#4a4a6a;--text-tertiary:#6b6b84;--border-color:rgba(0,0,0,.08)}html{font-size:16px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;overscroll-behavior-y:contain}body{margin:0;font-family:var(--font-primary);background:var(--bg-primary);color:var(--text-primary);line-height:1.6;min-height:100vh}a{color:var(--accent-primary);text-decoration:none}img{display:block;max-width:100%}img[width][height]{height:auto}.skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}.skip-link:focus{left:16px;top:16px;width:auto;height:auto;padding:10px 14px;border-radius:999px;background:var(--bg-secondary);color:var(--text-primary);z-index:2000}.navbar{position:fixed;top:0;left:0;right:0;min-height:var(--nav-height);height:var(--nav-height);display:flex;align-items:center;padding:0 max(24px,calc(24px + var(--safe-left))) 0 max(24px,calc(24px + var(--safe-right)));background:rgba(10,10,15,.88);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border-color);z-index:var(--z-nav)}[data-theme=light] .navbar{background:rgba(255,255,255,.9)}.nav-inner{max-width:var(--max-width);width:100%;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px}.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.5rem;font-weight:800;color:var(--text-primary);flex-shrink:0}.nav-logo .logo-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:12px;background:var(--gradient-primary)}.nav-logo .logo-text span,.hero h1 .gradient-text{-webkit-background-clip:text;-webkit-text-fill-color:transparent;background:var(--gradient-primary);background-clip:text}.nav-search{flex:1;max-width:480px;position:relative}.nav-search input{width:100%;height:42px;padding:0 16px 0 44px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-glass);color:var(--text-primary);font:inherit;outline:none}.nav-search .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-tertiary)}.nav-search .search-shortcut{position:absolute;right:14px;top:50%;transform:translateY(-50%);padding:2px 8px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-tertiary);font:.7rem var(--font-mono);color:var(--text-tertiary)}.nav-links{display:flex;align-items:center;gap:8px;flex-shrink:0}.nav-links a,.theme-toggle-btn,.mobile-menu-btn,.mobile-search-btn{min-height:44px}.nav-links a{padding:8px 16px;border-radius:999px;color:var(--text-secondary);font-size:.9rem;font-weight:500}.theme-toggle-btn,.mobile-menu-btn,.mobile-search-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--border-color);border-radius:12px;background:none;color:var(--text-primary);cursor:pointer}.mobile-menu-btn,.mobile-search-btn{display:none}.main-content{padding-top:var(--nav-height);padding-bottom:var(--safe-bottom);min-height:100vh}.hero,.tool-page{max-width:900px;margin:0 auto;padding:80px 24px 40px}.hero{text-align:center}.hero h1{margin:0 0 20px;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;line-height:1.1}.hero p,.tool-page-header p{max-width:600px;margin:0 auto 30px;color:var(--text-secondary);font-size:clamp(1rem,2.4vw,1.2rem)}.hero-stats{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-top:40px}.hero-stat{text-align:center}.hero-stat .stat-value{font-size:2rem;font-weight:800;color:var(--accent-primary)}.hero-stat .stat-label,.tool-breadcrumb{font-size:.85rem;color:var(--text-tertiary)}.hero-trust-strip{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:28px}.trust-badge,.category-tab,.tool-tag{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--border-color);border-radius:999px;background:var(--bg-glass);color:var(--text-secondary);font-size:.82rem;max-width:100%;white-space:normal;overflow-wrap:anywhere}.categories-section,.tools-section{padding:20px 24px}.category-tabs{max-width:var(--max-width);margin:0 auto 24px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.category-tab{white-space:nowrap}.tool-page-header{margin-bottom:32px}.tool-page-header h1{margin:0;font-size:2rem;font-weight:800}.tool-breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:16px}.tools-grid,.guide-card-grid,.tool-proof-grid,.tool-content-sections{display:grid;gap:20px}.tools-grid{max-width:var(--max-width);margin:0 auto;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}.tool-card,.guide-card,.tool-content-section,.tool-workspace,.tool-proof-card,.home-utility-panel{border:1px solid var(--border-color);border-radius:16px;background:var(--bg-card);min-width:0}.tool-card,.guide-card,.tool-content-section,.tool-proof-card,.home-utility-panel{padding:20px}.tool-card-link{display:block;color:inherit}.tool-card-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:12px}.tool-card-icon{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:var(--gradient-primary);font-size:1.6rem;flex-shrink:0}.tool-card-info h3{margin:0 0 4px;font-size:1.1rem}.tool-card p{margin:0 0 14px;color:var(--text-secondary)}.tool-card-tags{display:flex;flex-wrap:wrap;gap:8px}.guide-card-grid{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));margin-top:18px}.guide-card h3{margin:6px 0 10px;font-size:1.08rem}.tool-workspace{padding:0}.tool-workspace-body{padding:20px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border:none;border-radius:12px;background:var(--gradient-primary);color:#fff;font-weight:700;font:inherit;cursor:pointer}.btn-secondary{border:1px solid var(--border-color);background:var(--bg-glass);color:var(--text-primary)}.footer-verification-link img{width:320px;height:auto;max-width:100%;aspect-ratio:320/54}.ad-space,.adsbygoogle{display:block;width:100%;min-height:90px}@media (max-width:1176px){:root{--nav-height:60px}.navbar{padding:0 max(12px,calc(12px + var(--safe-left))) 0 max(12px,calc(12px + var(--safe-right)));height:60px;min-height:60px}.nav-inner{gap:8px;min-height:60px}.nav-search,.nav-links{display:none}.mobile-menu-btn,.mobile-search-btn{display:inline-flex}.nav-logo{gap:8px;font-size:1.1rem}.nav-logo .logo-icon{width:32px;height:32px;font-size:1.1rem}.hero,.tool-page{padding:48px 16px 32px}.hero-stats{gap:20px}.hero-trust-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.trust-badge{justify-content:center;text-align:center}}@media (max-width:640px){:root{--nav-height:56px}.navbar{padding:0 max(10px,calc(10px + var(--safe-left))) 0 max(10px,calc(10px + var(--safe-right)));height:56px;min-height:56px}.nav-inner{gap:6px}.hero,.tool-page,.categories-section,.tools-section{padding-left:12px;padding-right:12px}.hero h1{font-size:clamp(2rem,9vw,2.6rem)}.hero p{font-size:.98rem}.hero-stats{gap:16px}.hero-stat .stat-value{font-size:1.5rem}.tools-grid{grid-template-columns:1fr}.tool-card,.guide-card,.tool-content-section,.tool-proof-card,.home-utility-panel{padding:16px}}@media (min-width:768px) and (max-width:1176px){.nav-inner{justify-content:flex-start;gap:clamp(6px,1vw,12px)}.nav-search{display:block;flex:0 1 clamp(120px,18vw,260px);max-width:260px}.nav-search input{height:40px}.nav-search .search-shortcut{display:none}.nav-links{display:flex;align-items:center;gap:clamp(2px,.45vw,8px);flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}.nav-links::-webkit-scrollbar{display:none}.nav-links a{padding:8px clamp(8px,1vw,14px);font-size:clamp(.78rem,.95vw,.9rem);white-space:nowrap}.mobile-menu-btn,.mobile-search-btn{display:none}.theme-toggle-btn,#whats-new-btn{width:40px;height:40px;flex:0 0 40px}}@media (max-width:767px){.nav-search,.nav-links{display:none}.mobile-menu-btn,.mobile-search-btn{display:inline-flex}}</style>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap&subset=latin"></noscript>
-  <link rel="preload" href="/css/styles3.min.css?v=20260530-295a5c55" as="style" fetchpriority="high" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="/css/styles3.min.css?v=20260530-295a5c55"></noscript>
-  <script data-cfasync="false">window.__TOOLIEST_ASSET_VERSION='20260530-295a5c55';</script>
-  <script src="/js/consent.js?v=20260530-295a5c55" defer data-cfasync="false"></script>
+  <link rel="preload" href="/css/styles3.min.css?v=20260609-6dc162b8" as="style" fetchpriority="high" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="/css/styles3.min.css?v=20260609-6dc162b8"></noscript>
+  <script data-cfasync="false">window.__TOOLIEST_ASSET_VERSION='20260609-6dc162b8';</script>
+  <script src="/js/consent.js?v=20260609-6dc162b8" defer data-cfasync="false"></script>
   <!-- AdSense script removed for compliance: re-enable after approval -->
   <!-- <script data-cfasync="false">(function(w,d,url){var booted=false;function loadAds(){if(booted)return;booted=true;var s=d.createElement('script');s.src=url;s.async=true;s.crossOrigin='anonymous';s.fetchPriority='low';s.setAttribute('data-cfasync','false');d.head.appendChild(s);}function schedule(){if('requestIdleCallback' in w){w.requestIdleCallback(loadAds,{timeout:5500});return;}w.setTimeout(loadAds,3600);}w.addEventListener('load',function(){w.setTimeout(schedule,1400);},{once:true});})(window,document,'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3155132462698504');</script> -->
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"How to Structure URLs for SEO: Slugs, Paths, and Best Practices","description":"A practical guide to clean URL design, slug choices, path depth, redirects, and avoiding structures that confuse both users and search engines.","author":{"@type":"Person","name":"Anurag"},"publisher":{"@type":"Organization","name":"Tooliest","logo":{"@type":"ImageObject","url":"https://tooliest.com/icon-512.png"}},"datePublished":"2026-05-01","dateModified":"2026-05-03","mainEntityOfPage":"https://tooliest.com/guides/seo-friendly-url-structure/"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"How to Structure URLs for SEO: Slugs, Paths, and Best Practices","description":"Learn how to structure URLs for SEO with real before-and-after examples. Covers slug rules, path depth, trailing slashes, 301 redirects with server config code, and query parameter handling. Includes URL anatomy breakdown and migration playbook.","author":{"@type":"Person","name":"Anurag"},"publisher":{"@type":"Organization","name":"Tooliest","logo":{"@type":"ImageObject","url":"https://tooliest.com/icon-512.png"}},"datePublished":"2026-05-01","dateModified":"2026-06-09","mainEntityOfPage":"https://tooliest.com/guides/seo-friendly-url-structure/"}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://tooliest.com/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://tooliest.com/guides/"},{"@type":"ListItem","position":3,"name":"How to Structure URLs for SEO: Slugs, Paths, and Best Practices","item":"https://tooliest.com/guides/seo-friendly-url-structure/"}]}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Do shorter URLs always rank better?","acceptedAnswer":{"@type":"Answer","text":"Not automatically. Shorter URLs can be easier to read and share, but clarity and relevance matter more than aggressively trimming every path."}},{"@type":"Question","name":"Should I include dates in article URLs?","acceptedAnswer":{"@type":"Answer","text":"Only if the date is genuinely part of the page identity or publishing model. Otherwise, dates can make older evergreen content look stale even when it is still useful."}},{"@type":"Question","name":"Is path depth bad for SEO?","acceptedAnswer":{"@type":"Answer","text":"No. A deeper path is fine when it reflects a clean site structure. Problems usually come from cluttered, repetitive, or inconsistent paths rather than from depth alone."}},{"@type":"Question","name":"What should I do if I change a slug?","acceptedAnswer":{"@type":"Answer","text":"Add a proper 301 redirect, update internal links, and make sure the canonical points to the new final URL."}}]}</script>
+  <style>
+  .guide-article-copy .guide-table-wrap {
+    width: 100%;
+    margin: 22px 0 28px;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: rgba(255,255,255,.025);
+    -webkit-overflow-scrolling: touch;
+  }
+  .guide-article-copy table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+    font-size: .95rem;
+  }
+  .guide-article-copy th,
+  .guide-article-copy td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+  }
+  .guide-article-copy th {
+    color: var(--text-primary);
+    background: rgba(139,92,246,.16);
+    font-weight: 750;
+  }
+  .guide-article-copy td {
+    color: var(--text-secondary);
+    background: rgba(255,255,255,.015);
+  }
+  .guide-article-copy tr:nth-child(even) td {
+    background: rgba(255,255,255,.035);
+  }
+  .guide-article-copy tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-code-window {
+    margin: 22px 0 28px;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.22);
+    border-radius: 14px;
+    background: #080b12;
+    box-shadow: 0 18px 45px rgba(0,0,0,.28);
+  }
+  .guide-code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(148,163,184,.18);
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025));
+  }
+  .guide-code-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .guide-code-dots {
+    display: inline-flex;
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+  .guide-code-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: block;
+  }
+  .guide-code-dots span:nth-child(1) { background: #ff5f56; }
+  .guide-code-dots span:nth-child(2) { background: #ffbd2e; }
+  .guide-code-dots span:nth-child(3) { background: #27c93f; }
+  .guide-code-language {
+    color: #94a3b8;
+    font: 700 .72rem var(--font-mono);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .guide-code-copy {
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid rgba(148,163,184,.24);
+    border-radius: 10px;
+    background: rgba(15,23,42,.82);
+    color: #e2e8f0;
+    font: 700 .78rem var(--font-primary);
+    cursor: pointer;
+  }
+  .guide-code-copy:hover,
+  .guide-code-copy:focus-visible {
+    border-color: rgba(139,92,246,.72);
+    background: rgba(139,92,246,.22);
+    outline: none;
+  }
+  .guide-code-window pre {
+    margin: 0;
+    padding: 18px;
+    overflow-x: auto;
+    background: transparent;
+    color: #e5e7eb;
+    font: .9rem/1.7 var(--font-mono);
+    white-space: pre;
+    tab-size: 2;
+  }
+  .guide-code-window code {
+    color: inherit;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+  }
+  [data-theme=light] .guide-article-copy .guide-table-wrap {
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 12px 30px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy th {
+    background: rgba(139,92,246,.12);
+  }
+  [data-theme=light] .guide-article-copy td {
+    background: rgba(255,255,255,.72);
+  }
+  [data-theme=light] .guide-article-copy tr:nth-child(even) td {
+    background: rgba(15,23,42,.025);
+  }
+  [data-theme=light] .guide-code-window {
+    background: #f8fafc;
+    border-color: rgba(15,23,42,.12);
+    box-shadow: 0 16px 34px rgba(15,23,42,.08);
+  }
+  [data-theme=light] .guide-code-header {
+    border-bottom-color: rgba(15,23,42,.1);
+    background: linear-gradient(180deg, rgba(15,23,42,.06), rgba(15,23,42,.018));
+  }
+  [data-theme=light] .guide-code-language {
+    color: #475569;
+  }
+  [data-theme=light] .guide-code-copy {
+    background: rgba(255,255,255,.9);
+    color: #1e293b;
+    border-color: rgba(15,23,42,.16);
+  }
+  [data-theme=light] .guide-code-window pre {
+    color: #0f172a;
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-table-wrap {
+      margin-left: -4px;
+      margin-right: -4px;
+      border-radius: 12px;
+    }
+    .guide-article-copy th,
+    .guide-article-copy td {
+      padding: 12px 14px;
+    }
+    .guide-code-window {
+      border-radius: 12px;
+    }
+    .guide-code-header {
+      padding: 9px 10px;
+    }
+    .guide-code-window pre {
+      padding: 14px;
+      font-size: .82rem;
+      line-height: 1.65;
+    }
+    .guide-code-copy {
+      min-height: 32px;
+      padding: 6px 10px;
+    }
+  }
+</style><style>
+  .guide-article-copy .guide-url-structure .guide-url-anatomy,
+  .guide-article-copy .guide-url-structure .guide-path-tree,
+  .guide-article-copy .guide-url-structure .guide-redirect-flow {
+    margin: 24px 0 30px;
+    padding: 18px;
+    border: 1px solid rgba(139,92,246,.22);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(6,182,212,.045)), rgba(255,255,255,.025);
+    box-shadow: 0 18px 42px rgba(0,0,0,.18);
+  }
+  .guide-article-copy .guide-url-structure .guide-url-anatomy {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .guide-article-copy .guide-url-structure .url-segment {
+    min-width: max-content;
+    display: grid;
+    align-content: center;
+    gap: 8px;
+    padding: 14px 13px;
+    border-right: 1px solid rgba(255,255,255,.14);
+  }
+  .guide-article-copy .guide-url-structure .url-segment:first-child {
+    border-radius: 12px 0 0 12px;
+  }
+  .guide-article-copy .guide-url-structure .url-segment:last-child {
+    border-right: 0;
+    border-radius: 0 12px 12px 0;
+  }
+  .guide-article-copy .guide-url-structure .url-segment code {
+    display: block;
+    color: #f8fafc;
+    background: transparent;
+    padding: 0;
+    font: 800 .92rem/1.2 var(--font-mono);
+    white-space: nowrap;
+  }
+  .guide-article-copy .guide-url-structure .url-segment span {
+    color: rgba(255,255,255,.84);
+    font-size: .72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  .guide-article-copy .guide-url-structure .segment-protocol { background: linear-gradient(135deg, #047857, #22c55e); }
+  .guide-article-copy .guide-url-structure .segment-subdomain { background: linear-gradient(135deg, #475569, #64748b); }
+  .guide-article-copy .guide-url-structure .segment-domain { background: linear-gradient(135deg, #6d28d9, #8b5cf6); }
+  .guide-article-copy .guide-url-structure .segment-path { background: linear-gradient(135deg, #1d4ed8, #38bdf8); }
+  .guide-article-copy .guide-url-structure .segment-slug { background: linear-gradient(135deg, #0f766e, #2dd4bf); }
+  .guide-article-copy .guide-url-structure .segment-query { background: linear-gradient(135deg, #c2410c, #fb923c); }
+  .guide-article-copy .guide-url-structure .segment-fragment { background: linear-gradient(135deg, #b45309, #facc15); }
+  .guide-article-copy .guide-url-structure .guide-slug-compare {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 16px 0 24px;
+  }
+  .guide-article-copy .guide-url-structure .slug-card {
+    min-width: 0;
+    display: grid;
+    gap: 9px;
+    padding: 15px;
+    border-radius: 14px;
+    border: 1px solid rgba(148,163,184,.22);
+    background: rgba(255,255,255,.03);
+  }
+  .guide-article-copy .guide-url-structure .slug-card strong {
+    color: var(--text-primary);
+    font-size: .9rem;
+  }
+  .guide-article-copy .guide-url-structure .slug-card code {
+    display: block;
+    width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    color: var(--text-primary);
+    background: rgba(15,23,42,.45);
+    border: 1px solid rgba(148,163,184,.16);
+    padding: 9px 10px;
+    font-size: .82rem;
+    line-height: 1.5;
+  }
+  .guide-article-copy .guide-url-structure .slug-card small {
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+  .guide-article-copy .guide-url-structure .slug-bad {
+    border-color: rgba(239,68,68,.32);
+    background: linear-gradient(135deg, rgba(239,68,68,.14), rgba(239,68,68,.035));
+  }
+  .guide-article-copy .guide-url-structure .slug-bad strong::before {
+    content: "✕ ";
+    color: #f87171;
+  }
+  .guide-article-copy .guide-url-structure .slug-good {
+    border-color: rgba(34,197,94,.34);
+    background: linear-gradient(135deg, rgba(34,197,94,.14), rgba(34,197,94,.035));
+  }
+  .guide-article-copy .guide-url-structure .slug-good strong::before {
+    content: "✓ ";
+    color: #4ade80;
+  }
+  .guide-article-copy .guide-url-structure .guide-path-tree {
+    display: grid;
+    gap: 0;
+  }
+  .guide-article-copy .guide-url-structure .tree-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 42px;
+    padding: 9px 12px 9px 22px;
+    border-left: 2px solid rgba(148,163,184,.3);
+  }
+  .guide-article-copy .guide-url-structure .tree-row::before {
+    content: "";
+    position: absolute;
+    left: -2px;
+    top: 50%;
+    width: 18px;
+    border-top: 2px solid rgba(148,163,184,.3);
+  }
+  .guide-article-copy .guide-url-structure .tree-root {
+    border-left-color: transparent;
+  }
+  .guide-article-copy .guide-url-structure .tree-root::before {
+    display: none;
+  }
+  .guide-article-copy .guide-url-structure .depth-1 { margin-left: 28px; }
+  .guide-article-copy .guide-url-structure .depth-2 { margin-left: 56px; }
+  .guide-article-copy .guide-url-structure .depth-4 { margin-left: 96px; }
+  .guide-article-copy .guide-url-structure .tree-row code {
+    color: var(--text-primary);
+    background: rgba(15,23,42,.36);
+  }
+  .guide-article-copy .guide-url-structure .tree-row span {
+    color: var(--text-secondary);
+    font-size: .9rem;
+  }
+  .guide-article-copy .guide-url-structure .tree-good {
+    border-radius: 12px;
+    border-left-color: #22c55e;
+    background: rgba(34,197,94,.12);
+  }
+  .guide-article-copy .guide-url-structure .tree-bad {
+    border-left-color: #ef4444;
+  }
+  .guide-article-copy .guide-url-structure .guide-redirect-flow {
+    display: grid;
+    gap: 16px;
+  }
+  .guide-article-copy .guide-url-structure .redirect-lane {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.028);
+    border: 1px solid rgba(148,163,184,.16);
+  }
+  .guide-article-copy .guide-url-structure .flow-label {
+    flex: 0 0 100%;
+    color: var(--text-secondary);
+    font-size: .82rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+  .guide-article-copy .guide-url-structure .flow-box {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 13px;
+    border-radius: 12px;
+    border: 1px solid rgba(148,163,184,.22);
+    background: rgba(15,23,42,.38);
+    color: var(--text-primary);
+    font-weight: 800;
+  }
+  .guide-article-copy .guide-url-structure .flow-box code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
+  .guide-article-copy .guide-url-structure .flow-arrow {
+    color: #8b5cf6;
+    font-weight: 900;
+  }
+  .guide-article-copy .guide-url-structure .flow-redirect {
+    border-color: rgba(245,158,11,.46);
+    background: linear-gradient(135deg, rgba(245,158,11,.22), rgba(250,204,21,.08));
+  }
+  .guide-article-copy .guide-url-structure .flow-google {
+    border-color: rgba(34,197,94,.35);
+    background: rgba(34,197,94,.12);
+  }
+  .guide-article-copy .guide-url-structure .redirect-bad {
+    border-color: rgba(239,68,68,.22);
+    background: rgba(239,68,68,.06);
+  }
+  .guide-article-copy .guide-url-structure .redirect-bad .flow-label::before {
+    content: "✕ ";
+    color: #f87171;
+  }
+  .guide-article-copy .guide-url-structure .flow-error {
+    border-color: rgba(239,68,68,.36);
+  }
+  .guide-article-copy .guide-url-structure .guide-code-window .language-apache,
+  .guide-article-copy .guide-url-structure .guide-code-window .language-nginx,
+  .guide-article-copy .guide-url-structure .guide-code-window .language-javascript {
+    color: #e5e7eb;
+  }
+  [data-theme=light] .guide-article-copy .guide-url-structure .guide-url-anatomy,
+  [data-theme=light] .guide-article-copy .guide-url-structure .guide-path-tree,
+  [data-theme=light] .guide-article-copy .guide-url-structure .guide-redirect-flow {
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 16px 34px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-url-structure .slug-card {
+    background: rgba(255,255,255,.78);
+  }
+  [data-theme=light] .guide-article-copy .guide-url-structure .slug-card code,
+  [data-theme=light] .guide-article-copy .guide-url-structure .tree-row code,
+  [data-theme=light] .guide-article-copy .guide-url-structure .flow-box {
+    background: rgba(255,255,255,.74);
+  }
+  [data-theme=light] .guide-article-copy .guide-url-structure .slug-bad {
+    background: linear-gradient(135deg, rgba(254,202,202,.72), rgba(254,242,242,.82));
+  }
+  [data-theme=light] .guide-article-copy .guide-url-structure .slug-good,
+  [data-theme=light] .guide-article-copy .guide-url-structure .tree-good {
+    background: linear-gradient(135deg, rgba(187,247,208,.72), rgba(240,253,244,.84));
+  }
+  @media (max-width: 760px) {
+    .guide-article-copy .guide-url-structure .guide-url-anatomy {
+      display: grid;
+      gap: 8px;
+      overflow: visible;
+    }
+    .guide-article-copy .guide-url-structure .url-segment,
+    .guide-article-copy .guide-url-structure .url-segment:first-child,
+    .guide-article-copy .guide-url-structure .url-segment:last-child {
+      border-radius: 12px;
+      border-right: 0;
+    }
+    .guide-article-copy .guide-url-structure .redirect-lane {
+      align-items: stretch;
+    }
+    .guide-article-copy .guide-url-structure .flow-box {
+      flex: 1 1 180px;
+    }
+  }
+  @media (max-width: 640px) {
+    .guide-article-copy .guide-url-structure .guide-url-anatomy,
+    .guide-article-copy .guide-url-structure .guide-path-tree,
+    .guide-article-copy .guide-url-structure .guide-redirect-flow {
+      padding: 13px;
+      border-radius: 13px;
+    }
+    .guide-article-copy .guide-url-structure .guide-slug-compare {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-url-structure .depth-1 { margin-left: 18px; }
+    .guide-article-copy .guide-url-structure .depth-2 { margin-left: 34px; }
+    .guide-article-copy .guide-url-structure .depth-4 { margin-left: 50px; }
+    .guide-article-copy .guide-url-structure .tree-row {
+      padding-left: 18px;
+    }
+  }
+</style>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -94,37 +547,208 @@
           <span>How to Structure URLs for SEO: Slugs, Paths, and Best Practices</span>
         </div>
         <h1 style="margin:0">How to Structure URLs for SEO: Slugs, Paths, and Best Practices</h1>
-        <p>A practical guide to clean URL design, slug choices, path depth, redirects, and avoiding structures that confuse both users and search engines.</p>
-        <p class="tool-last-updated">By Anurag &middot; Published May 1, 2026 &middot; Updated May 3, 2026 &middot; ~8 min read</p>
+        <p>Learn how to structure URLs for SEO with real before-and-after examples. Covers slug rules, path depth, trailing slashes, 301 redirects with server config code, and query parameter handling. Includes URL anatomy breakdown and migration playbook.</p>
+        <p class="tool-last-updated">By Anurag &middot; Published May 1, 2026 &middot; Updated June 9, 2026 &middot; ~11 min read</p>
       </div>
       <div class="tool-content-sections">
         <section class="tool-content-section guide-article-copy">
           
-      <p>Most times, short links seem nice but that does not lift rankings. Clarity matters more than charm, especially when sharing or tracking changes across years. When structure stays tidy, confusion drops off - search bots notice just as much as people do. Pages with neat paths feel intentional; tangled ones whisper neglect behind the scenes.</p>
-      <p>Stability matters more than stuffing keywords into the path. Readability shows up when the URL reflects what the page actually says, not just search terms. A clear path sticks around without breaking. Matching user expectation keeps things grounded. Lasting structure beats short-term tricks every time.</p>
+      <div class="guide-url-structure">
+        <h2>Anatomy of a URL (Every Part Has an SEO Job)</h2>
+        <p>Pull up any page on your site and look at the address bar. Every character in that URL is doing something &mdash; or failing to do something. Take this example apart piece by piece:</p>
+        <p><code>https://www.tooliest.com/guides/seo-friendly-url-structure/?ref=newsletter#path-depth</code></p>
+        <div class="guide-url-anatomy" aria-label="URL anatomy diagram">
+          <div class="url-segment segment-protocol"><code>https://</code><span>Protocol</span></div>
+          <div class="url-segment segment-subdomain"><code>www.</code><span>Subdomain</span></div>
+          <div class="url-segment segment-domain"><code>tooliest.com</code><span>Domain</span></div>
+          <div class="url-segment segment-path"><code>/guides/</code><span>Path</span></div>
+          <div class="url-segment segment-slug"><code>seo-friendly-url-structure</code><span>Slug</span></div>
+          <div class="url-segment segment-query"><code>/?ref=newsletter</code><span>Query</span></div>
+          <div class="url-segment segment-fragment"><code>#path-depth</code><span>Fragment</span></div>
+        </div>
+        <p><code>https://</code> &mdash; The protocol. Google confirmed HTTPS as a ranking signal in 2014. HTTP sites display a "Not Secure" warning in Chrome before the user reads a single word on your page. If you are still on HTTP in 2026, fix that before touching anything else in this guide.</p>
+        <p><code>www</code> &mdash; The subdomain. Technically optional. The problem is that <code>www.example.com</code> and <code>example.com</code> are treated as separate sites by Google unless you set up proper canonicalization. Pick one, redirect the other with a 301, and set your preferred version in Google Search Console. Most sites use <code>www</code> because it gives you more flexibility with DNS configuration, but either choice is fine &mdash; consistency is what matters.</p>
+        <p><code>tooliest.com</code> &mdash; The domain. Short, spell-checkable, and brandable is the goal. Nothing you do to your slugs will compensate for a domain that is 35 characters long and contains three hyphens.</p>
+        <p><code>/guides/</code> &mdash; The path. This creates a content hierarchy that both users and crawlers navigate. A page sitting at <code>/guides/seo-friendly-url-structure/</code> signals to Google that it belongs to a "guides" section, which groups it thematically with other guide content. This grouping matters for topical authority.</p>
+        <p><code>seo-friendly-url-structure</code> &mdash; The slug. This is where most of the optimization work happens and where most mistakes get made. More on this shortly.</p>
+        <p><code>?ref=newsletter</code> &mdash; The query string. Useful for tracking traffic sources, filtering products, or sorting results. Not ideal for content pages &mdash; Google can crawl parameter variations as separate URLs, creating duplicate content and wasting crawl budget.</p>
+        <p><code>#path-depth</code> &mdash; The fragment. An anchor link to a specific section on the page. Google ignores fragments for indexing purposes &mdash; the URL <code>https://tooliest.com/guide/#section-two</code> and <code>https://tooliest.com/guide/</code> index as the same page.</p>
+        <p>The practical point: Google reads your path and slug as signals about page content. <code>/guides/seo-friendly-url-structure/</code> communicates the topic before Googlebot reads a single line of your HTML. <code>/p/12847/</code> communicates nothing.</p>
 
-      <h2>Pick short names that still mean something</h2>
-      <p>Page names need to show what's inside, yet stay short enough to avoid spoilers. A good label gives a hint, not every detail. Skip long explanations up front - just point the way. Let visitors discover more once they click through. Clear beats clever here. The name works best when it feels obvious after you see the content.</p>
-      <p>What lives up front matters more than what gets explained below. Length tempts when titles pile on details - resist that pull. Specificity helps recognition without becoming a cluttered tag. Stability keeps links working even when ideas shift slightly over time. Short stays useful longer, especially if it avoids repeating nearby words. Rewriting them too much defeats their core role altogether.</p>
-      <p>Still, picking the right short name comes down to judgment. Tooliest's <a href="/slug-generator/">Slug Generator</a> helps by cutting clutter quickly, leaving less to sort through. What matters most? Finding a clear, honest tag for the page - nothing more.</p>
+        <h2>Eight Rules for Slugs That Help Rankings (With Before and After)</h2>
+        <h3>1. Use hyphens, not underscores or spaces</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/blog/seo_friendly_urls</code><small>Underscores join words into a single token.</small></div>
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/blog/seo%20friendly%20urls</code><small>Spaces become encoded clutter.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/blog/seo-friendly-urls</code><small>Hyphens separate words cleanly.</small></div>
+        </div>
+        <p>Google treats hyphens as word separators. <code>seo-friendly</code> is parsed as two distinct words &mdash; "seo" and "friendly." Underscores join words: <code>seo_friendly</code> is read as a single token "seofriendly," which matches neither search query. Spaces become <code>%20</code> in the URL, which looks broken and does not help either.</p>
 
-      <h2>Path depth matters less than clarity</h2>
-      <p>Most folks think pages need to sit near the top, but that is not always true. What counts? Whether it feels logical. Pages tucked in <code>/guides/</code> often make better sense. So do tools grouped inside <code>/software/</code>. Spreading things out at the root just to seem clean can backfire. Clarity beats rules every time.</p>
-      <p>Deep inside, some routes make sense if they follow how info is truly built. Trouble kicks in once things get cluttered, echo themselves, or drift from what’s actually being shown.</p>
+        <h3>2. Use lowercase only</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/Blog/SEO-Friendly-URL-Structure</code><small>Case-sensitive servers can split one page into variants.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/blog/seo-friendly-url-structure</code><small>Lowercase is predictable and link-safe.</small></div>
+        </div>
+        <p>Most Linux servers are case-sensitive. <code>/Page</code> and <code>/page</code> can return different content or produce 404 errors, creating duplicate content and broken internal links. Enforce lowercase at the server level so the problem cannot occur:</p>
+        <pre><code class="language-nginx"># nginx - force lowercase
+if ($request_uri ~ "[A-Z]") {
+  rewrite ^(.*)$ $scheme://$host${uri} permanent;
+}</code></pre>
 
-      <h2>Changing URLs is more expensive than people expect</h2>
-      <p>Most teams tweak slugs right after publishing - some fresh keyword seems smarter. Yet shifting a link means wrestling with redirects, slow reindexing, maybe even shattered connections inside or outside the site. Picking one that lasts makes more sense than tossing URLs away like notes on scrap paper.</p>
-      <p>Start by picking a new address on purpose. A correct 301 shift keeps things working - handle that first. Fix every link inside your site right away; skipping causes trouble later. Jumping through multiple redirects? That slows everything down. Most people overlook how much steady paths matter.</p>
+        <h3>3. Keep the slug under 60 characters</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/guides/how-to-structure-your-website-urls-for-search-engine-optimization-complete-guide-2026</code><small>Too long to scan or share cleanly.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/guides/seo-friendly-url-structure</code><small>Short enough to stay readable in search results.</small></div>
+        </div>
+        <p>Google truncates long URLs in search results with an ellipsis. Users see a clipped URL and cannot tell where they are going. Shorter slugs are also easier to share in email, copy from a printed page, or include in a tweet. The 60-character limit applies to the slug portion specifically, not the entire URL.</p>
 
-      <h2>Clean URLs beat clutter</h2>
-      <p><strong>Most times, simplicity beats clutter without trying. A straightforward route often works where complexity fails. Skip the messy bits if an easier way exists. Why choose hard when soft bends work. Smooth moves outrun jagged edges every now and then.</strong></p>
-      <p>Sure, parameters serve a purpose. Yet clean paths work better than messy links crammed with extras. Pages shine when they skip the strings of tags tacked onto the end. Cluttered addresses feel sketchy to users passing them around. Sharing gets awkward fast. Search engines stumble too - especially when guidance about main versions is fuzzy or missing entirely. Duplicate entries pop up like weeds without clear direction.</p>
-      <p>Tools such as <a href="/meta-tag-generator/">Meta Tag Generator</a>, <a href="/sitemap-generator/">Sitemap Generator</a>, or <a href="/robots-txt-generator/">Robots.txt Generator</a> fit right into that routine. Technical SEO connects everything - URL quality included. It does not stand apart.</p>
+        <h3>4. Include the primary keyword</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/guides/article-47</code><small>No topic signal for users or crawlers.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/guides/seo-friendly-url-structure</code><small>The page topic is visible before the click.</small></div>
+        </div>
+        <p>URL words are a lightweight relevance signal. They are not the strongest signal Google uses &mdash; content quality and links carry far more weight &mdash; but in competitive SERPs where everything else is close, a keyword in the URL contributes. More importantly, a descriptive slug improves click-through rate because users can predict the content before clicking.</p>
 
-      <h2>A good URL pattern feels ordinary</h2>
-      <p><strong>A well-built address line feels ordinary, yet sticks to one clear pattern. What matters most? It stays predictable. Each part follows the last without surprise. Simplicity wins because it works every time. The shape never shifts just for flair.</strong></p>
-      <p>Years on, clarity beats ingenuity every time. Those links you can still understand? Usually plain words, nothing flashy. Readable chunks matter more than tricks. When dates aren’t essential to the topic itself, leave them out. Lowercase helps - stick to it always. Hyphens work better than dots, underscores, or worse. Structure each path like a map of what's actually there.</p>
-      <p>Most times a site feels stronger when its URLs seem dull. Quiet choices there tend to help.</p>
+        <h3>5. Remove most stop words</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/guides/how-to-structure-urls-for-the-best-seo</code><small>Extra filler words burn space.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/guides/seo-url-structure-best-practices</code><small>The meaning stays intact with fewer words.</small></div>
+        </div>
+        <p>Words like "how," "to," "the," "for," and "and" add character count without adding search relevance. Strip them. The exception: when removing stop words makes the slug unnatural or ambiguous, keep them. <code>/what-is-base64</code> is clearer than <code>/base64</code> for an explanatory page. <code>/is-react-dead</code> reads correctly; <code>/react-dead</code> does not.</p>
+
+        <h3>6. Avoid dates in the slug</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/blog/2026/06/09/seo-url-tips</code><small>The URL ages even after the article is updated.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/blog/seo-url-tips</code><small>Evergreen content can stay evergreen.</small></div>
+        </div>
+        <p>Dates lock your content to a moment. When you update and expand the article in 2028, the URL still says 2026, making it appear outdated to users and signaling to Google that the content may be stale. Use the <code>lastmod</code> field in your sitemap to communicate freshness instead. Date-based URL structures also produce deep paths &mdash; <code>/blog/2026/06/09/slug/</code> is depth 5, which reduces crawl priority.</p>
+
+        <h3>7. Avoid parameter-style URLs for content pages</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/article?id=472&amp;category=seo</code><small>Parameters create crawl and trust problems.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/guides/seo-friendly-url-structure</code><small>A clean path names the page directly.</small></div>
+        </div>
+        <p>Parameter URLs have three problems: they are harder for search engines to crawl predictably, they create parameter-order variations (<code>?a=1&amp;b=2</code> vs <code>?b=2&amp;a=1</code> as separate URLs), and they look untrustworthy in search results. CMS platforms that default to this pattern &mdash; WordPress with <code>?p=123</code>, older Drupal sites with <code>?q=node/47</code> &mdash; should have clean URL rewrites configured on day one.</p>
+
+        <h3>8. Match the page's H1, approximately</h3>
+        <div class="guide-slug-compare">
+          <div class="slug-card slug-bad"><strong>Bad</strong><code>/product-review-12/</code><small>The slug does not explain the title.</small></div>
+          <div class="slug-card slug-good"><strong>Good</strong><code>/seo-friendly-url-structure</code><small>The slug and H1 describe the same topic.</small></div>
+        </div>
+        <p>H1: "How to Structure URLs for SEO: Slugs, Paths, and Best Practices"</p>
+        <p>Slug: <code>seo-friendly-url-structure</code></p>
+        <p>The slug does not need to reproduce the H1 word-for-word &mdash; titles are for readers, slugs are for navigation. But they should describe the same content. If your H1 is "10 Best Coffee Machines for Home Use in 2026" and your slug is <code>/product-review-12/</code>, users who see the URL in a Google result have no idea what the page contains.</p>
+
+        <h2>Path Depth: How Many Folders Is Too Many?</h2>
+        <p>Path depth is the number of forward slashes in your URL path. <code>/tools/</code> is depth 1. <code>/tools/slug-generator/</code> is depth 2. <code>/tools/seo/text/slug-generator/</code> is depth 4.</p>
+        <div class="guide-path-tree" aria-label="Path depth tree">
+          <div class="tree-row tree-root"><code>/</code><span>root</span></div>
+          <div class="tree-row depth-1"><code>/blog/</code><span>depth 1</span></div>
+          <div class="tree-row depth-2 tree-good"><code>/blog/post-slug/</code><span>depth 2 - recommended</span></div>
+          <div class="tree-row depth-4 tree-bad"><code>/blog/cat/sub/post/</code><span>depth 4 - too deep for most posts</span></div>
+        </div>
+        <p>Google has explicitly said path depth is not a direct ranking factor. In practice, it matters indirectly for two reasons: deeper pages receive fewer internal links naturally (because navigation structures rarely link five levels deep), and crawl budget gets distributed more thinly across deep URL trees on large sites.</p>
+        <p>The structural principle is that flatter architecture distributes PageRank more evenly. A page at <code>/slug-generator/</code> sits closer to the homepage's authority than the same page at <code>/tools/seo/text/utilities/slug-generator/</code>. Both get crawled &mdash; but the shallow version gets there faster and more frequently.</p>
+        <p>Recommended depth by site type:</p>
+        <ul>
+          <li><strong>Blog:</strong> <code>/blog/post-slug/</code> at depth 2. Not <code>/blog/2026/category/subcategory/post-slug/</code> at depth 5. Category taxonomy belongs in the metadata and internal linking structure, not the URL path.</li>
+          <li><strong>E-commerce:</strong> <code>/category/product-slug/</code> at depth 2. Not <code>/shop/clothing/mens/shirts/formal/blue-oxford-shirt/</code> at depth 6. Deep product category nesting was a common pattern a decade ago and has caused significant crawl problems for large retailers. Flatten it.</li>
+          <li><strong>Tool sites:</strong> <code>/tool-slug/</code> at depth 1 or <code>/tools/tool-slug/</code> at depth 2. Both are fine. If you have enough tools to need subcategories, <code>/tools/seo/</code> and <code>/tools/dev/</code> are reasonable groupings.</li>
+          <li><strong>Documentation:</strong> Depth 3 is acceptable here. <code>/docs/api/authentication/</code> makes sense because documentation genuinely has a hierarchical relationship between sections, pages, and subsections that matches the path structure.</li>
+        </ul>
+
+        <h2>Trailing Slashes: Pick One and Enforce It</h2>
+        <p><code>/page/</code> and <code>/page</code> are technically different URLs. If your server returns the same content for both &mdash; which is the default behavior on most web servers &mdash; you have two URLs serving identical content. Google will index one, potentially both, and the link equity pointing to each version does not consolidate unless you canonicalize.</p>
+        <p>This is a simple problem with a simple solution: pick a format and enforce it at every layer.</p>
+        <ol>
+          <li>Decide. Trailing slash or no trailing slash. Either is valid. Most CMS-driven sites use trailing slashes. Most application-driven sites do not.</li>
+          <li>Redirect the wrong version with a 301.</li>
+        </ol>
+        <pre><code class="language-apache"># .htaccess - force trailing slash
+RewriteCond %{REQUEST_URI} !/$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ /$1/ [L,R=301]</code></pre>
+        <pre><code class="language-nginx"># nginx - force trailing slash
+rewrite ^([^.]*[^/])$ $1/ permanent;</code></pre>
+        <pre><code class="language-javascript">// next.config.js
+module.exports = {
+  trailingSlash: true,
+};</code></pre>
+        <ol start="3">
+          <li>Set your canonical tag to match. If you use trailing slashes, every canonical should use trailing slashes.</li>
+          <li>Audit your sitemap. Every URL in <code>sitemap.xml</code> should use the format you chose. A sitemap with mixed trailing slash usage tells Google you are not sure which version is canonical.</li>
+          <li>Check your internal links. Do not rely on redirects to fix internal links. If your correct URL is <code>/guide/</code> and 50 internal links point to <code>/guide</code>, those links hit a redirect before reaching the destination. Update the links to point directly to the canonical URL.</li>
+        </ol>
+
+        <h2>URL Migrations: The 301 Redirect Playbook</h2>
+        <p>Changing an indexed URL is expensive. Google says 301 redirects pass "most" PageRank &mdash; which is honest and slightly unsettling, because "most" is not "all." Rankings typically dip during a migration and recover over weeks to months. Run migrations only when the benefit justifies the cost.</p>
+        <div class="guide-redirect-flow" aria-label="Redirect flow diagram">
+          <div class="redirect-lane redirect-good">
+            <span class="flow-label">Correct migration</span>
+            <div class="flow-box"><code>/old-url</code></div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box flow-redirect">301 Redirect</div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box"><code>/new-url</code></div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box flow-google">Google re-indexes</div>
+          </div>
+          <div class="redirect-lane redirect-bad">
+            <span class="flow-label">Never chain</span>
+            <div class="flow-box"><code>/page-v1</code></div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box flow-error"><code>/page-v2</code></div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box flow-error"><code>/page-v3</code></div>
+            <span class="flow-arrow">-&gt;</span>
+            <div class="flow-box"><code>/current-page</code></div>
+          </div>
+        </div>
+        <p>When you must change a URL, execute this sequence in order:</p>
+        <ol>
+          <li>Create the 301 redirect from old to new.</li>
+        </ol>
+        <pre><code class="language-apache"># .htaccess
+Redirect 301 /old-url-slug /new-url-slug</code></pre>
+        <pre><code class="language-nginx"># nginx
+location = /old-url-slug {
+  return 301 /new-url-slug;
+}</code></pre>
+        <pre><code class="language-javascript">// next.config.js
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/old-url-slug',
+        destination: '/new-url-slug',
+        permanent: true,
+      },
+    ];
+  },
+};</code></pre>
+        <ol start="2">
+          <li>Update every internal link on your site to point directly to the new URL. Redirects are for external links and bookmarks you cannot control. Your own site should never be sending traffic through a redirect hop.</li>
+          <li>Update your sitemap to reference the new URL exclusively.</li>
+          <li>Submit the updated sitemap in Google Search Console under Indexing &rarr; Sitemaps.</li>
+          <li>Use the URL Inspection tool in Search Console to request indexing of the new URL.</li>
+          <li>Wait. Google's full processing of a URL migration typically takes 2 to 8 weeks. Rankings may drop temporarily before recovering. This is normal and expected.</li>
+        </ol>
+        <p>Two hard rules that every developer eventually learns the expensive way:</p>
+        <p><strong>Never chain redirects.</strong> <code>/page-v1</code> &rarr; <code>/page-v2</code> &rarr; <code>/page-v3</code> is a redirect chain. Each hop adds latency and potentially bleeds ranking power. If you have changed a URL more than once, every old version should redirect directly to the current final destination. Audit redirect chains regularly using a crawler like Screaming Frog.</p>
+        <p><strong>Never use 302 for permanent changes.</strong> A 302 tells Google the move is temporary. Google may continue indexing the old URL indefinitely. If you are permanently removing a URL from your site, use 301. Reserve 302 for genuinely temporary situations like maintenance pages or A/B tests.</p>
+
+        <h2>Query Parameters vs Clean URLs</h2>
+        <p>Query parameters are unavoidable in certain contexts &mdash; e-commerce filtering, search results, session tracking. The problem is that each parameter combination technically creates a unique URL. <code>/shoes?color=blue&amp;size=10</code> and <code>/shoes?size=10&amp;color=blue</code> contain identical content but different URLs. At scale, a product catalog with 10 filter options can generate millions of URL variations &mdash; most of which Googlebot will try to crawl, wasting your crawl budget on pages you never intended to index.</p>
+        <p>The solutions, in order of preference:</p>
+        <ol>
+          <li>For indexable content, use clean paths. <code>/shoes/blue/</code> instead of <code>/shoes?color=blue</code>. This is more work to implement but produces better URLs, better crawlability, and better user trust signals in search results.</li>
+          <li>For filter and sort variations, block parameter crawling. In Google Search Console under Legacy Tools, the URL Parameters tool lets you tell Google which parameters to ignore. Alternatively, add a <code>noindex</code> meta tag to filtered pages and exclude them from your sitemap.</li>
+          <li>For any parameterized page that might get crawled, set a canonical. <code>/shoes?color=blue&amp;size=10</code> should have a canonical pointing to <code>/shoes/</code> or <code>/shoes/blue/</code> &mdash; whichever is the authoritative indexable version.</li>
+        </ol>
+        <p>UTM tracking parameters &mdash; <code>utm_source</code>, <code>utm_medium</code>, <code>utm_campaign</code>, <code>utm_content</code>, <code>utm_term</code> &mdash; are handled automatically by Google. They are stripped from the URL before indexing. You do not need to canonicalize or block UTM parameters.</p>
+        <p>One pattern that causes recurring problems: session IDs or user tokens appended as URL parameters. <code>/checkout?session=a8f3b2c1</code> creates a unique URL for every user session. If any of these URLs get linked externally or crawled, you end up with thousands of indexed checkout pages, each returning either a session error or duplicate content. Strip session parameters from URLs or handle them in cookies, not query strings.</p>
+        <p>Generate clean URL slugs instantly with Tooliest's browser-based <a href="/slug-generator/">Slug Generator</a>, then pair them with proper meta tags using the <a href="/meta-tag-generator/">Meta Tag Generator</a>. Document your canonical URLs in your sitemap using the <a href="/sitemap-generator/">Sitemap Generator</a>, and control which paths search engines can access with the <a href="/robots-txt-generator/">Robots.txt Generator</a>.</p>
+      </div>
     
         </section>
         <section class="tool-content-section">
@@ -232,6 +856,7 @@
   <div id="toast-container"></div>
   <div id="route-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
   <script data-cfasync="false">(function(){if(window.__TOOLIEST_CONSENT_FALLBACK_READY)return;window.__TOOLIEST_CONSENT_FALLBACK_READY=true;var key='tooliest_cookie_consent';var version='2';var tourKey='tooliest_tour_completed';var tourEvent='tooliest:welcome-tour-complete';var waiting=false;function read(){try{var raw=localStorage.getItem(key);return raw?JSON.parse(raw):null;}catch(e){return null;}}function tourDone(){try{return localStorage.getItem(tourKey)==='1';}catch(e){return true;}}function shouldDelay(){var path=String(location.pathname||'/').replace(/\/index\.html$/,'/');return path==='/'&&!(document.body&&document.body.classList.contains('embed-mode'))&&!tourDone();}function save(accepted){try{localStorage.setItem(key,JSON.stringify({accepted:accepted,version:version,timestamp:new Date().toISOString()}));}catch(e){}}function clear(){try{localStorage.removeItem(key);}catch(e){}}function setHeight(px){document.documentElement.style.setProperty('--cookie-banner-height',Math.max(0,Math.round(px||0))+'px');}function banner(){return document.getElementById('cookie-banner');}function afterTour(){if(waiting)return;waiting=true;window.addEventListener(tourEvent,function done(){waiting=false;window.removeEventListener(tourEvent,done);window.setTimeout(show,900);});}function show(){if(shouldDelay()){afterTour();return;}var el=banner();if(!el)return;document.body.classList.add('cookie-banner-open');el.classList.remove('banner-hidden','banner-visible');el.setAttribute('aria-hidden','false');window.requestAnimationFrame(function(){el.classList.add('banner-visible');setHeight(el.getBoundingClientRect().height);});}function hide(){var el=banner();document.body.classList.remove('cookie-banner-open');if(el){el.classList.remove('banner-visible');el.classList.add('banner-hidden');el.setAttribute('aria-hidden','true');}setHeight(0);}function accept(){save(true);hide();}function reject(){save(false);hide();}function reset(event){if(event&&event.preventDefault)event.preventDefault();clear();show();}function bind(){var acceptBtn=document.getElementById('cookie-accept-btn');var rejectBtn=document.getElementById('cookie-reject-btn');if(acceptBtn)acceptBtn.addEventListener('click',accept);if(rejectBtn)rejectBtn.addEventListener('click',reject);document.addEventListener('click',function(event){var trigger=event.target&&event.target.closest&&event.target.closest('[data-consent-reset]');if(!trigger)return;var api=window.TooliestConsent;if(api&&api!==fallback&&typeof api.reset==='function'){event.preventDefault();api.reset(event);return;}reset(event);});var saved=read();if(!saved||saved.version!==version)show();}var fallback={reset:reset,open:show,refreshLayout:function(){var el=banner();setHeight(el&&!el.classList.contains('banner-hidden')?el.getBoundingClientRect().height:0);},getStatus:read};window.TooliestConsent=window.TooliestConsent||fallback;if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',bind,{once:true});}else{bind();}})();</script>
-  <script src="/bundle.min.js?v=20260530-295a5c55" defer data-cfasync="false"></script>
+  <script data-cfasync="false">(function(){function copyText(text){if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(text);}return new Promise(function(resolve,reject){var textarea=document.createElement('textarea');textarea.value=text;textarea.setAttribute('readonly','');textarea.style.position='fixed';textarea.style.top='-9999px';document.body.appendChild(textarea);textarea.select();try{document.execCommand('copy')?resolve():reject(new Error('copy failed'));}catch(error){reject(error);}finally{textarea.remove();}});}function enhanceGuideArticle(){var root=document.querySelector('.guide-article-copy');if(!root)return;root.querySelectorAll('table').forEach(function(table){if(table.parentElement&&table.parentElement.classList.contains('guide-table-wrap'))return;var wrap=document.createElement('div');wrap.className='guide-table-wrap';table.parentNode.insertBefore(wrap,table);wrap.appendChild(table);});root.querySelectorAll('pre').forEach(function(pre,index){if(pre.closest('.guide-code-window'))return;var code=pre.querySelector('code');var language='code';if(code){var match=String(code.className||'').match(/language-([a-z0-9-]+)/i);if(match)language=match[1];}var windowEl=document.createElement('div');windowEl.className='guide-code-window';var header=document.createElement('div');header.className='guide-code-header';var meta=document.createElement('div');meta.className='guide-code-meta';var dots=document.createElement('span');dots.className='guide-code-dots';dots.setAttribute('aria-hidden','true');dots.innerHTML='<span></span><span></span><span></span>';var label=document.createElement('span');label.className='guide-code-language';label.textContent=language;var button=document.createElement('button');button.type='button';button.className='guide-code-copy';button.textContent='Copy';button.setAttribute('aria-label','Copy code snippet '+(index+1));button.addEventListener('click',function(){var text=(code||pre).innerText;copyText(text).then(function(){button.textContent='Copied';window.setTimeout(function(){button.textContent='Copy';},1400);}).catch(function(){button.textContent='Select';window.setTimeout(function(){button.textContent='Copy';},1400);});});meta.appendChild(dots);meta.appendChild(label);header.appendChild(meta);header.appendChild(button);pre.parentNode.insertBefore(windowEl,pre);windowEl.appendChild(header);windowEl.appendChild(pre);});}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',enhanceGuideArticle,{once:true});}else{enhanceGuideArticle();}})();</script>
+  <script src="/bundle.min.js?v=20260609-6dc162b8" defer data-cfasync="false"></script>
 </body>
 </html>
