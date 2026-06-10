@@ -4962,6 +4962,240 @@ const SEO_URL_STRUCTURE_GUIDE_VISUAL_CSS = `<style>
   }
 </style>`;
 
+const WORD_COUNT_SEO_GUIDE_VISUAL_CSS = `<style>
+  .guide-article-copy .guide-word-count-seo .guide-ranking-chart,
+  .guide-article-copy .guide-word-count-seo .guide-wc-benchmarks,
+  .guide-article-copy .guide-word-count-seo .guide-intent-matrix,
+  .guide-article-copy .guide-word-count-seo .guide-thin-zones,
+  .guide-article-copy .guide-word-count-seo .guide-audit-steps {
+    margin: 24px 0 30px;
+  }
+  .guide-article-copy .guide-word-count-seo .guide-ranking-chart {
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+    border: 1px solid rgba(139,92,246,.22);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(14,165,233,.045)), rgba(255,255,255,.025);
+    box-shadow: 0 18px 42px rgba(0,0,0,.18);
+  }
+  .guide-article-copy .guide-word-count-seo .ranking-row {
+    display: grid;
+    grid-template-columns: 92px minmax(120px, 1fr) 78px;
+    align-items: center;
+    gap: 12px;
+  }
+  .guide-article-copy .guide-word-count-seo .rank-label {
+    color: var(--text-secondary);
+    font-size: .84rem;
+    font-weight: 800;
+  }
+  .guide-article-copy .guide-word-count-seo .rank-track {
+    height: 18px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(148,163,184,.18);
+  }
+  .guide-article-copy .guide-word-count-seo .rank-bar {
+    display: block;
+    width: var(--bar);
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #22c55e, #84cc16);
+  }
+  .guide-article-copy .guide-word-count-seo .rank-2 { background: linear-gradient(90deg, #10b981, #22c55e); }
+  .guide-article-copy .guide-word-count-seo .rank-3 { background: linear-gradient(90deg, #14b8a6, #22c55e); }
+  .guide-article-copy .guide-word-count-seo .rank-5 { background: linear-gradient(90deg, #06b6d4, #38bdf8); }
+  .guide-article-copy .guide-word-count-seo .rank-10 { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+  .guide-article-copy .guide-word-count-seo .ranking-row strong {
+    color: var(--text-primary);
+    font-size: .88rem;
+    text-align: right;
+  }
+  .guide-article-copy .guide-word-count-seo .guide-ranking-chart > p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: .82rem;
+  }
+  .guide-article-copy .guide-word-count-seo .guide-wc-benchmarks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .guide-article-copy .guide-word-count-seo .benchmark-card {
+    --card-accent: #8b5cf6;
+    min-width: 0;
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid rgba(148,163,184,.2);
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .guide-article-copy .guide-word-count-seo .benchmark-card h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: .98rem;
+  }
+  .guide-article-copy .guide-word-count-seo .benchmark-card strong {
+    color: var(--card-accent);
+    font-size: clamp(1.35rem, 3vw, 1.9rem);
+    line-height: 1.05;
+  }
+  .guide-article-copy .guide-word-count-seo .benchmark-card p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: .88rem;
+    line-height: 1.5;
+  }
+  .guide-article-copy .guide-word-count-seo .accent-tool { --card-accent: #38bdf8; }
+  .guide-article-copy .guide-word-count-seo .accent-blog { --card-accent: #8b5cf6; }
+  .guide-article-copy .guide-word-count-seo .accent-pillar { --card-accent: #14b8a6; }
+  .guide-article-copy .guide-word-count-seo .accent-product { --card-accent: #f59e0b; }
+  .guide-article-copy .guide-word-count-seo .accent-landing { --card-accent: #ec4899; }
+  .guide-article-copy .guide-word-count-seo .accent-faq { --card-accent: #22c55e; }
+  .guide-article-copy .guide-word-count-seo .guide-intent-matrix {
+    overflow-x: auto;
+    border: 1px solid rgba(139,92,246,.22);
+    border-radius: 16px;
+    background: rgba(255,255,255,.025);
+    box-shadow: 0 16px 36px rgba(0,0,0,.14);
+  }
+  .guide-article-copy .guide-word-count-seo .guide-intent-matrix table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    margin: 0;
+  }
+  .guide-article-copy .guide-word-count-seo .guide-intent-matrix th,
+  .guide-article-copy .guide-word-count-seo .guide-intent-matrix td {
+    padding: 13px 14px;
+    border-bottom: 1px solid rgba(148,163,184,.16);
+    text-align: left;
+    vertical-align: top;
+  }
+  .guide-article-copy .guide-word-count-seo .guide-intent-matrix th {
+    color: #f8fafc;
+    background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+    font-size: .78rem;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+  }
+  .guide-article-copy .guide-word-count-seo .guide-intent-matrix tr:nth-child(even) td {
+    background: rgba(148,163,184,.055);
+  }
+  .guide-article-copy .guide-word-count-seo .guide-intent-matrix tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-article-copy .guide-word-count-seo .guide-thin-zones {
+    display: grid;
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid rgba(139,92,246,.2);
+    border-radius: 16px;
+    box-shadow: 0 16px 36px rgba(0,0,0,.14);
+  }
+  .guide-article-copy .guide-word-count-seo .thin-zone {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    gap: 16px;
+    min-height: 74px;
+    padding: 14px 18px;
+    color: #0f172a;
+  }
+  .guide-article-copy .guide-word-count-seo .thin-zone strong {
+    font: 900 1rem/1.2 var(--font-mono);
+  }
+  .guide-article-copy .guide-word-count-seo .thin-zone span {
+    font-weight: 850;
+  }
+  .guide-article-copy .guide-word-count-seo .zone-red { background: linear-gradient(90deg, #fecaca, #fee2e2); }
+  .guide-article-copy .guide-word-count-seo .zone-orange { background: linear-gradient(90deg, #fed7aa, #ffedd5); }
+  .guide-article-copy .guide-word-count-seo .zone-yellow { background: linear-gradient(90deg, #fef08a, #fef9c3); }
+  .guide-article-copy .guide-word-count-seo .zone-green { background: linear-gradient(90deg, #bbf7d0, #dcfce7); }
+  .guide-article-copy .guide-word-count-seo .guide-audit-steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .guide-article-copy .guide-word-count-seo .audit-step {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    align-items: start;
+    gap: 12px;
+    padding: 15px;
+    border: 1px solid rgba(139,92,246,.2);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(255,255,255,.025));
+  }
+  .guide-article-copy .guide-word-count-seo .audit-step span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    color: #fff;
+    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+    font: 900 .95rem/1 var(--font-mono);
+    box-shadow: 0 10px 22px rgba(139,92,246,.24);
+  }
+  .guide-article-copy .guide-word-count-seo .audit-step p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: .9rem;
+    line-height: 1.55;
+  }
+  [data-theme=light] .guide-article-copy .guide-word-count-seo .guide-ranking-chart,
+  [data-theme=light] .guide-article-copy .guide-word-count-seo .guide-intent-matrix,
+  [data-theme=light] .guide-article-copy .guide-word-count-seo .guide-thin-zones {
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 16px 34px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-word-count-seo .benchmark-card,
+  [data-theme=light] .guide-article-copy .guide-word-count-seo .audit-step {
+    background: rgba(255,255,255,.82);
+    box-shadow: 0 12px 28px rgba(15,23,42,.05);
+  }
+  [data-theme=light] .guide-article-copy .guide-word-count-seo .rank-track {
+    background: rgba(148,163,184,.22);
+  }
+  @media (max-width: 760px) {
+    .guide-article-copy .guide-word-count-seo .guide-wc-benchmarks,
+    .guide-article-copy .guide-word-count-seo .guide-audit-steps {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-word-count-seo .ranking-row {
+      grid-template-columns: 82px minmax(80px, 1fr) 68px;
+      gap: 9px;
+    }
+    .guide-article-copy .guide-word-count-seo .thin-zone {
+      grid-template-columns: 96px 1fr;
+      min-height: 64px;
+      padding: 12px 14px;
+    }
+  }
+  @media (max-width: 520px) {
+    .guide-article-copy .guide-word-count-seo .guide-ranking-chart {
+      padding: 14px;
+    }
+    .guide-article-copy .guide-word-count-seo .ranking-row {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+      gap: 6px;
+    }
+    .guide-article-copy .guide-word-count-seo .ranking-row strong {
+      text-align: left;
+    }
+    .guide-article-copy .guide-word-count-seo .thin-zone {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+  }
+</style>`;
+
 function renderGuidesHubPage(tools) {
   const guideLastModified = getGuideContentLastModifiedDate();
   const softwarePageCount = getSoftwareEditorialPageCount();
@@ -5097,6 +5331,8 @@ function renderGuideArticlePage(guide) {
                   ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${BASE64_ENCODING_GUIDE_VISUAL_CSS}`
                   : guide.slug === 'seo-friendly-url-structure'
                     ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${SEO_URL_STRUCTURE_GUIDE_VISUAL_CSS}`
+                    : guide.slug === 'word-count-and-seo-rankings'
+                      ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${WORD_COUNT_SEO_GUIDE_VISUAL_CSS}`
                   : '';
   const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' || guide.slug === 'color-theory-for-developers' || guide.slug === 'meta-tags-that-improve-rankings' || guide.slug === 'regex-patterns-for-beginners' || guide.slug === 'what-is-base64-encoding' || guide.slug === 'seo-friendly-url-structure' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
   const structuredData = [

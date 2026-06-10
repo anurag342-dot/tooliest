@@ -2201,36 +2201,108 @@ module.exports = {
     slug: 'word-count-and-seo-rankings',
     group: 'seo-growth',
     title: 'How Word Count Affects SEO Rankings: Data and Best Practices',
-    description: 'A practical guide to word count, search intent, content depth, and why longer articles only help when they earn their length.',
+    description: 'Data-driven analysis of how word count correlates with SEO rankings. Includes Backlinko and HubSpot study findings, word count targets for 6 content types, search intent framework, thin content thresholds, and a practical content audit workflow using Word Counter and Keyword Density Checker.',
     socialDescription: 'Learn when word count helps, when it becomes filler, and how to think about SEO depth without chasing arbitrary length targets.',
     teaser: 'Learn when word count matters for SEO, when it becomes empty filler, and how to judge content depth more honestly.',
     published: '2026-05-01',
-    updated: '2026-05-03',
-    readMinutes: 8,
+    updated: '2026-06-10',
+    readMinutes: 12,
     tags: ['SEO', 'Content Strategy', 'Word Count'],
     contentHtml: `
-      <p>Usefulness shows up when content answers questions well. Pages ranking higher tend to explore topics without skipping pieces. A big page might hold many answers, so visitors stay satisfied instead of returning to Google quickly. Rankings do not rise just because words pile up. Depth helps, yet only if each part adds clarity. Long does not mean effective unless meaning fills every section.</p>
-      <p>Here’s why it counts: clear writing skips the extra stuff. Hitting the mark on one clean page beats stretching ideas thin across many. Focus wins every time.</p>
+      <div class="guide-word-count-seo">
+        <h2>What the Data Actually Shows (Correlation, Not Causation)</h2>
+        <p>Three studies get cited more than any others when this topic comes up, and understanding what they actually measured &mdash; versus what people claim they proved &mdash; determines whether you use this data correctly or get burned by it.</p>
+        <p>Backlinko's analysis of 11.8 million Google search results found that the average first-page result contains 1,447 words. HubSpot's content analysis found that blog posts between 2,100 and 2,400 words generate the most organic traffic. SEMrush's Content Marketing Toolkit study found that long-form content above 3,000 words receives three times more traffic and four times more shares than average-length articles running 900 to 1,200 words. Ahrefs' research adds the most revealing data point: pages ranking first for a primary keyword also rank for approximately 1,000 other keywords on average &mdash; a figure that explains much of the apparent word count correlation.</p>
+        <div class="guide-ranking-chart" aria-label="Average word count by Google ranking position">
+          <div class="ranking-row"><span class="rank-label">Position 1</span><div class="rank-track"><span class="rank-bar rank-1" style="--bar:100%"></span></div><strong>~1,890</strong></div>
+          <div class="ranking-row"><span class="rank-label">Position 2</span><div class="rank-track"><span class="rank-bar rank-2" style="--bar:95%"></span></div><strong>~1,800</strong></div>
+          <div class="ranking-row"><span class="rank-label">Position 3</span><div class="rank-track"><span class="rank-bar rank-3" style="--bar:93%"></span></div><strong>~1,750</strong></div>
+          <div class="ranking-row"><span class="rank-label">Position 5</span><div class="rank-track"><span class="rank-bar rank-5" style="--bar:87%"></span></div><strong>~1,650</strong></div>
+          <div class="ranking-row"><span class="rank-label">Position 10</span><div class="rank-track"><span class="rank-bar rank-10" style="--bar:77%"></span></div><strong>~1,450</strong></div>
+          <p>Source: Backlinko analysis of 11.8M Google results. Correlation, not causation.</p>
+        </div>
+        <p>None of these studies show that word count causes rankings to improve. Google's own John Mueller has stated explicitly that word count is not a ranking signal. What the data actually captures is the downstream effects of thorough content. Longer content tends to cover more subtopics, which means it naturally targets more keyword variations. It answers more related questions, which satisfies multiple search intents within a single page. It provides more citable material, which attracts backlinks. It keeps users reading longer, which produces behavioral signals Google does measure.</p>
+        <p>The misreading of this data has a real cost. A content team that adds 600 words of filler to push an article past 1,500 does not improve rankings. It increases bounce rates by burying useful information, dilutes the information density of the page, and produces the kind of padded prose that both human quality raters and Google's Helpful Content System are specifically trained to identify and discount. The correlation between word count and rankings exists because good content about complex topics takes space to do the job properly &mdash; not because the word count itself is the job.</p>
 
-      <h2>Search intent decides how much content the page really needs</h2>
-      <p>One thing's certain - length depends on purpose. A tool like a calculator page? Short. Navigation pages take a different shape entirely. Tutorials go long when they dive deep. What matters most is what the person searching actually wants. Need speed? Give brevity. Looking to compare options? Structure shifts again. Step by step guidance demands room to breathe. Big picture thinking opens space for detail. Match size to goal, nothing more. Let real use - not guesses - set the scale.</p>
-      <p>Because of this, Tooliest combines tools with helpful explanations rather than assuming the tool stands alone. Quick tasks get handled fast by the widget. Tricky ones come with notes, warnings, or real-life uses nearby. Sometimes a tool needs more than just buttons.</p>
+        <h2>Word Count Targets by Content Type (With Ranges, Not Magic Numbers)</h2>
+        <div class="guide-wc-benchmarks" aria-label="Word count targets by content type">
+          <div class="benchmark-card accent-tool"><h3>Tool Pages</h3><strong>300-800</strong><p>The tool is the content; education supports the task without burying it.</p></div>
+          <div class="benchmark-card accent-blog"><h3>Blog Posts</h3><strong>1,500-2,500</strong><p>Most informational topics need enough space to cover related questions.</p></div>
+          <div class="benchmark-card accent-pillar"><h3>Pillar Pages</h3><strong>3,000-5,000</strong><p>Comprehensive topic hubs justify longer structure and internal links.</p></div>
+          <div class="benchmark-card accent-product"><h3>Product Pages</h3><strong>300-500</strong><p>Buyers need differentiators, specifications, and a clear action path.</p></div>
+          <div class="benchmark-card accent-landing"><h3>Landing Pages</h3><strong>500-1,500</strong><p>Length scales with price, commitment level, and buyer uncertainty.</p></div>
+          <div class="benchmark-card accent-faq"><h3>FAQ Pages</h3><strong>1,000-3,000</strong><p>Self-contained answers can earn snippets and support schema markup.</p></div>
+        </div>
+        <h3>Tool and utility pages: 300-800 words</h3>
+        <p>The tool is the content. Users arrive to do something &mdash; <a href="/image-resizer/">resize an image</a>, <a href="/qr-code-generator/">generate a QR code</a>, format JSON with the <a href="/json-formatter/">JSON Formatter</a> &mdash; and the interactive element delivers the primary value. Educational context of 300 to 500 words helps Google understand the page's purpose and establishes topical expertise without burying the tool under text that most users will skip entirely. Tool pages on Tooliest include explanations of how each tool works, which use cases it serves, and what decisions it helps with &mdash; enough to establish expertise without transforming a utility page into an essay. The exception is a tool page where education is genuinely co-equal with utility: a <a href="/compound-interest/">compound interest calculator</a> or mortgage calculator paired with a comprehensive explanation of amortization can justify 1,500 or more words because the explanatory content is itself valuable.</p>
+        <h3>Blog posts: 1,500-2,500 words</h3>
+        <p>Below 1,000 words creates thin content risk for pages whose primary purpose is to inform &mdash; there is rarely enough space to cover a topic at the depth required to compete in organic search for informational queries. The 1,500 to 2,000 range covers most topics with enough depth to be genuinely useful while maintaining the reading momentum needed to hold attention through completion. The 2,000 to 2,500 range is appropriate for competitive topics where top-ranking pages are already comprehensive. Pushing beyond 3,000 words is justified only when the topic genuinely requires it &mdash; technical tutorials, original data analysis, multi-step process guides. Padding to reach that range produces the exact quality signals that suppress rankings rather than improve them.</p>
+        <h3>Pillar and cornerstone pages: 3,000-5,000 words</h3>
+        <p>These are your comprehensive topic hubs &mdash; "The Complete Guide to X" pages that rank for the broadest keywords in a topical cluster and link internally to specific subtopic pages. Length is structurally justified because these pages are meant to cover an entire subject area in one place. A complete guide to image optimization, for example, needs to address file formats, compression techniques, lazy loading implementation, CDN delivery, responsive image syntax, and alt text best practices &mdash; each of which occupies meaningful space when covered with enough specificity to be actionable.</p>
+        <h3>Product and service pages: 300-500 words plus specifications</h3>
+        <p>Buyers want product details, not essays. Focus on unique value propositions, technical specifications, and clear differentiators from competing options. Long product descriptions frequently hurt conversion rates by pushing the primary call to action below the fold, increasing the distance between the buyer's intent and the action the page is trying to produce.</p>
+        <h3>Landing pages: 500-1,500 words based on price point and commitment level</h3>
+        <p>Low-cost, low-commitment offers require less convincing &mdash; 500 to 800 words covering the offer, its benefits, and the action. High-cost or high-commitment offers need more copy because buyers require more evidence before converting &mdash; 1,000 to 1,500 words or more, every sentence oriented toward the conversion rather than general education.</p>
+        <h3>FAQ pages: 1,000-3,000 words total</h3>
+        <p>Ten to twenty questions at 50 to 150 words each. Each answer needs to be self-contained because Google frequently extracts individual answers as featured snippets &mdash; an answer that requires reading three previous answers to make sense will not be selected. Apply FAQ schema markup to every FAQ section for rich result eligibility, which increases click-through rate from the same ranking position. Tooliest's <a href="/schema-generator/">Schema Generator</a> can help structure FAQPage markup when the page genuinely has useful questions and answers.</p>
 
-      <h2>Longer pages often win because they answer more questions</h2>
-      <p>Longer pieces often succeed simply by unfolding step by step - defining the idea, walking through execution, showing typical errors, listing possible options, then ending with pre-publish checks. This kind of range turns a basic explanation into something readers actually keep open. Links come easier when there’s depth worth referencing. Satisfaction at the close feels natural, not forced.</p>
-      <p>When shaping a page, teams often check how long it is, what words repeat, where content comes from. Tooliest offers tools that slot right into this process. A <a href="/word-counter/">Word Counter</a> tracks length without fuss. Repetition becomes clear through <a href="/keyword-density/">keyword analysis</a>. The <a href="/ai-text-summarizer/">summarizer</a> pulls core ideas from raw text. Each step connects to the next, smoothing out rough edges before publishing.</p>
+        <h2>Search Intent Determines Length (The Framework That Actually Works)</h2>
+        <p>Word count targets are a shortcut for when you have not yet analyzed the search intent. When you have, the targets become largely redundant.</p>
+        <div class="guide-intent-matrix">
+          <table>
+            <thead>
+              <tr>
+                <th>Intent Type</th>
+                <th>Example Query</th>
+                <th>Ideal Length</th>
+                <th>What Users Want</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Informational</td><td>"how does X work"</td><td>1,500-3,000</td><td>Learn</td></tr>
+              <tr><td>Navigational</td><td>"tooliest word counter"</td><td>100-300</td><td>Find</td></tr>
+              <tr><td>Transactional</td><td>"buy X online"</td><td>300-800</td><td>Act</td></tr>
+              <tr><td>Commercial</td><td>"best X tools 2026"</td><td>1,500-2,500</td><td>Compare</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Informational intent</strong> &mdash; queries like "how does compound interest work" or "what is DNS propagation" &mdash; signals that the user wants to learn. Thorough coverage is the product. These pages typically require 1,500 to 3,000 or more words because the user's job is not done until they understand the topic, and understanding usually requires more than a paragraph. Check what the top five results cover by reading them. Match their depth on every subtopic they address, and go further on the ones where they are superficial.</p>
+        <p><strong>Navigational intent</strong> &mdash; queries like "Tooliest word counter" or "Gmail inbox" &mdash; signals that the user already knows exactly where they want to go. They do not need education; they need to arrive. Padding navigational pages with extensive content does not serve the user and does not improve rankings. One hundred to three hundred words confirming the page is what they searched for is sufficient.</p>
+        <p><strong>Transactional intent</strong> &mdash; queries like "buy running shoes" or "download Photoshop" &mdash; signals readiness to act. Product details, pricing, availability, reviews, and a clear conversion path are what this user needs. Three hundred to 800 words focused entirely on the purchase decision, not on explaining what running shoes are.</p>
+        <p><strong>Commercial investigation intent</strong> &mdash; queries like "best word counter tools 2026" or "Notion vs Obsidian" &mdash; signals active comparison before a decision. These users are evaluating options and need enough information to make a judgment. 1,500 to 2,500 words covering multiple options with honest pros and cons builds the trust required for this search stage.</p>
+        <p>The practical calibration process: search your target keyword in an incognito window. Open the top five results. Check their word counts using Tooliest's <a href="/word-counter/">Word Counter</a>. Calculate the average. Then ask a harder question than "can I match this length" &mdash; ask whether you can cover the topic more thoroughly in fewer words. If yes, do exactly that. Brevity with completeness outperforms length with padding. If the top results all run 2,000 or more words and yours is 400, the gap almost certainly reflects subtopics you have not addressed rather than arbitrary length requirements.</p>
+        <p>Completeness is the operative metric, not word count. Does your page answer every reasonable question a searcher might have about this topic from the intent they brought to the query? If 800 words achieves that, 800 words is the correct length.</p>
 
-      <h2>Filler harms trust faster than brevity</h2>
-      <p>Some pages get wordy just because they think big blocks of text help search rankings. Yet filling space with recycled ideas often backfires - readers notice when things sound robotic or hollow. When reviewers check quality, thin content raises red flags fast. Pages work better if each part brings something new: clarity, contrast, real cases, or fresh angles. Stuff that adds nothing? It sits there like dead weight.</p>
-      <p>Length means nothing if the words do not hold weight. A piece stretches far only when every part pulls its share. Thin ideas collapse under their own stretch. Substance keeps pages upright, not padding. Fullness comes from clarity, never clutter. What lasts was built to stay, not just fill space.</p>
+        <h2>Thin Content: Where Google Draws the Line</h2>
+        <p>Google's thin content definition is about value relative to purpose, not a specific word threshold &mdash; but there are practical ranges where risk increases significantly.</p>
+        <div class="guide-thin-zones" aria-label="Thin content threshold zones">
+          <div class="thin-zone zone-red"><strong>0-200</strong><span>Almost always thin</span></div>
+          <div class="thin-zone zone-orange"><strong>200-500</strong><span>OK for tools/products</span></div>
+          <div class="thin-zone zone-yellow"><strong>500-1,000</strong><span>Danger zone for blog posts</span></div>
+          <div class="thin-zone zone-green"><strong>1,000+</strong><span>Generally safe for articles</span></div>
+        </div>
+        <p>Pages with fewer than 200 words of unique text are almost universally considered thin unless an interactive element &mdash; a tool, calculator, or generator &mdash; is the primary value delivery mechanism. In those cases the page is a utility, not an article, and the content standard is different. Between 200 and 500 words, product pages, tool pages, and category pages can be appropriate, but informational articles at this length consistently fail to cover topics with enough depth to compete. Between 500 and 1,000 words, blog posts sit in a danger zone &mdash; they are long enough to appear substantive but typically too short to address a topic at the depth required for competitive informational queries. Above 1,000 words, informational content is generally safe from thin content classification, though quality still determines performance within that range.</p>
+        <p>The site-level risk is more serious than most content teams realize. Google's Helpful Content System evaluates sites holistically. A site where a significant portion of pages are thin can see suppressed rankings across all pages &mdash; including the ones with strong content. This is the structural reason that tool-focused sites need educational content alongside their utilities. It is not about padding individual tool pages with unnecessary text. It is about ensuring the site as a whole demonstrates depth, expertise, and genuine helpfulness across its content inventory.</p>
 
-      <h2>Word count works better as a clue than a goal</h2>
-      <p>When you see high-performing pages include things like real cases, common questions, or step-by-step guides - and yours does not - that’s where differences start showing up. It is less about hitting a specific figure on screen. More often it shows what isn’t included at all. A lower total might just point out empty spots. What matters lives inside those numbers: depth, clarity, presence of key parts. Raw totals do not fix holes. They only hint they exist.</p>
-      <p>Here's a better approach to using that number. Instead of treating it like magic, think of it as a hint.</p>
-
-      <h2>What really matters is which question you choose to explore</h2>
-      <p>Start by wondering what the person reading really needs to know before moving on. This shifts focus from counting sentences to building useful parts that make sense when put together. Pages take shape differently once you see them as answers instead of assignments. Details gain purpose when tied to understanding, not targets. The real goal shows up only after the noise fades.</p>
-      <p>Once the answer clicks into place, length tends to sort itself out naturally.</p>
+        <h2>The Filler Trap: How Padding Word Count Destroys Rankings</h2>
+        <p>There are specific filler patterns that appear so consistently across low-quality content that both Google's quality rater guidelines and its automated systems are designed to catch them.</p>
+        <p>Restating the same point across multiple paragraphs using different words is the most common. Adding definitions the audience already knows &mdash; "A word counter is a tool that counts words" on a page used by writers &mdash; signals a mismatch between the content and its intended reader. Padding with obvious bridging statements like "It is important to remember that" or "As we have discussed above" adds characters without adding information. Inserting a conclusion section that simply recaps the introduction produces a page that says the same things twice at the cost of the reader's time. Adding historical context sections when the user's query is entirely practical &mdash; "what is the history of spreadsheet software" tacked onto a page about Excel shortcuts &mdash; dilutes the signal of what the page is actually about.</p>
+        <p>The deletion test is the most reliable quality audit tool available: if you can remove a paragraph and the page loses nothing of value, the paragraph is filler. Cut it.</p>
+        <p>The information density standard is a stricter version of the same principle: every paragraph should contain at least one fact, number, example, or actionable instruction that the reader could not have known before reading it. A paragraph that only transitions between sections or restates a prior point is a candidate for deletion or merger.</p>
+        <p>Run this audit workflow when content is underperforming:</p>
+        <div class="guide-audit-steps" aria-label="Content audit checklist">
+          <div class="audit-step"><span>1</span><p>Open the page in Tooliest's <a href="/word-counter/">Word Counter</a> to capture baseline words, sentences, paragraphs, and reading time.</p></div>
+          <div class="audit-step"><span>2</span><p>Read every paragraph and ask what it teaches that no other paragraph on the page teaches.</p></div>
+          <div class="audit-step"><span>3</span><p>Highlight paragraphs that fail that test; those are filler candidates.</p></div>
+          <div class="audit-step"><span>4</span><p>Delete or merge weak paragraphs instead of protecting the original word count.</p></div>
+          <div class="audit-step"><span>5</span><p>Compare top-ranking pages and identify subtopics your page does not address yet.</p></div>
+          <div class="audit-step"><span>6</span><p>Write new high-density material only for genuine gaps, examples, and missing questions.</p></div>
+          <div class="audit-step"><span>7</span><p>Run the revised draft through the <a href="/keyword-density/">Keyword Density Checker</a> to make sure editing did not overconcentrate a term.</p></div>
+        </div>
+        <p>Start by opening the page in Tooliest's <a href="/word-counter/">Word Counter</a> to establish baseline metrics &mdash; total words, sentences, paragraphs, and estimated reading time. Read every paragraph in sequence and ask a single question: what does this teach that no other paragraph on this page teaches? Highlight every paragraph that fails that test. Those are your filler candidates. Delete or merge them. Now read the result and identify any gaps &mdash; topics your direct competitors cover in their top-ranking pages that your page does not address. Write new content specifically for those gaps. The goal is not to recover your original word count &mdash; it is to replace low-density filler with high-density original material. Finally, run the revised page through Tooliest's <a href="/keyword-density/">Keyword Density Checker</a> to verify that editing has not inadvertently concentrated a single term into overuse, which creates its own set of quality signals.</p>
+        <p>The content length that wins consistently is the minimum length required to cover the topic completely for the searcher's intent, with zero sentences that exist solely to make the page appear longer than it needs to be.</p>
+        <p>Check your content length and readability metrics with Tooliest's <a href="/word-counter/">Word Counter</a>, analyze keyword distribution with the <a href="/keyword-density/">Keyword Density Checker</a>, and write effective page metadata with the <a href="/meta-tag-generator/">Meta Tag Generator</a>. For crawl documentation and access rules, pair the final page with the <a href="/sitemap-generator/">Sitemap Generator</a> and <a href="/robots-txt-generator/">Robots.txt Generator</a> &mdash; all free, no signup, running directly in your browser.</p>
+      </div>
     `,
     faqs: [
       { q: 'Is there an ideal word count for SEO?', a: 'No universal number works for every query. The right length depends on search intent, competition, topic depth, and what the user needs to solve the problem.' },
