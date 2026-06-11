@@ -5196,6 +5196,280 @@ const WORD_COUNT_SEO_GUIDE_VISUAL_CSS = `<style>
   }
 </style>`;
 
+const QR_CODES_BUSINESS_GUIDE_VISUAL_CSS = `<style>
+  .guide-article-copy .guide-qr-business .guide-qr-industry,
+  .guide-article-copy .guide-qr-business .guide-scan-distance,
+  .guide-article-copy .guide-qr-business .guide-qr-compare,
+  .guide-article-copy .guide-qr-business .guide-qr-mistakes,
+  .guide-article-copy .guide-qr-business .guide-utm-example {
+    margin: 24px 0 30px;
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-industry {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .guide-article-copy .guide-qr-business .qr-industry-card {
+    --qr-accent: #8b5cf6;
+    min-width: 0;
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(148,163,184,.2);
+    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .guide-article-copy .guide-qr-business .qr-industry-card > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--qr-accent) 22%, transparent);
+    font-size: 1.45rem;
+  }
+  .guide-article-copy .guide-qr-business .qr-industry-card h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+  }
+  .guide-article-copy .guide-qr-business .qr-industry-card p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: .88rem;
+    line-height: 1.5;
+  }
+  .guide-article-copy .guide-qr-business .qr-industry-card strong {
+    color: var(--qr-accent);
+  }
+  .guide-article-copy .guide-qr-business .accent-restaurant { --qr-accent: #f97316; }
+  .guide-article-copy .guide-qr-business .accent-retail { --qr-accent: #ec4899; }
+  .guide-article-copy .guide-qr-business .accent-realestate { --qr-accent: #22c55e; }
+  .guide-article-copy .guide-qr-business .accent-events { --qr-accent: #8b5cf6; }
+  .guide-article-copy .guide-qr-business .accent-healthcare { --qr-accent: #38bdf8; }
+  .guide-article-copy .guide-qr-business .accent-logistics { --qr-accent: #f59e0b; }
+  .guide-article-copy .guide-qr-business .guide-scan-distance {
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+    border: 1px solid rgba(139,92,246,.22);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(6,182,212,.045)), rgba(255,255,255,.025);
+    box-shadow: 0 18px 42px rgba(0,0,0,.18);
+  }
+  .guide-article-copy .guide-qr-business .scan-row {
+    display: grid;
+    grid-template-columns: 92px minmax(120px, 1fr) 130px;
+    align-items: center;
+    gap: 12px;
+  }
+  .guide-article-copy .guide-qr-business .scan-row > span {
+    color: var(--text-secondary);
+    font-size: .84rem;
+    font-weight: 850;
+  }
+  .guide-article-copy .guide-qr-business .scan-track {
+    height: 18px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(148,163,184,.18);
+  }
+  .guide-article-copy .guide-qr-business .scan-track span {
+    display: block;
+    width: var(--bar);
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+  }
+  .guide-article-copy .guide-qr-business .scan-row strong {
+    color: var(--text-primary);
+    font-size: .86rem;
+    text-align: right;
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-compare {
+    overflow-x: auto;
+    border: 1px solid rgba(139,92,246,.22);
+    border-radius: 16px;
+    background: rgba(255,255,255,.025);
+    box-shadow: 0 16px 36px rgba(0,0,0,.14);
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-compare table {
+    width: 100%;
+    min-width: 560px;
+    margin: 0;
+    border-collapse: collapse;
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-compare th,
+  .guide-article-copy .guide-qr-business .guide-qr-compare td {
+    width: 50%;
+    padding: 13px 14px;
+    border-bottom: 1px solid rgba(148,163,184,.16);
+    text-align: left;
+    vertical-align: top;
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-compare th:first-child {
+    background: linear-gradient(135deg, rgba(34,197,94,.34), rgba(34,197,94,.12));
+    color: #bbf7d0;
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-compare th:last-child {
+    background: linear-gradient(135deg, rgba(245,158,11,.34), rgba(245,158,11,.12));
+    color: #fde68a;
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-compare tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-mistakes {
+    display: grid;
+    gap: 14px;
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-mistakes article {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.2);
+    border-radius: 16px;
+    background: rgba(255,255,255,.025);
+  }
+  .guide-article-copy .guide-qr-business .mistake-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+    font: 900 .95rem/1 var(--font-mono);
+  }
+  .guide-article-copy .guide-qr-business .mistake-side,
+  .guide-article-copy .guide-qr-business .fix-side {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+  }
+  .guide-article-copy .guide-qr-business .mistake-side {
+    background: linear-gradient(135deg, rgba(239,68,68,.16), rgba(239,68,68,.045));
+    border-right: 1px solid rgba(148,163,184,.16);
+  }
+  .guide-article-copy .guide-qr-business .fix-side {
+    background: linear-gradient(135deg, rgba(34,197,94,.16), rgba(34,197,94,.045));
+  }
+  .guide-article-copy .guide-qr-business .mistake-side strong::before {
+    content: "✗ ";
+    color: #f87171;
+  }
+  .guide-article-copy .guide-qr-business .fix-side strong::before {
+    content: "✓ ";
+    color: #4ade80;
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-mistakes strong {
+    color: var(--text-primary);
+    font-size: .92rem;
+  }
+  .guide-article-copy .guide-qr-business .guide-qr-mistakes p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: .86rem;
+    line-height: 1.5;
+  }
+  .guide-article-copy .guide-qr-business .guide-utm-example {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid rgba(139,92,246,.24);
+    border-radius: 16px;
+    background: #1e1e2e;
+    box-shadow: 0 18px 42px rgba(0,0,0,.2);
+  }
+  .guide-article-copy .guide-qr-business .guide-utm-example code {
+    display: block;
+    overflow-x: auto;
+    padding: 0;
+    color: #cdd6f4;
+    background: transparent;
+    font: 800 .9rem/1.7 var(--font-mono);
+    white-space: nowrap;
+  }
+  .guide-article-copy .guide-qr-business .utm-query,
+  .guide-article-copy .guide-qr-business .utm-sep { color: #f9e2af; }
+  .guide-article-copy .guide-qr-business .utm-source { color: #94e2d5; }
+  .guide-article-copy .guide-qr-business .utm-medium { color: #cba6f7; }
+  .guide-article-copy .guide-qr-business .utm-campaign { color: #fab387; }
+  .guide-article-copy .guide-qr-business .utm-labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .guide-article-copy .guide-qr-business .utm-labels span {
+    display: inline-flex;
+    padding: 6px 9px;
+    border-radius: 999px;
+    color: #f8fafc;
+    font-size: .76rem;
+    font-weight: 850;
+  }
+  .guide-article-copy .guide-qr-business .utm-labels .source { background: rgba(20,184,166,.28); }
+  .guide-article-copy .guide-qr-business .utm-labels .medium { background: rgba(139,92,246,.3); }
+  .guide-article-copy .guide-qr-business .utm-labels .campaign { background: rgba(249,115,22,.32); }
+  [data-theme=light] .guide-article-copy .guide-qr-business .qr-industry-card,
+  [data-theme=light] .guide-article-copy .guide-qr-business .guide-scan-distance,
+  [data-theme=light] .guide-article-copy .guide-qr-business .guide-qr-compare,
+  [data-theme=light] .guide-article-copy .guide-qr-business .guide-qr-mistakes article {
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 16px 34px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-qr-business .scan-track {
+    background: rgba(148,163,184,.22);
+  }
+  [data-theme=light] .guide-article-copy .guide-qr-business .guide-qr-compare th:first-child {
+    color: #166534;
+    background: linear-gradient(135deg, rgba(187,247,208,.78), rgba(240,253,244,.88));
+  }
+  [data-theme=light] .guide-article-copy .guide-qr-business .guide-qr-compare th:last-child {
+    color: #92400e;
+    background: linear-gradient(135deg, rgba(254,215,170,.78), rgba(255,251,235,.88));
+  }
+  [data-theme=light] .guide-article-copy .guide-qr-business .guide-utm-example {
+    background: #111827;
+  }
+  @media (max-width: 780px) {
+    .guide-article-copy .guide-qr-business .guide-qr-industry {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-qr-business .scan-row {
+      grid-template-columns: 80px minmax(80px, 1fr) 112px;
+      gap: 9px;
+    }
+    .guide-article-copy .guide-qr-business .guide-qr-mistakes article {
+      grid-template-columns: 36px 1fr;
+    }
+    .guide-article-copy .guide-qr-business .fix-side {
+      grid-column: 2;
+      border-top: 1px solid rgba(148,163,184,.14);
+    }
+    .guide-article-copy .guide-qr-business .mistake-side {
+      border-right: 0;
+    }
+    .guide-article-copy .guide-qr-business .mistake-number {
+      grid-row: span 2;
+    }
+  }
+  @media (max-width: 520px) {
+    .guide-article-copy .guide-qr-business .guide-scan-distance,
+    .guide-article-copy .guide-qr-business .guide-utm-example {
+      padding: 14px;
+    }
+    .guide-article-copy .guide-qr-business .scan-row {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+      gap: 6px;
+    }
+    .guide-article-copy .guide-qr-business .scan-row strong {
+      text-align: left;
+    }
+  }
+</style>`;
+
 function renderGuidesHubPage(tools) {
   const guideLastModified = getGuideContentLastModifiedDate();
   const softwarePageCount = getSoftwareEditorialPageCount();
@@ -5333,6 +5607,8 @@ function renderGuideArticlePage(guide) {
                     ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${SEO_URL_STRUCTURE_GUIDE_VISUAL_CSS}`
                     : guide.slug === 'word-count-and-seo-rankings'
                       ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${WORD_COUNT_SEO_GUIDE_VISUAL_CSS}`
+                      : guide.slug === 'qr-codes-for-business'
+                        ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${QR_CODES_BUSINESS_GUIDE_VISUAL_CSS}`
                   : '';
   const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' || guide.slug === 'color-theory-for-developers' || guide.slug === 'meta-tags-that-improve-rankings' || guide.slug === 'regex-patterns-for-beginners' || guide.slug === 'what-is-base64-encoding' || guide.slug === 'seo-friendly-url-structure' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
   const structuredData = [
