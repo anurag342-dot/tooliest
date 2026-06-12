@@ -5619,7 +5619,9 @@ function renderGuideArticlePage(guide) {
                       ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${WORD_COUNT_SEO_GUIDE_VISUAL_CSS}`
                       : guide.slug === 'qr-codes-for-business'
                         ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${QR_CODES_BUSINESS_GUIDE_VISUAL_CSS}`
-                  : '';
+                        : guide.slug === 'javascript-minification-vs-obfuscation'
+                          ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${JS_MINIFICATION_GUIDE_VISUAL_CSS}`
+                          : '';
   const guideExtraBody = guide.slug === 'optimize-images-for-web' || guide.slug === 'css-box-model-explained' || guide.slug === 'color-theory-for-developers' || guide.slug === 'meta-tags-that-improve-rankings' || guide.slug === 'regex-patterns-for-beginners' || guide.slug === 'what-is-base64-encoding' || guide.slug === 'seo-friendly-url-structure' ? GUIDE_ARTICLE_ENHANCEMENT_SCRIPT : '';
   const structuredData = [
     {
