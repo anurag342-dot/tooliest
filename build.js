@@ -2979,6 +2979,268 @@ const GUIDE_ARTICLE_ENHANCEMENT_CSS = `<style>
 
 const GUIDE_ARTICLE_ENHANCEMENT_SCRIPT = `<script data-cfasync="false">(function(){function copyText(text){if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(text);}return new Promise(function(resolve,reject){var textarea=document.createElement('textarea');textarea.value=text;textarea.setAttribute('readonly','');textarea.style.position='fixed';textarea.style.top='-9999px';document.body.appendChild(textarea);textarea.select();try{document.execCommand('copy')?resolve():reject(new Error('copy failed'));}catch(error){reject(error);}finally{textarea.remove();}});}function enhanceGuideArticle(){var root=document.querySelector('.guide-article-copy');if(!root)return;root.querySelectorAll('table').forEach(function(table){if(table.parentElement&&table.parentElement.classList.contains('guide-table-wrap'))return;var wrap=document.createElement('div');wrap.className='guide-table-wrap';table.parentNode.insertBefore(wrap,table);wrap.appendChild(table);});root.querySelectorAll('pre').forEach(function(pre,index){if(pre.closest('.guide-code-window'))return;var code=pre.querySelector('code');var language='code';if(code){var match=String(code.className||'').match(/language-([a-z0-9-]+)/i);if(match)language=match[1];}var windowEl=document.createElement('div');windowEl.className='guide-code-window';var header=document.createElement('div');header.className='guide-code-header';var meta=document.createElement('div');meta.className='guide-code-meta';var dots=document.createElement('span');dots.className='guide-code-dots';dots.setAttribute('aria-hidden','true');dots.innerHTML='<span></span><span></span><span></span>';var label=document.createElement('span');label.className='guide-code-language';label.textContent=language;var button=document.createElement('button');button.type='button';button.className='guide-code-copy';button.textContent='Copy';button.setAttribute('aria-label','Copy code snippet '+(index+1));button.addEventListener('click',function(){var text=(code||pre).innerText;copyText(text).then(function(){button.textContent='Copied';window.setTimeout(function(){button.textContent='Copy';},1400);}).catch(function(){button.textContent='Select';window.setTimeout(function(){button.textContent='Copy';},1400);});});meta.appendChild(dots);meta.appendChild(label);header.appendChild(meta);header.appendChild(button);pre.parentNode.insertBefore(windowEl,pre);windowEl.appendChild(header);windowEl.appendChild(pre);});}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',enhanceGuideArticle,{once:true});}else{enhanceGuideArticle();}})();</script>`;
 
+const CSS_MINIFICATION_GUIDE_VISUAL_CSS = `<style>
+  .guide-article-copy .guide-css-minification .guide-css-panels,
+  .guide-article-copy .guide-css-minification .guide-css-ops,
+  .guide-article-copy .guide-css-minification .guide-css-waterfall,
+  .guide-article-copy .guide-css-minification .guide-css-timeline,
+  .guide-article-copy .guide-css-minification .guide-css-tools {
+    margin: 24px 0 30px;
+  }
+  .guide-article-copy .guide-css-minification .guide-css-panels {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 14px;
+    align-items: stretch;
+  }
+  .guide-article-copy .guide-css-minification .css-code-card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba(148,163,184,.22);
+    border-radius: 16px;
+    background: #111827;
+    box-shadow: 0 18px 42px rgba(0,0,0,.2);
+  }
+  .guide-article-copy .guide-css-minification .css-code-card.original { border-color: rgba(56,189,248,.62); }
+  .guide-article-copy .guide-css-minification .css-code-card.minified { border-color: rgba(34,197,94,.68); }
+  .guide-article-copy .guide-css-minification .css-code-card header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 12px;
+    border-bottom: 1px solid rgba(148,163,184,.18);
+    background: rgba(15,23,42,.96);
+  }
+  .guide-article-copy .guide-css-minification .css-code-card header span {
+    color: #f8fafc;
+    font-size: .82rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .guide-article-copy .guide-css-minification .css-code-card header strong,
+  .guide-article-copy .guide-css-minification .css-reduction-badge {
+    color: #bbf7d0;
+    font: 900 .78rem/1 var(--font-mono);
+  }
+  .guide-article-copy .guide-css-minification .css-code-card pre {
+    margin: 0;
+    overflow-x: auto;
+    background: #111827;
+  }
+  .guide-article-copy .guide-css-minification .css-code-card code {
+    display: block;
+    padding: 14px;
+    color: #d1d5db;
+    background: transparent;
+    font: 750 .78rem/1.65 var(--font-mono);
+    white-space: pre;
+  }
+  .guide-article-copy .guide-css-minification .css-comment { color: #94a3b8; }
+  .guide-article-copy .guide-css-minification .css-selector { color: #7dd3fc; }
+  .guide-article-copy .guide-css-minification .css-prop { color: #c4b5fd; }
+  .guide-article-copy .guide-css-minification .css-value { color: #86efac; }
+  .guide-article-copy .guide-css-minification .css-reduction-badge {
+    align-self: center;
+    justify-self: center;
+    padding: 12px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(34,197,94,.38);
+    background: rgba(34,197,94,.13);
+    box-shadow: 0 12px 28px rgba(34,197,94,.14);
+  }
+  .guide-article-copy .guide-css-minification .guide-css-ops {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .guide-article-copy .guide-css-minification .guide-css-ops article {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid rgba(148,163,184,.2);
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+  }
+  .guide-article-copy .guide-css-minification .guide-css-ops span {
+    display: block;
+    color: #8b5cf6;
+    font: 950 1.9rem/1 var(--font-mono);
+  }
+  .guide-article-copy .guide-css-minification .guide-css-ops h3 {
+    margin: 10px 0 8px;
+    color: var(--text-primary);
+    font-size: .95rem;
+  }
+  .guide-article-copy .guide-css-minification .guide-css-ops p {
+    margin: 0 0 10px;
+    color: var(--text-secondary);
+    font-size: .84rem;
+    line-height: 1.45;
+  }
+  .guide-article-copy .guide-css-minification .guide-css-ops code {
+    display: block;
+    overflow-x: auto;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(15,23,42,.45);
+    color: #dbeafe;
+    font-size: .72rem;
+    white-space: nowrap;
+  }
+  .guide-article-copy .guide-css-minification .guide-css-waterfall,
+  .guide-article-copy .guide-css-minification .guide-css-timeline {
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+    border: 1px solid rgba(139,92,246,.24);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(139,92,246,.1), rgba(34,197,94,.05)), rgba(255,255,255,.025);
+    box-shadow: 0 18px 42px rgba(0,0,0,.18);
+  }
+  .guide-article-copy .guide-css-minification .waterfall-row {
+    display: grid;
+    grid-template-columns: 110px minmax(100px, 1fr) 72px 64px;
+    align-items: center;
+    gap: 12px;
+  }
+  .guide-article-copy .guide-css-minification .waterfall-row strong,
+  .guide-article-copy .guide-css-minification .waterfall-row em,
+  .guide-article-copy .guide-css-minification .waterfall-row small {
+    color: var(--text-primary);
+    font-weight: 850;
+    font-style: normal;
+  }
+  .guide-article-copy .guide-css-minification .waterfall-row span {
+    height: 20px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(148,163,184,.18);
+  }
+  .guide-article-copy .guide-css-minification .waterfall-row i {
+    display: block;
+    width: var(--w);
+    height: 100%;
+    border-radius: inherit;
+    background: var(--c);
+  }
+  .guide-article-copy .guide-css-minification .timeline-row {
+    display: grid;
+    grid-template-columns: 72px repeat(5, minmax(76px, 1fr));
+    align-items: center;
+    gap: 8px;
+  }
+  .guide-article-copy .guide-css-minification .timeline-row strong {
+    color: var(--text-primary);
+  }
+  .guide-article-copy .guide-css-minification .timeline-row span {
+    min-height: 56px;
+    display: grid;
+    place-items: center;
+    padding: 8px;
+    border-radius: 12px;
+    color: var(--text-primary);
+    text-align: center;
+    font-size: .78rem;
+    font-weight: 850;
+    background: rgba(139,92,246,.12);
+    border: 1px solid rgba(139,92,246,.24);
+  }
+  .guide-article-copy .guide-css-minification .timeline-row.after span {
+    background: rgba(34,197,94,.12);
+    border-color: rgba(34,197,94,.24);
+  }
+  .guide-article-copy .guide-css-minification .timeline-row i {
+    height: 2px;
+    min-width: 18px;
+    background: linear-gradient(90deg, #8b5cf6, #22c55e);
+  }
+  .guide-article-copy .guide-css-minification .timeline-row small {
+    color: var(--text-tertiary);
+  }
+  .guide-article-copy .guide-css-minification .guide-css-tools {
+    overflow-x: auto;
+    border: 1px solid rgba(139,92,246,.22);
+    border-radius: 16px;
+    background: rgba(255,255,255,.025);
+    box-shadow: 0 16px 36px rgba(0,0,0,.14);
+  }
+  .guide-article-copy .guide-css-minification .guide-css-tools table {
+    width: 100%;
+    min-width: 620px;
+    margin: 0;
+    border-collapse: collapse;
+  }
+  .guide-article-copy .guide-css-minification .guide-css-tools th,
+  .guide-article-copy .guide-css-minification .guide-css-tools td {
+    padding: 13px 14px;
+    border-bottom: 1px solid rgba(148,163,184,.16);
+    text-align: left;
+  }
+  .guide-article-copy .guide-css-minification .guide-css-tools th {
+    color: #f8fafc;
+    background: linear-gradient(135deg, rgba(139,92,246,.34), rgba(15,23,42,.64));
+  }
+  .guide-article-copy .guide-css-minification .guide-css-tools tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-article-copy .guide-css-minification .speed {
+    display: inline-flex;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: .76rem;
+    font-weight: 900;
+  }
+  .guide-article-copy .guide-css-minification .speed.medium { color: #dbeafe; background: rgba(59,130,246,.24); }
+  .guide-article-copy .guide-css-minification .speed.fast { color: #bbf7d0; background: rgba(34,197,94,.22); }
+  .guide-article-copy .guide-css-minification .speed.fastest { color: #fef3c7; background: rgba(245,158,11,.26); }
+  [data-theme=light] .guide-article-copy .guide-css-minification .guide-css-ops article,
+  [data-theme=light] .guide-article-copy .guide-css-minification .guide-css-waterfall,
+  [data-theme=light] .guide-article-copy .guide-css-minification .guide-css-timeline,
+  [data-theme=light] .guide-article-copy .guide-css-minification .guide-css-tools {
+    background: rgba(255,255,255,.9);
+    box-shadow: 0 16px 34px rgba(15,23,42,.06);
+  }
+  [data-theme=light] .guide-article-copy .guide-css-minification .guide-css-ops code {
+    background: rgba(15,23,42,.08);
+    color: #1e3a8a;
+  }
+  [data-theme=light] .guide-article-copy .guide-css-minification .waterfall-row span {
+    background: rgba(148,163,184,.22);
+  }
+  [data-theme=light] .guide-article-copy .guide-css-minification .guide-css-tools th {
+    color: #312e81;
+    background: linear-gradient(135deg, rgba(139,92,246,.18), rgba(241,245,249,.94));
+  }
+  @media (max-width: 980px) {
+    .guide-article-copy .guide-css-minification .guide-css-panels {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-css-minification .css-reduction-badge {
+      margin: -4px auto;
+    }
+    .guide-article-copy .guide-css-minification .guide-css-ops {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .guide-article-copy .guide-css-minification .timeline-row {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-css-minification .timeline-row i {
+      width: 2px;
+      height: 16px;
+      justify-self: center;
+    }
+  }
+  @media (max-width: 560px) {
+    .guide-article-copy .guide-css-minification .guide-css-ops {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-css-minification .waterfall-row {
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+  }
+</style>`;
+
 const COMPOUND_INTEREST_GUIDE_VISUAL_CSS = `<style>
   .guide-article-copy .guide-formula-box {
     margin: 22px 0 20px;
@@ -5599,7 +5861,9 @@ function renderGuideArticlePage(guide) {
   const guideMetaDescription = getGuideMetaDescription(guide);
   const guideExtraHead = guide.slug === 'optimize-images-for-web'
     ? GUIDE_ARTICLE_ENHANCEMENT_CSS
-    : guide.slug === 'compound-interest-explained'
+    : guide.slug === 'css-minification-performance'
+      ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${CSS_MINIFICATION_GUIDE_VISUAL_CSS}`
+      : guide.slug === 'compound-interest-explained'
       ? COMPOUND_INTEREST_GUIDE_VISUAL_CSS
       : guide.slug === 'css-box-model-explained'
         ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${CSS_BOX_MODEL_GUIDE_VISUAL_CSS}`
