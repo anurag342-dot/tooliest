@@ -2979,6 +2979,281 @@ const GUIDE_ARTICLE_ENHANCEMENT_CSS = `<style>
 
 const GUIDE_ARTICLE_ENHANCEMENT_SCRIPT = `<script data-cfasync="false">(function(){function copyText(text){if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(text);}return new Promise(function(resolve,reject){var textarea=document.createElement('textarea');textarea.value=text;textarea.setAttribute('readonly','');textarea.style.position='fixed';textarea.style.top='-9999px';document.body.appendChild(textarea);textarea.select();try{document.execCommand('copy')?resolve():reject(new Error('copy failed'));}catch(error){reject(error);}finally{textarea.remove();}});}function enhanceGuideArticle(){var root=document.querySelector('.guide-article-copy');if(!root)return;root.querySelectorAll('table').forEach(function(table){if(table.parentElement&&table.parentElement.classList.contains('guide-table-wrap'))return;var wrap=document.createElement('div');wrap.className='guide-table-wrap';table.parentNode.insertBefore(wrap,table);wrap.appendChild(table);});root.querySelectorAll('pre').forEach(function(pre,index){if(pre.closest('.guide-code-window'))return;var code=pre.querySelector('code');var language='code';if(code){var match=String(code.className||'').match(/language-([a-z0-9-]+)/i);if(match)language=match[1];}var windowEl=document.createElement('div');windowEl.className='guide-code-window';var header=document.createElement('div');header.className='guide-code-header';var meta=document.createElement('div');meta.className='guide-code-meta';var dots=document.createElement('span');dots.className='guide-code-dots';dots.setAttribute('aria-hidden','true');dots.innerHTML='<span></span><span></span><span></span>';var label=document.createElement('span');label.className='guide-code-language';label.textContent=language;var button=document.createElement('button');button.type='button';button.className='guide-code-copy';button.textContent='Copy';button.setAttribute('aria-label','Copy code snippet '+(index+1));button.addEventListener('click',function(){var text=(code||pre).innerText;copyText(text).then(function(){button.textContent='Copied';window.setTimeout(function(){button.textContent='Copy';},1400);}).catch(function(){button.textContent='Select';window.setTimeout(function(){button.textContent='Copy';},1400);});});meta.appendChild(dots);meta.appendChild(label);header.appendChild(meta);header.appendChild(button);pre.parentNode.insertBefore(windowEl,pre);windowEl.appendChild(header);windowEl.appendChild(pre);});}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',enhanceGuideArticle,{once:true});}else{enhanceGuideArticle();}})();</script>`;
 
+const PDF_WORKFLOW_GUIDE_VISUAL_CSS = `<style>
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline,
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression,
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption,
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy,
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes {
+    margin: 24px 0 30px;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px 26px;
+    align-items: stretch;
+    position: relative;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline article {
+    min-width: 0;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--step-color) 42%, transparent);
+    background: linear-gradient(150deg, color-mix(in srgb, var(--step-color) 18%, transparent), rgba(15,23,42,.42));
+    box-shadow: 0 18px 38px rgba(2,6,23,.16);
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline span {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+    background: var(--step-color);
+    font-size: .8rem;
+    font-weight: 800;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline strong {
+    display: block;
+    margin: 12px 0 6px;
+    color: var(--text-primary);
+    font-size: 1rem;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: .92rem;
+    line-height: 1.45;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline i {
+    position: absolute;
+    top: 50%;
+    transform: translate(50%, -50%);
+    width: 26px;
+    margin-left: -26px;
+    color: #8b5cf6;
+    font-style: normal;
+    font-weight: 900;
+    text-align: center;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline i:nth-of-type(1) { left: 20%; }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline i:nth-of-type(2) { left: 40%; }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline i:nth-of-type(3) { left: 60%; }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline i:nth-of-type(4) { left: 80%; }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression,
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption,
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy article,
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes details {
+    border: 1px solid rgba(139,92,246,.22);
+    border-radius: 14px;
+    background: rgba(15,23,42,.38);
+    box-shadow: 0 18px 38px rgba(2,6,23,.14);
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression {
+    overflow-x: auto;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression th,
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(148,163,184,.16);
+    text-align: left;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression th {
+    color: #f8fafc;
+    background: linear-gradient(135deg, rgba(59,130,246,.28), rgba(139,92,246,.28));
+    font-size: .86rem;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression tr:last-child td {
+    border-bottom: 0;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression td:last-child {
+    width: 220px;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression td:last-child span {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 10px;
+    align-items: center;
+    color: var(--text-primary);
+    font-weight: 800;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-compression td:last-child span::after {
+    content: "";
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22c55e var(--bar), rgba(148,163,184,.22) var(--bar));
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 16px;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption article {
+    min-width: 0;
+    padding: 18px;
+    border-radius: 12px;
+    background: rgba(139,92,246,.12);
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption span {
+    font-size: 2rem;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption h3,
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy h3 {
+    margin: 8px 0;
+    color: var(--text-primary);
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption p {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption > p {
+    grid-column: 1 / -1;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(139,92,246,.12);
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy article {
+    padding: 18px;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy .cloud {
+    border-color: rgba(239,68,68,.35);
+    background: linear-gradient(150deg, rgba(239,68,68,.13), rgba(15,23,42,.38));
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy .browser {
+    border-color: rgba(34,197,94,.35);
+    background: linear-gradient(150deg, rgba(34,197,94,.13), rgba(15,23,42,.38));
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy p {
+    color: var(--text-secondary);
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy ul {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy li {
+    margin: 8px 0;
+    padding-left: 26px;
+    position: relative;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy li::before {
+    position: absolute;
+    left: 0;
+    font-weight: 900;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy .cloud li::before {
+    content: "!";
+    color: #ef4444;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy .browser li::before {
+    content: "✓";
+    color: #22c55e;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes {
+    display: grid;
+    gap: 12px;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes details {
+    padding: 0;
+    overflow: hidden;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 16px 18px;
+    cursor: pointer;
+    color: var(--text-primary);
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes summary strong {
+    font-size: 1.02rem;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes summary span {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes b {
+    padding: 4px 8px;
+    border-radius: 999px;
+    color: #ede9fe;
+    background: rgba(139,92,246,.26);
+    font-size: .76rem;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes details > p,
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes details > ol {
+    margin: 0;
+    padding: 0 18px 16px;
+  }
+  .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes ol {
+    padding-left: 36px !important;
+  }
+  [data-theme=light] .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline article,
+  [data-theme=light] .guide-article-copy .guide-pdf-workflow .guide-pdf-compression,
+  [data-theme=light] .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption,
+  [data-theme=light] .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy article,
+  [data-theme=light] .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes details {
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 18px 34px rgba(15,23,42,.07);
+  }
+  [data-theme=light] .guide-article-copy .guide-pdf-workflow .guide-pdf-compression th {
+    color: #312e81;
+    background: linear-gradient(135deg, rgba(59,130,246,.14), rgba(139,92,246,.16));
+  }
+  [data-theme=light] .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption article,
+  [data-theme=light] .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption > p {
+    background: rgba(139,92,246,.08);
+  }
+  [data-theme=light] .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy .cloud {
+    background: rgba(254,242,242,.92);
+  }
+  [data-theme=light] .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy .browser {
+    background: rgba(240,253,244,.92);
+  }
+  @media (max-width: 880px) {
+    .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline i {
+      position: static;
+      transform: none;
+      width: auto;
+      margin: -4px 0;
+      text-align: center;
+    }
+    .guide-article-copy .guide-pdf-workflow .guide-pdf-pipeline i:nth-of-type(n) {
+      left: auto;
+    }
+    .guide-article-copy .guide-pdf-workflow .guide-pdf-encryption,
+    .guide-article-copy .guide-pdf-workflow .guide-pdf-privacy {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes summary {
+      grid-template-columns: 1fr;
+    }
+    .guide-article-copy .guide-pdf-workflow .guide-pdf-recipes summary span {
+      justify-content: flex-start;
+    }
+  }
+</style>`;
+
 const CSS_MINIFICATION_GUIDE_VISUAL_CSS = `<style>
   .guide-article-copy .guide-css-minification .guide-css-panels,
   .guide-article-copy .guide-css-minification .guide-css-ops,
@@ -5861,7 +6136,9 @@ function renderGuideArticlePage(guide) {
   const guideMetaDescription = getGuideMetaDescription(guide);
   const guideExtraHead = guide.slug === 'optimize-images-for-web'
     ? GUIDE_ARTICLE_ENHANCEMENT_CSS
-    : guide.slug === 'css-minification-performance'
+    : guide.slug === 'pdf-workflow-guide'
+      ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${PDF_WORKFLOW_GUIDE_VISUAL_CSS}`
+      : guide.slug === 'css-minification-performance'
       ? `${GUIDE_ARTICLE_ENHANCEMENT_CSS}${CSS_MINIFICATION_GUIDE_VISUAL_CSS}`
       : guide.slug === 'compound-interest-explained'
       ? COMPOUND_INTEREST_GUIDE_VISUAL_CSS

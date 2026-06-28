@@ -337,38 +337,122 @@ document.querySelectorAll('img[data-src]').forEach(img =&gt; observer.observe(im
     slug: 'pdf-workflow-guide',
     group: 'workflow',
     title: 'PDF Workflow Guide: Merge, Split, Compress, and Protect PDFs in the Browser',
-    description: 'A practical guide to browser-based PDF work, from combining files to reducing size and protecting sensitive documents.',
+    description: 'Step-by-step PDF workflow guide covering operation order (merge→split→compress→watermark→protect), what each tool does to the file internally, compression benchmarks for scanned vs text documents, AES-256 encryption with user vs owner passwords, browser-based vs cloud processing for privacy, and four ready-to-use workflow recipes for professional tasks.',
     socialDescription: 'Learn how to merge, split, compress, watermark, and protect PDFs without turning everyday document work into a privacy headache.',
     teaser: 'A complete reference for working with PDFs without uploading files to external servers. Covers common workflows, privacy considerations, and the Tooliest PDF stack.',
     published: '2026-04-29',
-    updated: '2026-05-02',
-    readMinutes: 8,
+    updated: '2026-06-28',
+    readMinutes: 12,
     tags: ['PDF', 'Document Workflows', 'Privacy'],
     contentHtml: `
-      <p>Things seem fine with PDFs - until they suddenly are not. Imagine needing only to join two documents at first. Then, fast forward: rearranging pages becomes necessary. A sensitive page must go. File size creeps too high, so trimming matters. Watermarks appear on the list. Deadlines loom right after. Tools multiply across screens. Desktop apps open beside endless tabs. Cloud services wait with uncertain safety. Trust fades while effort piles up.</p>
-      <p>Most people just want things to work without confusion. Clear steps matter more than fancy features. Predictable results build trust over time. Control stays important when handling private documents. This shapes how Tooliest builds its tools. Instead of one crowded screen, you get focused options. Each tool does less but works better. Complexity hides behind simplicity by design. Fewer surprises happen during daily tasks. Tools live apart yet feel connected. A full job gets done across several pages. Clarity wins because choices stay limited.</p>
+      <div class="guide-pdf-workflow">
+        <h2>Why the Order You Process PDFs Matters More Than the Tools You Use</h2>
+        <p>A paralegal is preparing a 45-page contract for client delivery. She runs it through a compressor first: 12MB down to 4MB, a solid result. Then she notices pages 31 through 35 are from an outdated version. She splits those pages out, replaces them with the correct five pages from a separate file using a merger, and ends up with a corrected 40-page document that is now back up to 11MB because the newly merged pages arrived uncompressed. She compresses again, gets it back to 4.1MB, then adds a "CONFIDENTIAL" watermark, then applies password protection. Four tool operations became seven, and two of them were pure repetition of work she had already done.</p>
+        <p>The right order for the same task: merge all source documents first, split out the wrong pages and replace them before any optimization happens, compress the final assembled 40-page document once, apply the watermark, then apply password protection. Same outcome, three fewer operations, and the compression runs once on the finished content rather than twice on different versions of an incomplete document.</p>
 
-      <h2>Know the job before you pick the tool</h2>
-      <p>Most folks find PDF jobs simpler once things get sorted into groups. Splitting files happens alongside joining them - both shape how documents look overall. Shrinking a file falls under size adjustments, nothing more. Tossing on watermarks or adding numbers? That belongs up front, where appearance matters. Locking a document with a password stands apart, tied only to safety. Pulling text counts as one kind of content work. Knowing the job's type makes picking what comes after feel nearly automatic.</p>
-      <p>Most folks waste minutes hopping through one bulky tool no matter what they?re doing. Try skipping around less by picking tools that fit just one job. When merging pages feels like dragging feet, fire up <a href="/pdf-merger/">PDF Merger</a> instead. Heavy file slowing things down? Toss it into <a href="/pdf-compressor/">PDF Compressor</a> without detours. Finish fast by going straight where needed.</p>
+        <div class="guide-pdf-pipeline" aria-label="Recommended PDF workflow order">
+          <article style="--step-color:#3b82f6"><span>01</span><strong>Merge</strong><p>Combine every source file before polishing.</p></article>
+          <i aria-hidden="true">&rarr;</i>
+          <article style="--step-color:#06b6d4"><span>02</span><strong>Split/Reorder</strong><p>Remove, replace, and arrange final pages.</p></article>
+          <i aria-hidden="true">&rarr;</i>
+          <article style="--step-color:#22c55e"><span>03</span><strong>Compress</strong><p>Optimize the finished page set once.</p></article>
+          <i aria-hidden="true">&rarr;</i>
+          <article style="--step-color:#14b8a6"><span>04</span><strong>Watermark</strong><p>Stamp only the pages that survive review.</p></article>
+          <i aria-hidden="true">&rarr;</i>
+          <article style="--step-color:#8b5cf6"><span>05</span><strong>Protect</strong><p>Encrypt last so earlier edits stay possible.</p></article>
+        </div>
 
-      <h2>Shape the document before polishing it</h2>
-      <p><strong>Start by combining sections. Then pull apart what needs more space. Shift pieces around when it feels right. Finish with a careful review.</strong></p>
-      <p>Start by shaping the whole thing before diving into details. Tackle arrangement early - stitch parts together, toss out what is extra, shift sections around. Fix order long before thinking about marks on pages or numbering. Skip this step, then watch formatting crumble each time edits arrive.</p>
-      <p>Most jobs need steps done right. Building a sales kit, welcome paperwork, or form stack works better when broken down - first join files, then cut extras, shift pages around, finally lock it in. With Tooliest, merging happens here, splitting there, reordering somewhere else entirely. Each move gets its own space, so adjusting structure never means wrestling a cluttered screen. A practical sequence is <a href="/pdf-merger/">PDF Merger</a>, <a href="/pdf-splitter/">PDF Splitter</a>, then <a href="/pdf-reorder/">PDF Reorder</a>.</p>
+        <p>The logic behind this sequence is structural. Each operation acts on a different layer of the document, and later operations need earlier layers to be stable before they can do their work properly. Merging and splitting change the page structure: the fundamental question of which pages exist in the file. Every subsequent operation applies to exactly the pages that survive this stage, so structure must be finalized first. Compression reduces file size based on the current content of those pages, so doing it early means compressing pages you may remove, then adding uncompressed pages later. Watermarking modifies the visual layer of each page by adding rendered overlay elements. Password protection encrypts the entire content layer, so it belongs last because an encrypted file cannot be modified without the decryption credential.</p>
+        <p>Structure first. Then optimize. Then secure. Every step builds on a stable foundation from the previous one.</p>
 
-      <h2>Compression is about constraints, not perfection</h2>
-      <p>Heavy files get turned away by upload forms, so shrinking them helps. To keep pages clear while cutting size matters more than just squeezing blindly. Scanned papers lose bulk fast when compressed. Slide shows with pictures also drop weight quick. Documents built from typed words resist change unless they carry odd extras like big fonts or hidden bits.</p>
-      <p>Start with checking the file if there are tiny texts, sketches, or signed parts - squeeze too much and things get blurry. There?s a balance, right? That?s where Tooliest's <a href="/pdf-compressor/">PDF Compressor</a> steps in, trimming size while keeping clarity sharp. It avoids pixel soup when shrinking pages.</p>
+        <h2>What Actually Happens Inside a PDF During Each Operation</h2>
+        <p><strong>Merging.</strong> A PDF file is an object graph. Every text block, image, font definition, annotation, and page reference is a numbered object stored in the file body. The cross-reference table maps each object number to its byte offset within the file, which is how the PDF reader finds anything without parsing the entire file sequentially. When you merge two PDFs, the merger reads both cross-reference tables, renumbers the objects from the second file to avoid collisions with the first file's numbering, combines both page trees into a single parent page tree, and writes a new unified cross-reference table. The result is a single file containing all objects from both sources.</p>
+        <p>Font handling during merging creates an important inefficiency: if both source files use the same font, such as Arial for body text, the merged file may contain two copies of that font's embedded data rather than one shared copy. This is why merged files are commonly larger than the sum of their sources. A professional merger can detect and deduplicate identical embedded fonts, but most browser-based tools prioritize correctness over this optimization. Expect 5 to 15% overhead in merged files compared to the sum of source file sizes.</p>
+        <p><strong>Splitting.</strong> The splitter reads the cross-reference table, identifies every object referenced by the selected page or page range, copies those objects into a new file with a fresh cross-reference table, and writes the result. That includes the page content stream, embedded images, font definitions, color profiles, annotations, and form fields. Objects shared across multiple pages, such as font definitions used throughout the document, are included in the split output even if most of the pages using them were left behind. A 10-page split from a 100-page document is not one-tenth the file size. The split output carries every shared resource necessary to render its pages correctly.</p>
+        <p><strong>Compression.</strong> PDF compression targets four distinct categories of data, each with different reduction potential. Images are almost always the dominant file size contributor, particularly in scanned documents where every page is a full-resolution raster image. A scanned contract page captured at 300 DPI is typically 2 to 3MB per page as an uncompressed image. Downsampling to 150 DPI for screen viewing reduces that to approximately 500KB per page, a 75% reduction with minimal visible difference on a monitor or standard office printer. At 96 DPI for web or email viewing, the same page reaches 200KB. Compression tools target the resolution and JPEG quality level of each embedded image independently.</p>
+        <p>Content streams, the text rendering instructions that draw characters at specific positions with specific sizes and colors, are compressed using Flate encoding. These are already space-efficient for typical business documents and rarely account for more than 5 to 10% of file size in mixed text-and-image files. Font subsetting is more impactful: a PDF may embed the complete font file for every font used, even if the document uses only a fraction of the glyphs. A complete Arial font file is approximately 400 to 600KB. If the document only uses Latin characters and basic punctuation, subsetting can replace the full font with a smaller glyph subset, reducing that font's contribution to roughly 40 to 60KB. Metadata and document history rarely account for more than a few KB and are the least impactful compression target.</p>
 
-      <h2>Security and privacy are not the same thing</h2>
-      <p>One way to keep a PDF safe is adding a password. Yet that does not mean everything around it stays hidden. Even locked files might leak during steps before encryption. Think about where the file goes before protection kicks in. Sending it somewhere online could open gaps. Working inside your own browser helps close those gaps. The last version may have strong locks, but early exposure still counts.</p>
-      <p>Most times, when a PDF holds agreements, identification papers, personal details, or private memos, working offline first makes sense - adjust it on your machine, add protection there too, only afterward send out the final version. The design behind Tooliest's <a href="/pdf-protect/">PDF Password Protect</a> tool and its web-centered workflow follows this very logic.</p>
+        <div class="guide-pdf-compression" aria-label="PDF compression benchmark table">
+          <table>
+            <thead><tr><th>Document Type</th><th>Original Size</th><th>Compressed</th><th>Reduction</th></tr></thead>
+            <tbody>
+              <tr><td>Text-only contract (50 pages)</td><td>800 KB</td><td>650 KB</td><td><span style="--bar:18%">18%</span></td></tr>
+              <tr><td>Scanned document (20 pages)</td><td>35 MB</td><td>8 MB</td><td><span style="--bar:77%">77%</span></td></tr>
+              <tr><td>Presentation export (30 slides)</td><td>15 MB</td><td>5 MB</td><td><span style="--bar:67%">67%</span></td></tr>
+              <tr><td>Form-heavy document (10 pages)</td><td>2 MB</td><td>1.5 MB</td><td><span style="--bar:25%">25%</span></td></tr>
+            </tbody>
+          </table>
+        </div>
 
-      <h2>A practical PDF stack for everyday work</h2>
-      <p>Most teams follow a straightforward routine. Start by combining or dividing files - whichever comes first. Rearranging happens later, only if the order feels off. Squeezing file size waits until everything else settles. Once pages stay put, toss on numbers or faint marks across sheets. Lock things down whenever private details are inside. Doing steps in this flow cuts extra work. The result stays neater that way.</p>
-      <p>Working through PDF tasks feels lighter with Tooliest's collection. Rather than facing a single bulky software set, each tool does just one thing - join pages, cut extras, save formats, lock documents - all right inside your browser. Handling files becomes quieter, simpler, skipping the usual round of sending things back and forth online.</p>
-    `,
+        <p>Realistic compression results vary sharply by document type. A 50-page text-only contract that starts at 800KB may compress to 650KB, only an 18% reduction, because text streams and fonts are already compact. A 20-page scanned document at 300 DPI can drop from 35MB to 8MB, a 77% reduction, because image downsampling delivers the savings. A 30-slide presentation export with embedded graphics commonly drops from 15MB to 5MB. A 10-page form-heavy document might move from 2MB to 1.5MB, mostly through font subsetting and form field cleanup.</p>
+        <p><strong>Password protection.</strong> PDF encryption applies AES-256 to the file's content streams: the text and image data that constitutes the readable document. Two distinct passwords serve different access levels. The user password, when set, must be entered before the file opens at all. The owner password controls document permissions: whether the recipient can print, copy text, extract pages, or make annotations. A document with only a user password grants full permissions to anyone who enters that password. A document with both passwords restricts the user-password holder to whatever permissions the owner set, while the owner-password holder retains full control.</p>
+
+        <div class="guide-pdf-encryption" aria-label="PDF user password and owner password model">
+          <article><span aria-hidden="true">&#128275;</span><h3>User Password</h3><p>Opens the file. Use it when the content should not be readable without a credential.</p></article>
+          <article><span aria-hidden="true">&#128272;</span><h3>Owner Password</h3><p>Controls permissions such as print, copy, edit, annotation, and page extraction.</p></article>
+          <p>Use a user password for access control. Add an owner password when recipients may read the file but should not modify, extract, or redistribute it. For strict confidentiality, strip metadata before encryption because standard PDF encryption can leave title, author, creation date, and creation application readable in the file header.</p>
+        </div>
+
+        <h2>Browser-Based PDF Processing vs Cloud Services: The Privacy Question</h2>
+        <p>When you upload a file to Adobe Acrobat Online, iLovePDF, SmallPDF, or any other cloud PDF service, the complete file transmits to their server over HTTPS, is decrypted on their infrastructure for processing, and the result is transmitted back. The file exists on their hardware for some duration, typically one to 24 hours based on stated retention policies, though policy and practice are not always auditable from the outside. The HTTPS encryption protects the file in transit but does not protect it during the processing window on their server.</p>
+
+        <div class="guide-pdf-privacy" aria-label="Browser processing compared with cloud PDF processing">
+          <article class="cloud">
+            <h3>Cloud Processing</h3>
+            <p>File uploaded &rarr; processed on server &rarr; downloaded</p>
+            <ul>
+              <li>File leaves your device</li>
+              <li>Retained 1-24 hours</li>
+              <li>Trust required</li>
+            </ul>
+          </article>
+          <article class="browser">
+            <h3>Browser Processing</h3>
+            <p>File stays in browser &rarr; processed locally &rarr; saved to device</p>
+            <ul>
+              <li>Never leaves device</li>
+              <li>No retention</li>
+              <li>Zero trust required</li>
+            </ul>
+          </article>
+        </div>
+
+        <p>This is an acceptable trade for publicly available marketing materials, published reports, or any document you would be comfortable distributing freely. It is a meaningful privacy question for contracts, medical records, financial statements, personnel files, legal discovery documents, or any file that is confidential by nature or by the terms of an NDA. If you would not send the file to an unknown person by email, the same logic applies to uploading it to a processing server operated by a company whose full data handling practices you cannot verify.</p>
+        <p>Browser-based processing eliminates server involvement entirely. Tools like Tooliest's PDF suite use JavaScript libraries, including PDF-lib for merging, splitting, and password operations, that execute within your browser tab. The file is read from your device into the browser's memory, processed by JavaScript running on your CPU, and the result is written back to your device. No data is transmitted. No server receives the file. No retention policy applies because no third party ever touches the content.</p>
+        <p>The practical tradeoff is processing speed on very large files. Your browser operates within memory and CPU constraints that a cloud server with dedicated processing hardware does not share. For files under approximately 50MB and documents under 200 pages, which covers the vast majority of daily professional PDF work, browser-based processing is fast enough that the difference is not noticeable. For a 200-page scanned document at 300 DPI totaling 400MB, a cloud service may be meaningfully faster. For files in that size range, the decision should be made consciously based on content sensitivity rather than defaulting to whichever tool opens first.</p>
+        <p>Cloud tools also hold an advantage for optical character recognition, which requires inference models too large to run in a browser at acceptable speed, and for automated batch processing through APIs. For any task that falls outside those two cases, browser-based processing provides equivalent functionality with a privacy profile that cloud services cannot match.</p>
+
+        <h2>Four PDF Workflows for Common Professional Tasks</h2>
+        <div class="guide-pdf-recipes" aria-label="PDF workflow recipe cards">
+          <details open>
+            <summary><strong>Sales Kit</strong><span><b>Merge</b><b>Compress</b><b>Watermark</b><b>Protect</b></span></summary>
+            <p><strong>Source files:</strong> a one-page cover page, a three-page company overview, a two-page pricing sheet, three five-page case studies, and a four-page terms and conditions document: 20 pages total across seven files.</p>
+            <ol><li>Merge all seven source files in the correct presentation order using the <a href="/pdf-merger/">PDF Merger</a>.</li><li>Review the merged document and reorder any sections that landed incorrectly.</li><li>Compress the final package with the <a href="/pdf-compressor/">PDF Compressor</a>; expect 40 to 60% size reduction on image-heavy case studies.</li><li>Add a branded or DRAFT watermark for internal review, then protect pricing-sensitive versions with <a href="/pdf-protect/">PDF Password Protect</a>.</li></ol>
+          </details>
+          <details>
+            <summary><strong>Onboarding Packet</strong><span><b>Merge</b><b>Split</b><b>Compress</b><b>Number</b></span></summary>
+            <p><strong>Source files:</strong> a welcome letter, a 50-page employee handbook, tax forms, a direct deposit form, and an NDA: roughly 60 pages across five documents.</p>
+            <ol><li>Merge all documents into one packet.</li><li>Split immediately to create the complete employee copy and an HR-only copy containing the return forms.</li><li>Compress both files; the handbook is usually the size driver.</li><li>Add page numbers to handbook sections so orientation references are easy to follow.</li></ol>
+          </details>
+          <details>
+            <summary><strong>Confidential Report</strong><span><b>Merge</b><b>Split</b><b>Compress</b><b>Watermark</b><b>Protect</b></span></summary>
+            <p><strong>Source files:</strong> quarterly financial statements, board presentation slide exports, and auditor commentary notes: usually 40 to 60 pages across three sources.</p>
+            <ol><li>Merge in section order: financial statements, slides, auditor notes.</li><li>Split to remove draft pages, preliminary numbers, or internal commentary.</li><li>Compress slide-heavy pages, which commonly shrink by 50 to 70%.</li><li>Apply a diagonal CONFIDENTIAL watermark and both user and owner passwords.</li></ol>
+          </details>
+          <details>
+            <summary><strong>Archive Bundle</strong><span><b>Merge</b><b>Reorder</b><b>Compress</b><b>Number</b><b>Protect</b></span></summary>
+            <p><strong>Source files:</strong> contracts, correspondence threads, deliverable versions, invoices, and approvals accumulated over a completed project.</p>
+            <ol><li>Merge all documents in chronological order.</li><li>Reorder any misfiled documents that landed in the wrong sequence.</li><li>Compress aggressively because archived documents usually need retrieval quality, not print-production quality.</li><li>Add sequential page numbers for audit citations and protect the bundle for long-term storage.</li></ol>
+          </details>
+        </div>
+
+        <p>The sales kit result is a single professional document, appropriately compressed for email delivery within the 25MB attachment limit most corporate email servers enforce, watermarked to communicate its status, and optionally locked for recipients who need the pricing but not the ability to extract and redistribute it.</p>
+        <p>The onboarding packet result is cleaner for both sides: employees receive one comprehensive packet instead of six separate attachments that can arrive in the wrong order, while HR gets a return-focused version that clarifies exactly which signed documents should come back.</p>
+        <p>The confidential report workflow protects both access and behavior. Board members can open the file with the user password and view content normally, but copy, extraction, print, and edit permissions can stay restricted behind the owner credential. The watermark visually communicates confidentiality even if the file is displayed on a shared screen.</p>
+        <p>The archive bundle turns a messy folder of scattered PDFs into one file with a stable order, smaller storage footprint, page-level citation support, and access control over its retention lifetime. That structure matters months later when someone needs to find a specific approval or invoice without reconstructing the project history from filenames.</p>
+        <p>Build your next PDF workflow using Tooliest's browser-based tools: merge documents with the <a href="/pdf-merger/">PDF Merger</a>, extract pages with the <a href="/pdf-splitter/">PDF Splitter</a>, reduce file size with the <a href="/pdf-compressor/">PDF Compressor</a>, stamp pages with the <a href="/pdf-watermark/">PDF Watermark</a> tool, and lock sensitive files with <a href="/pdf-protect/">PDF Password Protect</a>. Every operation happens in your browser, so your documents never leave your device.</p>
+      </div>
+`,
     faqs: [
       { q: 'What is the best order for editing a PDF?', a: 'Start with structure first: merge, split, delete, or reorder pages. After the page sequence is final, compress, watermark, number, or protect the file as needed.' },
       { q: 'Why do scanned PDFs compress more than text PDFs?', a: 'Scanned PDFs are usually heavy because they contain full-page images. Text-native PDFs often store actual text and fewer raster assets, so they typically have less size to remove.' },
